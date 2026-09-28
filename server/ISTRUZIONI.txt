@@ -1,56 +1,70 @@
-PREDIZIONE — come mettere online l'immagine dinamica (hosting PHP, es. Aruba)
+PREDIZIONE — come mettere online il sistema (hosting PHP, es. Tophost / Aruba)
 ============================================================================
 
 COSA TI SERVE
-- Un dominio + spazio hosting con PHP (Aruba va benissimo).
-- Le due foto pronte.
-- Un programma per caricare i file (il "Gestione File" del pannello Aruba,
+- Un dominio + spazio hosting con PHP (Tophost "Topweb" va benissimo).
+- Un programma per caricare i file (il "Gestione File" del pannello,
   oppure un programma FTP come FileZilla).
 
 
-PASSO 1 — Prepara i file
-- Rinomina le due foto:
-    foto_a.jpg  = quella che si vede PRIMA dell'orario
-    foto_b.jpg  = quella che si vede DOPO l'orario
-  (Se sono .png chiamale foto_a.png / foto_b.png e cambia i nomi dentro image.php.)
+I FILE DEL SERVER (cartella "server/" del progetto)
+- config.php   -> impostazioni (qui dentro scegli la TUA PASSWORD)
+- image.php    -> l'immagine dinamica che finisce nella mail
+- stato.php    -> riceve i comandi Avvia/Finisci dal pannello
+- carica.php   -> riceve le foto dal pannello
+Le foto, lo stato del gioco e il log NON si caricano a mano: li gestisce
+il pannello da solo, e finiscono nella cartella protetta _dati/ (creata
+in automatico).
 
 
-PASSO 2 — Carica tutto
+PASSO 1 — Scegli la password
+- Apri config.php e cambia questa riga:
+      const PREDIZIONE_PASSWORD = 'CAMBIA_QUESTA_PASSWORD';
+  mettendo una password tua, difficile da indovinare. La stessa password
+  la userai nel pannello. NON condividerla con nessuno.
+
+
+PASSO 2 — Carica i file
 - Crea sul server una cartella, per esempio:   /predizione/
-- Dentro carica:   image.php ,  foto_a.jpg ,  foto_b.jpg
+- Dentro carica QUESTI quattro file:
+      config.php , image.php , stato.php , carica.php
+- Non serve creare tu la cartella _dati/: la crea da sola al primo utilizzo.
 
 
-PASSO 3 — Imposta data e ora dello scambio
-- Apri image.php e modifica la riga:
-      $ORARIO_SCAMBIO = '2026-09-27 21:00:00';
-  mettendo la data e l'ora del tuo show (formato: ANNO-MESE-GIORNO ORA:MIN:SEC).
-
-
-PASSO 4 — Prova
+PASSO 3 — Prova che il server risponda
 - Apri nel browser:
       https://abraka.it/predizione/image.php
-  Prima dell'orario deve comparire la Foto A, dopo la Foto B.
-- Per provare subito lo scambio senza aspettare: crea un file  forza.txt
-  nella stessa cartella scrivendoci dentro solo  A  (o  B ). Ricarica la pagina:
-  vedrai quella foto. Cancella forza.txt per tornare all'automatico a orario.
+  A gioco spento deve comparire (o sembrare vuoto): e' un'immagine neutra
+  trasparente. E' normale: la foto vera appare solo quando il pannello
+  avvia il gioco.
+- Poi apri il pannello, inserisci la password, carica le due foto e premi
+  "Avvia gioco": ricaricando image.php dovrai vedere la Foto A. Premendo
+  "Finisci gioco" (o allo scattare dell'orario di sicurezza) vedrai la B.
 
 
-PASSO 5 — Metti l'immagine nella mail
+PASSO 4 — Metti l'immagine nella mail
 - Nel corpo della mail (in HTML) inserisci questa immagine:
 
       <img src="https://abraka.it/predizione/image.php?id=SPETTATORE1"
            width="500" style="display:block;max-width:100%;border:0" alt="">
 
-- Il pezzo  ?id=SPETTATORE1  serve a due cose: dare un indirizzo diverso a ogni
-  spettatore (aiuta contro la cache) e sapere chi apre. Metti un id diverso per
-  ognuno (es. l'email o un numero progressivo).
+- Il pezzo  ?id=SPETTATORE1  serve a due cose: dare un indirizzo diverso a
+  ogni spettatore (aiuta contro la cache) e sapere chi apre. Metti un id
+  diverso per ognuno (es. l'email o un numero progressivo).
+
+
+COME FUNZIONA LO SCAMBIO (le tre fasi)
+- SPENTO     -> image.php mostra un'immagine neutra; le mail non vanno elaborate.
+- IN CORSO   -> dopo "Avvia gioco": chi apre vede la Foto A.
+- TERMINATO  -> dopo "Finisci gioco" OPPURE allo scattare dell'orario di
+               sicurezza: chi apre vede la Foto B.
+Lo decide il pannello; il server obbedisce.
 
 
 IL LOG DELLE APERTURE (la "cattura")
-- Ogni apertura viene registrata nel file  aperture.csv  nella stessa cartella.
-- Contiene: data e ora, id spettatore, foto mostrata (A/B), IP, dispositivo.
-- Lo apri con Excel o col Gestione File per vedere chi ha aperto e quando.
-- Per disattivarlo: in image.php metti  $ABILITA_LOG = false;
+- Ogni apertura viene registrata nel file  _dati/aperture.csv
+- Contiene: data e ora, id spettatore, foto mostrata (A/B/neutro), IP, dispositivo.
+- Per disattivarlo: in config.php metti  const ABILITA_LOG = false;
 
 
 IMPORTANTISSIMO — NON spegnere mai il server / non cancellare la cartella:

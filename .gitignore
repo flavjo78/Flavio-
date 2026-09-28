@@ -1,4 +1,5 @@
-# File generati sul server: non vanno nel repository
+# Dati generati sul server (foto caricate, stato, log aperture): non nel repo
+server/_dati/
 server/aperture.csv
 server/forza.txt
 server/foto_a.*
