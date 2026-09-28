@@ -179,7 +179,7 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
 
 ### Snippet dell'immagine nella mail (per l'autorisponditore)
 ```html
-<img src="https://ILTUODOMINIO/predizione/image.php?id=SPETTATORE1"
+<img src="https://abraka.it/predizione/image.php?id=SPETTATORE1"
      width="500" style="display:block;max-width:100%;border:0" alt="">
 ```
 Un `id` diverso per ogni destinatario (es. email o numero progressivo).

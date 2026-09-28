@@ -28,7 +28,7 @@ PASSO 3 — Imposta data e ora dello scambio
 
 PASSO 4 — Prova
 - Apri nel browser:
-      https://ILTUODOMINIO/predizione/image.php
+      https://abraka.it/predizione/image.php
   Prima dell'orario deve comparire la Foto A, dopo la Foto B.
 - Per provare subito lo scambio senza aspettare: crea un file  forza.txt
   nella stessa cartella scrivendoci dentro solo  A  (o  B ). Ricarica la pagina:
@@ -38,7 +38,7 @@ PASSO 4 — Prova
 PASSO 5 — Metti l'immagine nella mail
 - Nel corpo della mail (in HTML) inserisci questa immagine:
 
-      <img src="https://ILTUODOMINIO/predizione/image.php?id=SPETTATORE1"
+      <img src="https://abraka.it/predizione/image.php?id=SPETTATORE1"
            width="500" style="display:block;max-width:100%;border:0" alt="">
 
 - Il pezzo  ?id=SPETTATORE1  serve a due cose: dare un indirizzo diverso a ogni
