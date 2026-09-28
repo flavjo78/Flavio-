@@ -316,9 +316,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 (function(){
   var $=function(id){return document.getElementById(id);};
 
-  // Indirizzo degli script sul server. Il pannello sta in /pannello/ e gli
-  // script PHP in /predizione/: da qui il percorso relativo e' ../predizione/.
-  var API_BASE = '../predizione/';
+  // Indirizzo degli script sul server. Il pannello e gli script PHP stanno
+  // nella STESSA cartella (es. abraka.it/predizione/), quindi percorso "./".
+  var API_BASE = './';
 
   // ---- password salvata solo su questo dispositivo ----
   var pwInput=$('pw');
