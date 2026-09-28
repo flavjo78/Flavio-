@@ -85,6 +85,7 @@ predizione/
 │   ├─ image.php                   ← immagine dinamica (il cuore dell'effetto)
 │   ├─ stato.php                   ← comandi Avvia/Finisci/Azzera/Forza (protetti)
 │   ├─ carica.php                  ← upload delle foto dal pannello (protetto)
+│   ├─ neutro.png                  ← Foto A neutra PREDEFINITA (usata se non se ne carica una)
 │   ├─ _dati/                      ← [creata sul server] foto, stato.json, aperture.csv
 │   └─ ISTRUZIONI.txt              ← come caricare i file su abraka.it
 └─ guide/
@@ -121,6 +122,9 @@ orario di sicurezza opzionale), `finisci` (la sessione corrente → rivelazione)
 Riceve dal pannello (con password) e valida l'immagine (JPG/PNG/GIF/WEBP):
 `slot=A` → **Foto A neutra** persistente (`_dati/foto_a.*`, riusata ogni sessione);
 `slot=B` → **rivelazione** in attesa (`_dati/rivelazione_pronta.*`), consumata al prossimo `avvia`.
+Se non si carica nessuna Foto A, `avvia` usa la **neutra predefinita `neutro.png`**
+(nella cartella degli script): così basta caricare la rivelazione. Il performer può
+sovrascrivere la neutra caricandone una propria (slot=A) quando vuole.
 
 ### `server/image.php`
 Il motore dell'effetto. La mail chiede `image.php?s=NUMERO&id=…`; lo script guarda la

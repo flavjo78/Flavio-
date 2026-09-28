@@ -31,7 +31,7 @@ function predizione_stato_pubblico(array $s): array {
         'orario_scambio' => ($sess && !empty($sess['orario_scambio'])) ? (int)$sess['orario_scambio'] : null,
         'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
-        'ha_foto_a'          => !empty($s['foto_a']) && is_file($s['foto_a']),
+        'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'aperture'       => predizione_conta_aperture(),
         'ora_server'     => time(),
@@ -53,11 +53,13 @@ if (!predizione_password_ok($password)) {
 switch ($azione) {
 
     case 'avvia':
-        // servono la Foto A neutra e una rivelazione pronta
-        $foto_a = $stato['foto_a'] ?? null;
+        // Foto A: quella caricata, altrimenti la neutra PREDEFINITA (neutro.png)
+        $foto_a = (!empty($stato['foto_a']) && is_file($stato['foto_a']))
+                  ? $stato['foto_a']
+                  : __DIR__ . '/neutro.png';
         $riv    = $stato['rivelazione_pronta'] ?? null;
-        if (empty($foto_a) || !is_file($foto_a)) {
-            predizione_json(['ok' => false, 'errore' => 'Carica prima la Foto A (neutra)'], 400);
+        if (!is_file($foto_a)) {
+            predizione_json(['ok' => false, 'errore' => 'Manca la Foto A neutra (neutro.png)'], 400);
         }
         if (empty($riv) || !is_file($riv)) {
             predizione_json(['ok' => false, 'errore' => 'Carica prima la rivelazione di questa sessione'], 400);
