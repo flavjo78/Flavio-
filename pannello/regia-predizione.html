@@ -179,6 +179,11 @@
   .switch input:checked ~ .knob{transform:translateX(22px);background:var(--gold)}
   .switch input:focus-visible ~ .track{outline:2px solid var(--gold);outline-offset:2px}
 
+  .phaseline{text-align:center;color:var(--ink-dim);font-size:13px;margin-top:2px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:9;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
+  .toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
   .foot{text-align:center;color:var(--ink-faint);font-size:11px;letter-spacing:.1em;margin-top:22px;line-height:1.6}
   .foot .demo{display:inline-block;margin-top:6px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;letter-spacing:.14em;text-transform:uppercase}
 
@@ -209,30 +214,30 @@
 
       <div class="counter" id="counterWrap">
         <div class="num" id="count">0</div>
-        <div class="lbl">Mail ricevute da inizio gioco</div>
+        <div class="lbl">Aperture registrate</div>
       </div>
 
+      <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
+
       <div class="meta">
-        <span>Sessione&nbsp;·&nbsp;<b id="clock">--:--</b></span>
-        <span>Ultima&nbsp;·&nbsp;<b id="last">—</b></span>
+        <span>Foto attiva&nbsp;·&nbsp;<b id="fotoAttiva">—</b></span>
+        <span>Sicurezza&nbsp;·&nbsp;<b id="chipTime">—</b></span>
       </div>
 
       <div class="chips" id="chips">
         <span class="chip" id="chipA"><span class="st"></span>Foto A</span>
         <span class="chip" id="chipB"><span class="st"></span>Foto B</span>
-        <span class="chip ok" id="chipT"><span class="st"></span>Scambio&nbsp;<b id="chipTime">21:00</b></span>
+        <span class="chip" id="chipConn"><span class="st"></span><b id="connLbl">connessione…</b></span>
       </div>
 
       <div class="game-btns">
-        <button class="btn primary" id="startBtn">Inizia gioco</button>
+        <button class="btn primary" id="startBtn">Avvia gioco</button>
         <button class="btn stop" id="stopBtn" disabled>Finisci gioco</button>
+        <button class="btn ghost" id="resetBtn">Azzera</button>
       </div>
     </section>
 
-    <p class="foot">
-      Regia Predizione · formato verticale
-      <br><span class="demo">Anteprima · il contatore è simulato</span>
-    </p>
+    <p class="foot" id="foot">Regia Predizione · <b id="footHost">non collegato</b></p>
   </div>
 
   <!-- ============ SETTINGS VIEW ============ -->
@@ -244,28 +249,47 @@
       <div><h2>Impostazioni</h2><div class="sub">Prepara lo show</div></div>
     </div>
 
+    <section aria-label="Accesso">
+      <div class="sec-head"><h2 class="sec-title">Accesso</h2><span class="sec-num">Password</span></div>
+      <div class="field">
+        <label for="pw">Password del pannello</label>
+        <input type="password" id="pw" placeholder="la password scelta sul server" autocomplete="off">
+      </div>
+      <p class="hint">È la stessa password che hai messo in <b>config.php</b> sul server. Resta salvata solo su questo telefono.</p>
+    </section>
+
     <section aria-label="Le due foto">
       <div class="sec-head"><h2 class="sec-title">Le due foto</h2><span class="sec-num">A / B</span></div>
 
       <label class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
         <span class="thumb"><span class="ph">A</span></span>
-        <span class="slot-txt"><span class="t">Foto A</span><span class="s">prima dell'orario · nessun file</span></span>
+        <span class="slot-txt"><span class="t">Foto A</span><span class="s">durante il gioco · nessun file</span></span>
         <span class="tag">Carica</span>
       </label>
 
       <label class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
         <span class="thumb"><span class="ph">B</span></span>
-        <span class="slot-txt"><span class="t">Foto B</span><span class="s">dopo l'orario · nessun file</span></span>
+        <span class="slot-txt"><span class="t">Foto B</span><span class="s">dopo lo scambio · nessun file</span></span>
         <span class="tag">Carica</span>
       </label>
 
       <div class="field">
-        <label for="swtime">Orario dello scambio</label>
-        <input type="time" id="swtime" value="21:00">
+        <label for="swtime">Orario di sicurezza (facoltativo)</label>
+        <input type="time" id="swtime">
       </div>
-      <p class="hint">Chi apre la mail <b>prima</b> di quest'ora vede la Foto A; chi la apre <b>dopo</b> vede la Foto B. La versione vista resta fissa per quello spettatore.</p>
+      <p class="hint">Rete di sicurezza: se a quest'ora <b>non</b> hai ancora premuto "Finisci gioco", lo scambio A→B scatta da solo. Di solito coincide con la fine dello spettacolo. Lascia vuoto per comandare solo a mano.</p>
+    </section>
+
+    <section aria-label="Prova">
+      <div class="sec-head"><h2 class="sec-title">Prova (test)</h2><span class="sec-num">Forza</span></div>
+      <div class="game-btns" style="grid-template-columns:1fr 1fr 1fr">
+        <button class="btn ghost" id="forceA" type="button">Mostra A</button>
+        <button class="btn ghost" id="forceB" type="button">Mostra B</button>
+        <button class="btn ghost" id="forceOff" type="button">Auto</button>
+      </div>
+      <p class="hint">Solo per le prove: forza la Foto A o B ignorando le fasi. <b>Auto</b> torna al comportamento normale. Ricordati di lasciarlo su Auto prima dello show.</p>
     </section>
 
     <section aria-label="Messaggio automatico">
@@ -283,75 +307,168 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     <p class="foot">Le impostazioni si preparano prima dello show.</p>
   </div>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
 </div>
 
 <script>
 (function(){
-  var count=0, running=false, timer=null, sessionStart=null, clockInt=null;
   var $=function(id){return document.getElementById(id);};
+
+  // Indirizzo degli script sul server. Il pannello sta in /pannello/ e gli
+  // script PHP in /predizione/: da qui il percorso relativo e' ../predizione/.
+  var API_BASE = '../predizione/';
+
+  // ---- password salvata solo su questo dispositivo ----
+  var pwInput=$('pw');
+  try { pwInput.value = localStorage.getItem('pred_pw') || ''; } catch(e){}
+  pwInput.addEventListener('input', function(){
+    try { localStorage.setItem('pred_pw', pwInput.value); } catch(e){}
+  });
+  function getPw(){ return pwInput.value || ''; }
+
+  // ---- toast (messaggi brevi) ----
+  var toastEl=$('toast'), toastT=null;
+  function toast(msg, kind){
+    toastEl.textContent=msg;
+    toastEl.className='toast show'+(kind?(' '+kind):'');
+    clearTimeout(toastT);
+    toastT=setTimeout(function(){ toastEl.className='toast'; }, 2600);
+  }
+
+  // ---- chiamate al server ----
+  function apiStato(){
+    return fetch(API_BASE+'stato.php?azione=stato', {cache:'no-store'})
+      .then(function(r){ return r.json(); });
+  }
+  function apiAzione(azione, extra){
+    var body=new URLSearchParams();
+    body.set('azione', azione);
+    body.set('password', getPw());
+    if(extra){ for(var k in extra){ body.set(k, extra[k]); } }
+    return fetch(API_BASE+'stato.php', {method:'POST', body:body})
+      .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+  }
+  function apiCarica(slot, file){
+    var fd=new FormData();
+    fd.set('password', getPw());
+    fd.set('slot', slot);
+    fd.set('foto', file);
+    return fetch(API_BASE+'carica.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+  }
+
+  // ---- elementi UI ----
   var elCount=$('count'), elWrap=$('counterWrap'), elPill=$('statePill'), elLbl=$('stateLbl'),
-      elLast=$('last'), elClock=$('clock'), startBtn=$('startBtn'), stopBtn=$('stopBtn');
+      startBtn=$('startBtn'), stopBtn=$('stopBtn'), resetBtn=$('resetBtn'),
+      phaseLine=$('phaseLine'), fotoAttiva=$('fotoAttiva'), chipTime=$('chipTime'),
+      chipA=$('chipA'), chipB=$('chipB'), chipConn=$('chipConn'), connLbl=$('connLbl'),
+      footHost=$('footHost');
 
   function two(n){return (n<10?'0':'')+n;}
-  function hhmm(d){return two(d.getHours())+':'+two(d.getMinutes());}
-  function tickClock(){ if(!sessionStart){elClock.textContent='--:--';return;} var s=Math.floor((Date.now()-sessionStart)/1000); elClock.textContent=two(Math.floor(s/60))+':'+two(s%60); }
+  function tsToHHMM(ts){ if(!ts) return '—'; var d=new Date(ts*1000); return two(d.getHours())+':'+two(d.getMinutes()); }
 
-  function scheduleMail(){
-    if(!running) return;
-    timer=setTimeout(function(){
-      if(!running) return;
-      count++; elCount.textContent=count; elLast.textContent=hhmm(new Date());
+  var lastAperture=null;
+
+  function render(st){
+    chipConn.classList.add('ok'); connLbl.textContent='Collegato'; footHost.textContent='collegato';
+
+    var fase=st.fase, foto='—', frase='';
+    if(st.forza==='A' || st.forza==='B'){
+      foto=st.forza+' (test)'; frase='Modalità test · mostra Foto '+st.forza;
+    } else if(fase==='spento'){
+      foto='neutra'; frase='Gioco spento · nessuna foto mostrata';
+    } else if(fase==='terminato'){
+      foto='B'; frase='Gioco terminato · chi apre vede la Foto B';
+    } else if(fase==='avviato'){
+      if(st.orario_scambio && st.ora_server >= st.orario_scambio){
+        foto='B'; frase='Orario di sicurezza scattato · Foto B';
+      } else {
+        foto='A'; frase='Gioco in corso · chi apre vede la Foto A';
+      }
+    }
+    fotoAttiva.textContent=foto;
+    phaseLine.textContent=frase;
+
+    elPill.classList.remove('live'); elWrap.classList.remove('live');
+    if(fase==='avviato'){ elPill.classList.add('live'); elWrap.classList.add('live'); elLbl.textContent='In corso'; }
+    else if(fase==='terminato'){ elLbl.textContent='Terminato'; }
+    else { elLbl.textContent='Spento'; }
+
+    startBtn.disabled = (fase==='avviato');
+    stopBtn.disabled  = (fase!=='avviato');
+
+    chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
+    chipA.classList.toggle('ok', !!st.ha_foto_a);
+    chipB.classList.toggle('ok', !!st.ha_foto_b);
+
+    var n=st.aperture||0;
+    elCount.textContent=n;
+    if(lastAperture!==null && n>lastAperture){
       elCount.animate&&elCount.animate([{transform:'scale(1.14)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});
-      scheduleMail();
-    }, 1400+Math.random()*2600);
+    }
+    lastAperture=n;
   }
-  function start(){
-    running=true; count=0; sessionStart=Date.now();
-    elCount.textContent='0'; elLast.textContent='—';
-    elPill.classList.add('live'); elWrap.classList.add('live'); elLbl.textContent='In corso';
-    startBtn.disabled=true; stopBtn.disabled=false;
-    tickClock(); clockInt=setInterval(tickClock,1000); scheduleMail();
+
+  function offline(){
+    chipConn.classList.remove('ok'); connLbl.textContent='Offline'; footHost.textContent='non collegato';
   }
-  function stop(){
-    running=false; clearTimeout(timer); clearInterval(clockInt);
-    elPill.classList.remove('live'); elWrap.classList.remove('live'); elLbl.textContent='Terminato';
-    startBtn.disabled=false; stopBtn.disabled=true;
+  function poll(){ apiStato().then(function(j){ if(j && j.stato){ render(j.stato); } else { offline(); } }).catch(offline); }
+
+  function comando(azione, extra, okMsg){
+    if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
+    apiAzione(azione, extra).then(function(res){
+      if(res.data && res.data.ok){ toast(okMsg,'ok'); render(res.data.stato); }
+      else { toast((res.data&&res.data.errore)||'Errore','err'); poll(); }
+    }).catch(function(){ toast('Server non raggiungibile','err'); offline(); });
   }
-  startBtn.addEventListener('click',start);
-  stopBtn.addEventListener('click',stop);
+
+  // ---- pulsanti gioco ----
+  startBtn.addEventListener('click', function(){
+    var extra={}; var t=$('swtime').value; if(t){ extra.orario_scambio=t; }
+    comando('avvia', extra, 'Gioco avviato · Foto A');
+  });
+  stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Gioco terminato · Foto B'); });
+  resetBtn.addEventListener('click', function(){ comando('azzera', null, 'Gioco azzerato'); });
+
+  // ---- forza (test) ----
+  $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });
+  $('forceB').addEventListener('click', function(){ comando('forza',{valore:'B'},'Test: mostro Foto B'); });
+  $('forceOff').addEventListener('click', function(){ comando('forza',{valore:'OFF'},'Test disattivato · Auto'); });
 
   // ---- settings navigation ----
   var setView=$('setView');
-  function openSet(){ setView.classList.add('open'); setView.scrollTop=0; }
-  function closeSet(){ setView.classList.remove('open'); refreshChips(); }
-  $('openSet').addEventListener('click',openSet);
-  $('closeSet').addEventListener('click',closeSet);
-  $('saveSet').addEventListener('click',closeSet);
+  $('openSet').addEventListener('click', function(){ setView.classList.add('open'); setView.scrollTop=0; });
+  $('closeSet').addEventListener('click', function(){ setView.classList.remove('open'); poll(); });
+  $('saveSet').addEventListener('click', function(){ setView.classList.remove('open'); poll(); });
 
-  // ---- photo slots ----
-  var loaded={A:false,B:false};
-  function wireSlot(id,key,when){
+  // ---- upload foto reali ----
+  function wireSlot(id,key){
     var slot=$(id), input=slot.querySelector('input'), thumb=slot.querySelector('.thumb'),
         sub=slot.querySelector('.s'), tag=slot.querySelector('.tag');
-    input.addEventListener('change',function(){
+    input.addEventListener('change', function(){
       var f=input.files&&input.files[0]; if(!f) return;
+      if(!getPw()){ toast('Inserisci prima la password','err'); input.value=''; return; }
       var url=URL.createObjectURL(f);
       thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url;
-      sub.textContent=when+' · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
-      loaded[key]=true;
+      sub.textContent='caricamento…'; tag.textContent='…';
+      apiCarica(key, f).then(function(res){
+        if(res.data && res.data.ok){
+          sub.textContent='caricata · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
+          toast('Foto '+key+' caricata','ok'); poll();
+        } else {
+          sub.textContent='errore'; tag.textContent='Riprova';
+          toast((res.data&&res.data.errore)||'Upload fallito','err');
+        }
+      }).catch(function(){ sub.textContent='errore'; tag.textContent='Riprova'; toast('Server non raggiungibile','err'); });
     });
   }
-  wireSlot('slotA','A',"prima dell'orario");
-  wireSlot('slotB','B',"dopo l'orario");
+  wireSlot('slotA','A');
+  wireSlot('slotB','B');
 
-  // ---- config summary chips on main ----
-  function refreshChips(){
-    var a=$('chipA'), b=$('chipB');
-    a.classList.toggle('ok',loaded.A); b.classList.toggle('ok',loaded.B);
-    $('chipTime').textContent=$('swtime').value||'—';
-  }
-  $('swtime').addEventListener('change',refreshChips);
-  refreshChips();
+  // ---- primo aggiornamento + polling periodico ----
+  poll();
+  setInterval(poll, 4000);
 
   // ---- dotted waveform ----
   var cv=$('wave'), ctx=cv.getContext('2d');

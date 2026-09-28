@@ -35,6 +35,7 @@ function predizione_stato_pubblico(array $s): array {
         'avvio_ts'       => $s['avvio_ts'] ? (int)$s['avvio_ts'] : null,
         'ha_foto_a'      => !empty($s['foto_a_file']) && is_file($s['foto_a_file']),
         'ha_foto_b'      => !empty($s['foto_b_file']) && is_file($s['foto_b_file']),
+        'aperture'       => predizione_conta_aperture(),
         'ora_server'     => time(),
     ];
 }

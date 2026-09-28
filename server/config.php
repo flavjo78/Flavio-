@@ -83,6 +83,19 @@ function predizione_password_ok(?string $inserita): bool {
     return hash_equals(PREDIZIONE_PASSWORD, $inserita);
 }
 
+/* Conta quante aperture sono state registrate nel log (righe del CSV). */
+function predizione_conta_aperture(): int {
+    if (!is_file(LOG_FILE)) return 0;
+    $n = 0;
+    $fh = @fopen(LOG_FILE, 'r');
+    if (!$fh) return 0;
+    while (($line = fgets($fh)) !== false) {
+        if (trim($line) !== '') $n++;
+    }
+    fclose($fh);
+    return $n;
+}
+
 /* Risposta JSON breve e uscita. */
 function predizione_json($dati, int $code = 200): void {
     http_response_code($code);
