@@ -1,0 +1,5 @@
+# File generati sul server: non vanno nel repository
+server/aperture.csv
+server/forza.txt
+server/foto_a.*
+server/foto_b.*

@@ -1,0 +1,288 @@
+<title>Acquisti Predizione</title>
+<meta name="description" content="Cosa comprare per far funzionare l'effetto: dominio, hosting, invio mail e alternative a confronto">
+<style>
+  :root{
+    --bg:#f4efe6; --card:#fbf8f2; --card-2:#f2ece0;
+    --ink:#26221b; --ink-2:#5f584a; --ink-3:#8a8271;
+    --line:rgba(38,34,27,.12); --line-2:rgba(38,34,27,.07);
+    --gold:#a9772e; --gold-bg:rgba(169,119,46,.10);
+    --good:#4f7a3d; --good-bg:rgba(79,122,61,.12);
+    --warn:#b06a34; --warn-bg:rgba(176,106,52,.12);
+    --shadow:0 1px 2px rgba(38,34,27,.05),0 8px 24px -14px rgba(38,34,27,.25);
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#100e0a; --card:#1a1712; --card-2:#221d16;
+    --ink:#ece2cf; --ink-2:#a99f8b; --ink-3:#77705f;
+    --line:rgba(236,226,207,.14); --line-2:rgba(236,226,207,.07);
+    --gold:#d0a460; --gold-bg:rgba(208,164,96,.14);
+    --good:#8fbf6f; --good-bg:rgba(143,191,111,.14);
+    --warn:#d68f5b; --warn-bg:rgba(214,143,91,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
+  }}
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --bg:#100e0a; --card:#1a1712; --card-2:#221d16;
+    --ink:#ece2cf; --ink-2:#a99f8b; --ink-3:#77705f;
+    --line:rgba(236,226,207,.14); --line-2:rgba(236,226,207,.07);
+    --gold:#d0a460; --gold-bg:rgba(208,164,96,.14);
+    --good:#8fbf6f; --good-bg:rgba(143,191,111,.14);
+    --warn:#d68f5b; --warn-bg:rgba(214,143,91,.14);
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -16px rgba(0,0,0,.7);
+  }
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg);color:var(--ink);
+    font-family:"Manrope",system-ui,-apple-system,sans-serif;line-height:1.55;
+    -webkit-font-smoothing:antialiased}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px 64px}
+
+  header{padding:40px 0 8px}
+  .eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 8px}
+  h1{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;
+     font-size:clamp(34px,8vw,52px);line-height:1.02;margin:0;letter-spacing:.01em;text-wrap:balance}
+  .lede{color:var(--ink-2);font-size:16px;margin:14px 0 0;max-width:60ch}
+
+  /* overview strip */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:26px 0 8px}
+  .step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 15px;box-shadow:var(--shadow)}
+  .step .n{font-family:"Cormorant Garamond",serif;font-size:24px;color:var(--gold);font-weight:600;line-height:1}
+  .step .t{font-weight:700;font-size:14.5px;margin-top:6px}
+  .step .s{font-size:12.5px;color:var(--ink-3);margin-top:2px}
+
+  h2{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:30px;margin:44px 0 4px;letter-spacing:.01em}
+  .h2sub{color:var(--ink-2);font-size:14.5px;margin:0 0 18px}
+  .forwhat{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--gold);background:var(--gold-bg);padding:4px 10px;border-radius:999px;margin-bottom:14px}
+
+  /* option cards */
+  .opt{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-bottom:12px;box-shadow:var(--shadow);position:relative}
+  .opt.pick{border-color:var(--gold);box-shadow:var(--shadow),0 0 0 1px var(--gold) inset}
+  .opt-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .opt-name{font-weight:800;font-size:17px;letter-spacing:.01em}
+  .badge{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px}
+  .badge.pick{color:var(--good);background:var(--good-bg)}
+  .price{font-weight:800;font-size:15px;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .opt-desc{color:var(--ink-2);font-size:14px;margin:8px 0 12px}
+  .pc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:460px){.pc{grid-template-columns:1fr}}
+  .pc .box{border-radius:11px;padding:9px 11px;font-size:13px}
+  .pc .pro{background:var(--good-bg)}
+  .pc .con{background:var(--warn-bg)}
+  .pc .lbl{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+  .pc .pro .lbl{color:var(--good)} .pc .con .lbl{color:var(--warn)}
+  .pc .box p{margin:0;color:var(--ink-2)}
+  .verdict{margin-top:12px;font-size:13.5px;color:var(--ink);background:var(--card-2);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:9px 12px}
+  .verdict b{color:var(--gold)}
+
+  /* recommended combo */
+  .combo{background:var(--card);border:1px solid var(--gold);border-radius:18px;padding:22px;box-shadow:var(--shadow);margin-top:16px}
+  .combo h3{margin:0 0 4px;font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600}
+  .combo .cs{color:var(--ink-2);font-size:14px;margin:0 0 16px}
+  .line{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2)}
+  .line:last-of-type{border-bottom:0}
+  .line .nm{font-weight:700;font-size:14.5px}
+  .line .nm span{display:block;font-weight:500;font-size:12.5px;color:var(--ink-3)}
+  .line .amt{font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px}
+  .total{display:flex;justify-content:space-between;align-items:baseline;margin-top:14px;padding-top:14px;border-top:2px solid var(--line)}
+  .total .nm{font-weight:800;font-size:15px}
+  .total .amt{font-family:"Cormorant Garamond",serif;font-size:26px;font-weight:600;color:var(--gold)}
+
+  .note{font-size:13px;color:var(--ink-2);background:var(--card-2);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:16px}
+  .note b{color:var(--ink)}
+  ol.order{counter-reset:o;list-style:none;padding:0;margin:14px 0 0}
+  ol.order li{counter-increment:o;position:relative;padding:9px 0 9px 40px;border-bottom:1px solid var(--line-2);font-size:14.5px}
+  ol.order li:last-child{border-bottom:0}
+  ol.order li::before{content:counter(o);position:absolute;left:0;top:8px;width:26px;height:26px;border-radius:50%;
+    background:var(--gold-bg);color:var(--gold);font-weight:800;font-size:13px;display:grid;place-items:center}
+  ol.order b{color:var(--ink)}
+  .foot{color:var(--ink-3);font-size:12.5px;margin-top:34px;text-align:center;line-height:1.7}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Guida all'acquisto</p>
+    <h1>Cosa comprare</h1>
+    <p class="lede">Per far funzionare davvero l'effetto ti servono tre servizi, più un pezzo che li collega. Qui trovi ognuno spiegato, con almeno tre alternative a confronto e cosa scegliere per il tuo caso — circa 500 mail a serata, poche serate al mese.</p>
+
+    <div class="steps">
+      <div class="step"><div class="n">1</div><div class="t">Dominio</div><div class="s">Il tuo indirizzo, es. tuonome.com</div></div>
+      <div class="step"><div class="n">2</div><div class="t">Hosting PHP</div><div class="s">Ospita la foto dinamica</div></div>
+      <div class="step"><div class="n">3</div><div class="t">Invio mail</div><div class="s">Spedisce le 500 risposte</div></div>
+      <div class="step"><div class="n">+</div><div class="t">Autorisponditore</div><div class="s">Collega arrivo → risposta</div></div>
+    </div>
+  </header>
+
+  <!-- ===================== 1. DOMINIO ===================== -->
+  <h2>1 · Il dominio</h2>
+  <p class="h2sub">Il tuo indirizzo su internet. Serve sia per l'email (mittente credibile) sia per ospitare la foto. Costa pochi euro l'anno.</p>
+  <span class="forwhat">A cosa serve · mittente + indirizzo della foto</span>
+
+  <div class="opt pick">
+    <div class="opt-head"><span class="opt-name">Aruba</span><span class="badge pick">Consigliato</span><span class="price">~1–9 € 1° anno · ~19 €/anno rinnovo</span></div>
+    <p class="opt-desc">Italiano, pannello in italiano, assistenza in italiano. Se prendi anche l'hosting da loro, dominio ed email sono già inclusi: tutto in un posto.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Tutto in italiano, spesso incluso con l'hosting.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Rinnovo più caro di altri (~19 €/anno).</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> se prendi l'hosting Aruba (passo 2), il dominio lo prendi qui e non pensi ad altro.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Namecheap</span><span class="price">~9–12 €/anno</span></div>
+    <p class="opt-desc">Internazionale, prezzi onesti anche al rinnovo, protezione privacy inclusa. Pannello in inglese.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Rinnovo economico e stabile, privacy gratis.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>In inglese; l'hosting è separato.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> ottimo se tieni dominio e hosting separati e vuoi spendere poco negli anni.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Cloudflare Registrar</span><span class="price">~10 €/anno (a prezzo di costo)</span></div>
+    <p class="opt-desc">Vende i domini senza ricarico, il più economico sul lungo periodo. Più tecnico, niente email inclusa.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Il prezzo più basso al rinnovo, zero sorprese.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Interfaccia tecnica, nessun servizio email.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> solo se te la cavi un po' con la tecnica. Altrimenti meglio Aruba o Namecheap.</div>
+  </div>
+
+  <!-- ===================== 2. HOSTING ===================== -->
+  <h2>2 · L'hosting PHP</h2>
+  <p class="h2sub">Lo spazio dove carichi lo script della foto dinamica e le due immagini. Deve supportare PHP (tutti gli hosting Linux lo fanno). Qui vive il cuore dell'effetto.</p>
+  <span class="forwhat">A cosa serve · ospitare image.php + le foto + la casella email</span>
+
+  <div class="opt pick">
+    <div class="opt-head"><span class="opt-name">Aruba · Hosting Basic Linux</span><span class="badge pick">Consigliato</span><span class="price">~35 € + IVA / anno</span></div>
+    <p class="opt-desc">Il pacchetto tutto-in-uno: PHP, 1 dominio incluso, 5 caselle email. Carichi lo script dal loro Gestione File senza programmi extra. La via più semplice per un non tecnico.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Dominio + email + PHP insieme, tutto in italiano.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Non il più economico in assoluto.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> è la scelta giusta. Un unico acquisto copre dominio, email e spazio per la foto.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Netsons</span><span class="price">~2–4 €/mese (~25–45 €/anno)</span></div>
+    <p class="opt-desc">Italiano, buon rapporto qualità/prezzo, PHP e email inclusi. Alternativa diretta ad Aruba.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Prezzi competitivi, pannello in italiano.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Marchio meno conosciuto di Aruba.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> valida se vuoi risparmiare qualcosa restando in italiano.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Keliweb</span><span class="price">~2–5 €/mese</span></div>
+    <p class="opt-desc">Italiano, assistenza molto apprezzata, PHP incluso. Buono se in futuro vuoi crescere.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Assistenza in italiano rapida, hosting solido.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Prezzo pieno leggermente più alto dopo le promo.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> buona alternativa; per l'effetto basta il piano più piccolo.</div>
+  </div>
+
+  <div class="note"><b>Nota:</b> per l'effetto serve pochissimo spazio (le foto pesano pochi MB). Prendi sempre <b>il piano più piccolo</b> di qualsiasi provider — è più che sufficiente. Non ti servono WordPress, database o piani "premium".</div>
+
+  <!-- ===================== 3. INVIO ===================== -->
+  <h2>3 · Il servizio d'invio</h2>
+  <p class="h2sub">Le 500 risposte non partono dalla casella normale (verresti bloccato e finiresti in spam). Servono a questo. Il costo dipende da quanto spedisci.</p>
+  <span class="forwhat">A cosa serve · spedire 500 mail in pochi minuti senza finire in spam</span>
+
+  <div class="opt pick">
+    <div class="opt-head"><span class="opt-name">Amazon SES</span><span class="badge pick">Più economico</span><span class="price">~0,08 €/1.000 mail · 3.000/mese gratis (1° anno)</span></div>
+    <p class="opt-desc">Costo quasi nullo: 500 mail = pochi centesimi, e il primo anno rientri nel gratuito. In cambio è il più tecnico da attivare (verifica dominio, uscita dalla "sandbox", richiesta aumento limite).</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Costo irrisorio, consegna eccellente, scala senza limiti.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Setup tecnico; va attivato qualche giorno prima.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> la scelta se vuoi spendere quasi zero e non ti spaventa un po' di configurazione (ti guido io).</div>
+  </div>
+
+  <div class="opt pick">
+    <div class="opt-head"><span class="opt-name">Brevo</span><span class="badge pick">Più semplice</span><span class="price">Gratis fino a 300/giorno · Starter ~9 €/mese (5.000/mese)</span></div>
+    <p class="opt-desc">Pannello facile, in italiano, con SMTP e automazioni pronte. <b>Attenzione:</b> il piano gratuito è 300 mail al giorno — per 500 in una sera serve lo Starter a pagamento (che toglie il limite giornaliero).</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Facilissimo, interfaccia in italiano, automazioni incluse.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Il gratis (300/giorno) non basta per 500; ~9 €/mese fissi.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> la scelta se preferisci semplicità a risparmio. Con lo Starter spedisci 500 senza problemi.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Mailgun</span><span class="price">Gratis 100/giorno · Basic ~15 $/mese (10.000/mese)</span></div>
+    <p class="opt-desc">Orientato agli sviluppatori, ottima consegna via API. Nessun limite giornaliero sui piani a pagamento.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Robusto, nessun tetto giornaliero sul Basic.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Più tecnico, in inglese, più caro di Brevo.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> valido, ma tra SES (più economico) e Brevo (più semplice) resta la terza scelta.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Twilio SendGrid</span><span class="price">Gratis 100/giorno (prova) · da ~15 $/mese</span></div>
+    <p class="opt-desc">Molto diffuso e affidabile, ma la struttura prezzi separa "Email API" e "Marketing" e si complica in fretta.</p>
+    <div class="pc">
+      <div class="box pro"><div class="lbl">Pro</div><p>Grande affidabilità, standard di settore.</p></div>
+      <div class="box con"><div class="lbl">Contro</div><p>Prezzi confusi, in inglese, non il più conveniente.</p></div>
+    </div>
+    <div class="verdict"><b>Per te:</b> alternativa nota, ma per il tuo caso non aggiunge niente rispetto a SES o Brevo.</div>
+  </div>
+
+  <!-- ===================== + AUTORISPONDITORE ===================== -->
+  <h2>+ · L'autorisponditore</h2>
+  <p class="h2sub">Il pezzo che collega tutto: quando arriva una mail, fa partire la risposta con dentro la foto. Non è sempre un acquisto: puoi farlo con un piccolo script (gratis) o con uno strumento no-code.</p>
+  <span class="forwhat">A cosa serve · far partire la risposta automatica a ogni mail ricevuta</span>
+
+  <div class="opt pick">
+    <div class="opt-head"><span class="opt-name">Script sull'hosting</span><span class="badge pick">Gratis</span><span class="price">0 € · incluso nell'hosting</span></div>
+    <p class="opt-desc">Un piccolo programma che gira sul tuo hosting, legge la casella e risponde via SES/Brevo. Lo scrivo io. Nessun costo extra, il più veloce e affidabile per raffiche di 500.</p>
+    <div class="verdict"><b>Per te:</b> la via consigliata. Zero costi aggiuntivi e nessun limite di velocità.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Make (ex Integromat)</span><span class="price">Gratis 1.000 operazioni/mese · ~9 €/mese</span></div>
+    <p class="opt-desc">Strumento no-code: colleghi "mail in arrivo → invia risposta" trascinando blocchi, senza codice.</p>
+    <div class="verdict"><b>Per te:</b> alternativa se preferisci non usare script; occhio alla velocità con 500 in pochi minuti.</div>
+  </div>
+
+  <div class="opt">
+    <div class="opt-head"><span class="opt-name">Zapier</span><span class="price">Gratis 100 task/mese · da ~20 €/mese</span></div>
+    <p class="opt-desc">Come Make, no-code e molto diffuso, ma più caro e con il piano gratuito troppo piccolo per 500.</p>
+    <div class="verdict"><b>Per te:</b> il meno adatto qui: 500 mail sforano il gratis e la reattività è limitata.</div>
+  </div>
+
+  <!-- ===================== COMBO CONSIGLIATA ===================== -->
+  <h2>La combinazione consigliata</h2>
+  <p class="h2sub">Per il tuo caso — semplicità con un occhio al portafoglio — questa è la strada più lineare.</p>
+
+  <div class="combo">
+    <h3>Il pacchetto essenziale</h3>
+    <p class="cs">Tutto in italiano, un solo hosting che fa da base, invio affidabile.</p>
+    <div class="line"><div class="nm">Hosting Aruba Basic Linux<span>Dominio + email + spazio per la foto, insieme</span></div><div class="amt">~43 €/anno</div></div>
+    <div class="line"><div class="nm">Amazon SES <i>oppure</i> Brevo Starter<span>SES ≈ centesimi (tecnico) · Brevo ≈ 9 €/mese (facile)</span></div><div class="amt">0–9 €/mese</div></div>
+    <div class="line"><div class="nm">Autorisponditore via script<span>Lo scrivo io, gira sull'hosting</span></div><div class="amt">incluso</div></div>
+    <div class="total"><div class="nm">Primo anno, tutto compreso</div><div class="amt">~45–150 €</div></div>
+  </div>
+
+  <div class="note">
+    <b>In pratica, due strade:</b> se vuoi spendere quasi nulla e accetti un po' di configurazione, prendi <b>Aruba + Amazon SES</b> (~45 € il primo anno, poi centesimi di invio). Se vuoi la massima semplicità, prendi <b>Aruba + Brevo Starter</b> (~43 €/anno + 9 €/mese). In entrambi i casi l'hosting Aruba è la base e l'autorisponditore te lo preparo io.
+  </div>
+
+  <!-- ===================== ORDINE ===================== -->
+  <h2>In che ordine comprare</h2>
+  <ol class="order">
+    <li><b>Dominio + Hosting Aruba Basic Linux</b> — un unico acquisto, ti dà indirizzo, email e spazio.</li>
+    <li><b>Servizio d'invio</b> — apri l'account SES (o Brevo) e collega il dominio (SPF, DKIM, DMARC: te li passo io).</li>
+    <li><b>Carichi lo script della foto</b> (image.php + le due immagini) sull'hosting.</li>
+    <li><b>Autorisponditore</b> — lo configuriamo insieme quando i primi tre pezzi sono pronti.</li>
+    <li><b>Prova in piccolo</b> con la tua mail, poi qualche giorno prima dello show attivi il limite alto su SES.</li>
+  </ol>
+
+  <p class="foot">
+    Prezzi indicativi a settembre 2026, IVA esclusa dove non indicato · verifica sempre la cifra al momento dell'acquisto.<br>
+    Guida preparata per l'effetto Predizione · uso da palco.
+  </p>
+</div>
