@@ -3,7 +3,7 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 28 settembre 2026 (pannello collegato al backend).
+Ultimo aggiornamento: 28 settembre 2026 (online su abraka.it; SES verificato; casella io@ ok).
 
 ---
 
@@ -228,17 +228,30 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
 
 - [x] Acquistare **dominio + hosting** → fatto: abraka.it su Tophost (Topweb, PHP).
 - [x] **Pannello installabile** sul telefono (PWA).
-- [x] **Backend a tre fasi** (image/stato/carica/config) + pannello collegato, collaudato in locale.
-- [ ] **Caricare i 4 file PHP** (`config.php`, `image.php`, `stato.php`, `carica.php`) in
-      `abraka.it/predizione/` e il pannello in `abraka.it/pannello/`; impostare la password
-      in `config.php`; provare l'effetto dal vivo (upload foto → Avvia → Finisci).
-- [ ] Attivare **Amazon SES** (o Brevo): verifica dominio, SPF/DKIM/DMARC, uscita dalla
-      sandbox, richiesta aumento limite giornaliero.
-- [ ] Costruire l'**autorisponditore**: legge la casella, per ogni mail invia la risposta
-      via SES/Brevo con dentro `<img src="…/image.php?id=…">`. Deve rispondere solo a
-      gioco avviato (fase != spento).
+- [x] **Backend a tre fasi/sessioni** (image/stato/carica/config) + pannello collegato.
+- [x] **Deploy dal vivo:** i 5 file (4 PHP + pannello) sono in `abraka.it/predizione/`,
+      password impostata in `config.php`, effetto provato online (neutro → A → rivelazione).
+- [x] **HTTPS** attivato su Tophost (propagazione ~3-4h; poi mettere "Redirect automatico: On").
+- [x] **Amazon SES** (regione Europa/Irlanda): account creato, **dominio `abraka.it` VERIFICATO**
+      (DKIM 3x CNAME + DMARC su DNS Tophost), Gmail `appisolata@gmail.com` verificata come test.
+      Ancora in **sandbox** (200 mail/giorno, solo verso indirizzi verificati).
+- [x] **Casella del gioco `io@abraka.it`**: invia e riceve. Nota: andava agganciata alla
+      mailbox principale `abraka.it` (all'inizio puntava a una mailbox separata senza spazio).
+- [ ] Costruire l'**autorisponditore** (prossimo grande passo): quando arriva una mail a
+      `io@abraka.it`, rispondere in automatico con testo + `<img src="…/image.php?s=SESSIONE&id=…">`,
+      solo a gioco avviato. Volume atteso: fino a ~700 mail in 5 minuti. Il "motore" gira nel
+      cloud (non su Tophost, che non ha cron), invio via SES; una copia della mail va inoltrata
+      alla Gmail per leggerle. Architettura da finalizzare (SES-receiving+Lambda, oppure
+      poller IMAP sulla casella Tophost).
+- [ ] **Uscire dalla sandbox SES** ("Richiedi accesso alla produzione") + aumento limite,
+      qualche giorno prima dello show.
 - [ ] Collegare il **contatore** del pannello alle mail reali (oggi mostra le aperture del log).
 - [ ] Prova completa in piccolo (2–3 mail) prima dello show, su Gmail e su iPhone.
+
+### Credenziali/risorse in uso (per riprendere)
+- AWS: account root con la Gmail; regione **eu-west-1 (Irlanda)** per SES.
+- Tophost: pannello `cp.tophost.it`; casella gioco **io@abraka.it** su mailbox `abraka.it`.
+- Pannello performer: `https://abraka.it/predizione/regia-predizione.html` (password in config.php).
 
 ### Snippet dell'immagine nella mail (per l'autorisponditore)
 ```html
