@@ -1,5 +1,27 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Regia Predizione</title>
 <meta name="description" content="Pannello di controllo per il performer">
+
+<!-- Installazione come app sul telefono (PWA) -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0908">
+<link rel="icon" href="icons/icon-192.png">
+
+<!-- Supporto iPhone / iPad: apertura a schermo intero dalla schermata Home -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Predizione">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+
+<!-- Font usati dal pannello -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
   :root{
     color-scheme: dark;
@@ -162,6 +184,8 @@
 
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.settings{transition:none!important}}
 </style>
+</head>
+<body>
 
 <div class="app">
 
@@ -351,4 +375,15 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   window.addEventListener('resize',function(){size(); if(reduce) draw(1200);});
   size(); if(reduce){draw(1200);} else {requestAnimationFrame(loop);}
 })();
+
+// ---- registrazione del service worker (rende l'app installabile e offline) ----
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('service-worker.js').catch(function(e){
+      console.log('Service worker non registrato:', e);
+    });
+  });
+}
 </script>
+</body>
+</html>
