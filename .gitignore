@@ -4,3 +4,6 @@ server/aperture.csv
 server/forza.txt
 server/foto_a.*
 server/foto_b.*
+
+# Dipendenze dell'autorisponditore (si ricreano con npm install; il pacchetto pronto è nello zip)
+autorisponditore/node_modules/

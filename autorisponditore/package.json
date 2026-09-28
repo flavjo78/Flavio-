@@ -1,0 +1,12 @@
+{
+  "name": "predizione-autorisponditore",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Autorisponditore Predizione per AWS Lambda",
+  "main": "index.mjs",
+  "dependencies": {
+    "@aws-sdk/client-ses": "^3.1142.0",
+    "imapflow": "^1.0.164",
+    "mailparser": "^3.7.1"
+  }
+}

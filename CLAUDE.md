@@ -237,12 +237,13 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       Ancora in **sandbox** (200 mail/giorno, solo verso indirizzi verificati).
 - [x] **Casella del gioco `io@abraka.it`**: invia e riceve. Nota: andava agganciata alla
       mailbox principale `abraka.it` (all'inizio puntava a una mailbox separata senza spazio).
-- [ ] Costruire l'**autorisponditore** (prossimo grande passo): quando arriva una mail a
-      `io@abraka.it`, rispondere in automatico con testo + `<img src="…/image.php?s=SESSIONE&id=…">`,
-      solo a gioco avviato. Volume atteso: fino a ~700 mail in 5 minuti. Il "motore" gira nel
-      cloud (non su Tophost, che non ha cron), invio via SES; una copia della mail va inoltrata
-      alla Gmail per leggerle. Architettura da finalizzare (SES-receiving+Lambda, oppure
-      poller IMAP sulla casella Tophost).
+- [x] **Autorisponditore — CODICE PRONTO** (`autorisponditore/index.mjs`): AWS Lambda (Node.js)
+      che ogni minuto legge la casella `io@abraka.it` via **IMAP** (mail restano su Tophost,
+      leggibili) e, a gioco avviato, risponde via **SES** con `image.php?s=SESSIONE&id=…`.
+      Impostazioni via variabili d'ambiente. Pacchetto zip pronto da caricare.
+- [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
+      le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
+      EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**
 - [ ] **Uscire dalla sandbox SES** ("Richiedi accesso alla produzione") + aumento limite,
       qualche giorno prima dello show.
 - [ ] Collegare il **contatore** del pannello alle mail reali (oggi mostra le aperture del log).
