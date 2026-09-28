@@ -11,12 +11,18 @@ Ultimo aggiornamento: 28 settembre 2026 (pannello collegato al backend).
 
 Uno **strumento da palco per un effetto di mentalismo**. Durante lo spettacolo gli
 spettatori scrivono una mail al performer; il sistema risponde in automatico con una
-mail che contiene una **foto**. La foto **cambia in base all'orario di apertura**:
-chi apre prima di un certo momento vede la Foto A, chi apre dopo vede la Foto B.
+mail che contiene una **foto**. Durante il gioco la foto è una **neutra di attesa (A)**;
+quando il performer chiude la sessione, la foto diventa la **rivelazione**.
 
 L'illusione sta nel fatto che la foto sembra "dentro" una mail già ricevuta, mentre
 in realtà viene ricostruita a ogni apertura da un server. Lo spettatore non immagina
 che una foto nel corpo di una mail possa cambiare dopo l'invio.
+
+**A sessioni.** Ogni show è una **sessione** con la sua rivelazione. Le foto cambiano
+di sessione in sessione, ma ogni sessione conserva le sue: **chi ha ricevuto la
+rivelazione di una sessione continua a vederla per sempre**, anche quando ne partono
+altre con foto diverse. Per questo ogni mail porta il numero di sessione nell'indirizzo
+dell'immagine (`image.php?s=NUMERO&id=…`).
 
 **Natura del progetto:** è uno strumento di intrattenimento da palco, con un pubblico
 consenziente. NON deve imitare marchi reali, NON raccoglie credenziali, NON inganna
@@ -89,7 +95,8 @@ predizione/
 App mobile in verticale, singolo file HTML (CSS e JS inline). **Installabile** sul
 telefono (PWA: manifest + service worker + icone). Due schermate: **Regia** (aperture
 registrate, stato/fase del gioco, Avvia/Finisci/Azzera) e **Impostazioni** (ingranaggio:
-password, carico Foto A / Foto B, orario di sicurezza, modalità test Forza A/B/Auto).
+password, carico Foto A neutra / rivelazione, orario di sicurezza, test Forza A/B/Auto).
+Mostra il numero di **sessione** corrente; "Avvia" richiede Foto A + rivelazione caricate.
 
 **Stato attuale:** **collegato al backend e collaudato** (test end-to-end contro i file
 PHP, con Chromium). Chiama `stato.php` e `carica.php` sul server (via `../predizione/`),
@@ -105,25 +112,26 @@ e il conteggio aperture. Anche `ABILITA_LOG` (cattura on/off) sta qui.
 
 ### `server/stato.php`
 Riceve i comandi dal pannello (tutti tranne la sola lettura richiedono la password):
-`avvia` (fase→A, con orario di sicurezza opzionale), `finisci` (fase→B), `azzera`
-(fase→spento), `forza` (A/B/OFF per i test), `stato` (lettura, per il polling del pannello).
+`avvia` (apre una NUOVA sessione: congela Foto A + rivelazione in file dedicati,
+orario di sicurezza opzionale), `finisci` (la sessione corrente → rivelazione),
+`azzera` (annulla la sessione corrente se non ancora terminata), `forza` (A/B/OFF test),
+`stato` (lettura per il polling). Lo stato vive in `_dati/stato.json`.
 
 ### `server/carica.php`
-Riceve la Foto A o B dal pannello (con password), verifica che sia un'immagine valida
-(JPG/PNG/GIF/WEBP), la salva in `_dati/` e registra il percorso nello stato.
+Riceve dal pannello (con password) e valida l'immagine (JPG/PNG/GIF/WEBP):
+`slot=A` → **Foto A neutra** persistente (`_dati/foto_a.*`, riusata ogni sessione);
+`slot=B` → **rivelazione** in attesa (`_dati/rivelazione_pronta.*`), consumata al prossimo `avvia`.
 
 ### `server/image.php`
-Il motore dell'effetto. Quando lo spettatore apre la mail, il suo client scarica
-questo script, che legge lo **stato del gioco** (comandato dal pannello via `stato.php`)
-e decide quale foto restituire — le **tre fasi**:
-- **Spento** → immagine **neutra** (un pixel trasparente): il gioco non è attivo.
-- **In corso** (dopo "Avvia") → **Foto A**.
-- **Terminato** (dopo "Finisci" **oppure** allo scattare dell'orario di sicurezza) → **Foto B**.
-- **Forza A/B** (dallo stato, non più un file): scorciatoia per i test, vince su tutto.
-- **Header anti-cache** obbligatori, così lo scambio avviene davvero all'apertura.
-- **Log delle aperture** (la "cattura") in `_dati/aperture.csv`: data/ora, id, foto
-  mostrata (A/B/neutro), IP, dispositivo. Disattivabile con `ABILITA_LOG = false` in config.
-- Parametro `?id=` per dare un URL unico a ogni destinatario (anti-cache + tracciamento).
+Il motore dell'effetto. La mail chiede `image.php?s=NUMERO&id=…`; lo script guarda la
+**sessione** di quella persona e restituisce:
+- **sessione assente / gioco spento** → immagine **neutra** (pixel trasparente).
+- **sessione IN CORSO** → **Foto A** (neutra di attesa).
+- **sessione TERMINATA** (o orario di sicurezza scattato) → la **rivelazione di quella sessione**.
+- **Forza A/B** (test): mostra A/B della sessione di riferimento, vince su tutto.
+Ogni sessione ha i suoi file (`sess_N_before.*`, `sess_N_after.*`): mai sovrascritti,
+così le rivelazioni vecchie restano congelate. Header **anti-cache** sempre. Log in
+`_dati/aperture.csv` (data/ora, sessione, id, foto, IP, dispositivo; `ABILITA_LOG`).
 
 Non c'è niente da configurare in `image.php`: tutte le impostazioni stanno in `config.php`.
 Vedi `server/ISTRUZIONI.txt`.
@@ -142,6 +150,12 @@ Vedi `server/ISTRUZIONI.txt`.
 
 - **Le mail contano solo a gioco avviato.** A gioco spento image.php mostra il neutro e
   (in futuro) l'autorisponditore non deve rispondere: niente parte prima di "Avvia".
+
+- **Foto per-sessione, congelate per sempre.** La Foto A neutra è persistente e riusata;
+  la rivelazione è diversa a ogni sessione. Ogni "Avvia" crea una sessione numerata che
+  salva le proprie foto in file dedicati (`sess_N_*`), mai sovrascritti. Così chi ha
+  ricevuto una rivelazione continua a vederla anche dopo altre sessioni. Requisito del
+  performer: la mail deve portare `?s=NUMERO` per legare il destinatario alla sua sessione.
 
 - **Scambio deciso al momento dell'apertura**, non alla spedizione. Ogni spettatore
   resta con la versione vista alla *sua* prima apertura (per via della cache — vedi sotto).
@@ -224,7 +238,9 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
 
 ### Snippet dell'immagine nella mail (per l'autorisponditore)
 ```html
-<img src="https://abraka.it/predizione/image.php?id=SPETTATORE1"
+<img src="https://abraka.it/predizione/image.php?s=NUMEROSESSIONE&id=SPETTATORE1"
      width="500" style="display:block;max-width:100%;border:0" alt="">
 ```
-Un `id` diverso per ogni destinatario (es. email o numero progressivo).
+`s` = numero della sessione in corso (lo mostra il pannello); `id` diverso per ogni
+destinatario. L'autorisponditore riempirà entrambi in automatico, e risponderà solo a
+gioco avviato (fase ≠ spento).

@@ -45,25 +45,34 @@ PASSO 3 — Prova che il server risponda
 PASSO 4 — Metti l'immagine nella mail
 - Nel corpo della mail (in HTML) inserisci questa immagine:
 
-      <img src="https://abraka.it/predizione/image.php?id=SPETTATORE1"
+      <img src="https://abraka.it/predizione/image.php?s=NUMEROSESSIONE&id=SPETTATORE1"
            width="500" style="display:block;max-width:100%;border:0" alt="">
 
-- Il pezzo  ?id=SPETTATORE1  serve a due cose: dare un indirizzo diverso a
-  ogni spettatore (aiuta contro la cache) e sapere chi apre. Metti un id
-  diverso per ognuno (es. l'email o un numero progressivo).
+- ?s=NUMEROSESSIONE  e' il numero della sessione in corso (lo mostra il pannello,
+  es. "Sessione #1"). E' IMPORTANTE: lega quella mail alla sua sessione, cosi'
+  chi la riceve continuera' a vedere sempre la rivelazione di QUELLA sessione.
+- ?id=SPETTATORE1  da' un indirizzo diverso a ogni spettatore (aiuta contro la
+  cache) e fa sapere chi apre. Metti un id diverso per ognuno.
+- In futuro sara' l'autorisponditore a riempire s e id in automatico.
 
 
-COME FUNZIONA LO SCAMBIO (le tre fasi)
+COME FUNZIONA LO SCAMBIO (le tre fasi + le sessioni)
 - SPENTO     -> image.php mostra un'immagine neutra; le mail non vanno elaborate.
-- IN CORSO   -> dopo "Avvia gioco": chi apre vede la Foto A.
+- IN CORSO   -> dopo "Avvia gioco": chi apre vede la Foto A (neutra di attesa).
 - TERMINATO  -> dopo "Finisci gioco" OPPURE allo scattare dell'orario di
-               sicurezza: chi apre vede la Foto B.
-Lo decide il pannello; il server obbedisce.
+               sicurezza: chi apre vede la RIVELAZIONE di quella sessione.
+
+LE SESSIONI (importante)
+- Ogni "Avvia" apre una NUOVA sessione con: la Foto A neutra (sempre la stessa,
+  finche' non la cambi) + la rivelazione che hai caricato per quella sessione.
+- Ogni sessione conserva le SUE foto. Se domani avvii un'altra sessione con una
+  rivelazione diversa, chi era nella sessione di ieri continua a vedere la SUA.
+- Per questo l'indirizzo dell'immagine deve avere ?s=NUMEROSESSIONE.
 
 
 IL LOG DELLE APERTURE (la "cattura")
 - Ogni apertura viene registrata nel file  _dati/aperture.csv
-- Contiene: data e ora, id spettatore, foto mostrata (A/B/neutro), IP, dispositivo.
+- Contiene: data e ora, numero sessione, id spettatore, foto mostrata, IP, dispositivo.
 - Per disattivarlo: in config.php metti  const ABILITA_LOG = false;
 
 

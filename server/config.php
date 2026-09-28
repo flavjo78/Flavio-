@@ -2,21 +2,25 @@
 /* =========================================================================
    PREDIZIONE — configurazione condivisa
    -------------------------------------------------------------------------
-   Questo file e' incluso da image.php, stato.php e carica.php.
-   Qui dentro c'e' l'unica cosa che DEVI cambiare a mano: la password.
+   Incluso da image.php, stato.php e carica.php.
+   L'unica cosa da cambiare a mano e' la PASSWORD (qui sotto).
+
+   MODELLO A SESSIONI
+   - Foto A (neutra): caricata una volta, resta in memoria, riusata sempre.
+     La puoi ricaricare quando vuoi cambiarla.
+   - Rivelazione: diversa ogni sessione. La carichi prima di avviare.
+   - "Avvia" crea una NUOVA sessione con (Foto A neutra + quella rivelazione).
+   - Ogni sessione conserva le SUE foto: chi ha ricevuto la rivelazione di una
+     sessione continua a vederla per sempre, anche quando ne avvii altre.
    ========================================================================= */
 
-/* ---- 1) LA TUA PASSWORD (cambiala!) ------------------------------------
-   E' la password che protegge il pannello: serve per avviare/finire il
-   gioco e per caricare le foto. Scegline una tua, difficile da indovinare,
-   e mettila anche nel pannello quando ti viene chiesta. NON condividerla. */
+/* ---- 1) LA TUA PASSWORD (cambiala!) ------------------------------------ */
 const PREDIZIONE_PASSWORD = 'CAMBIA_QUESTA_PASSWORD';
 
 /* ---- 2) Fuso orario ----------------------------------------------------- */
 date_default_timezone_set('Europe/Rome');
 
-/* ---- 3) Cartella dei dati (foto, stato, log) ---------------------------
-   E' una sottocartella protetta: nessuno puo' aprirla dal browser. */
+/* ---- 3) Cartella dei dati (foto, stato, log) — protetta ----------------- */
 const DATA_DIR = __DIR__ . '/_dati';
 
 /* ---- 4) Log delle aperture (la "cattura") ------------------------------- */
@@ -28,6 +32,13 @@ const ABILITA_LOG = true;
 
 const STATO_FILE = DATA_DIR . '/stato.json';
 const LOG_FILE   = DATA_DIR . '/aperture.csv';
+
+const TIPI_IMG = [
+    'image/jpeg' => 'jpg',
+    'image/png'  => 'png',
+    'image/gif'  => 'gif',
+    'image/webp' => 'webp',
+];
 
 /* Crea la cartella dati se manca, e la blinda con un .htaccess. */
 function predizione_prepara_cartella(): void {
@@ -47,13 +58,13 @@ function predizione_prepara_cartella(): void {
 /* Stato di partenza quando il file non esiste ancora. */
 function predizione_stato_default(): array {
     return [
-        'fase'            => 'spento',   // spento | avviato | terminato
-        'orario_scambio'  => null,       // timestamp (int) di sicurezza, oppure null
-        'forza'           => null,       // 'A' | 'B' | null  (scorciatoia test)
-        'avvio_ts'        => null,       // quando e' stato premuto Avvia
-        'foto_a_file'     => null,       // percorso della Foto A caricata
-        'foto_b_file'     => null,       // percorso della Foto B caricata
-        'aggiornato'      => null,
+        'foto_a'             => null,   // Foto A neutra (persistente, riusata)
+        'rivelazione_pronta' => null,   // rivelazione in attesa per la PROSSIMA sessione
+        'sessione_corrente'  => 0,      // 0 = nessuna sessione attiva
+        'ultimo_id'          => 0,      // ultimo numero di sessione assegnato
+        'forza'              => null,   // 'A' | 'B' | null  (scorciatoia test)
+        'sessioni'           => [],     // { "1": {fase, before, after, orario_scambio, avvio_ts}, ... }
+        'aggiornato'         => null,
     ];
 }
 
@@ -62,7 +73,7 @@ function predizione_leggi_stato(): array {
     if (!is_file(STATO_FILE)) {
         return predizione_stato_default();
     }
-    $raw = @file_get_contents(STATO_FILE);
+    $raw  = @file_get_contents(STATO_FILE);
     $dati = json_decode((string)$raw, true);
     if (!is_array($dati)) {
         return predizione_stato_default();
@@ -77,13 +88,21 @@ function predizione_scrivi_stato(array $stato): bool {
     return @file_put_contents(STATO_FILE, $json, LOCK_EX) !== false;
 }
 
-/* Confronto password a tempo costante (evita di rivelarla a tentativi). */
+/* Ritorna la sessione attiva/corrente, oppure null. */
+function predizione_sessione_corrente(array $stato): ?array {
+    $id = (int)($stato['sessione_corrente'] ?? 0);
+    if ($id <= 0) return null;
+    $s = $stato['sessioni'][(string)$id] ?? null;
+    return is_array($s) ? $s : null;
+}
+
+/* Confronto password a tempo costante. */
 function predizione_password_ok(?string $inserita): bool {
     if (!is_string($inserita) || $inserita === '') return false;
     return hash_equals(PREDIZIONE_PASSWORD, $inserita);
 }
 
-/* Conta quante aperture sono state registrate nel log (righe del CSV). */
+/* Conta le aperture registrate nel log (righe del CSV). */
 function predizione_conta_aperture(): int {
     if (!is_file(LOG_FILE)) return 0;
     $n = 0;

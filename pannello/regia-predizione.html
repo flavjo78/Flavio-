@@ -220,13 +220,13 @@
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
 
       <div class="meta">
-        <span>Foto attiva&nbsp;·&nbsp;<b id="fotoAttiva">—</b></span>
+        <span>Sessione&nbsp;·&nbsp;<b id="sessNum">—</b></span>
         <span>Sicurezza&nbsp;·&nbsp;<b id="chipTime">—</b></span>
       </div>
 
       <div class="chips" id="chips">
         <span class="chip" id="chipA"><span class="st"></span>Foto A</span>
-        <span class="chip" id="chipB"><span class="st"></span>Foto B</span>
+        <span class="chip" id="chipB"><span class="st"></span>Rivelazione</span>
         <span class="chip" id="chipConn"><span class="st"></span><b id="connLbl">connessione…</b></span>
       </div>
 
@@ -258,22 +258,23 @@
       <p class="hint">È la stessa password che hai messo in <b>config.php</b> sul server. Resta salvata solo su questo telefono.</p>
     </section>
 
-    <section aria-label="Le due foto">
-      <div class="sec-head"><h2 class="sec-title">Le due foto</h2><span class="sec-num">A / B</span></div>
+    <section aria-label="Le foto">
+      <div class="sec-head"><h2 class="sec-title">Le foto</h2><span class="sec-num">A / rivelazione</span></div>
 
       <label class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
         <span class="thumb"><span class="ph">A</span></span>
-        <span class="slot-txt"><span class="t">Foto A</span><span class="s">durante il gioco · nessun file</span></span>
+        <span class="slot-txt"><span class="t">Foto A · neutra</span><span class="s">di attesa · resta in memoria</span></span>
         <span class="tag">Carica</span>
       </label>
 
       <label class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb"><span class="ph">B</span></span>
-        <span class="slot-txt"><span class="t">Foto B</span><span class="s">dopo lo scambio · nessun file</span></span>
+        <span class="thumb"><span class="ph">R</span></span>
+        <span class="slot-txt"><span class="t">Rivelazione</span><span class="s">diversa ogni sessione · da caricare</span></span>
         <span class="tag">Carica</span>
       </label>
+      <p class="hint">La <b>Foto A</b> neutra si carica una volta e resta. La <b>rivelazione</b> va caricata <b>prima di ogni "Avvia"</b>: viene usata per quella sessione e chi la riceve la vedrà sempre.</p>
 
       <div class="field">
         <label for="swtime">Orario di sicurezza (facoltativo)</label>
@@ -361,7 +362,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // ---- elementi UI ----
   var elCount=$('count'), elWrap=$('counterWrap'), elPill=$('statePill'), elLbl=$('stateLbl'),
       startBtn=$('startBtn'), stopBtn=$('stopBtn'), resetBtn=$('resetBtn'),
-      phaseLine=$('phaseLine'), fotoAttiva=$('fotoAttiva'), chipTime=$('chipTime'),
+      phaseLine=$('phaseLine'), sessNum=$('sessNum'), chipTime=$('chipTime'),
       chipA=$('chipA'), chipB=$('chipB'), chipConn=$('chipConn'), connLbl=$('connLbl'),
       footHost=$('footHost');
 
@@ -369,26 +370,28 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function tsToHHMM(ts){ if(!ts) return '—'; var d=new Date(ts*1000); return two(d.getHours())+':'+two(d.getMinutes()); }
 
   var lastAperture=null;
+  var cur={ ha_foto_a:false, ha_rivelazione:false, fase:'spento' }; // ultimo stato noto
 
   function render(st){
+    cur=st;
     chipConn.classList.add('ok'); connLbl.textContent='Collegato'; footHost.textContent='collegato';
 
-    var fase=st.fase, foto='—', frase='';
+    var fase=st.fase, frase='';
     if(st.forza==='A' || st.forza==='B'){
-      foto=st.forza+' (test)'; frase='Modalità test · mostra Foto '+st.forza;
+      frase='Modalità test · mostra Foto '+st.forza;
     } else if(fase==='spento'){
-      foto='neutra'; frase='Gioco spento · nessuna foto mostrata';
+      frase='Gioco spento · nessuna risposta, nessuna foto';
     } else if(fase==='terminato'){
-      foto='B'; frase='Gioco terminato · chi apre vede la Foto B';
+      frase='Sessione terminata · chi apre vede la rivelazione';
     } else if(fase==='avviato'){
       if(st.orario_scambio && st.ora_server >= st.orario_scambio){
-        foto='B'; frase='Orario di sicurezza scattato · Foto B';
+        frase='Orario di sicurezza scattato · si vede la rivelazione';
       } else {
-        foto='A'; frase='Gioco in corso · chi apre vede la Foto A';
+        frase='Sessione in corso · chi apre vede la Foto A';
       }
     }
-    fotoAttiva.textContent=foto;
     phaseLine.textContent=frase;
+    sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
 
     elPill.classList.remove('live'); elWrap.classList.remove('live');
     if(fase==='avviato'){ elPill.classList.add('live'); elWrap.classList.add('live'); elLbl.textContent='In corso'; }
@@ -400,7 +403,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
-    chipB.classList.toggle('ok', !!st.ha_foto_b);
+    chipB.classList.toggle('ok', !!st.ha_rivelazione);
 
     var n=st.aperture||0;
     elCount.textContent=n;
@@ -425,11 +428,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- pulsanti gioco ----
   startBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
+    if(!cur.ha_foto_a){ toast('Carica prima la Foto A neutra (impostazioni)','err'); return; }
+    if(!cur.ha_rivelazione){ toast('Carica prima la rivelazione di questa sessione','err'); return; }
     var extra={}; var t=$('swtime').value; if(t){ extra.orario_scambio=t; }
-    comando('avvia', extra, 'Gioco avviato · Foto A');
+    comando('avvia', extra, 'Nuova sessione avviata · Foto A');
   });
-  stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Gioco terminato · Foto B'); });
-  resetBtn.addEventListener('click', function(){ comando('azzera', null, 'Gioco azzerato'); });
+  stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione terminata · rivelazione'); });
+  resetBtn.addEventListener('click', function(){ comando('azzera', null, 'Sessione azzerata'); });
 
   // ---- forza (test) ----
   $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });
@@ -455,7 +461,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       apiCarica(key, f).then(function(res){
         if(res.data && res.data.ok){
           sub.textContent='caricata · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
-          toast('Foto '+key+' caricata','ok'); poll();
+          toast(key==='A' ? 'Foto A neutra salvata' : 'Rivelazione pronta','ok'); poll();
         } else {
           sub.textContent='errore'; tag.textContent='Riprova';
           toast((res.data&&res.data.errore)||'Upload fallito','err');

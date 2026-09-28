@@ -1,90 +1,128 @@
 <?php
 /* =========================================================================
-   PREDIZIONE — comando dello stato del gioco
+   PREDIZIONE — comando dello stato del gioco (a sessioni)
    -------------------------------------------------------------------------
    Il pannello chiama questo file per:
-     - leggere lo stato attuale        (azione = stato)
-     - avviare il gioco                (azione = avvia)   -> mostra Foto A
-     - finire il gioco                 (azione = finisci) -> mostra Foto B
-     - azzerare / spegnere             (azione = azzera)  -> immagine neutra
-     - forzare A/B per i test          (azione = forza, valore = A|B|OFF)
+     - stato    : leggere la situazione (nessuna password)
+     - avvia    : apre una NUOVA sessione (Foto A + rivelazione pronta) -> A
+     - finisci  : chiude la sessione corrente -> rivelazione (B/C/...)
+     - azzera   : annulla la sessione corrente se non ancora terminata
+     - forza    : test, mostra A/B della sessione corrente (valore A|B|OFF)
 
-   Tutte le azioni (tranne la sola lettura) richiedono la password.
-   Non c'e' niente da configurare qui: vedi config.php.
+   Tutte le azioni tranne "stato" richiedono la password. Vedi config.php.
    ========================================================================= */
 
 require __DIR__ . '/config.php';
 
 header('Cache-Control: no-store');
 
-/* Legge un parametro sia da POST sia da GET. */
 function p(string $k): ?string {
     $v = $_POST[$k] ?? $_GET[$k] ?? null;
     return is_string($v) ? trim($v) : null;
 }
 
-$azione   = p('azione') ?? 'stato';
-$password = p('password');
-
-/* --- una vista "pubblica" e sicura dello stato (senza percorsi dei file) -- */
+/* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
+    $sess = predizione_sessione_corrente($s);
     return [
-        'fase'           => $s['fase'],
-        'orario_scambio' => $s['orario_scambio'] ? (int)$s['orario_scambio'] : null,
+        'sessione'       => (int)($s['sessione_corrente'] ?? 0),
+        'n_sessioni'     => count($s['sessioni'] ?? []),
+        'fase'           => $sess['fase'] ?? 'spento',
+        'orario_scambio' => ($sess && !empty($sess['orario_scambio'])) ? (int)$sess['orario_scambio'] : null,
+        'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
-        'avvio_ts'       => $s['avvio_ts'] ? (int)$s['avvio_ts'] : null,
-        'ha_foto_a'      => !empty($s['foto_a_file']) && is_file($s['foto_a_file']),
-        'ha_foto_b'      => !empty($s['foto_b_file']) && is_file($s['foto_b_file']),
+        'ha_foto_a'          => !empty($s['foto_a']) && is_file($s['foto_a']),
+        'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'aperture'       => predizione_conta_aperture(),
         'ora_server'     => time(),
     ];
 }
 
-$stato = predizione_leggi_stato();
+$azione   = p('azione') ?? 'stato';
+$password = p('password');
+$stato    = predizione_leggi_stato();
 
-/* --- sola lettura dello stato: serve al pannello per aggiornarsi ---------- */
 if ($azione === 'stato') {
     predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 }
 
-/* --- da qui in poi serve la password ------------------------------------- */
 if (!predizione_password_ok($password)) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
 }
 
 switch ($azione) {
+
     case 'avvia':
+        // servono la Foto A neutra e una rivelazione pronta
+        $foto_a = $stato['foto_a'] ?? null;
+        $riv    = $stato['rivelazione_pronta'] ?? null;
+        if (empty($foto_a) || !is_file($foto_a)) {
+            predizione_json(['ok' => false, 'errore' => 'Carica prima la Foto A (neutra)'], 400);
+        }
+        if (empty($riv) || !is_file($riv)) {
+            predizione_json(['ok' => false, 'errore' => 'Carica prima la rivelazione di questa sessione'], 400);
+        }
+
         // orario di sicurezza opzionale: "HH:MM" (oggi) oppure timestamp
         $orario = p('orario_scambio');
         $ts = null;
         if ($orario !== null && $orario !== '') {
             if (ctype_digit($orario)) {
-                $ts = (int)$orario;                       // gia' un timestamp
+                $ts = (int)$orario;
             } elseif (preg_match('/^([01]?\d|2[0-3]):([0-5]\d)$/', $orario)) {
-                $ts = strtotime(date('Y-m-d') . ' ' . $orario . ':00'); // oggi alle HH:MM
-                // se l'ora e' gia' passata, intende domani
+                $ts = strtotime(date('Y-m-d') . ' ' . $orario . ':00');
                 if ($ts !== false && $ts < time()) { $ts = strtotime('+1 day', $ts); }
             }
         }
-        $stato['fase']           = 'avviato';
-        $stato['avvio_ts']       = time();
-        $stato['orario_scambio'] = $ts ?: null;
-        $stato['forza']          = null;
+
+        // nuovo numero di sessione
+        $nid = (int)($stato['ultimo_id'] ?? 0) + 1;
+
+        // congela le foto DI QUESTA sessione (file con nome dedicato)
+        $extA = strtolower(pathinfo($foto_a, PATHINFO_EXTENSION)) ?: 'jpg';
+        $extR = strtolower(pathinfo($riv, PATHINFO_EXTENSION)) ?: 'jpg';
+        $before = DATA_DIR . '/sess_' . $nid . '_before.' . $extA;
+        $after  = DATA_DIR . '/sess_' . $nid . '_after.' . $extR;
+        @copy($foto_a, $before);           // la neutra viene copiata (resta anche come default)
+        @rename($riv, $after);             // la rivelazione viene consumata per questa sessione
+
+        $stato['sessioni'][(string)$nid] = [
+            'fase'           => 'avviato',
+            'before'         => $before,
+            'after'          => $after,
+            'orario_scambio' => $ts ?: null,
+            'avvio_ts'       => time(),
+        ];
+        $stato['sessione_corrente']  = $nid;
+        $stato['ultimo_id']          = $nid;
+        $stato['rivelazione_pronta'] = null;   // consumata
+        $stato['forza']              = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
-        // no break: exit dentro predizione_json
 
     case 'finisci':
-        $stato['fase']  = 'terminato';
+        $id = (int)($stato['sessione_corrente'] ?? 0);
+        if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
+            predizione_json(['ok' => false, 'errore' => 'Nessuna sessione da terminare'], 400);
+        }
+        $stato['sessioni'][(string)$id]['fase'] = 'terminato';
         $stato['forza'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     case 'azzera':
-        $stato['fase']           = 'spento';
-        $stato['orario_scambio'] = null;
-        $stato['forza']          = null;
-        $stato['avvio_ts']       = null;
+        // annulla SOLO se la sessione corrente non e' ancora terminata
+        $id = (int)($stato['sessione_corrente'] ?? 0);
+        if ($id > 0 && isset($stato['sessioni'][(string)$id])) {
+            if (($stato['sessioni'][(string)$id]['fase'] ?? '') !== 'terminato') {
+                $s = $stato['sessioni'][(string)$id];
+                if (!empty($s['before']) && is_file($s['before'])) @unlink($s['before']);
+                if (!empty($s['after'])  && is_file($s['after']))  @unlink($s['after']);
+                unset($stato['sessioni'][(string)$id]);
+            }
+        }
+        $stato['sessione_corrente'] = 0;   // torna al neutro per gli indirizzi senza ?s=
+        $stato['forza'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
