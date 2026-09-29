@@ -7,3 +7,5 @@ server/foto_b.*
 
 # Dipendenze dell'autorisponditore (si ricreano con npm install; il pacchetto pronto è nello zip)
 autorisponditore/node_modules/
+# Pacchetto pronto (grande, si ricrea con: zip -r autorisponditore.zip index.mjs package.json node_modules)
+autorisponditore/autorisponditore.zip

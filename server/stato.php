@@ -8,6 +8,7 @@
      - finisci  : chiude la sessione corrente -> rivelazione (B/C/...)
      - azzera   : annulla la sessione corrente se non ancora terminata
      - forza    : test, mostra A/B della sessione corrente (valore A|B|OFF)
+     - autorisponditore : interruttore ON/OFF della risposta automatica (valore ON|OFF)
 
    Tutte le azioni tranne "stato" richiedono la password. Vedi config.php.
    ========================================================================= */
@@ -31,6 +32,7 @@ function predizione_stato_pubblico(array $s): array {
         'orario_scambio' => ($sess && !empty($sess['orario_scambio'])) ? (int)$sess['orario_scambio'] : null,
         'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
+        'autorisponditore'   => !empty($s['autorisponditore']),
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'aperture'       => predizione_conta_aperture(),
@@ -148,6 +150,14 @@ switch ($azione) {
     case 'forza':
         $valore = strtoupper((string)p('valore'));
         $stato['forza'] = ($valore === 'A' || $valore === 'B') ? $valore : null;
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'autorisponditore':
+        // interruttore ON/OFF della risposta automatica (la Lambda lo legge a ogni giro):
+        // OFF -> la Lambda si sveglia ma NON fa nulla; ON -> risponde a gioco attivo.
+        $valore = strtoupper((string)p('valore'));
+        $stato['autorisponditore'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

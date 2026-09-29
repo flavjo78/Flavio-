@@ -117,7 +117,8 @@ Da ora la funzione si esegue **da sola ogni minuto**: legge la posta e risponde.
 
 ### Prova reale (l'effetto!)
 1. Apri il **pannello** `https://abraka.it/predizione/regia-predizione.html`, metti la
-   password, carica una **Rivelazione**, premi **Avvia gioco** (nasce la Sessione #N).
+   password, in **Impostazioni** accendi l'interruttore **"Autorisponditore"**, carica una
+   **Rivelazione**, premi **Avvia gioco** (nasce la Sessione #N).
 2. Dalla **Gmail** manda una mail a `io@abraka.it`.
 3. Aspetta **~1 minuto** (la funzione scatta ogni minuto).
 4. Ti arriva la **risposta automatica** con l'immagine: durante il gioco è la **Foto A**
@@ -140,9 +141,13 @@ Da ora la funzione si esegue **da sola ogni minuto**: legge la posta e risponde.
   scambio A→B potrebbe non aggiornarsi per chi ha già aperto. È il limite noto della
   tecnica (vedi `CLAUDE.md` §5). Su **Gmail** l'effetto è più affidabile che su iPhone.
   Consiglio: fai partire la risposta **poco prima** del momento della rivelazione.
-- **Accendere/spegnere l'automatismo.** Per fermarlo temporaneamente: nella regola
-  EventBridge metti **"Disabilita"**; per riattivarlo, **"Abilita"**. Oppure, più
-  semplice: a gioco **spento** (pannello) la funzione **non risponde** comunque.
+- **Accendere/spegnere l'automatismo (dal telefono).** Nel **pannello → Impostazioni**
+  c'è l'interruttore **"Autorisponditore"**. **Accendilo prima dello show, spegnilo alla
+  fine.** Quando è spento, la funzione su Amazon si sveglia lo stesso ogni minuto ma
+  **esce subito senza fare niente** (non legge le mail, non risponde): così non lavora
+  quando non serve, e non devi toccare AWS. Se il gioco è avviato ma l'interruttore è
+  spento, il pannello te lo segnala con **"⚠ autorisponditore SPENTO"**.
+  *(In alternativa, per fermarlo lato AWS: nella regola EventBridge metti "Disabilita".)*
 - **Leggere chi ti scrive.** Le mail restano nella casella: le leggi dalla **webmail**
   Tophost o dove preferisci. La funzione le segna solo come "lette".
 - **Costi.** Praticamente nulli: Lambda ha un'ampia quota gratuita mensile; SES costa

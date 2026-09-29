@@ -103,7 +103,8 @@ predizione/
 App mobile in verticale, singolo file HTML (CSS e JS inline). **Installabile** sul
 telefono (PWA: manifest + service worker + icone). Due schermate: **Regia** (aperture
 registrate, stato/fase del gioco, tasti **Avvia / Cambia / Finisci**) e **Impostazioni** (ingranaggio:
-password, carico Foto A neutra / rivelazione, orario di sicurezza, test Forza A/B/Auto).
+password, interruttore **Autorisponditore** ON/OFF, carico Foto A neutra / rivelazione,
+orario di sicurezza, test Forza A/B/Auto).
 Mostra il numero di **sessione** corrente; "Avvia" richiede Foto A + rivelazione caricate.
 
 **Stato attuale:** **collegato al backend e collaudato** (test end-to-end contro i file
@@ -123,7 +124,8 @@ Riceve i comandi dal pannello (tutti tranne la sola lettura richiedono la passwo
 `avvia` (apre una NUOVA sessione: congela Foto A + rivelazione in file dedicati, fase=avviato,
 orario di sicurezza opzionale), `cambia` (fase→cambiato: mostra B, gioco ancora attivo),
 `finisci` (fase→terminato: chiude, la B resta congelata), `azzera` (annulla la sessione solo
-se non ha ancora rivelato, fase=avviato), `forza` (A/B/OFF test), `stato` (lettura per il polling).
+se non ha ancora rivelato, fase=avviato), `forza` (A/B/OFF test), `autorisponditore` (interruttore
+ON/OFF della risposta automatica, letto dalla Lambda a ogni giro), `stato` (lettura per il polling).
 Fasi: **spento → avviato → cambiato → terminato**. Lo stato vive in `_dati/stato.json`.
 
 ### `server/carica.php`
@@ -249,6 +251,9 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       che ogni minuto legge la casella `io@abraka.it` via **IMAP** (mail restano su Tophost,
       leggibili) e, a gioco avviato, risponde via **SES** con `image.php?s=SESSIONE&id=…`.
       Impostazioni via variabili d'ambiente. Pacchetto zip pronto da caricare.
+      Ha un **interruttore ON/OFF** letto da `stato.php` (`autorisponditore`): a OFF la Lambda
+      si sveglia ma esce subito senza leggere la posta né rispondere — comandato dal pannello
+      (Impostazioni), così non lavora quando non c'è spettacolo senza toccare AWS.
 - [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
       le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
       EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**

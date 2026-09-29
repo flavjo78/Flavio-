@@ -259,6 +259,15 @@
       <p class="hint">È la stessa password che hai messo in <b>config.php</b> sul server. Resta salvata solo su questo telefono.</p>
     </section>
 
+    <section aria-label="Autorisponditore">
+      <div class="sec-head"><h2 class="sec-title">Autorisponditore</h2><span class="sec-num">On / Off</span></div>
+      <div class="toggle-row">
+        <div><div class="t">Risposta automatica</div><div class="s" id="autoSub">acceso solo durante lo show</div></div>
+        <label class="switch"><input type="checkbox" id="autoResp"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <p class="hint"><b>Accendilo prima dello show</b> e spegnilo alla fine. Quando è spento, il programma su Amazon si sveglia ma <b>non fa niente</b> (non legge le mail, non risponde): così non lavora quando non serve.</p>
+    </section>
+
     <section aria-label="Le foto">
       <div class="sec-head"><h2 class="sec-title">Le foto</h2><span class="sec-num">A / rivelazione</span></div>
 
@@ -393,8 +402,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         frase='In corso · chi apre vede la Foto A';
       }
     }
+    if((fase==='avviato' || fase==='cambiato') && !st.autorisponditore){
+      frase += ' · ⚠ autorisponditore SPENTO';
+    }
     phaseLine.textContent=frase;
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
+
+    var ar=$('autoResp'); if(ar){ ar.checked = !!st.autorisponditore; }
+    var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
 
     var attivo = (fase==='avviato' || fase==='cambiato');
     elPill.classList.remove('live'); elWrap.classList.remove('live');
@@ -442,6 +457,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
   swapBtn.addEventListener('click', function(){ comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
+
+  // ---- interruttore autorisponditore ----
+  $('autoResp').addEventListener('change', function(){
+    var on = this.checked;
+    if(!getPw()){ toast('Inserisci prima la password','err'); this.checked=!on; return; }
+    comando('autorisponditore', {valore: on?'ON':'OFF'}, on?'Autorisponditore ACCESO':'Autorisponditore spento');
+  });
 
   // ---- forza (test) ----
   $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });

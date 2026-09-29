@@ -8,7 +8,12 @@
       risposta via Amazon SES con l'immagine dinamica  image.php?s=SESSIONE&id=MITTENTE ;
    4) segna la mail come letta (cosi' non risponde due volte).
 
-   Risponde SOLO mentre il gioco e' "in corso":
+   INTERRUTTORE GENERALE: nel pannello (Impostazioni) c'e' un interruttore
+   "Autorisponditore" ON/OFF. Se e' OFF, questa funzione si sveglia ma esce
+   subito senza fare nulla (non legge la posta, non risponde): cosi' non serve
+   spegnere la pianificazione su AWS quando non c'e' spettacolo.
+
+   Con l'interruttore ON, risponde SOLO mentre il gioco e' "in corso":
    - PRIMA di "Avvia" (spento)  -> non invia nulla;
    - dopo "Finisci" (terminato) -> non invia piu' nulla (sessione chiusa).
    In entrambi i casi segna comunque le mail come lette (non verranno processate
@@ -68,6 +73,16 @@ export const handler = async () => {
   try { stato = await statoCorrente(); } catch (e) { console.log('stato.php non raggiungibile:', e.message); }
   const sessione = stato ? Number(stato.sessione || 0) : 0;
   const fase = stato ? String(stato.fase || 'spento') : 'spento';
+
+  // INTERRUTTORE dal pannello: se l'autorisponditore e' SPENTO, la Lambda si sveglia
+  // ma non fa NULLA (non legge la posta, non risponde). Cosi' "non lo usi se non serve".
+  const auto_on = stato ? (stato.autorisponditore === true) : false;
+  if (!auto_on) {
+    const esito = { autorisponditore: false, saltato: true, sessione, fase };
+    console.log('ESITO', JSON.stringify(esito));
+    return esito;
+  }
+
   // risponde mentre il gioco e' ATTIVO: fase "avviato" (mostra A) o "cambiato" (mostra B).
   // NON risponde prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
   const gioco_attivo = sessione > 0 && (fase === 'avviato' || fase === 'cambiato');
@@ -127,7 +142,7 @@ export const handler = async () => {
     await client.logout();
   }
 
-  const esito = { gioco_attivo, sessione, fase, lette, risposte, errori };
+  const esito = { autorisponditore: true, gioco_attivo, sessione, fase, lette, risposte, errori };
   console.log('ESITO', JSON.stringify(esito));
   return esito;
 };

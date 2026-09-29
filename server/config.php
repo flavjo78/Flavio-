@@ -63,6 +63,7 @@ function predizione_stato_default(): array {
         'sessione_corrente'  => 0,      // 0 = nessuna sessione attiva
         'ultimo_id'          => 0,      // ultimo numero di sessione assegnato
         'forza'              => null,   // 'A' | 'B' | null  (scorciatoia test)
+        'autorisponditore'   => false,  // interruttore ON/OFF della risposta automatica (Lambda)
         'sessioni'           => [],     // { "1": {fase, before, after, orario_scambio, avvio_ts}, ... }
         'aggiornato'         => null,
     ];
