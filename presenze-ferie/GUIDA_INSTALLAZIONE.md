@@ -88,8 +88,11 @@ Nella scheda **📊 Riepilogo** vedi il saldo di tutti.
 
 1. Con il telefono collegato al **Wi-Fi aziendale**, apri `http://IP-DEL-NAS/ziwood/ferie/index.html`
    (l'indirizzo IP del NAS è lo stesso che usa già l'app di timbratura).
-2. Scegli il nome, scrivi il PIN, entra. Prova a chiedere qualche giorno: sotto il calendario vedi subito
-   **quanti giorni lavorativi** consumerà (festivi e giorni di riposo esclusi).
+2. Scegli il nome, scrivi il PIN, entra. Premi **➕ Chiedi ferie** e **scegli i giorni direttamente sul calendario**:
+   tocca un giorno, oppure **trascina il dito** per scegliere un periodo. I giorni scelti diventano **gialli** ("in attesa").
+   Tocca di nuovo un giorno per toglierlo. Puoi cambiare mese con le frecce senza perdere la scelta.
+   Sabati, domeniche, festivi e giorni già occupati non si possono scegliere; a destra vedi subito
+   **quanti giorni** userai (festivi e giorni di riposo esclusi). Più periodi scelti insieme partono con una sola richiesta.
 3. Nella dashboard, scheda **🏖️ Ferie → 📥 Richieste** compare la richiesta: *Approva* o *Rifiuta*
    (il rifiuto richiede un motivo, che il dipendente vede nell'app).
 4. Torna sul telefono: lo stato è cambiato e il calendario mostra le ferie.

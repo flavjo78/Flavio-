@@ -118,6 +118,24 @@ function _testo_periodo($r)
     return $t . ' = ' . num_it($r['giorni_lavorativi']) . ' giorni lavorativi';
 }
 
+/** Un solo avviso per piu' richieste create insieme (giorni scelti sul calendario). */
+function notifica_admin_multi(array $richs)
+{
+    if (count($richs) === 1) return notifica_admin($richs[0], 'nuova');
+    $c = impostazioni_mail();
+    $dest = is_array($c['destinatari_admin'] ?? null) ? $c['destinatari_admin'] : [];
+    $tot = 0;
+    $righe = '';
+    foreach ($richs as $r) {
+        $tot += $r['giorni_lavorativi'];
+        $righe .= '- ' . _testo_periodo($r) . "\n";
+    }
+    $txt = $richs[0]['nome'] . ' ha chiesto ferie (' . count($richs) . ' periodi, ' . num_it($tot) . " giorni in tutto):\n\n" . $righe
+        . ($richs[0]['nota'] !== '' ? "\nNota: " . $richs[0]['nota'] : '')
+        . "\nApri la scheda \"Ferie\" della dashboard per approvare o rifiutare.\n";
+    return invia_mail($dest, 'Nuova richiesta ferie: ' . $richs[0]['nome'], $txt);
+}
+
 /** Avvisa l'ufficio di una nuova richiesta o di un annullamento. */
 function notifica_admin($rich, $evento)
 {

@@ -360,7 +360,7 @@ function calendario_mese($nome, $anno, $mese)
  * Controlla una richiesta e calcola i giorni che consumerebbe.
  * Ritorna ['giorni' => [date...], 'peso' => 1|0.5, 'totale' => n] oppure lancia ErroreFerie.
  */
-function valuta_richiesta($nome, $dal, $al, $mezza)
+function valuta_richiesta($nome, $dal, $al, $mezza, $controlla_saldo = true)
 {
     if (!data_valida($dal) || !data_valida($al)) throw new ErroreFerie('Date non valide.');
     if ($al < $dal) throw new ErroreFerie('La data di fine è prima di quella di inizio.');
@@ -390,7 +390,7 @@ function valuta_richiesta($nome, $dal, $al, $mezza)
     $totale = count($giorni) * $peso;
     $anno = (int)substr($dal, 0, 4);
     $saldo = calcola_saldo($nome, $anno);
-    if (!CONSENTI_OLTRE_SALDO) {
+    if ($controlla_saldo && !CONSENTI_OLTRE_SALDO) {
         if (!$saldo['configurato']) {
             throw new ErroreFerie('I tuoi giorni di ferie del ' . $anno . ' non sono ancora stati impostati dall\'ufficio.');
         }
@@ -399,6 +399,51 @@ function valuta_richiesta($nome, $dal, $al, $mezza)
         }
     }
     return ['giorni' => $giorni, 'peso' => $peso, 'totale' => $totale, 'mezza' => $mezza, 'saldo' => $saldo];
+}
+
+/**
+ * Piu' periodi in una volta (i giorni scelti sul calendario, raggruppati in blocchi).
+ * $periodi = [['dal' => , 'al' => , 'mezza' => ], ...]. Controlla tutto PRIMA di salvare qualcosa.
+ * Ritorna ['periodi' => [...valutazioni], 'totale' => n, 'giorni' => [date...], 'saldo' => ...].
+ */
+function valuta_periodi($nome, array $periodi)
+{
+    if (!$periodi) throw new ErroreFerie('Scegli almeno un giorno sul calendario.');
+    if (count($periodi) > 20) throw new ErroreFerie('Troppi periodi in una volta: fai due richieste.');
+    $valutati = [];
+    $tutti = [];
+    $totale = 0.0;
+    $per_anno = [];
+    foreach ($periodi as $p) {
+        $v = valuta_richiesta($nome, (string)($p['dal'] ?? ''), (string)($p['al'] ?? ''), $p['mezza'] ?? null, false);
+        foreach ($v['giorni'] as $g) {
+            if (isset($tutti[$g])) throw new ErroreFerie('Il ' . data_it($g) . ' è scelto due volte.');
+            $tutti[$g] = true;
+        }
+        $anno = (int)substr($p['dal'], 0, 4);
+        $per_anno[$anno] = ($per_anno[$anno] ?? 0) + $v['totale'];
+        $totale += $v['totale'];
+        $valutati[] = $v + ['dal' => $p['dal'], 'al' => $p['al']];
+    }
+    if (!CONSENTI_OLTRE_SALDO) {
+        foreach ($per_anno as $anno => $n) {
+            $saldo = calcola_saldo($nome, $anno);
+            if (!$saldo['configurato']) throw new ErroreFerie('I tuoi giorni di ferie del ' . $anno . " non sono ancora stati impostati dall'ufficio.");
+            if ($n > $saldo['disponibili_se_approvate'] + 1e-9) {
+                throw new ErroreFerie('Non hai abbastanza giorni: ne servono ' . num_it($n) . ' e te ne restano ' . num_it(max(0, $saldo['disponibili_se_approvate'])) . ' (contando le richieste già in attesa).');
+            }
+        }
+    }
+    $saldo0 = calcola_saldo($nome, (int)substr($periodi[0]['dal'], 0, 4));
+    return ['periodi' => $valutati, 'totale' => $totale, 'giorni' => array_keys($tutti), 'saldo' => $saldo0];
+}
+
+function crea_richieste($nome, array $periodi, $nota)
+{
+    valuta_periodi($nome, $periodi);   // se qualcosa non va, non salva nulla
+    $create = [];
+    foreach ($periodi as $p) $create[] = crea_richiesta($nome, $p['dal'], $p['al'], $p['mezza'] ?? null, $nota);
+    return $create;
 }
 
 function data_it($iso)

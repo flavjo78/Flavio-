@@ -194,6 +194,29 @@ $r = gestisci_azione(['azione' => 'richiedi', 'token' => $tok, 'dal' => '2026-10
 $file = json_decode(file_get_contents(RICHIESTE_DIR . '/' . $r['richiesta']['id'] . '.json'), true);
 verifica('nota con byte non validi: file leggibile', 'in_attesa', $file['stato']);
 verifica('id senza accenti: nome con apostrofo/accento', true, (bool)preg_match('/^[A-Za-z0-9._-]+$/', slug("Nicolò D'Àngelo") . '-x'));
+// piu' periodi insieme (giorni scelti sul calendario)
+$P = [['dal' => '2026-11-09', 'al' => '2026-11-10', 'mezza' => null], ['dal' => '2026-11-12', 'al' => '2026-11-12', 'mezza' => 'mattina']];
+$r = gestisci_azione(['azione' => 'calcola_multi', 'token' => $tok, 'periodi' => $P]);
+verifica('multi: totale 2,5', 2.5, (float)$r['giorni']);
+verifica('multi: 2 blocchi', 2, $r['blocchi']);
+errore_atteso('multi: vuoto', 'almeno un giorno', function () use ($tok) { gestisci_azione(['azione' => 'calcola_multi', 'token' => $tok, 'periodi' => []]); });
+errore_atteso('multi: giorno doppio', 'due volte', function () use ($tok) {
+    gestisci_azione(['azione' => 'calcola_multi', 'token' => $tok, 'periodi' => [['dal' => '2026-11-09', 'al' => '2026-11-10'], ['dal' => '2026-11-10', 'al' => '2026-11-10']]]);
+});
+errore_atteso('multi: oltre il saldo (cumulativo)', 'abbastanza', function () use ($tok) {
+    gestisci_azione(['azione' => 'calcola_multi', 'token' => $tok, 'periodi' => [['dal' => '2026-11-03', 'al' => '2026-11-27'], ['dal' => '2026-12-01', 'al' => '2026-12-22']]]);
+});
+$prima = count(glob(RICHIESTE_DIR . '/*.json'));
+errore_atteso('multi: un periodo non valido = non salva nulla', 'passati', function () use ($tok) {
+    gestisci_azione(['azione' => 'richiedi_multi', 'token' => $tok, 'periodi' => [['dal' => '2026-11-09', 'al' => '2026-11-09'], ['dal' => '2026-09-01', 'al' => '2026-09-01']]]);
+});
+verifica('multi: nulla salvato in caso di errore', $prima, count(glob(RICHIESTE_DIR . '/*.json')));
+$attesa_prima = (float)gestisci_azione(['azione' => 'home', 'token' => $tok])['saldo']['in_attesa'];
+$r = gestisci_azione(['azione' => 'richiedi_multi', 'token' => $tok, 'periodi' => $P, 'nota' => 'Ponte']);
+verifica('multi: create 2 richieste', 2, $r['create']);
+verifica('multi: in attesa +2,5', $attesa_prima + 2.5, (float)$r['saldo']['in_attesa']);
+verifica('multi: file creati', $prima + 2, count(glob(RICHIESTE_DIR . '/*.json')));
+foreach ($r['richieste'] as $x) { if ($x['stato'] === 'in_attesa') gestisci_azione(['azione' => 'annulla', 'token' => $tok, 'id' => $x['id']]); }
 // l'app non deve mai scrivere i file della dashboard
 verifica('non scrive correzioni_timbrature.json', false, file_exists(DATI_DIR . '/correzioni_timbrature.json'));
 verifica('non scrive ferie_saldi.json', false, file_exists(DATI_DIR . '/ferie_saldi.json'));

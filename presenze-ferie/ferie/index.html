@@ -23,7 +23,7 @@
          padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
   #app { max-width: 620px; margin: 0 auto; padding: 14px 14px 40px; }
   h1 { font-size: 1.5rem; margin: 6px 0 2px; }
-  h2 { font-size: 1.2rem; margin: 0 0 10px; }
+  h2 { font-size: 1.2rem; margin: 0 0 8px; }
   .sotto { color: var(--grigio); font-size: .85rem; margin: 0 0 14px; }
   .scheda { background: var(--carta); border: 1px solid var(--bordo); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
   label { display: block; font-weight: 600; margin: 12px 0 5px; }
@@ -36,14 +36,13 @@
   button.secondario { background: #e6ecf5; color: var(--blu-scuro); }
   button.pericolo { background: #fbe9e9; color: var(--rosso); }
   button:disabled { opacity: .5; }
-  .riga { display: flex; gap: 10px; }
-  .riga > * { flex: 1; }
   .errore { background: #fdecec; color: #a12525; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
-  .info { background: #e8f1ff; color: #123f8a; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
   .ok { background: #e6f6ec; color: #11683a; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
   .nascosto { display: none !important; }
   .testata { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-  .testata button { width: auto; min-height: 44px; padding: 8px 14px; margin: 0; }
+  .testata button { width: auto; min-height: 44px; padding: 8px 18px; margin: 0; }
+  .testata h1 { margin: 0; }
+  .testata .sotto { margin: 0; }
   /* saldo */
   .grande { text-align: center; }
   .grande .numero { font-size: 3.2rem; font-weight: 800; line-height: 1; color: var(--blu); }
@@ -52,13 +51,13 @@
   .mini { background: var(--sfondo); border-radius: 12px; padding: 10px; text-align: center; }
   .mini b { display: block; font-size: 1.4rem; }
   .mini span { font-size: .78rem; color: var(--grigio); }
-  /* schede di navigazione */
+  /* schede di navigazione (solo schermo stretto) */
   .menu { display: flex; gap: 8px; margin-bottom: 14px; }
   .menu button { margin: 0; min-height: 48px; background: #e6ecf5; color: var(--blu-scuro); padding: 8px; font-size: .9rem; }
   .menu button.attiva { background: var(--blu); color: #fff; }
   /* calendario */
   .cal-testa { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-  .cal-testa button { width: 52px; margin: 0; padding: 0; }
+  .cal-testa button { width: 3.2rem; margin: 0; padding: 0; min-height: 2.6rem; }
   .cal-testa strong { font-size: 1.15rem; }
   .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
   .cal .nome-g { text-align: center; font-size: .75rem; color: var(--grigio); font-weight: 700; padding-bottom: 2px; }
@@ -71,9 +70,15 @@
   .g.ferie_programmate { background: var(--verde); color: #fff; border-color: var(--verde); }
   .g.ferie_godute_mezza { background: linear-gradient(135deg, var(--blu) 50%, #fff 50%); }
   .g.ferie_programmate_mezza { background: linear-gradient(135deg, var(--verde) 50%, #fff 50%); }
-  .g.attesa { background: repeating-linear-gradient(45deg, #ffe9a8, #ffe9a8 6px, #fff3cc 6px, #fff3cc 12px); border-color: var(--ambra); }
-  .g.attesa_mezza { background: linear-gradient(135deg, #ffe08a 50%, #fff 50%); border-color: var(--ambra); }
+  .g.attesa, .g.sel { background: repeating-linear-gradient(45deg, #ffe9a8, #ffe9a8 6px, #fff3cc 6px, #fff3cc 12px); border-color: var(--ambra); }
+  .g.attesa_mezza, .g.sel_mezza { background: linear-gradient(135deg, #ffe08a 50%, #fff 50%); border-color: var(--ambra); }
+  .g.sel, .g.sel_mezza { border-width: 2px; }
   .g.oggi { outline: 3px solid var(--testo); outline-offset: -3px; }
+  /* scelta dei giorni sul calendario */
+  .cal.selezione { touch-action: none; user-select: none; -webkit-user-select: none; }
+  .cal.selezione .g:not(.selezionabile):not(.vuoto) { opacity: .4; }
+  .cal.selezione .g.selezionabile { cursor: pointer; border-color: var(--blu); }
+  .banner-sel { background: #fff6d6; border: 2px solid var(--ambra); color: #6b4d00; border-radius: 12px; padding: 10px 12px; margin-bottom: 10px; font-weight: 700; font-size: .9rem; }
   .legenda { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font-size: .78rem; color: var(--grigio); }
   .legenda i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 5px; border: 1px solid var(--bordo); }
   /* richieste */
@@ -86,42 +91,62 @@
   .badge.in_attesa { background: #fff1c2; color: #7a5a00; }
   .badge.approvata { background: #d9f2e3; color: #11683a; }
   .badge.rifiutata { background: #fbe0e0; color: #a12525; }
-  .badge.annullata { background: #e6e9ef; color: var(--grigio); }
   .rich button { min-height: 46px; margin-top: 10px; }
-  .conto { font-size: 1.15rem; text-align: center; padding: 14px; background: #e8f1ff; border-radius: 12px; margin-top: 14px; font-weight: 700; color: #123f8a; }
+  .conto { font-size: 1.05rem; text-align: center; padding: 12px; background: #e8f1ff; border-radius: 12px; margin-top: 12px; font-weight: 700; color: #123f8a; }
   .conto.errore { background: #fdecec; color: #a12525; }
+  .scelti { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0 0; }
+  .scelti span { background: #fff1c2; color: #6b4d00; border-radius: 999px; padding: 4px 10px; font-size: .82rem; font-weight: 700; }
   .scelta { display: flex; gap: 10px; }
-  .scelta label { flex: 1; margin: 0; font-weight: 700; text-align: center; border: 2px solid var(--bordo); border-radius: 12px; padding: 12px 6px; background: #fff; }
-  .scelta label { position: relative; }
+  .scelta label { flex: 1; margin: 0; font-weight: 700; text-align: center; border: 2px solid var(--bordo); border-radius: 12px; padding: 12px 6px; background: #fff; position: relative; }
   .scelta input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
-  .scelta input:checked + span { color: var(--blu); }
-  .scelta label:has(input:checked) { border-color: var(--blu); background: #e8f1ff; }
+  .scelta label:has(input:checked) { border-color: var(--blu); background: #e8f1ff; color: var(--blu); }
   .scelta label:has(input:focus-visible) { outline: 3px solid var(--blu); }
-  /* ---------- schermo largo (telefono in orizzontale, tablet, computer) ----------
-     Saldo + calendario a sinistra, richieste a destra: tutto visibile senza cambiare pagina. */
   .suggerimento { display: none; }
   @media (max-width: 759px) and (orientation: portrait) {
     .suggerimento { display: block; background: #e8f1ff; color: #123f8a; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; font-weight: 600; font-size: .85rem; }
   }
+
+  /* ============ schermo largo: tablet, telefono in orizzontale, computer ============
+     Occupa tutto lo schermo senza scorrere la pagina: saldo a sinistra, calendario grande
+     al centro, richieste a destra. Il testo cresce con l'altezza dello schermo. */
   @media (min-width: 760px) {
-    #app { max-width: 1180px; padding: 12px 20px 30px; }
-    #v-login { max-width: 520px; margin: 0 auto; }
-    #v-app { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
-    #v-app > .testata { grid-column: 1 / -1; }
-    #p-saldo { grid-column: 1; grid-row: 2; }
-    #p-calendario { grid-column: 1; grid-row: 3; }
-    #p-richieste { grid-column: 2; grid-row: 2 / span 2; }
-    #p-nuova { grid-column: 1 / -1; max-width: 640px; width: 100%; justify-self: center; }
+    html { font-size: clamp(16px, 2.2vh, 26px); }
+    html, body { height: 100%; overflow: hidden; }
+    #app { max-width: none; height: 100dvh; margin: 0; padding: 10px 18px 14px; display: flex; flex-direction: column; }
+    #v-login { margin: auto; width: min(520px, 100%); }
+    #v-app { flex: 1; min-height: 0; display: grid; gap: 10px 16px;
+             grid-template-columns: minmax(230px, 23%) minmax(0, 1fr) minmax(260px, 27%);
+             grid-template-rows: auto minmax(0, 1fr);
+             grid-template-areas: "testa testa testa" "saldo cal rich"; }
+    #v-app > .testata { grid-area: testa; }
+    #p-saldo { grid-area: saldo; overflow-y: auto; min-height: 0; }
+    #p-calendario { grid-area: cal; min-height: 0; display: flex; flex-direction: column; }
+    #p-richieste, #p-nuova { grid-area: rich; overflow-y: auto; min-height: 0; }
+    #p-calendario > .scheda { flex: 1; min-height: 0; display: flex; flex-direction: column; margin: 0; }
+    .cal { flex: 1; min-height: 0; gap: 6px; }
+    .g { aspect-ratio: auto; font-size: clamp(1rem, 2.4vh, 1.7rem); border-radius: 12px; }
+    .cal-testa strong { font-size: 1.4rem; }
     #nuova2 { display: none; }
-    .g { aspect-ratio: 1.35; }
-    .grande .numero { font-size: 2.8rem; }
+    .scheda { margin-bottom: 10px; }
+    .grande .numero { font-size: 3rem; }
+    .legenda { font-size: .8rem; }
+  }
+  /* schermo largo ma non enorme (telefono in orizzontale): calendario a destra, saldo e richieste a sinistra */
+  @media (min-width: 760px) and (max-width: 979px) {
+    #v-app { grid-template-columns: minmax(240px, 34%) minmax(0, 1fr); grid-template-rows: auto auto minmax(0, 1fr);
+             grid-template-areas: "testa testa" "saldo cal" "rich cal"; }
+    #p-saldo { overflow: visible; }
+    .griglia { display: none; }
+    .grande .numero { font-size: 2.4rem; }
   }
   @media (min-width: 760px) and (max-height: 520px) {
-    html { font-size: 16px; }
-    .scheda { padding: 10px; margin-bottom: 10px; }
-    button { min-height: 48px; padding: 10px 14px; }
-    .g { aspect-ratio: 1.8; font-size: .85rem; }
-    .griglia { margin-top: 8px; }
+    html { font-size: 15px; }
+    .scheda { padding: 8px 10px; }
+    button { min-height: 42px; padding: 8px 12px; margin-top: 8px; }
+    .cal { gap: 3px; }
+    .legenda { display: none; }
+    #v-app > .testata .sotto { display: none; }
+    h1 { font-size: 1.2rem; }
   }
 </style>
 </head>
@@ -131,7 +156,7 @@
   <!-- ACCESSO -->
   <section id="v-login" class="nascosto">
     <h1>🏖️ Le mie ferie</h1>
-    <p class="sotto">Entra con il tuo nome e il tuo PIN, oppure avvicina la tua carta al telefono.</p>
+    <p class="sotto">Entra con il tuo nome e il tuo PIN, oppure avvicina la tua carta.</p>
     <div class="scheda">
       <label for="nome">Il tuo nome</label>
       <select id="nome"><option value="">Caricamento…</option></select>
@@ -175,6 +200,7 @@
     <!-- calendario -->
     <div id="p-calendario" class="nascosto">
       <div class="scheda">
+        <div id="banner-sel" class="banner-sel nascosto">👆 Tocca i giorni che vuoi, oppure trascina il dito per scegliere un periodo. I giorni scelti diventano gialli.</div>
         <div class="cal-testa">
           <button class="secondario" id="mese-prec" aria-label="Mese precedente">◀</button>
           <strong id="titolo-mese"></strong>
@@ -184,30 +210,29 @@
         <div class="legenda">
           <span><i style="background:var(--blu)"></i>Ferie godute</span>
           <span><i style="background:var(--verde)"></i>Ferie programmate</span>
-          <span><i style="background:#ffe9a8"></i>In attesa</span>
+          <span><i style="background:#ffe9a8"></i>In attesa / scelte</span>
           <span><i style="background:var(--viola)"></i>Malattia</span>
           <span><i style="background:#fde8e8"></i>Festivo</span>
           <span><i style="background:#eceff3"></i>Riposo</span>
         </div>
-        <p class="sotto" id="festivi-mese" style="margin-top:12px"></p>
+        <p class="sotto" id="festivi-mese" style="margin:8px 0 0"></p>
       </div>
     </div>
 
     <!-- richieste -->
     <div id="p-richieste" class="nascosto">
       <button id="nuova2" style="margin-top:0">➕ Chiedi ferie</button>
-      <div id="lista-richieste" style="margin-top:14px"></div>
+      <h2 style="margin-top:4px">Le mie richieste</h2>
       <div id="msg-richieste"></div>
+      <div id="lista-richieste" style="margin-top:10px"></div>
     </div>
 
-    <!-- nuova richiesta -->
+    <!-- nuova richiesta: i giorni si scelgono sul calendario -->
     <div id="p-nuova" class="nascosto">
       <div class="scheda">
         <h2>Chiedi ferie</h2>
-        <label for="dal">Dal giorno</label>
-        <input id="dal" type="date">
-        <label for="al">Al giorno (compreso)</label>
-        <input id="al" type="date">
+        <p class="sotto" style="margin:0">Scegli i giorni sul calendario: tocca un giorno, oppure trascina per un periodo. Tocca di nuovo per toglierlo.</p>
+        <div id="scelti" class="scelti"></div>
         <div id="blocco-mezza" class="nascosto">
           <label>Solo mezza giornata?</label>
           <div class="scelta">
@@ -220,7 +245,7 @@
         <textarea id="nota" maxlength="300" placeholder="Es. viaggio in famiglia"></textarea>
         <div id="conto" class="conto nascosto"></div>
         <button id="invia" disabled>Invia la richiesta</button>
-        <button id="annulla-nuova" class="secondario">Indietro</button>
+        <button id="annulla-nuova" class="secondario">Annulla</button>
         <div id="err-nuova" class="errore nascosto"></div>
       </div>
     </div>
@@ -233,8 +258,13 @@ const $ = (id) => document.getElementById(id);
 const MESI = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
 const GIORNI = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
 const CHIAVE = "ferie_token";
-let token = null, dati = null, meseCorrente = null, sessioneBreve = false, timerInattivo = null;
 const SECONDI_INATTIVITA_CARTA = 120;
+const SCHERMO_LARGO = window.matchMedia("(min-width: 760px)");
+
+let token = null, dati = null, meseCorrente = null, sessioneBreve = false, timerInattivo = null;
+let paginaCorrente = "saldo", inSel = false, timerConto = null;
+const sel = new Set();          // giorni scelti sul calendario (AAAA-MM-GG)
+let cacheCal = {};              // mesi già scaricati: "AAAA-MM" -> risposta del server (+ mappa data -> tipo)
 
 function salvaToken(t) { try { t ? localStorage.setItem(CHIAVE, t) : localStorage.removeItem(CHIAVE); } catch (e) {} }
 function leggiToken() { try { return localStorage.getItem(CHIAVE); } catch (e) { return null; } }
@@ -260,34 +290,40 @@ function nascondi(el) { el.classList.add("nascosto"); }
 function num(n) { const v = Math.round(n * 10) / 10; return String(v).replace(".", ","); }
 function dataIt(iso) { const [a, m, g] = iso.split("-"); return `${g}/${m}/${a}`; }
 function dataLunga(iso) { const d = new Date(iso + "T12:00:00"); return `${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI[d.getMonth()].toLowerCase()}`; }
+function dataBreve(iso) { const d = new Date(iso + "T12:00:00"); return `${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI[d.getMonth()].slice(0, 3).toLowerCase()}`; }
+function piuGiorni(iso, n) { const d = new Date(iso + "T12:00:00Z"); d.setUTCDate(d.getUTCDate() + n); return d.toISOString().slice(0, 10); }
+function gestisciSessione(e) { if (e && e.sessione) { esci(); mostra($("err-login"), e.message); return true; } return false; }
 
 function vista(nome) {
   for (const v of ["v-login", "v-app"]) $(v).classList.toggle("nascosto", v !== nome);
 }
-const SCHERMO_LARGO = window.matchMedia("(min-width: 760px)");
-let paginaCorrente = "saldo";
 
-function pagina(nome) {
+// Su schermo largo saldo + calendario + richieste stanno insieme; su schermo stretto sono tre pagine.
+function pagina(nome, mantieniScelta) {
   paginaCorrente = nome;
-  // schermo largo: saldo, calendario e richieste stanno insieme; solo "nuova richiesta" ha una pagina sua
-  const visibili = nome === "nuova" ? ["nuova"] : SCHERMO_LARGO.matches ? ["saldo", "calendario", "richieste"] : [nome];
+  inSel = nome === "nuova";
+  if (!mantieniScelta) { if (inSel) azzeraNuova(); else sel.clear(); }
+  const largo = SCHERMO_LARGO.matches;
+  let visibili;
+  if (nome === "nuova") visibili = largo ? ["saldo", "calendario", "nuova"] : ["calendario", "nuova"];
+  else visibili = largo ? ["saldo", "calendario", "richieste"] : [nome];
   for (const p of ["saldo", "calendario", "richieste", "nuova"]) $("p-" + p).classList.toggle("nascosto", !visibili.includes(p));
   document.querySelectorAll(".menu button").forEach((b) => b.classList.toggle("attiva", b.dataset.vai === nome));
-  // il menu serve solo su schermo stretto, e non durante "nuova richiesta"
-  document.querySelector(".menu").classList.toggle("nascosto", nome === "nuova" || SCHERMO_LARGO.matches);
+  document.querySelector(".menu").classList.toggle("nascosto", nome === "nuova" || largo);
+  $("banner-sel").classList.toggle("nascosto", !inSel);
   if (visibili.includes("calendario") && dati) caricaCalendario();
 }
-// ruotando il telefono o ridimensionando la finestra si ridisegna la disposizione
-SCHERMO_LARGO.addEventListener("change", () => { if (dati) pagina(paginaCorrente); });
+// ruotando il telefono o ridimensionando la finestra si ridisegna la disposizione (senza perdere i giorni scelti)
+SCHERMO_LARGO.addEventListener("change", () => { if (dati) pagina(paginaCorrente, true); });
 
 // ------------------------------------------------------------------ accesso
 async function caricaNomi() {
   try {
     const r = await api("elenco");
-    const sel = $("nome");
-    sel.innerHTML = "";
-    const primo = document.createElement("option"); primo.value = ""; primo.textContent = "Scegli il tuo nome…"; sel.appendChild(primo);
-    r.nomi.forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n; sel.appendChild(o); });
+    const s = $("nome");
+    s.innerHTML = "";
+    const primo = document.createElement("option"); primo.value = ""; primo.textContent = "Scegli il tuo nome…"; s.appendChild(primo);
+    r.nomi.forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n; s.appendChild(o); });
   } catch (e) { mostra($("err-login"), e.message); }
 }
 
@@ -309,7 +345,7 @@ function avvia(r) {
   // accesso con la carta: sessione breve, non salvata sul telefono, si chiude da sola dopo 2 minuti senza tocchi
   sessioneBreve = !!r.sessione_breve;
   if (!sessioneBreve) salvaToken(token);
-  meseCorrente = null;
+  meseCorrente = null; cacheCal = {}; sel.clear();
   vista("v-app"); pagina("saldo"); disegna(); riavviaInattivita();
 }
 
@@ -317,10 +353,11 @@ function riavviaInattivita() {
   clearTimeout(timerInattivo);
   if (sessioneBreve && token) timerInattivo = setTimeout(esci, SECONDI_INATTIVITA_CARTA * 1000);
 }
-["click", "touchstart", "keydown"].forEach((ev) => document.addEventListener(ev, riavviaInattivita, { passive: true }));
+["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, riavviaInattivita, { passive: true }));
 
 function esci() {
-  token = null; dati = null; sessioneBreve = false; clearTimeout(timerInattivo); meseCorrente = null; salvaToken(null);
+  token = null; dati = null; sessioneBreve = false; clearTimeout(timerInattivo); meseCorrente = null; cacheCal = {}; sel.clear(); inSel = false;
+  salvaToken(null);
   vista("v-login"); caricaNomi();
 }
 
@@ -331,7 +368,7 @@ function disegna() {
   $("oggi").textContent = dataLunga(dati.oggi);
   $("anno-saldo").textContent = s.anno;
   $("s-disp").textContent = s.configurato ? num(s.disponibili) : "–";
-  $("s-disp-attesa").textContent = s.configurato && s.in_attesa > 0 ? `Se approvano le richieste in attesa: ${num(s.disponibili_se_approvate)}` : "";
+  $("s-disp-attesa").textContent = s.configurato && s.in_attesa > 0 ? `Se approvano quelle in attesa: ${num(s.disponibili_se_approvate)}` : "";
   $("s-tot").textContent = s.configurato ? num(s.spettanti + s.residuo) : "–";
   $("s-god").textContent = num(s.godute);
   $("s-prog").textContent = num(s.programmate);
@@ -370,83 +407,168 @@ function disegnaRichieste() {
   });
 }
 
+// dopo ogni modifica dei dati (nuova richiesta, annullamento) si rifà tutto
+function aggiornaTutto() {
+  cacheCal = {};
+  disegna();
+  if (!$("p-calendario").classList.contains("nascosto")) caricaCalendario();
+}
+
 async function annullaRichiesta(r) {
   if (!confirm(`Vuoi davvero annullare la richiesta del ${dataIt(r.dal)}?`)) return;
   nascondi($("msg-richieste"));
-  try { dati = Object.assign(dati, await api("annulla", { id: r.id })); disegna(); }
-  catch (e) { gestisciErrore(e, $("msg-richieste"), "errore"); }
-}
-
-function gestisciErrore(e, box, classe) {
-  if (e.sessione) { esci(); mostra($("err-login"), e.message); return; }
-  box.className = classe; box.textContent = e.message; box.classList.remove("nascosto");
+  try { dati = Object.assign(dati, await api("annulla", { id: r.id })); aggiornaTutto(); }
+  catch (e) { if (!gestisciSessione(e)) { const m = $("msg-richieste"); m.className = "errore"; m.textContent = e.message; } }
 }
 
 // ---------------------------------------------------------------- calendario
+function chiaveMese(a, m) { return a + "-" + String(m).padStart(2, "0"); }
+function tipoDi(iso) { const c = cacheCal[iso.slice(0, 7)]; return c ? c.mappa[iso] : undefined; }
+
 async function caricaCalendario(anno, mese) {
   if (!meseCorrente) { const o = dati.oggi.split("-"); meseCorrente = { anno: +o[0], mese: +o[1] }; }
   if (anno) meseCorrente = { anno, mese };
-  $("titolo-mese").textContent = `${MESI[meseCorrente.mese - 1]} ${meseCorrente.anno}`;
+  const richiesto = Object.assign({}, meseCorrente), k = chiaveMese(richiesto.anno, richiesto.mese);
+  $("titolo-mese").textContent = `${MESI[richiesto.mese - 1]} ${richiesto.anno}`;
   try {
-    const r = await api("calendario", meseCorrente);
-    const cal = $("cal"); cal.innerHTML = "";
-    GIORNI.forEach((g) => { const d = document.createElement("div"); d.className = "nome-g"; d.textContent = g; cal.appendChild(d); });
-    for (let i = 0; i < r.giorni[0].wd; i++) { const v = document.createElement("div"); v.className = "g vuoto"; cal.appendChild(v); }
-    const festivi = [];
-    r.giorni.forEach((g) => {
-      const d = document.createElement("div"); d.className = "g " + g.tipo + (g.data === r.oggi ? " oggi" : "");
-      d.textContent = g.giorno; cal.appendChild(d);
-      if (g.tipo === "festivo") festivi.push(`${g.giorno} ${MESI[r.mese - 1].toLowerCase()}: ${g.dettaglio}`);
-    });
-    $("festivi-mese").textContent = festivi.length ? "Festivi: " + festivi.join(" · ") : "";
-  } catch (e) { if (e.sessione) { esci(); mostra($("err-login"), e.message); } }
+    if (!cacheCal[k]) {
+      const r = await api("calendario", richiesto);
+      r.mappa = {}; r.giorni.forEach((g) => (r.mappa[g.data] = g.tipo));
+      cacheCal[k] = r;
+    }
+    if (richiesto.anno !== meseCorrente.anno || richiesto.mese !== meseCorrente.mese) return;   // nel frattempo ha cambiato mese
+    disegnaCalendario(cacheCal[k]);
+  } catch (e) { gestisciSessione(e); }
 }
+
+function classeScelto() { return sel.size === 1 && mezzaScelta() ? "sel_mezza" : "sel"; }
+
+function disegnaCalendario(r) {
+  const cal = $("cal"); cal.innerHTML = "";
+  cal.classList.toggle("selezione", inSel);
+  GIORNI.forEach((g) => { const d = document.createElement("div"); d.className = "nome-g"; d.textContent = g; cal.appendChild(d); });
+  const vuoti = r.giorni[0].wd;
+  for (let i = 0; i < vuoti; i++) { const v = document.createElement("div"); v.className = "g vuoto"; cal.appendChild(v); }
+  const festivi = [];
+  r.giorni.forEach((g) => {
+    const d = document.createElement("div"); d.className = "g " + g.tipo + (g.data === r.oggi ? " oggi" : "");
+    d.textContent = g.giorno; d.dataset.d = g.data;
+    if (g.tipo === "lavoro" && g.data >= r.oggi) d.classList.add("selezionabile");
+    if (inSel && sel.has(g.data)) d.classList.add(classeScelto());
+    cal.appendChild(d);
+    if (g.tipo === "festivo") festivi.push(`${g.giorno} ${MESI[r.mese - 1].toLowerCase()}: ${g.dettaglio}`);
+  });
+  // su schermo largo le righe riempiono tutta l'altezza disponibile
+  const righe = Math.ceil((vuoti + r.giorni.length) / 7);
+  cal.style.gridTemplateRows = SCHERMO_LARGO.matches ? `auto repeat(${righe}, minmax(0, 1fr))` : "";
+  $("festivi-mese").textContent = festivi.length ? "Festivi: " + festivi.join(" · ") : "";
+}
+
 function spostaMese(d) {
   let { anno, mese } = meseCorrente; mese += d;
   if (mese < 1) { mese = 12; anno--; } if (mese > 12) { mese = 1; anno++; }
   caricaCalendario(anno, mese);
 }
 
-// ------------------------------------------------------------ nuova richiesta
-let timerConto = null;
-function apriNuova() {
-  $("dal").min = $("al").min = dati.oggi;
-  $("dal").value = $("al").value = ""; $("nota").value = "";
-  document.querySelector('input[name="mezza"][value=""]').checked = true;
-  nascondi($("conto")); nascondi($("err-nuova")); nascondi($("blocco-mezza")); $("invia").disabled = true;
-  pagina("nuova");
+// ---------------------------------------------- scelta dei giorni sul calendario
+let trascina = null;   // "aggiungi" | "togli" mentre si tiene premuto
+
+function tocca(cella) {
+  if (!cella.classList.contains("selezionabile")) return;
+  const d = cella.dataset.d;
+  if (trascina === "aggiungi") sel.add(d); else sel.delete(d);
+  cella.classList.remove("sel", "sel_mezza");
+  if (sel.has(d)) cella.classList.add(classeScelto());
 }
+function cellaSotto(e) {
+  const el = document.elementFromPoint(e.clientX, e.clientY);
+  return el && el.closest ? el.closest(".g[data-d]") : null;
+}
+$("cal").addEventListener("pointerdown", (e) => {
+  if (!inSel) return;
+  const c = e.target.closest(".g[data-d]");
+  if (!c) return;
+  e.preventDefault();
+  trascina = sel.has(c.dataset.d) ? "togli" : "aggiungi";
+  tocca(c);
+});
+$("cal").addEventListener("pointermove", (e) => {
+  if (!trascina) return;
+  const c = cellaSotto(e);
+  if (c) tocca(c);
+});
+function finisciTrascina() { if (trascina) { trascina = null; aggiornaScelta(); } }
+window.addEventListener("pointerup", finisciTrascina);
+window.addEventListener("pointercancel", finisciTrascina);
+
 function mezzaScelta() { const r = document.querySelector('input[name="mezza"]:checked'); return r && r.value ? r.value : null; }
 
-function aggiornaConto() {
+/** Raggruppa i giorni scelti in periodi: due giorni scelti stanno insieme se tra loro ci sono solo
+ *  giorni di riposo o festivi (es. lunedì-venerdì con il fine settimana in mezzo), e mai a cavallo di due anni. */
+function periodiScelti() {
+  const giorni = Array.from(sel).sort();
+  const periodi = [];
+  let cur = null;
+  for (const d of giorni) {
+    if (cur && d.slice(0, 4) === cur.al.slice(0, 4)) {
+      let unisci = true;
+      for (let x = piuGiorni(cur.al, 1); x < d; x = piuGiorni(x, 1)) {
+        const t = tipoDi(x);
+        if (t !== "riposo" && t !== "festivo") { unisci = false; break; }
+      }
+      if (unisci) { cur.al = d; continue; }
+    }
+    cur = { dal: d, al: d, mezza: null };
+    periodi.push(cur);
+  }
+  if (sel.size === 1) periodi[0].mezza = mezzaScelta();
+  return periodi;
+}
+
+function azzeraNuova() {
+  sel.clear();
+  $("nota").value = "";
+  document.querySelector('input[name="mezza"][value=""]').checked = true;
+  aggiornaScelta();
+  nascondi($("err-nuova"));
+}
+
+function aggiornaScelta() {
   clearTimeout(timerConto);
-  const dal = $("dal").value, al = $("al").value;
-  if (dal && !$("al").value) $("al").value = dal;
-  const stessoGiorno = $("dal").value && $("dal").value === $("al").value;
-  $("blocco-mezza").classList.toggle("nascosto", !stessoGiorno);
-  if (!stessoGiorno) document.querySelector('input[name="mezza"][value=""]').checked = true;
+  const periodi = periodiScelti();
+  // i giorni scelti a colpo d'occhio
+  const box = $("scelti"); box.innerHTML = "";
+  periodi.forEach((p) => { const s = document.createElement("span"); s.textContent = p.dal === p.al ? dataBreve(p.dal) : `${dataBreve(p.dal)} → ${dataBreve(p.al)}`; box.appendChild(s); });
+  $("blocco-mezza").classList.toggle("nascosto", sel.size !== 1);
+  if (sel.size !== 1) document.querySelector('input[name="mezza"][value=""]').checked = true;
+  // colora la cella singola a metà se è mezza giornata
+  document.querySelectorAll("#cal .g.sel, #cal .g.sel_mezza").forEach((c) => { c.classList.remove("sel", "sel_mezza"); c.classList.add(classeScelto()); });
   $("invia").disabled = true;
-  if (!$("dal").value || !$("al").value) { nascondi($("conto")); return; }
+  nascondi($("err-nuova"));
+  const c = $("conto");
+  if (!periodi.length) { nascondi(c); return; }
   timerConto = setTimeout(async () => {
-    const c = $("conto");
     try {
-      const r = await api("calcola", { dal: $("dal").value, al: $("al").value, mezza: mezzaScelta() });
-      c.className = "conto"; c.textContent = `Userai ${num(r.giorni)} ${r.giorni === 1 ? "giorno" : "giorni"} di ferie (festivi e giorni di riposo esclusi). Te ne resteranno ${num(r.disponibili_dopo)}.`;
+      const r = await api("calcola_multi", { periodi });
+      c.className = "conto";
+      c.textContent = `Userai ${num(r.giorni)} ${r.giorni === 1 ? "giorno" : "giorni"} di ferie. Te ne resteranno ${num(r.disponibili_dopo)}.`;
       c.classList.remove("nascosto"); $("invia").disabled = false;
     } catch (e) {
-      if (e.sessione) { esci(); mostra($("err-login"), e.message); return; }
+      if (gestisciSessione(e)) return;
       c.className = "conto errore"; c.textContent = e.message; c.classList.remove("nascosto");
     }
-  }, 250);
+  }, 200);
 }
 
 async function inviaRichiesta() {
   nascondi($("err-nuova")); $("invia").disabled = true;
   try {
-    const r = await api("richiedi", { dal: $("dal").value, al: $("al").value, mezza: mezzaScelta(), nota: $("nota").value });
-    dati = Object.assign(dati, r); disegna(); pagina("richieste");
+    const r = await api("richiedi_multi", { periodi: periodiScelti(), nota: $("nota").value });
+    dati = Object.assign(dati, r);
+    sel.clear();
+    pagina("richieste"); aggiornaTutto();
     const m = $("msg-richieste"); m.className = "ok"; m.textContent = "✅ Richiesta inviata! Ti avvisiamo appena viene decisa."; m.classList.remove("nascosto");
-  } catch (e) { gestisciErrore(e, $("err-nuova"), "errore"); $("invia").disabled = false; }
+  } catch (e) { if (!gestisciSessione(e)) { mostra($("err-nuova"), e.message); $("invia").disabled = false; } }
 }
 
 // ------------------------------------------------------------------- avvio
@@ -454,13 +576,11 @@ $("entra").onclick = entraConPin;
 $("pin").addEventListener("keydown", (e) => { if (e.key === "Enter") entraConPin(); });
 $("esci").onclick = esci;
 document.querySelectorAll(".menu button").forEach((b) => (b.onclick = () => { nascondi($("msg-richieste")); pagina(b.dataset.vai); }));
-$("nuova").onclick = $("nuova2").onclick = apriNuova;
+$("nuova").onclick = $("nuova2").onclick = () => { nascondi($("msg-richieste")); pagina("nuova"); };
 $("annulla-nuova").onclick = () => pagina("saldo");
 $("mese-prec").onclick = () => spostaMese(-1);
 $("mese-succ").onclick = () => spostaMese(1);
-$("dal").addEventListener("change", () => { if ($("al").value < $("dal").value) $("al").value = $("dal").value; aggiornaConto(); });
-$("al").addEventListener("change", aggiornaConto);
-document.querySelectorAll('input[name="mezza"]').forEach((r) => r.addEventListener("change", aggiornaConto));
+document.querySelectorAll('input[name="mezza"]').forEach((r) => r.addEventListener("change", aggiornaScelta));
 $("invia").onclick = inviaRichiesta;
 
 async function inizio() {

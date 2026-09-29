@@ -17,6 +17,18 @@ function vista_richiesta($r)
     ];
 }
 
+function periodi_da_input(array $in)
+{
+    $p = $in['periodi'] ?? null;
+    if (!is_array($p)) throw new ErroreFerie('Scegli almeno un giorno sul calendario.');
+    $r = [];
+    foreach ($p as $x) {
+        if (!is_array($x)) continue;
+        $r[] = ['dal' => (string)($x['dal'] ?? ''), 'al' => (string)($x['al'] ?? ''), 'mezza' => $x['mezza'] ?? null];
+    }
+    return $r;
+}
+
 function dati_home($nome)
 {
     $anno = (int)substr(oggi_iso(), 0, 4);
@@ -60,6 +72,16 @@ function gestisci_azione(array $in)
             $v = valuta_richiesta($nome, (string)($in['dal'] ?? ''), (string)($in['al'] ?? ''), $in['mezza'] ?? null);
             return ['ok' => true, 'giorni' => $v['totale'], 'date' => $v['giorni'],
                     'disponibili_dopo' => $v['saldo']['disponibili_se_approvate'] - $v['totale']];
+
+        case 'calcola_multi':
+            $v = valuta_periodi($nome, periodi_da_input($in));
+            return ['ok' => true, 'giorni' => $v['totale'], 'date' => $v['giorni'], 'blocchi' => count($v['periodi']),
+                    'disponibili_dopo' => $v['saldo']['disponibili_se_approvate'] - $v['totale']];
+
+        case 'richiedi_multi':
+            $create = crea_richieste($nome, periodi_da_input($in), $in['nota'] ?? '');
+            notifica_admin_multi($create);
+            return ['ok' => true, 'create' => count($create)] + dati_home($nome);
 
         case 'richiedi':
             $r = crea_richiesta($nome, (string)($in['dal'] ?? ''), (string)($in['al'] ?? ''), $in['mezza'] ?? null, $in['nota'] ?? '');
