@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="it" translate="no">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="google" content="notranslate">
+<meta name="theme-color" content="#1f6feb">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Ferie">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<title>Ferie</title>
+<style>
+  :root {
+    --blu: #1f6feb; --blu-scuro: #144fb0; --sfondo: #f2f5fa; --carta: #fff; --testo: #1b2430; --grigio: #6b7686;
+    --bordo: #d9e0ea; --verde: #1a9b52; --rosso: #d23c3c; --ambra: #e0a100; --viola: #8e44ad;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { font-size: 18px; }
+  body { margin: 0; background: var(--sfondo); color: var(--testo); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+  #app { max-width: 620px; margin: 0 auto; padding: 14px 14px 40px; }
+  h1 { font-size: 1.5rem; margin: 6px 0 2px; }
+  h2 { font-size: 1.2rem; margin: 0 0 10px; }
+  .sotto { color: var(--grigio); font-size: .85rem; margin: 0 0 14px; }
+  .scheda { background: var(--carta); border: 1px solid var(--bordo); border-radius: 16px; padding: 14px; margin-bottom: 14px; }
+  label { display: block; font-weight: 600; margin: 12px 0 5px; }
+  select, input, textarea { width: 100%; font: inherit; padding: 13px 12px; border: 2px solid var(--bordo); border-radius: 12px; background: #fff; color: var(--testo); }
+  select:focus, input:focus, textarea:focus { outline: none; border-color: var(--blu); }
+  textarea { min-height: 76px; resize: vertical; }
+  button { font: inherit; font-weight: 700; border: 0; border-radius: 14px; padding: 15px 16px; min-height: 56px; width: 100%; cursor: pointer;
+           background: var(--blu); color: #fff; margin-top: 12px; }
+  button:active { background: var(--blu-scuro); }
+  button.secondario { background: #e6ecf5; color: var(--blu-scuro); }
+  button.pericolo { background: #fbe9e9; color: var(--rosso); }
+  button:disabled { opacity: .5; }
+  .riga { display: flex; gap: 10px; }
+  .riga > * { flex: 1; }
+  .errore { background: #fdecec; color: #a12525; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
+  .info { background: #e8f1ff; color: #123f8a; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
+  .ok { background: #e6f6ec; color: #11683a; border-radius: 12px; padding: 12px; margin: 12px 0 0; font-weight: 600; }
+  .nascosto { display: none !important; }
+  .testata { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .testata button { width: auto; min-height: 44px; padding: 8px 14px; margin: 0; }
+  /* saldo */
+  .grande { text-align: center; }
+  .grande .numero { font-size: 3.2rem; font-weight: 800; line-height: 1; color: var(--blu); }
+  .grande .etichetta { color: var(--grigio); font-weight: 600; }
+  .griglia { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+  .mini { background: var(--sfondo); border-radius: 12px; padding: 10px; text-align: center; }
+  .mini b { display: block; font-size: 1.4rem; }
+  .mini span { font-size: .78rem; color: var(--grigio); }
+  /* schede di navigazione */
+  .menu { display: flex; gap: 8px; margin-bottom: 14px; }
+  .menu button { margin: 0; min-height: 48px; background: #e6ecf5; color: var(--blu-scuro); padding: 8px; font-size: .9rem; }
+  .menu button.attiva { background: var(--blu); color: #fff; }
+  /* calendario */
+  .cal-testa { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .cal-testa button { width: 52px; margin: 0; padding: 0; }
+  .cal-testa strong { font-size: 1.15rem; }
+  .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .cal .nome-g { text-align: center; font-size: .75rem; color: var(--grigio); font-weight: 700; padding-bottom: 2px; }
+  .g { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 10px; font-weight: 600; font-size: .95rem; background: #fff; border: 1px solid var(--bordo); }
+  .g.vuoto { border: 0; background: transparent; }
+  .g.riposo { background: #eceff3; color: #98a2b0; }
+  .g.festivo { background: #fde8e8; color: var(--rosso); border-color: #f3c4c4; }
+  .g.malattia { background: var(--viola); color: #fff; border-color: var(--viola); }
+  .g.ferie_godute { background: var(--blu); color: #fff; border-color: var(--blu); }
+  .g.ferie_programmate { background: var(--verde); color: #fff; border-color: var(--verde); }
+  .g.ferie_godute_mezza { background: linear-gradient(135deg, var(--blu) 50%, #fff 50%); }
+  .g.ferie_programmate_mezza { background: linear-gradient(135deg, var(--verde) 50%, #fff 50%); }
+  .g.attesa { background: repeating-linear-gradient(45deg, #ffe9a8, #ffe9a8 6px, #fff3cc 6px, #fff3cc 12px); border-color: var(--ambra); }
+  .g.attesa_mezza { background: linear-gradient(135deg, #ffe08a 50%, #fff 50%); border-color: var(--ambra); }
+  .g.oggi { outline: 3px solid var(--testo); outline-offset: -3px; }
+  .legenda { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 12px; font-size: .78rem; color: var(--grigio); }
+  .legenda i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 5px; border: 1px solid var(--bordo); }
+  /* richieste */
+  .rich { border-left: 6px solid var(--bordo); }
+  .rich.in_attesa { border-left-color: var(--ambra); }
+  .rich.approvata { border-left-color: var(--verde); }
+  .rich.rifiutata { border-left-color: var(--rosso); }
+  .rich .quando { font-weight: 700; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: .78rem; font-weight: 700; margin-left: 6px; }
+  .badge.in_attesa { background: #fff1c2; color: #7a5a00; }
+  .badge.approvata { background: #d9f2e3; color: #11683a; }
+  .badge.rifiutata { background: #fbe0e0; color: #a12525; }
+  .badge.annullata { background: #e6e9ef; color: var(--grigio); }
+  .rich button { min-height: 46px; margin-top: 10px; }
+  .conto { font-size: 1.15rem; text-align: center; padding: 14px; background: #e8f1ff; border-radius: 12px; margin-top: 14px; font-weight: 700; color: #123f8a; }
+  .conto.errore { background: #fdecec; color: #a12525; }
+  .scelta { display: flex; gap: 10px; }
+  .scelta label { flex: 1; margin: 0; font-weight: 700; text-align: center; border: 2px solid var(--bordo); border-radius: 12px; padding: 12px 6px; background: #fff; }
+  .scelta label { position: relative; }
+  .scelta input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+  .scelta input:checked + span { color: var(--blu); }
+  .scelta label:has(input:checked) { border-color: var(--blu); background: #e8f1ff; }
+  .scelta label:has(input:focus-visible) { outline: 3px solid var(--blu); }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ACCESSO -->
+  <section id="v-login" class="nascosto">
+    <h1>🏖️ Le mie ferie</h1>
+    <p class="sotto">Entra con il tuo nome e il tuo PIN, oppure avvicina la tua carta al telefono.</p>
+    <div class="scheda">
+      <label for="nome">Il tuo nome</label>
+      <select id="nome"><option value="">Caricamento…</option></select>
+      <label for="pin">Il tuo PIN</label>
+      <input id="pin" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="••••">
+      <button id="entra">Entra</button>
+      <div id="err-login" class="errore nascosto"></div>
+    </div>
+  </section>
+
+  <!-- APP -->
+  <section id="v-app" class="nascosto">
+    <div class="testata">
+      <div><h1 id="saluto">Ciao</h1><p class="sotto" id="oggi"></p></div>
+      <button class="secondario" id="esci">Esci</button>
+    </div>
+    <div class="menu">
+      <button data-vai="saldo" class="attiva">Saldo</button>
+      <button data-vai="calendario">Calendario</button>
+      <button data-vai="richieste">Richieste</button>
+    </div>
+
+    <!-- saldo -->
+    <div id="p-saldo">
+      <div class="scheda grande">
+        <div class="etichetta">Giorni disponibili nel <span id="anno-saldo"></span></div>
+        <div class="numero" id="s-disp">–</div>
+        <div class="etichetta" id="s-disp-attesa"></div>
+        <div class="griglia">
+          <div class="mini"><b id="s-tot">–</b><span>Spettanti (con residuo)</span></div>
+          <div class="mini"><b id="s-god">–</b><span>Godute</span></div>
+          <div class="mini"><b id="s-prog">–</b><span>Programmate</span></div>
+          <div class="mini"><b id="s-att">–</b><span>In attesa</span></div>
+        </div>
+      </div>
+      <div id="avviso-saldo" class="errore nascosto"></div>
+      <button id="nuova">➕ Chiedi ferie</button>
+    </div>
+
+    <!-- calendario -->
+    <div id="p-calendario" class="nascosto">
+      <div class="scheda">
+        <div class="cal-testa">
+          <button class="secondario" id="mese-prec" aria-label="Mese precedente">◀</button>
+          <strong id="titolo-mese"></strong>
+          <button class="secondario" id="mese-succ" aria-label="Mese successivo">▶</button>
+        </div>
+        <div class="cal" id="cal"></div>
+        <div class="legenda">
+          <span><i style="background:var(--blu)"></i>Ferie godute</span>
+          <span><i style="background:var(--verde)"></i>Ferie programmate</span>
+          <span><i style="background:#ffe9a8"></i>In attesa</span>
+          <span><i style="background:var(--viola)"></i>Malattia</span>
+          <span><i style="background:#fde8e8"></i>Festivo</span>
+          <span><i style="background:#eceff3"></i>Riposo</span>
+        </div>
+        <p class="sotto" id="festivi-mese" style="margin-top:12px"></p>
+      </div>
+    </div>
+
+    <!-- richieste -->
+    <div id="p-richieste" class="nascosto">
+      <button id="nuova2" style="margin-top:0">➕ Chiedi ferie</button>
+      <div id="lista-richieste" style="margin-top:14px"></div>
+      <div id="msg-richieste"></div>
+    </div>
+
+    <!-- nuova richiesta -->
+    <div id="p-nuova" class="nascosto">
+      <div class="scheda">
+        <h2>Chiedi ferie</h2>
+        <label for="dal">Dal giorno</label>
+        <input id="dal" type="date">
+        <label for="al">Al giorno (compreso)</label>
+        <input id="al" type="date">
+        <div id="blocco-mezza" class="nascosto">
+          <label>Solo mezza giornata?</label>
+          <div class="scelta">
+            <label><input type="radio" name="mezza" value="" checked><span>Giorno intero</span></label>
+            <label><input type="radio" name="mezza" value="mattina"><span>Mattina</span></label>
+            <label><input type="radio" name="mezza" value="pomeriggio"><span>Pomeriggio</span></label>
+          </div>
+        </div>
+        <label for="nota">Nota (facoltativa)</label>
+        <textarea id="nota" maxlength="300" placeholder="Es. viaggio in famiglia"></textarea>
+        <div id="conto" class="conto nascosto"></div>
+        <button id="invia" disabled>Invia la richiesta</button>
+        <button id="annulla-nuova" class="secondario">Indietro</button>
+        <div id="err-nuova" class="errore nascosto"></div>
+      </div>
+    </div>
+  </section>
+
+</div>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const MESI = ["Gennaio","Febbraio","Marzo","Aprile","Maggio","Giugno","Luglio","Agosto","Settembre","Ottobre","Novembre","Dicembre"];
+const GIORNI = ["Lun","Mar","Mer","Gio","Ven","Sab","Dom"];
+const CHIAVE = "ferie_token";
+let token = null, dati = null, meseCorrente = null, sessioneBreve = false, timerInattivo = null;
+const SECONDI_INATTIVITA_CARTA = 120;
+
+function salvaToken(t) { try { t ? localStorage.setItem(CHIAVE, t) : localStorage.removeItem(CHIAVE); } catch (e) {} }
+function leggiToken() { try { return localStorage.getItem(CHIAVE); } catch (e) { return null; } }
+
+async function api(azione, extra) {
+  let r;
+  try {
+    r = await fetch("api.php", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ azione, token }, extra || {})) });
+  } catch (e) { throw new Error("Nessuna connessione: controlla di essere collegato al Wi-Fi dell'azienda."); }
+  let j;
+  try { j = await r.json(); } catch (e) { throw new Error("Il server non ha risposto correttamente. Riprova."); }
+  if (!j.ok) {
+    const err = new Error(j.errore || "Errore.");
+    err.sessione = /Sessione scaduta/.test(err.message);
+    throw err;
+  }
+  return j;
+}
+
+function mostra(el, testo) { el.textContent = testo; el.classList.remove("nascosto"); }
+function nascondi(el) { el.classList.add("nascosto"); }
+function num(n) { const v = Math.round(n * 10) / 10; return String(v).replace(".", ","); }
+function dataIt(iso) { const [a, m, g] = iso.split("-"); return `${g}/${m}/${a}`; }
+function dataLunga(iso) { const d = new Date(iso + "T12:00:00"); return `${GIORNI[(d.getDay() + 6) % 7]} ${d.getDate()} ${MESI[d.getMonth()].toLowerCase()}`; }
+
+function vista(nome) {
+  for (const v of ["v-login", "v-app"]) $(v).classList.toggle("nascosto", v !== nome);
+}
+function pagina(nome) {
+  for (const p of ["saldo", "calendario", "richieste", "nuova"]) $("p-" + p).classList.toggle("nascosto", p !== nome);
+  document.querySelectorAll(".menu button").forEach((b) => b.classList.toggle("attiva", b.dataset.vai === nome));
+  // il menu resta visibile tranne durante "nuova richiesta"
+  document.querySelector(".menu").classList.toggle("nascosto", nome === "nuova");
+  if (nome === "calendario") caricaCalendario();
+}
+
+// ------------------------------------------------------------------ accesso
+async function caricaNomi() {
+  try {
+    const r = await api("elenco");
+    const sel = $("nome");
+    sel.innerHTML = "";
+    const primo = document.createElement("option"); primo.value = ""; primo.textContent = "Scegli il tuo nome…"; sel.appendChild(primo);
+    r.nomi.forEach((n) => { const o = document.createElement("option"); o.value = n; o.textContent = n; sel.appendChild(o); });
+  } catch (e) { mostra($("err-login"), e.message); }
+}
+
+async function entraConPin() {
+  nascondi($("err-login"));
+  if (!$("nome").value) return mostra($("err-login"), "Scegli il tuo nome dall'elenco.");
+  if (!$("pin").value) return mostra($("err-login"), "Scrivi il tuo PIN.");
+  $("entra").disabled = true;
+  try {
+    const r = await api("login", { nome: $("nome").value, pin: $("pin").value });
+    $("pin").value = "";
+    avvia(r);
+  } catch (e) { mostra($("err-login"), e.message); }
+  $("entra").disabled = false;
+}
+
+function avvia(r) {
+  token = r.token || token; dati = r;
+  // accesso con la carta: sessione breve, non salvata sul telefono, si chiude da sola dopo 2 minuti senza tocchi
+  sessioneBreve = !!r.sessione_breve;
+  if (!sessioneBreve) salvaToken(token);
+  meseCorrente = null;
+  vista("v-app"); pagina("saldo"); disegna(); riavviaInattivita();
+}
+
+function riavviaInattivita() {
+  clearTimeout(timerInattivo);
+  if (sessioneBreve && token) timerInattivo = setTimeout(esci, SECONDI_INATTIVITA_CARTA * 1000);
+}
+["click", "touchstart", "keydown"].forEach((ev) => document.addEventListener(ev, riavviaInattivita, { passive: true }));
+
+function esci() {
+  token = null; dati = null; sessioneBreve = false; clearTimeout(timerInattivo); meseCorrente = null; salvaToken(null);
+  vista("v-login"); caricaNomi();
+}
+
+// ------------------------------------------------------------------ disegno
+function disegna() {
+  const s = dati.saldo;
+  $("saluto").textContent = "Ciao " + dati.nome.split(" ")[0] + " 👋";
+  $("oggi").textContent = dataLunga(dati.oggi);
+  $("anno-saldo").textContent = s.anno;
+  $("s-disp").textContent = s.configurato ? num(s.disponibili) : "–";
+  $("s-disp-attesa").textContent = s.configurato && s.in_attesa > 0 ? `Se approvano le richieste in attesa: ${num(s.disponibili_se_approvate)}` : "";
+  $("s-tot").textContent = s.configurato ? num(s.spettanti + s.residuo) : "–";
+  $("s-god").textContent = num(s.godute);
+  $("s-prog").textContent = num(s.programmate);
+  $("s-att").textContent = num(s.in_attesa);
+  const av = $("avviso-saldo");
+  if (!s.configurato) mostra(av, "I tuoi giorni di ferie di quest'anno non sono ancora stati impostati dall'ufficio."); else nascondi(av);
+  disegnaRichieste();
+}
+
+const STATI = { in_attesa: "In attesa", approvata: "Approvata", rifiutata: "Rifiutata", annullata: "Annullata" };
+
+function disegnaRichieste() {
+  const box = $("lista-richieste"); box.innerHTML = "";
+  if (!dati.richieste.length) {
+    const p = document.createElement("p"); p.className = "sotto"; p.textContent = "Non hai ancora fatto nessuna richiesta."; box.appendChild(p); return;
+  }
+  dati.richieste.forEach((r) => {
+    const c = document.createElement("div"); c.className = "scheda rich " + r.stato;
+    const q = document.createElement("div");
+    const t = document.createElement("span"); t.className = "quando";
+    t.textContent = r.dal === r.al ? dataLunga(r.dal) : `${dataLunga(r.dal)} → ${dataLunga(r.al)}`;
+    const b = document.createElement("span"); b.className = "badge " + r.stato; b.textContent = STATI[r.stato] || r.stato;
+    q.append(t, b); c.appendChild(q);
+    const d = document.createElement("div"); d.className = "sotto"; d.style.margin = "6px 0 0";
+    d.textContent = num(r.giorni) + (r.giorni === 1 ? " giorno" : " giorni") + (r.mezza_giornata ? ` (mezza giornata, ${r.mezza_giornata})` : "");
+    c.appendChild(d);
+    if (r.nota) { const n = document.createElement("div"); n.className = "sotto"; n.style.margin = "4px 0 0"; n.textContent = "Nota: " + r.nota; c.appendChild(n); }
+    if (r.stato === "rifiutata") { const m = document.createElement("div"); m.className = "errore"; m.textContent = "Motivo: " + (r.motivo_rifiuto || "non indicato"); c.appendChild(m); }
+    if (r.stato === "in_attesa") {
+      const bt = document.createElement("button"); bt.className = "pericolo"; bt.textContent = "Annulla la richiesta";
+      bt.onclick = () => annullaRichiesta(r);
+      c.appendChild(bt);
+    }
+    box.appendChild(c);
+  });
+}
+
+async function annullaRichiesta(r) {
+  if (!confirm(`Vuoi davvero annullare la richiesta del ${dataIt(r.dal)}?`)) return;
+  nascondi($("msg-richieste"));
+  try { dati = Object.assign(dati, await api("annulla", { id: r.id })); disegna(); }
+  catch (e) { gestisciErrore(e, $("msg-richieste"), "errore"); }
+}
+
+function gestisciErrore(e, box, classe) {
+  if (e.sessione) { esci(); mostra($("err-login"), e.message); return; }
+  box.className = classe; box.textContent = e.message; box.classList.remove("nascosto");
+}
+
+// ---------------------------------------------------------------- calendario
+async function caricaCalendario(anno, mese) {
+  if (!meseCorrente) { const o = dati.oggi.split("-"); meseCorrente = { anno: +o[0], mese: +o[1] }; }
+  if (anno) meseCorrente = { anno, mese };
+  $("titolo-mese").textContent = `${MESI[meseCorrente.mese - 1]} ${meseCorrente.anno}`;
+  try {
+    const r = await api("calendario", meseCorrente);
+    const cal = $("cal"); cal.innerHTML = "";
+    GIORNI.forEach((g) => { const d = document.createElement("div"); d.className = "nome-g"; d.textContent = g; cal.appendChild(d); });
+    for (let i = 0; i < r.giorni[0].wd; i++) { const v = document.createElement("div"); v.className = "g vuoto"; cal.appendChild(v); }
+    const festivi = [];
+    r.giorni.forEach((g) => {
+      const d = document.createElement("div"); d.className = "g " + g.tipo + (g.data === r.oggi ? " oggi" : "");
+      d.textContent = g.giorno; cal.appendChild(d);
+      if (g.tipo === "festivo") festivi.push(`${g.giorno} ${MESI[r.mese - 1].toLowerCase()}: ${g.dettaglio}`);
+    });
+    $("festivi-mese").textContent = festivi.length ? "Festivi: " + festivi.join(" · ") : "";
+  } catch (e) { if (e.sessione) { esci(); mostra($("err-login"), e.message); } }
+}
+function spostaMese(d) {
+  let { anno, mese } = meseCorrente; mese += d;
+  if (mese < 1) { mese = 12; anno--; } if (mese > 12) { mese = 1; anno++; }
+  caricaCalendario(anno, mese);
+}
+
+// ------------------------------------------------------------ nuova richiesta
+let timerConto = null;
+function apriNuova() {
+  $("dal").min = $("al").min = dati.oggi;
+  $("dal").value = $("al").value = ""; $("nota").value = "";
+  document.querySelector('input[name="mezza"][value=""]').checked = true;
+  nascondi($("conto")); nascondi($("err-nuova")); nascondi($("blocco-mezza")); $("invia").disabled = true;
+  pagina("nuova");
+}
+function mezzaScelta() { const r = document.querySelector('input[name="mezza"]:checked'); return r && r.value ? r.value : null; }
+
+function aggiornaConto() {
+  clearTimeout(timerConto);
+  const dal = $("dal").value, al = $("al").value;
+  if (dal && !$("al").value) $("al").value = dal;
+  const stessoGiorno = $("dal").value && $("dal").value === $("al").value;
+  $("blocco-mezza").classList.toggle("nascosto", !stessoGiorno);
+  if (!stessoGiorno) document.querySelector('input[name="mezza"][value=""]').checked = true;
+  $("invia").disabled = true;
+  if (!$("dal").value || !$("al").value) { nascondi($("conto")); return; }
+  timerConto = setTimeout(async () => {
+    const c = $("conto");
+    try {
+      const r = await api("calcola", { dal: $("dal").value, al: $("al").value, mezza: mezzaScelta() });
+      c.className = "conto"; c.textContent = `Userai ${num(r.giorni)} ${r.giorni === 1 ? "giorno" : "giorni"} di ferie (festivi e giorni di riposo esclusi). Te ne resteranno ${num(r.disponibili_dopo)}.`;
+      c.classList.remove("nascosto"); $("invia").disabled = false;
+    } catch (e) {
+      if (e.sessione) { esci(); mostra($("err-login"), e.message); return; }
+      c.className = "conto errore"; c.textContent = e.message; c.classList.remove("nascosto");
+    }
+  }, 250);
+}
+
+async function inviaRichiesta() {
+  nascondi($("err-nuova")); $("invia").disabled = true;
+  try {
+    const r = await api("richiedi", { dal: $("dal").value, al: $("al").value, mezza: mezzaScelta(), nota: $("nota").value });
+    dati = Object.assign(dati, r); disegna(); pagina("richieste");
+    const m = $("msg-richieste"); m.className = "ok"; m.textContent = "✅ Richiesta inviata! Ti avvisiamo appena viene decisa."; m.classList.remove("nascosto");
+  } catch (e) { gestisciErrore(e, $("err-nuova"), "errore"); $("invia").disabled = false; }
+}
+
+// ------------------------------------------------------------------- avvio
+$("entra").onclick = entraConPin;
+$("pin").addEventListener("keydown", (e) => { if (e.key === "Enter") entraConPin(); });
+$("esci").onclick = esci;
+document.querySelectorAll(".menu button").forEach((b) => (b.onclick = () => { nascondi($("msg-richieste")); pagina(b.dataset.vai); }));
+$("nuova").onclick = $("nuova2").onclick = apriNuova;
+$("annulla-nuova").onclick = () => pagina("saldo");
+$("mese-prec").onclick = () => spostaMese(-1);
+$("mese-succ").onclick = () => spostaMese(1);
+$("dal").addEventListener("change", () => { if ($("al").value < $("dal").value) $("al").value = $("dal").value; aggiornaConto(); });
+$("al").addEventListener("change", aggiornaConto);
+document.querySelectorAll('input[name="mezza"]').forEach((r) => r.addEventListener("change", aggiornaConto));
+$("invia").onclick = inviaRichiesta;
+
+async function inizio() {
+  // 1) carta NFC: il link contiene ?carta=Nome Cognome (e, se serve, &c=codice)
+  const p = new URLSearchParams(location.search);
+  if (p.get("carta")) {
+    const nome = p.get("carta"), codice = p.get("c") || "";
+    try { history.replaceState(null, "", location.pathname); } catch (e) {}   // toglie il nome dalla barra
+    vista("v-login"); caricaNomi();
+    try { avvia(await api("login_carta", { nome, codice })); return; }
+    catch (e) { mostra($("err-login"), e.message + " Prova con nome e PIN."); return; }
+  }
+  // 2) accesso ancora valido sul telefono
+  token = leggiToken();
+  if (token) {
+    try { avvia(await api("home")); return; } catch (e) { token = null; salvaToken(null); }
+  }
+  vista("v-login"); caricaNomi();
+}
+if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+inizio();
+</script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "scostamento_massimo_min": 240,
+  "tolleranza_ritardo_ingresso_min": 0,
+  "tolleranza_ritardo_fine_pausa_min": 10,
+  "tolleranza_uscita_anticipata_min": 5,
+  "finestra_doppia_timbratura_sec": 60,
+  "soglia_ritardo_default": "09:15",
+  "giorno_apertura": "ieri",
+  "soglia_mezza_giornata_pct": 60,
+  "togli_pausa_se_non_timbrata": true,
+  "festivi_nazionali": true,
+  "festivi_extra": {"2026-12-24": "Chiusura aziendale", "2026-12-06": "Santo patrono"},
+  "festivi_esclusi": []
+}

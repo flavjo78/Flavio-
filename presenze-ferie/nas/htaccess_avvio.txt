@@ -1,0 +1,22 @@
+# Protezione della cartella "avvio" (dove stanno password, PIN, richieste...).
+#
+# Come si usa: copia questo file DENTRO la cartella avvio del NAS
+# (\\ServerNas\web\ziwood\avvio) e chiamalo esattamente:   .htaccess
+# (con il punto davanti e senza .txt). Windows non lascia creare file che iniziano
+# con il punto dall'Esplora risorse: copialo con nome "htaccess.txt" e rinominalo
+# dal prompt dei comandi:   ren htaccess.txt .htaccess
+#
+# Poi PROVA: dal telefono apri  http://IP-DEL-NAS/ziwood/avvio/password_orari.txt
+# Deve comparire "403 Forbidden" (vietato). Se compare la password, la protezione
+# NON funziona su questo NAS: leggi GUIDA_INSTALLAZIONE.md, sezione 2.
+#
+# Non blocca la dashboard (legge i file dalla rete Windows, non dal web) ne' l'app ferie
+# (legge i file con PHP, non dal web).
+
+<IfModule mod_authz_core.c>
+    Require all denied
+</IfModule>
+<IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+</IfModule>

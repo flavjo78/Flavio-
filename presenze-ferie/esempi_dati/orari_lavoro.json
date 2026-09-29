@@ -1,0 +1,26 @@
+{
+  "Mario Rossi": {
+    "ingresso": "07:30",
+    "uscita": "16:30",
+    "pausa_inizio": "13:00",
+    "pausa_fine": "13:30",
+    "pausa_extra_sec": 1800,
+    "per_day": {"5": "OFF", "6": "OFF"}
+  },
+  "Laura Bianchi": {
+    "ingresso": "09:00",
+    "uscita": "17:30",
+    "pausa_inizio": "13:00",
+    "pausa_fine": "13:30",
+    "pausa_extra_sec": 1800,
+    "per_day": {"4": "OFF", "5": "OFF", "6": "OFF"}
+  },
+  "Giorgio Verdi": {
+    "ingresso": "09:00",
+    "uscita": "13:00",
+    "pausa_inizio": null,
+    "pausa_fine": null,
+    "pausa_extra_sec": 0.0,
+    "per_day": {"5": "OFF", "6": "OFF"}
+  }
+}

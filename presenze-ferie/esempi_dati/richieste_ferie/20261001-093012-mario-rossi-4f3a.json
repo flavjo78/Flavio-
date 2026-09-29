@@ -1,0 +1,15 @@
+{
+  "id": "20261001-093012-mario-rossi-4f3a",
+  "nome": "Mario Rossi",
+  "tipo": "ferie",
+  "dal": "2026-10-12",
+  "al": "2026-10-16",
+  "mezza_giornata": null,
+  "giorni_lavorativi": 5,
+  "nota": "Viaggio",
+  "stato": "in_attesa",
+  "creata_il": "2026-10-01T09:30:12",
+  "deciso_il": null,
+  "deciso_da": null,
+  "motivo_rifiuto": null
+}

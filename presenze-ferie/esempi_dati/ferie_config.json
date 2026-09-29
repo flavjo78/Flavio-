@@ -1,0 +1,13 @@
+{
+  "attiva": false,
+  "smtp_host": "smtp.azienda.example",
+  "smtp_porta": 465,
+  "smtp_sicurezza": "ssl",
+  "smtp_utente": "ferie@azienda.example",
+  "smtp_password": "",
+  "mittente": "ferie@azienda.example",
+  "mittente_nome": "Ferie",
+  "destinatari_admin": ["ufficio@azienda.example"],
+  "verifica_certificato": true,
+  "url_app": "http://192.168.1.10/ziwood/ferie/index.html"
+}
