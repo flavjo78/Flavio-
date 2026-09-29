@@ -124,6 +124,12 @@ Da ora la funzione si esegue **da sola ogni minuto**: legge la posta e risponde.
    (neutra). Premi **Finisci gioco** sul pannello e riapri la mail: dovresti vedere la
    **Rivelazione**.
 
+> **Logica delle fasi (importante).** L'autorisponditore risponde **SOLO** mentre il
+> gioco è **"In corso"**: **prima** di "Avvia" non invia nulla; **dopo** "Finisci" non
+> risponde più (sessione chiusa). Poiché gira ogni minuto, **premi "Finisci" circa 1
+> minuto dopo l'ultima mail ricevuta**, così tutte le mail arrivate durante il gioco
+> fanno in tempo a ricevere la risposta prima della chiusura.
+
 ---
 
 ## 8. Cose importanti da sapere

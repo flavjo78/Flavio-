@@ -4,12 +4,16 @@
    Ogni volta che viene eseguito (lo lancia una pianificazione ogni minuto):
    1) legge lo STATO del gioco da stato.php (sessione corrente + fase);
    2) si collega alla casella io@abraka.it via IMAP e legge le mail NON lette;
-   3) per ogni mail, se il gioco e' AVVIATO, invia una risposta via Amazon SES
-      con dentro l'immagine dinamica  image.php?s=SESSIONE&id=MITTENTE ;
+   3) per ogni mail, SOLO se il gioco e' "IN CORSO" (fase = avviato), invia una
+      risposta via Amazon SES con l'immagine dinamica  image.php?s=SESSIONE&id=MITTENTE ;
    4) segna la mail come letta (cosi' non risponde due volte).
 
-   Se il gioco e' SPENTO, non risponde (segna comunque le mail come lette,
-   cosi' le mail arrivate fuori gioco non ricevono risposta piu' tardi).
+   Risponde SOLO mentre il gioco e' "in corso":
+   - PRIMA di "Avvia" (spento)  -> non invia nulla;
+   - dopo "Finisci" (terminato) -> non invia piu' nulla (sessione chiusa).
+   In entrambi i casi segna comunque le mail come lette (non verranno processate
+   di nuovo). Nota operativa: premi "Finisci" ~1 minuto dopo l'ultima mail, cosi'
+   tutte le mail arrivate durante il gioco fanno in tempo a ricevere la risposta.
 
    Tutte le impostazioni sono VARIABILI D'AMBIENTE (si impostano nella
    configurazione della Lambda, senza toccare il codice) — vedi la guida.
@@ -64,7 +68,9 @@ export const handler = async () => {
   try { stato = await statoCorrente(); } catch (e) { console.log('stato.php non raggiungibile:', e.message); }
   const sessione = stato ? Number(stato.sessione || 0) : 0;
   const fase = stato ? String(stato.fase || 'spento') : 'spento';
-  const gioco_attivo = sessione > 0 && fase !== 'spento';
+  // risponde SOLO mentre il gioco e' "in corso" (avviato):
+  // niente prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
+  const gioco_attivo = sessione > 0 && fase === 'avviato';
 
   // 2) connessione IMAP
   const client = new ImapFlow({
