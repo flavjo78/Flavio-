@@ -68,9 +68,9 @@ export const handler = async () => {
   try { stato = await statoCorrente(); } catch (e) { console.log('stato.php non raggiungibile:', e.message); }
   const sessione = stato ? Number(stato.sessione || 0) : 0;
   const fase = stato ? String(stato.fase || 'spento') : 'spento';
-  // risponde SOLO mentre il gioco e' "in corso" (avviato):
-  // niente prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
-  const gioco_attivo = sessione > 0 && fase === 'avviato';
+  // risponde mentre il gioco e' ATTIVO: fase "avviato" (mostra A) o "cambiato" (mostra B).
+  // NON risponde prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
+  const gioco_attivo = sessione > 0 && (fase === 'avviato' || fase === 'cambiato');
 
   // 2) connessione IMAP
   const client = new ImapFlow({

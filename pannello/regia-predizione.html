@@ -131,6 +131,7 @@
   .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
   .btn.primary{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
   .btn.stop{background:var(--stop-soft);color:var(--stop);border-color:transparent}
+  .btn.reveal{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
   .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
   .btn[disabled]{opacity:.32;cursor:not-allowed}
 
@@ -232,6 +233,7 @@
 
       <div class="game-btns">
         <button class="btn primary" id="startBtn">Avvia gioco</button>
+        <button class="btn reveal" id="swapBtn" disabled>Cambia (rivela)</button>
         <button class="btn stop" id="stopBtn" disabled>Finisci gioco</button>
         <button class="btn ghost" id="resetBtn">Azzera</button>
       </div>
@@ -361,7 +363,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- elementi UI ----
   var elCount=$('count'), elWrap=$('counterWrap'), elPill=$('statePill'), elLbl=$('stateLbl'),
-      startBtn=$('startBtn'), stopBtn=$('stopBtn'), resetBtn=$('resetBtn'),
+      startBtn=$('startBtn'), swapBtn=$('swapBtn'), stopBtn=$('stopBtn'), resetBtn=$('resetBtn'),
       phaseLine=$('phaseLine'), sessNum=$('sessNum'), chipTime=$('chipTime'),
       chipA=$('chipA'), chipB=$('chipB'), chipConn=$('chipConn'), connLbl=$('connLbl'),
       footHost=$('footHost');
@@ -382,24 +384,29 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     } else if(fase==='spento'){
       frase='Gioco spento · nessuna risposta, nessuna foto';
     } else if(fase==='terminato'){
-      frase='Sessione terminata · chi apre vede la rivelazione';
+      frase='Sessione chiusa · chi apre vede la rivelazione (non risponde più)';
+    } else if(fase==='cambiato'){
+      frase='Rivelato · chi apre vede la Foto B (risponde ancora)';
     } else if(fase==='avviato'){
       if(st.orario_scambio && st.ora_server >= st.orario_scambio){
-        frase='Orario di sicurezza scattato · si vede la rivelazione';
+        frase='Orario di sicurezza scattato · si vede la Foto B';
       } else {
-        frase='Sessione in corso · chi apre vede la Foto A';
+        frase='In corso · chi apre vede la Foto A';
       }
     }
     phaseLine.textContent=frase;
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
 
+    var attivo = (fase==='avviato' || fase==='cambiato');
     elPill.classList.remove('live'); elWrap.classList.remove('live');
     if(fase==='avviato'){ elPill.classList.add('live'); elWrap.classList.add('live'); elLbl.textContent='In corso'; }
+    else if(fase==='cambiato'){ elPill.classList.add('live'); elWrap.classList.add('live'); elLbl.textContent='Rivelato'; }
     else if(fase==='terminato'){ elLbl.textContent='Terminato'; }
     else { elLbl.textContent='Spento'; }
 
-    startBtn.disabled = (fase==='avviato');
-    stopBtn.disabled  = (fase!=='avviato');
+    startBtn.disabled = attivo;                 // si avvia solo se non c'è già un gioco attivo
+    swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
+    stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
@@ -434,7 +441,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var extra={}; var t=$('swtime').value; if(t){ extra.orario_scambio=t; }
     comando('avvia', extra, 'Nuova sessione avviata · Foto A');
   });
-  stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione terminata · rivelazione'); });
+  swapBtn.addEventListener('click', function(){ comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); });
+  stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
   resetBtn.addEventListener('click', function(){ comando('azzera', null, 'Sessione azzerata'); });
 
   // ---- forza (test) ----

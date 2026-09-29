@@ -39,11 +39,12 @@ function predizione_file(array $stato, ?array $sess): array {
         if ($stato['forza'] === 'B') return [$sess['after']  ?? null, 'B(test)'];
 
         $fase = $sess['fase'] ?? 'spento';
-        if ($fase === 'terminato') {
+        // dopo "Cambia" (cambiato) e dopo "Finisci" (terminato) -> rivelazione (B)
+        if ($fase === 'cambiato' || $fase === 'terminato') {
             return [$sess['after'] ?? null, 'B'];
         }
         if ($fase === 'avviato') {
-            // rete di sicurezza: se l'orario e' scattato -> rivelazione
+            // rete di sicurezza: se l'orario e' scattato -> rivelazione (B)
             if (!empty($sess['orario_scambio']) && time() >= (int)$sess['orario_scambio']) {
                 return [$sess['after'] ?? null, 'B'];
             }

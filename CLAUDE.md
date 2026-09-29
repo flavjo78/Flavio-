@@ -12,7 +12,11 @@ Ultimo aggiornamento: 28 settembre 2026 (online su abraka.it; SES verificato; ca
 Uno **strumento da palco per un effetto di mentalismo**. Durante lo spettacolo gli
 spettatori scrivono una mail al performer; il sistema risponde in automatico con una
 mail che contiene una **foto**. Durante il gioco la foto è una **neutra di attesa (A)**;
-quando il performer chiude la sessione, la foto diventa la **rivelazione**.
+quando il performer preme **"Cambia"**, la foto diventa la **rivelazione (B)**.
+
+**Quattro fasi / tre tasti.** Spento (prima di "Avvia": non risponde) → **Avvia** (mostra A,
+risponde) → **Cambia** (mostra B, risponde ancora) → **Finisci** (chiude: smette di rispondere,
+la B resta congelata per sempre). "Azzera" annulla una sessione non ancora rivelata.
 
 L'illusione sta nel fatto che la foto sembra "dentro" una mail già ricevuta, mentre
 in realtà viene ricostruita a ogni apertura da un server. Lo spettatore non immagina
@@ -56,8 +60,9 @@ backend PHP sono costruiti e collaudati; restano da fare invio e autorisponditor
    (pannello)                                (comandati dal pannello, con password)
 ```
 
-Lo **scambio A→B è comandato dal performer** ("Finisci gioco"), con un **orario di
-sicurezza** facoltativo che lo fa scattare da solo. Le mail contano solo a gioco avviato.
+Lo **scambio A→B è comandato dal performer** (tasto **"Cambia"**), con un **orario di
+sicurezza** facoltativo che lo fa scattare da solo. "Finisci" chiude e ferma le risposte.
+Le mail vengono elaborate solo mentre il gioco è attivo (fasi avviato/cambiato).
 
 1. **Pannello di regia** (`pannello/regia-predizione.html`) — l'app del performer.
    *Costruito e collegato al backend; installabile sul telefono (PWA).*
@@ -95,7 +100,7 @@ predizione/
 ### `pannello/regia-predizione.html`
 App mobile in verticale, singolo file HTML (CSS e JS inline). **Installabile** sul
 telefono (PWA: manifest + service worker + icone). Due schermate: **Regia** (aperture
-registrate, stato/fase del gioco, Avvia/Finisci/Azzera) e **Impostazioni** (ingranaggio:
+registrate, stato/fase del gioco, tasti **Avvia / Cambia / Finisci / Azzera**) e **Impostazioni** (ingranaggio:
 password, carico Foto A neutra / rivelazione, orario di sicurezza, test Forza A/B/Auto).
 Mostra il numero di **sessione** corrente; "Avvia" richiede Foto A + rivelazione caricate.
 
@@ -113,10 +118,11 @@ e il conteggio aperture. Anche `ABILITA_LOG` (cattura on/off) sta qui.
 
 ### `server/stato.php`
 Riceve i comandi dal pannello (tutti tranne la sola lettura richiedono la password):
-`avvia` (apre una NUOVA sessione: congela Foto A + rivelazione in file dedicati,
-orario di sicurezza opzionale), `finisci` (la sessione corrente → rivelazione),
-`azzera` (annulla la sessione corrente se non ancora terminata), `forza` (A/B/OFF test),
-`stato` (lettura per il polling). Lo stato vive in `_dati/stato.json`.
+`avvia` (apre una NUOVA sessione: congela Foto A + rivelazione in file dedicati, fase=avviato,
+orario di sicurezza opzionale), `cambia` (fase→cambiato: mostra B, gioco ancora attivo),
+`finisci` (fase→terminato: chiude, la B resta congelata), `azzera` (annulla la sessione solo
+se non ha ancora rivelato, fase=avviato), `forza` (A/B/OFF test), `stato` (lettura per il polling).
+Fasi: **spento → avviato → cambiato → terminato**. Lo stato vive in `_dati/stato.json`.
 
 ### `server/carica.php`
 Riceve dal pannello (con password) e valida l'immagine (JPG/PNG/GIF/WEBP):
@@ -130,8 +136,8 @@ sovrascrivere la neutra caricandone una propria (slot=A) quando vuole.
 Il motore dell'effetto. La mail chiede `image.php?s=NUMERO&id=…`; lo script guarda la
 **sessione** di quella persona e restituisce:
 - **sessione assente / gioco spento** → immagine **neutra** (pixel trasparente).
-- **sessione IN CORSO** → **Foto A** (neutra di attesa).
-- **sessione TERMINATA** (o orario di sicurezza scattato) → la **rivelazione di quella sessione**.
+- **fase avviato** → **Foto A** (o rivelazione se è scattato l'orario di sicurezza).
+- **fase cambiato o terminato** → la **rivelazione (B) di quella sessione** (congelata per sempre).
 - **Forza A/B** (test): mostra A/B della sessione di riferimento, vince su tutto.
 Ogni sessione ha i suoi file (`sess_N_before.*`, `sess_N_after.*`): mai sovrascritti,
 così le rivelazioni vecchie restano congelate. Header **anti-cache** sempre. Log in

@@ -102,7 +102,22 @@ switch ($azione) {
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
+    case 'cambia':
+        // la RIVELAZIONE: la foto passa a B, ma il gioco resta attivo (risponde ancora)
+        $id = (int)($stato['sessione_corrente'] ?? 0);
+        if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
+            predizione_json(['ok' => false, 'errore' => 'Nessuna sessione attiva'], 400);
+        }
+        if (($stato['sessioni'][(string)$id]['fase'] ?? '') !== 'avviato') {
+            predizione_json(['ok' => false, 'errore' => 'Il cambio si fa solo a gioco in corso'], 400);
+        }
+        $stato['sessioni'][(string)$id]['fase'] = 'cambiato';
+        $stato['forza'] = null;
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
     case 'finisci':
+        // FINE: smette di rispondere e chiude la sessione (la B resta congelata)
         $id = (int)($stato['sessione_corrente'] ?? 0);
         if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
             predizione_json(['ok' => false, 'errore' => 'Nessuna sessione da terminare'], 400);
@@ -113,10 +128,12 @@ switch ($azione) {
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     case 'azzera':
-        // annulla SOLO se la sessione corrente non e' ancora terminata
+        // annulla la sessione SOLO se non ha ancora rivelato (fase = avviato):
+        // una sessione gia' "cambiata" o "terminata" NON si cancella, perche' i suoi
+        // destinatari devono continuare a vedere la loro foto per sempre.
         $id = (int)($stato['sessione_corrente'] ?? 0);
         if ($id > 0 && isset($stato['sessioni'][(string)$id])) {
-            if (($stato['sessioni'][(string)$id]['fase'] ?? '') !== 'terminato') {
+            if (($stato['sessioni'][(string)$id]['fase'] ?? '') === 'avviato') {
                 $s = $stato['sessioni'][(string)$id];
                 if (!empty($s['before']) && is_file($s['before'])) @unlink($s['before']);
                 if (!empty($s['after'])  && is_file($s['after']))  @unlink($s['after']);
