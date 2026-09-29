@@ -8,8 +8,9 @@ chcp 65001 >nul
 
 where python >nul 2>nul || (echo Python non trovato. Serve lo stesso Python della dashboard. & pause & exit /b 1)
 
-rem --- PHP: cerca php\php.exe accanto a questo file, altrimenti nel PATH
+rem --- PHP: cerca php\php.exe oppure php.exe accanto a questo file, altrimenti nel PATH
 set "PHPEXE=%~dp0php\php.exe"
+if not exist "%PHPEXE%" set "PHPEXE=%~dp0php.exe"
 if not exist "%PHPEXE%" (
   where php >nul 2>nul && (set "PHPEXE=php") || (
     echo.
@@ -28,7 +29,7 @@ python prepara_prova.py %1
 if errorlevel 1 (pause & exit /b 1)
 
 set "FERIE_DATI_DIR=%~dp0dati_prova"
-start "App ferie (PHP) - non chiudere" "%PHPEXE%" -S 0.0.0.0:8080 -t "%~dp0..\ferie"
+start "App ferie (PHP) - non chiudere" "%PHPEXE%" -d display_errors=0 -S 0.0.0.0:8080 -t "%~dp0..\ferie"
 start "Dashboard (Streamlit) - non chiudere" cmd /k "cd /d %~dp0dati_prova && python -m streamlit run APP.py --server.port 8501"
 
 timeout /t 4 >nul
