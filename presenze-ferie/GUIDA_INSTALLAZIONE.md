@@ -7,6 +7,7 @@ Cosa hai ricevuto:
 | `ferie/` | L'app per i dipendenti (pagina web + piccolo programma PHP) | sul NAS in `\\ServerNas\web\ziwood\ferie\` |
 | `dashboard/APP.py` | La dashboard aggiornata alla **v1.04**, con la nuova scheda **🏖️ Ferie** | sul NAS in `\\ServerNas\web\ziwood\avvio\` (sostituisce il vecchio `APP.py`) |
 | `nas/htaccess_avvio.txt` | Protezione della cartella dei dati | dentro `avvio` (vedi sezione 2) |
+| `prova_pc/` | Prova completa sul tuo PC con dati finti (sezione 0) | resta qui |
 | `tests/` | Prove automatiche (non servono per l'uso normale) | restano qui |
 
 Come funziona, in breve: il dipendente chiede le ferie dal telefono → il NAS salva la richiesta in un piccolo file
@@ -15,6 +16,35 @@ Se approvi, la dashboard segna le ferie sui giorni lavorativi (nella stessa sche
 tutti i tuoi conteggi restano coerenti. **L'app dei dipendenti non modifica mai le tue correzioni.**
 
 ---
+
+## 0. Prima prova sul tuo PC (senza toccare il NAS)
+
+Cartella `prova_pc/`: avvia tutto sul computer con **dati dimostrativi** (3 dipendenti finti, giorni e PIN già pronti).
+Non legge e non scrive nulla sul NAS.
+
+1. Serve **Python** (lo stesso della dashboard) e **PHP** (gratuito, si scarica una volta sola):
+   - vai su <https://windows.php.net/download/>, scarica lo ZIP **"VS16 x64 Non Thread Safe"** e decomprimilo in
+     `prova_pc\php\` (deve esistere `prova_pc\php\php.exe`). Se il file non c'è, `avvia_prova_pc.bat` te lo ricorda.
+2. Fai doppio clic su **`prova_pc\avvia_prova_pc.bat`** (su Mac/Linux: `./avvia_prova_pc.sh`).
+   Si aprono due finestre nere (lasciale aperte) e il browser.
+3. **App ferie:** `http://localhost:8080/index.html` — dipendenti di prova: *Mario Rossi* PIN **1111**,
+   *Laura Bianchi* PIN **2222**, *Giorgio Verdi* PIN **3333**.
+4. **Dashboard:** `http://localhost:8501` → scheda **🏖️ Ferie**, password **0**.
+5. **Da tablet o telefono** collegato allo stesso Wi-Fi del PC: `http://IP-DEL-PC:8080/index.html`
+   (l'IP lo vedi con `ipconfig`, riga "Indirizzo IPv4"). Al primo avvio Windows chiede di autorizzare PHP nel firewall:
+   consenti la **rete privata**.
+6. Per ripartire da zero: `avvia_prova_pc.bat --azzera`.
+
+> Il `.bat` per Windows non ho potuto provarlo su Windows (il resto sì, sulla versione Mac/Linux `.sh`, che fa le stesse cose).
+> Se dà un errore, mandami il testo che vedi.
+
+### Telefono in orizzontale e tablet
+L'app si adatta da sola: **in orizzontale (telefono o tablet)** vedi tutto insieme — saldo e calendario a sinistra, le tue
+richieste a destra; **in verticale** ha le tre pagine *Saldo / Calendario / Richieste* con i pulsanti in alto.
+- **Android, app installata sulla Home:** si apre sempre in orizzontale (è impostato nell'app).
+- **iPhone / iPad e browser normale:** Apple e i browser non permettono a un sito di bloccare la rotazione: basta girare il
+  dispositivo. In verticale sul telefono compare un promemoria "ruota il telefono in orizzontale".
+- Un **tablet** è la soluzione più comoda (schermo grande, disposizione sempre a due colonne).
 
 ## 1. Copia i file (5 minuti)
 

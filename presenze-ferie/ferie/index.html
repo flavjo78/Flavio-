@@ -97,6 +97,32 @@
   .scelta input:checked + span { color: var(--blu); }
   .scelta label:has(input:checked) { border-color: var(--blu); background: #e8f1ff; }
   .scelta label:has(input:focus-visible) { outline: 3px solid var(--blu); }
+  /* ---------- schermo largo (telefono in orizzontale, tablet, computer) ----------
+     Saldo + calendario a sinistra, richieste a destra: tutto visibile senza cambiare pagina. */
+  .suggerimento { display: none; }
+  @media (max-width: 759px) and (orientation: portrait) {
+    .suggerimento { display: block; background: #e8f1ff; color: #123f8a; border-radius: 12px; padding: 10px 12px; margin: 0 0 12px; font-weight: 600; font-size: .85rem; }
+  }
+  @media (min-width: 760px) {
+    #app { max-width: 1180px; padding: 12px 20px 30px; }
+    #v-login { max-width: 520px; margin: 0 auto; }
+    #v-app { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 0 18px; align-items: start; }
+    #v-app > .testata { grid-column: 1 / -1; }
+    #p-saldo { grid-column: 1; grid-row: 2; }
+    #p-calendario { grid-column: 1; grid-row: 3; }
+    #p-richieste { grid-column: 2; grid-row: 2 / span 2; }
+    #p-nuova { grid-column: 1 / -1; max-width: 640px; width: 100%; justify-self: center; }
+    #nuova2 { display: none; }
+    .g { aspect-ratio: 1.35; }
+    .grande .numero { font-size: 2.8rem; }
+  }
+  @media (min-width: 760px) and (max-height: 520px) {
+    html { font-size: 16px; }
+    .scheda { padding: 10px; margin-bottom: 10px; }
+    button { min-height: 48px; padding: 10px 14px; }
+    .g { aspect-ratio: 1.8; font-size: .85rem; }
+    .griglia { margin-top: 8px; }
+  }
 </style>
 </head>
 <body>
@@ -118,6 +144,7 @@
 
   <!-- APP -->
   <section id="v-app" class="nascosto">
+    <div class="suggerimento">📱 Per vedere tutto insieme, ruota il telefono in orizzontale.</div>
     <div class="testata">
       <div><h1 id="saluto">Ciao</h1><p class="sotto" id="oggi"></p></div>
       <button class="secondario" id="esci">Esci</button>
@@ -237,13 +264,21 @@ function dataLunga(iso) { const d = new Date(iso + "T12:00:00"); return `${GIORN
 function vista(nome) {
   for (const v of ["v-login", "v-app"]) $(v).classList.toggle("nascosto", v !== nome);
 }
+const SCHERMO_LARGO = window.matchMedia("(min-width: 760px)");
+let paginaCorrente = "saldo";
+
 function pagina(nome) {
-  for (const p of ["saldo", "calendario", "richieste", "nuova"]) $("p-" + p).classList.toggle("nascosto", p !== nome);
+  paginaCorrente = nome;
+  // schermo largo: saldo, calendario e richieste stanno insieme; solo "nuova richiesta" ha una pagina sua
+  const visibili = nome === "nuova" ? ["nuova"] : SCHERMO_LARGO.matches ? ["saldo", "calendario", "richieste"] : [nome];
+  for (const p of ["saldo", "calendario", "richieste", "nuova"]) $("p-" + p).classList.toggle("nascosto", !visibili.includes(p));
   document.querySelectorAll(".menu button").forEach((b) => b.classList.toggle("attiva", b.dataset.vai === nome));
-  // il menu resta visibile tranne durante "nuova richiesta"
-  document.querySelector(".menu").classList.toggle("nascosto", nome === "nuova");
-  if (nome === "calendario") caricaCalendario();
+  // il menu serve solo su schermo stretto, e non durante "nuova richiesta"
+  document.querySelector(".menu").classList.toggle("nascosto", nome === "nuova" || SCHERMO_LARGO.matches);
+  if (visibili.includes("calendario") && dati) caricaCalendario();
 }
+// ruotando il telefono o ridimensionando la finestra si ridisegna la disposizione
+SCHERMO_LARGO.addEventListener("change", () => { if (dati) pagina(paginaCorrente); });
 
 // ------------------------------------------------------------------ accesso
 async function caricaNomi() {
@@ -310,10 +345,11 @@ const STATI = { in_attesa: "In attesa", approvata: "Approvata", rifiutata: "Rifi
 
 function disegnaRichieste() {
   const box = $("lista-richieste"); box.innerHTML = "";
-  if (!dati.richieste.length) {
+  const visibili = dati.richieste.filter((r) => r.stato !== "annullata");   // quelle annullate non servono più
+  if (!visibili.length) {
     const p = document.createElement("p"); p.className = "sotto"; p.textContent = "Non hai ancora fatto nessuna richiesta."; box.appendChild(p); return;
   }
-  dati.richieste.forEach((r) => {
+  visibili.forEach((r) => {
     const c = document.createElement("div"); c.className = "scheda rich " + r.stato;
     const q = document.createElement("div");
     const t = document.createElement("span"); t.className = "quando";

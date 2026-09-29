@@ -7,7 +7,8 @@
 // Cartella della dashboard ("avvio") dove stanno orari_lavoro.json,
 // impostazioni.json, correzioni_timbrature.json, ferie_saldi.json ...
 // Percorso relativo a QUESTA cartella (ferie/): ziwood/ferie -> ziwood/avvio
-if (!defined('DATI_DIR')) define('DATI_DIR', __DIR__ . '/../avvio');
+// (Per la prova su PC si puo' indicare un'altra cartella con la variabile FERIE_DATI_DIR.)
+if (!defined('DATI_DIR')) define('DATI_DIR', getenv('FERIE_DATI_DIR') ?: __DIR__ . '/../avvio');
 
 // Le richieste dei dipendenti: un file JSON per richiesta.
 if (!defined('RICHIESTE_DIR')) define('RICHIESTE_DIR', DATI_DIR . '/richieste_ferie');
