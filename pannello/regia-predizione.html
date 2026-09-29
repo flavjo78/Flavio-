@@ -235,7 +235,6 @@
         <button class="btn primary" id="startBtn">Avvia gioco</button>
         <button class="btn reveal" id="swapBtn" disabled>Cambia (rivela)</button>
         <button class="btn stop" id="stopBtn" disabled>Finisci gioco</button>
-        <button class="btn ghost" id="resetBtn">Azzera</button>
       </div>
     </section>
 
@@ -363,7 +362,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- elementi UI ----
   var elCount=$('count'), elWrap=$('counterWrap'), elPill=$('statePill'), elLbl=$('stateLbl'),
-      startBtn=$('startBtn'), swapBtn=$('swapBtn'), stopBtn=$('stopBtn'), resetBtn=$('resetBtn'),
+      startBtn=$('startBtn'), swapBtn=$('swapBtn'), stopBtn=$('stopBtn'),
       phaseLine=$('phaseLine'), sessNum=$('sessNum'), chipTime=$('chipTime'),
       chipA=$('chipA'), chipB=$('chipB'), chipConn=$('chipConn'), connLbl=$('connLbl'),
       footHost=$('footHost');
@@ -443,7 +442,6 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
   swapBtn.addEventListener('click', function(){ comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
-  resetBtn.addEventListener('click', function(){ comando('azzera', null, 'Sessione azzerata'); });
 
   // ---- forza (test) ----
   $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });

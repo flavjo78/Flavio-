@@ -16,7 +16,9 @@ quando il performer preme **"Cambia"**, la foto diventa la **rivelazione (B)**.
 
 **Quattro fasi / tre tasti.** Spento (prima di "Avvia": non risponde) → **Avvia** (mostra A,
 risponde) → **Cambia** (mostra B, risponde ancora) → **Finisci** (chiude: smette di rispondere,
-la B resta congelata per sempre). "Azzera" annulla una sessione non ancora rivelata.
+la B resta congelata per sempre). Per il prossimo show si preme di nuovo "Avvia" (nuova sessione).
+(In `stato.php` esiste ancora l'azione `azzera` per annullare una sessione avviata per sbaglio,
+ma non c'è più un tasto nel pannello.)
 
 L'illusione sta nel fatto che la foto sembra "dentro" una mail già ricevuta, mentre
 in realtà viene ricostruita a ogni apertura da un server. Lo spettatore non immagina
@@ -100,7 +102,7 @@ predizione/
 ### `pannello/regia-predizione.html`
 App mobile in verticale, singolo file HTML (CSS e JS inline). **Installabile** sul
 telefono (PWA: manifest + service worker + icone). Due schermate: **Regia** (aperture
-registrate, stato/fase del gioco, tasti **Avvia / Cambia / Finisci / Azzera**) e **Impostazioni** (ingranaggio:
+registrate, stato/fase del gioco, tasti **Avvia / Cambia / Finisci**) e **Impostazioni** (ingranaggio:
 password, carico Foto A neutra / rivelazione, orario di sicurezza, test Forza A/B/Auto).
 Mostra il numero di **sessione** corrente; "Avvia" richiede Foto A + rivelazione caricate.
 
