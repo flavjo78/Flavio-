@@ -38,6 +38,7 @@ const {
   IMAGE_URL_BASE = 'https://abraka.it/predizione/image.php',
   MAIL_SUBJECT = 'La tua predizione',
   MAIL_INTRO = 'Grazie per aver scritto. Ecco la tua predizione.',
+  MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto a io@abraka.it durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA. Contatto: io@abraka.it',
   AWS_REGION = 'eu-west-1',
 } = process.env;
 
@@ -63,6 +64,7 @@ function corpoHtml(sessione, id) {
   <div style="max-width:560px;margin:0 auto;padding:26px 20px">
     <p style="font-size:16px;line-height:1.6;margin:0 0 18px">${MAIL_INTRO}</p>
     <img src="${src}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;border-radius:10px" alt="">
+    <p style="font-size:12px;line-height:1.5;color:#8a8069;margin:22px 0 0;border-top:1px solid #2a2620;padding-top:14px">${MAIL_FOOTER}</p>
   </div>
 </body></html>`;
 }
