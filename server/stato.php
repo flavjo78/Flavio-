@@ -25,6 +25,7 @@ function p(string $k): ?string {
 /* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
     $sess = predizione_sessione_corrente($s);
+    $ab   = predizione_conta_aperture_ab((int)($s['sessione_corrente'] ?? 0));
     return [
         'sessione'       => (int)($s['sessione_corrente'] ?? 0),
         'n_sessioni'     => count($s['sessioni'] ?? []),
@@ -36,6 +37,8 @@ function predizione_stato_pubblico(array $s): array {
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'aperture'       => predizione_conta_aperture(),
+        'aperture_a'     => $ab['a'],
+        'aperture_b'     => $ab['b'],
         'ora_server'     => time(),
     ];
 }

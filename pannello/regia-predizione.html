@@ -218,6 +218,18 @@
         <div class="lbl">Aperture registrate</div>
       </div>
 
+      <div class="abstats" style="display:flex;gap:10px;margin-top:12px">
+        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntA">0</div>
+          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Foto A</div>
+        </div>
+        <div style="flex:1;background:var(--gold-soft);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--gold)" id="cntB">0</div>
+          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Rivelazione</div>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:8px;text-align:center">Aperture della <b>sessione corrente</b>: quante persone hanno visto la Foto A e quante la Rivelazione.</p>
+
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
 
       <div class="meta">
@@ -425,6 +437,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
     chipB.classList.toggle('ok', !!st.ha_rivelazione);
+
+    var elA=$('cntA'); if(elA){ elA.textContent = st.aperture_a||0; }
+    var elB=$('cntB'); if(elB){ elB.textContent = st.aperture_b||0; }
 
     var n=st.aperture||0;
     elCount.textContent=n;
