@@ -280,6 +280,15 @@
       <p class="hint"><b>Accendilo prima dello show</b> e spegnilo alla fine. Quando è spento, il programma su Amazon si sveglia ma <b>non fa niente</b> (non legge le mail, non risponde): così non lavora quando non serve.</p>
     </section>
 
+    <section aria-label="Modo di invio">
+      <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num">Piccoli / Grandi</span></div>
+      <div class="toggle-row">
+        <div><div class="t">Tanti invii (SES)</div><div class="s" id="invioSub">spento = dalla casella, per pochi invii</div></div>
+        <label class="switch"><input type="checkbox" id="invioSes"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <p class="hint"><b>Spento</b> = invio dalla <b>casella</b> <code>io@abraka.it</code>: pronto subito, adatto a <b>eventi piccoli</b> (fino a ~20-30 persone). <b>Acceso</b> = invio via <b>Amazon SES</b>: per <b>eventi grandi</b> (centinaia), richiede l'accesso alla produzione già approvato.</p>
+    </section>
+
     <section aria-label="Le foto">
       <div class="sec-head"><h2 class="sec-title">Le foto</h2><span class="sec-num">A / rivelazione</span></div>
 
@@ -320,6 +329,7 @@
       <div class="field"><label for="subj">Oggetto</label><input type="text" id="subj" value="La lettera (non aprire ancora)"></div>
       <div class="field"><label for="body">Testo della mail</label><textarea id="body">CIAO,
 GRAZIE per essere venuto al nostro SHOW.</textarea></div>
+      <p class="hint">Sono l'<b>oggetto</b> e il <b>testo</b> che compaiono nella mail di risposta (sopra la foto). Si salvano premendo <b>"Salva e torna"</b> qui sotto.</p>
       <div class="toggle-row">
         <div><div class="t">Attiva cattura</div><div class="s">Registra chi apre e quando</div></div>
         <label class="switch"><input type="checkbox" id="capture" checked><span class="track"></span><span class="knob"></span></label>
@@ -392,6 +402,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function tsToHHMM(ts){ if(!ts) return '—'; var d=new Date(ts*1000); return two(d.getHours())+':'+two(d.getMinutes()); }
 
   var lastAperture=null;
+  var msgLoaded=false; // oggetto/testo caricati dal server una volta sola
   var cur={ ha_foto_a:false, ha_rivelazione:false, fase:'spento' }; // ultimo stato noto
 
   function render(st){
@@ -422,6 +433,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
     var ar=$('autoResp'); if(ar){ ar.checked = !!st.autorisponditore; }
     var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
+
+    var iv=$('invioSes'); if(iv){ iv.checked = (st.invio_modo==='ses'); }
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'Amazon SES · per eventi grandi' : 'dalla casella · per pochi invii'; }
+
+    // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
+    if(!msgLoaded){
+      var subjEl=$('subj'), bodyEl=$('body');
+      if(subjEl && (st.mail_oggetto!==undefined)){ if(st.mail_oggetto) subjEl.value=st.mail_oggetto; }
+      if(bodyEl && (st.mail_testo!==undefined)){ if(st.mail_testo) bodyEl.value=st.mail_testo; }
+      msgLoaded=true;
+    }
 
     var attivo = (fase==='avviato' || fase==='cambiato');
     elPill.classList.remove('live'); elWrap.classList.remove('live');
@@ -480,6 +502,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('autorisponditore', {valore: on?'ON':'OFF'}, on?'Autorisponditore ACCESO':'Autorisponditore spento');
   });
 
+  // ---- interruttore modo di invio (SES / casella SMTP) ----
+  $('invioSes').addEventListener('change', function(){
+    var ses = this.checked;
+    if(!getPw()){ toast('Inserisci prima la password','err'); this.checked=!ses; return; }
+    comando('invio', {valore: ses?'ses':'smtp'}, ses?'Invio via Amazon SES (eventi grandi)':'Invio dalla casella (eventi piccoli)');
+  });
+
   // ---- forza (test) ----
   $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });
   $('forceB').addEventListener('click', function(){ comando('forza',{valore:'B'},'Test: mostro Foto B'); });
@@ -489,7 +518,15 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var setView=$('setView');
   $('openSet').addEventListener('click', function(){ setView.classList.add('open'); setView.scrollTop=0; });
   $('closeSet').addEventListener('click', function(){ setView.classList.remove('open'); poll(); });
-  $('saveSet').addEventListener('click', function(){ setView.classList.remove('open'); poll(); });
+  $('saveSet').addEventListener('click', function(){
+    // salva sul server l'oggetto e il testo personalizzati (se c'è la password)
+    if(getPw()){
+      var oggetto=$('subj')?$('subj').value:'';
+      var testo=$('body')?$('body').value:'';
+      comando('messaggio', {oggetto:oggetto, testo:testo}, 'Impostazioni mail salvate');
+    }
+    setView.classList.remove('open'); poll();
+  });
 
   // ---- upload foto reali ----
   function wireSlot(id,key){

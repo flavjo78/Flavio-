@@ -27,6 +27,7 @@
 import { ImapFlow } from 'imapflow';
 import { simpleParser } from 'mailparser';
 import { SESClient, SendEmailCommand } from '@aws-sdk/client-ses';
+import nodemailer from 'nodemailer';
 
 const {
   IMAP_HOST = 'pop.tophost.it',
@@ -36,13 +37,39 @@ const {
   SES_FROM = 'Predizione <io@abraka.it>',
   STATO_URL = 'https://abraka.it/predizione/stato.php',
   IMAGE_URL_BASE = 'https://abraka.it/predizione/image.php',
-  MAIL_SUBJECT = 'La tua predizione',
-  MAIL_INTRO = 'Grazie per aver scritto. Ecco la tua predizione.',
+  MAIL_SUBJECT = 'La tua predizione',            // usato solo se il pannello non ha un oggetto
+  MAIL_INTRO = 'Grazie per aver scritto. Ecco la tua predizione.', // idem per il testo
   MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto a io@abraka.it durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA. Contatto: io@abraka.it',
   AWS_REGION = 'eu-west-1',
+  // --- invio dalla CASELLA (SMTP Tophost) per gli eventi piccoli ---
+  SMTP_HOST = 'smtp.tophost.it',
+  SMTP_PORT = '465',
+  SMTP_USER,                 // se vuoto usa IMAP_USER
+  SMTP_PASS,                 // se vuoto usa IMAP_PASS
 } = process.env;
 
 const ses = new SESClient({ region: AWS_REGION });
+
+/* trasporto SMTP creato una sola volta, solo quando serve */
+let smtpTx = null;
+function smtpTransport() {
+  if (!smtpTx) {
+    smtpTx = nodemailer.createTransport({
+      host: SMTP_HOST,
+      port: Number(SMTP_PORT),
+      secure: Number(SMTP_PORT) === 465,     // 465 = SSL, 587 = STARTTLS
+      auth: { user: SMTP_USER || IMAP_USER, pass: SMTP_PASS || IMAP_PASS },
+    });
+  }
+  return smtpTx;
+}
+
+/* testo dell'utente -> HTML sicuro (niente tag iniettati, a capo = <br>) */
+function testoSicuro(s) {
+  return String(s || '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, '<br>');
+}
 
 /* id "pulito" per il destinatario (anti-cache + log lato image.php) */
 function idPulito(email) {
@@ -57,16 +84,36 @@ async function statoCorrente() {
   return (j && j.stato) ? j.stato : null;
 }
 
-/* corpo HTML della risposta, con l'immagine dinamica */
-function corpoHtml(sessione, id) {
+/* corpo HTML della risposta, con l'immagine dinamica.
+   intro = testo scritto dal pannello (o MAIL_INTRO di riserva). */
+function corpoHtml(sessione, id, intro) {
   const src = `${IMAGE_URL_BASE}?s=${encodeURIComponent(sessione)}&id=${encodeURIComponent(id)}`;
   return `<!doctype html><html><body style="margin:0;background:#0a0908;color:#ece0c9;font-family:Georgia,'Times New Roman',serif">
   <div style="max-width:560px;margin:0 auto;padding:26px 20px">
-    <p style="font-size:16px;line-height:1.6;margin:0 0 18px">${MAIL_INTRO}</p>
+    <p style="font-size:16px;line-height:1.6;margin:0 0 18px">${testoSicuro(intro)}</p>
     <img src="${src}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;border-radius:10px" alt="">
     <p style="font-size:12px;line-height:1.5;color:#8a8069;margin:22px 0 0;border-top:1px solid #2a2620;padding-top:14px">${MAIL_FOOTER}</p>
   </div>
 </body></html>`;
+}
+
+/* invia UNA mail, scegliendo la via: 'smtp' (casella Tophost) o 'ses' (Amazon). */
+async function inviaMail(modo, dest, oggetto, html) {
+  if (modo === 'smtp') {
+    await smtpTransport().sendMail({
+      from: SES_FROM, to: dest, subject: oggetto,
+      html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
+    });
+  } else {
+    await ses.send(new SendEmailCommand({
+      Source: SES_FROM,
+      Destination: { ToAddresses: [dest] },
+      Message: {
+        Subject: { Data: oggetto, Charset: 'UTF-8' },
+        Body: { Html: { Data: html, Charset: 'UTF-8' } },
+      },
+    }));
+  }
 }
 
 export const handler = async () => {
@@ -88,6 +135,13 @@ export const handler = async () => {
   // risponde mentre il gioco e' ATTIVO: fase "avviato" (mostra A) o "cambiato" (mostra B).
   // NON risponde prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
   const gioco_attivo = sessione > 0 && (fase === 'avviato' || fase === 'cambiato');
+
+  // impostazioni scelte dal pannello (via stato.php):
+  //  - modo di invio: 'smtp' (casella, eventi piccoli) o 'ses' (Amazon, eventi grandi)
+  //  - oggetto e testo personalizzati (se vuoti, si usano i valori di riserva)
+  const modo    = (stato && stato.invio_modo === 'smtp') ? 'smtp' : 'ses';
+  const oggetto = (stato && stato.mail_oggetto) ? String(stato.mail_oggetto) : MAIL_SUBJECT;
+  const intro   = (stato && stato.mail_testo)   ? String(stato.mail_testo)   : MAIL_INTRO;
 
   // 2) connessione IMAP
   const client = new ImapFlow({
@@ -118,18 +172,11 @@ export const handler = async () => {
         if (gioco_attivo && mittente) {
           try {
             const id = idPulito(mittente);
-            await ses.send(new SendEmailCommand({
-              Source: SES_FROM,
-              Destination: { ToAddresses: [mittente] },
-              Message: {
-                Subject: { Data: MAIL_SUBJECT, Charset: 'UTF-8' },
-                Body: { Html: { Data: corpoHtml(sessione, id), Charset: 'UTF-8' } },
-              },
-            }));
+            await inviaMail(modo, mittente, oggetto, corpoHtml(sessione, id, intro));
             risposte++;
           } catch (e) {
             errori++;
-            console.log('invio SES fallito verso', mittente, e.message);
+            console.log('invio (' + modo + ') fallito verso', mittente, e.message);
           }
         }
 
@@ -144,7 +191,7 @@ export const handler = async () => {
     await client.logout();
   }
 
-  const esito = { autorisponditore: true, gioco_attivo, sessione, fase, lette, risposte, errori };
+  const esito = { autorisponditore: true, modo, gioco_attivo, sessione, fase, lette, risposte, errori };
   console.log('ESITO', JSON.stringify(esito));
   return esito;
 };

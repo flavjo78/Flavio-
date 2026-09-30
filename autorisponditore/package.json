@@ -7,6 +7,7 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1142.0",
     "imapflow": "^1.0.164",
-    "mailparser": "^3.7.1"
+    "mailparser": "^3.7.1",
+    "nodemailer": "^10.0.13"
   }
 }

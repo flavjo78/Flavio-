@@ -58,6 +58,9 @@ function predizione_stato_pubblico(array $s): array {
         'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
         'autorisponditore'   => !empty($s['autorisponditore']),
+        'invio_modo'     => (($s['invio_modo'] ?? 'ses') === 'smtp') ? 'smtp' : 'ses',
+        'mail_oggetto'   => (string)($s['mail_oggetto'] ?? ''),
+        'mail_testo'     => (string)($s['mail_testo'] ?? ''),
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'aperture'       => predizione_conta_aperture(),
@@ -185,6 +188,20 @@ switch ($azione) {
         // OFF -> la Lambda si sveglia ma NON fa nulla; ON -> risponde a gioco attivo.
         $valore = strtoupper((string)p('valore'));
         $stato['autorisponditore'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'invio':
+        // modo di invio: 'smtp' (casella, eventi piccoli) o 'ses' (Amazon, eventi grandi)
+        $valore = strtolower((string)p('valore'));
+        $stato['invio_modo'] = ($valore === 'smtp') ? 'smtp' : 'ses';
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'messaggio':
+        // oggetto e testo personalizzati della mail automatica (usati dalla Lambda)
+        $stato['mail_oggetto'] = substr((string)(p('oggetto') ?? ''), 0, 200);
+        $stato['mail_testo']   = substr((string)(p('testo') ?? ''), 0, 2000);
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

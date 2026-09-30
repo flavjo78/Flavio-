@@ -125,7 +125,10 @@ Riceve i comandi dal pannello (tutti tranne la sola lettura richiedono la passwo
 orario di sicurezza opzionale), `cambia` (fase→cambiato: mostra B, gioco ancora attivo),
 `finisci` (fase→terminato: chiude, la B resta congelata), `azzera` (annulla la sessione solo
 se non ha ancora rivelato, fase=avviato), `forza` (A/B/OFF test), `autorisponditore` (interruttore
-ON/OFF della risposta automatica, letto dalla Lambda a ogni giro), `stato` (lettura per il polling).
+ON/OFF della risposta automatica, letto dalla Lambda a ogni giro), `invio` (modo di invio:
+`smtp` casella per eventi piccoli / `ses` Amazon per eventi grandi), `messaggio` (oggetto+testo
+personalizzati della mail), `stato` (lettura per il polling — espone anche `aperture_a`/`aperture_b`,
+il conteggio per foto vista della sessione corrente).
 Fasi: **spento → avviato → cambiato → terminato**. Lo stato vive in `_dati/stato.json`.
 
 ### `server/carica.php`
@@ -254,6 +257,12 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       Ha un **interruttore ON/OFF** letto da `stato.php` (`autorisponditore`): a OFF la Lambda
       si sveglia ma esce subito senza leggere la posta né rispondere — comandato dal pannello
       (Impostazioni), così non lavora quando non c'è spettacolo senza toccare AWS.
+      **Modo di invio** comandato dal pannello (`invio_modo`): `smtp` invia dalla casella
+      `io@abraka.it` via **nodemailer** (Tophost, per eventi piccoli, nessuna approvazione) o
+      `ses` via Amazon (eventi grandi, richiede la produzione). **Oggetto e testo** della mail
+      arrivano dal pannello (`mail_oggetto`/`mail_testo`); i valori env sono solo di riserva.
+      Variabili SMTP: `SMTP_HOST` (def. smtp.tophost.it), `SMTP_PORT` (465), `SMTP_USER`/`SMTP_PASS`
+      (se vuoti usa IMAP_USER/IMAP_PASS).
 - [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
       le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
       EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**
