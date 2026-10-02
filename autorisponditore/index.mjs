@@ -42,8 +42,9 @@ const {
   MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto a io@abraka.it durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA. Contatto: io@abraka.it',
   AWS_REGION = 'eu-west-1',
   // --- invio dalla CASELLA (SMTP Tophost) per gli eventi piccoli ---
-  SMTP_HOST = 'smtp.tophost.it',
-  SMTP_PORT = '465',
+  // Tophost: server in uscita mail.tophost.it, porta 587 (STARTTLS), utente = abraka.it
+  SMTP_HOST = 'mail.tophost.it',
+  SMTP_PORT = '587',
   SMTP_USER,                 // se vuoto usa IMAP_USER
   SMTP_PASS,                 // se vuoto usa IMAP_PASS
 } = process.env;

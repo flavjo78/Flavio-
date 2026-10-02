@@ -61,6 +61,8 @@ queste righe (Chiave = Valore). Copia esattamente:
 | `IMAP_PORT` | `993` |
 | `IMAP_USER` | `abraka.it`  *(il nome della MAILBOX; se non funziona, prova `io@abraka.it`)* |
 | `IMAP_PASS` | *(la password della casella `abraka.it`)* |
+| `SMTP_HOST` | `mail.tophost.it`  *(serve per la modalità "casella"/piccoli invii)* |
+| `SMTP_PORT` | `587`  *(STARTTLS; utente/password = quelli IMAP)* |
 | `SES_FROM` | `Predizione <io@abraka.it>` |
 | `STATO_URL` | `https://abraka.it/predizione/stato.php` |
 | `IMAGE_URL_BASE` | `https://abraka.it/predizione/image.php` |

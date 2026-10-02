@@ -261,8 +261,9 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       `io@abraka.it` via **nodemailer** (Tophost, per eventi piccoli, nessuna approvazione) o
       `ses` via Amazon (eventi grandi, richiede la produzione). **Oggetto e testo** della mail
       arrivano dal pannello (`mail_oggetto`/`mail_testo`); i valori env sono solo di riserva.
-      Variabili SMTP: `SMTP_HOST` (def. smtp.tophost.it), `SMTP_PORT` (465), `SMTP_USER`/`SMTP_PASS`
-      (se vuoti usa IMAP_USER/IMAP_PASS).
+      Variabili SMTP (Tophost, COLLAUDATO ok): `SMTP_HOST`=`mail.tophost.it`, `SMTP_PORT`=`587`
+      (STARTTLS), utente/password presi da IMAP_USER (`abraka.it`) / IMAP_PASS se SMTP_USER/PASS
+      vuoti. La casella spedisce e arriva in posta in arrivo (non spam) a basso volume.
 - [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
       le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
       EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**
