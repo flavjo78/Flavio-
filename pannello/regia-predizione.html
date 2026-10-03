@@ -294,14 +294,6 @@
       <div><h2>Impostazioni</h2><div class="sub">Prepara lo show</div></div>
     </div>
 
-    <section aria-label="Autorisponditore">
-      <div class="sec-head"><h2 class="sec-title">Autorisponditore</h2><span class="sec-num">On / Off</span></div>
-      <div class="toggle-row">
-        <div><div class="t">Risposta automatica</div><div class="s" id="autoSub">acceso solo durante lo show</div></div>
-        <label class="switch"><input type="checkbox" id="autoResp"><span class="track"></span><span class="knob"></span></label>
-      </div>
-      <p class="hint"><b>Accendilo prima dello show</b> e spegnilo alla fine. Quando è spento, il programma su Amazon si sveglia ma <b>non fa niente</b> (non legge le mail, non risponde): così non lavora quando non serve.</p>
-    </section>
 
     <section aria-label="Modo di invio">
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
@@ -457,9 +449,6 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     phaseLine.textContent=frase;
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
 
-    var ar=$('autoResp'); if(ar){ ar.checked = !!st.autorisponditore; }
-    var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
-
     setModoUI(st.invio_modo);
     var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='brevo') ? 'Mailgun ($)' : 'Casella'; }
 
@@ -482,16 +471,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
-    // colori dei tasti, fase per fase (UN solo tasto evidenziato per volta):
-    //  - BORDO oro (.nextstep)         = prossima azione da premere
-    //  - RIEMPITO oro lampeggiante     = Cambia mentre è "in corso" (invita a rivelare)
-    //  - RIEMPITO oro fisso (.curgold) = Cambia dopo la rivelazione (resta dorato)
-    //  - grigio                        = tutto il resto
+    // colori dei tasti, fase per fase:
+    //  - RIEMPITO oro che lampeggia (.blinkgold) = il tasto PREMUTO/attivo in questa fase
+    //  - BORDO oro (.nextstep)                    = la prossima azione da premere
+    //  - grigio                                   = tutto il resto
     [startBtn,swapBtn,stopBtn].forEach(function(b){ b.classList.remove('nextstep','curgold','blinkgold'); });
     if(fase==='avviato'){
-      swapBtn.classList.add('blinkgold');           // Cambia pieno oro, lampeggia piano
+      startBtn.classList.add('blinkgold');          // Avvia (premuto) pieno oro, lampeggia
+      swapBtn.classList.add('nextstep');            // Cambia bordo oro (prossima azione)
     } else if(fase==='cambiato'){
-      swapBtn.classList.add('curgold');             // Cambia resta pieno oro (fisso)
+      swapBtn.classList.add('blinkgold');           // Cambia resta pieno oro e lampeggia
       stopBtn.classList.add('nextstep');            // Finisci bordo oro (prossima azione)
     } else {
       startBtn.classList.add('nextstep');           // spento/terminato: Avvia bordo oro
@@ -556,12 +545,6 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
 
-  // ---- interruttore autorisponditore ----
-  $('autoResp').addEventListener('change', function(){
-    var on = this.checked;
-    if(!getPw()){ toast('Inserisci prima la password','err'); this.checked=!on; return; }
-    comando('autorisponditore', {valore: on?'ON':'OFF'}, on?'Autorisponditore ACCESO':'Autorisponditore spento');
-  });
 
   // ---- modo di invio: Casella / Mailgun / SES ----
   // NB: il tasto "Mailgun" usa internamente il valore 'brevo' (canale riusato):

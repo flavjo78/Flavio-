@@ -162,6 +162,8 @@ switch ($azione) {
         if (!empty($riv) && is_file($riv)) {
             predizione_congela_rivelazione($stato, $nid, $riv);
         }
+        // l'autorisponditore si ACCENDE da solo all'avvio (non c'e' piu' un tasto nel pannello)
+        $stato['autorisponditore'] = true;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -204,6 +206,8 @@ switch ($azione) {
         }
         $stato['sessioni'][(string)$id]['fase'] = 'terminato';
         $stato['forza'] = null;
+        // l'autorisponditore si SPEGNE da solo alla fine (la Lambda smette di leggere la posta)
+        $stato['autorisponditore'] = false;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
