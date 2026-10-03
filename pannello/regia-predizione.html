@@ -134,8 +134,15 @@
   .btn.reveal{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
   .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
   .btn[disabled]{opacity:.32;cursor:not-allowed}
-  /* tasto della fase in corso: ben evidenziato anche se disabilitato */
-  .btn.is-active{opacity:1 !important;border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 6px 22px rgba(201,164,101,.35);cursor:default}
+  /* tasto "prossima azione": contorno dorato ben evidente (anche se disabilitato) */
+  .btn.nextstep{opacity:1 !important;background:transparent;border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
+  /* tasto della fase RIVELATO: pieno dorato */
+  .btn.curgold{opacity:1 !important;background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent;box-shadow:0 6px 22px rgba(201,164,101,.35)}
+  /* schermata di accesso (login) */
+  .login{position:fixed;inset:0;z-index:60;background:var(--bg-deep);display:flex;align-items:center;justify-content:center;padding:24px}
+  .login.hidden{display:none}
+  .login-card{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-lg);padding:28px 22px;text-align:center}
+  .login-card .field{text-align:left;margin-top:14px}
 
   /* ---- Settings overlay ---- */
   .settings{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;padding:0 20px 40px;
@@ -195,6 +202,25 @@
 </head>
 <body>
 
+<!-- ============ LOGIN ============ -->
+<div class="login" id="loginView">
+  <div class="login-card">
+    <p class="kicker">Regia dello spettacolo</p>
+    <h1 class="wordmark" style="font-size:30px;margin:2px 0 2px">Predizione</h1>
+    <p class="subwordmark" style="margin:0 0 6px">Accesso</p>
+    <div class="field">
+      <label for="loginUser">Utente</label>
+      <input id="loginUser" value="001" readonly>
+    </div>
+    <div class="field">
+      <label for="loginPw">Password</label>
+      <input id="loginPw" type="password" autocomplete="current-password" placeholder="password">
+    </div>
+    <button class="btn" id="loginBtn" style="width:100%;margin-top:16px">Entra</button>
+    <p class="hint" style="text-align:center;margin-top:12px">La password è quella impostata sul server (config.php). Resta memorizzata su questo dispositivo.</p>
+  </div>
+</div>
+
 <div class="app">
 
   <!-- ============ MAIN VIEW ============ -->
@@ -217,7 +243,7 @@
 
       <div class="counter" id="counterWrap">
         <div class="num" id="count">0</div>
-        <div class="lbl">Aperture registrate</div>
+        <div class="lbl">Aperture · questa sessione</div>
       </div>
 
       <div class="abstats" style="display:flex;gap:10px;margin-top:12px">
@@ -247,9 +273,9 @@
       </div>
 
       <div class="game-btns">
-        <button class="btn primary" id="startBtn">Avvia gioco</button>
-        <button class="btn reveal" id="swapBtn" disabled>Cambia (rivela)</button>
-        <button class="btn stop" id="stopBtn" disabled>Finisci gioco</button>
+        <button class="btn ghost" id="startBtn">Avvia gioco</button>
+        <button class="btn ghost" id="swapBtn" disabled>Cambia (rivela)</button>
+        <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
       </div>
     </section>
 
@@ -353,6 +379,23 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
   function getPw(){ return pwInput.value || ''; }
 
+  // ---- login iniziale (utente fisso 001, password memorizzata per gli accessi futuri) ----
+  var loginView=$('loginView'), loginPw=$('loginPw'), loginBtn=$('loginBtn');
+  function doLogin(){
+    var p=(loginPw.value||'').trim();
+    if(!p){ toast('Inserisci la password','err'); return; }
+    pwInput.value=p; try{ localStorage.setItem('pred_pw', p); }catch(e){}
+    if(loginView) loginView.classList.add('hidden');
+    poll();
+  }
+  if(loginBtn) loginBtn.addEventListener('click', doLogin);
+  if(loginPw)  loginPw.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
+  // se la password è già memorizzata, entra subito (accesso rapido)
+  (function(){
+    var saved=''; try{ saved=localStorage.getItem('pred_pw')||''; }catch(e){}
+    if(saved){ pwInput.value=saved; if(loginView) loginView.classList.add('hidden'); }
+  })();
+
   // ---- toast (messaggi brevi) ----
   var toastEl=$('toast'), toastT=null;
   function toast(msg, kind){
@@ -451,10 +494,19 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
-    // evidenzia il tasto della fase in corso (anche se disabilitato)
-    startBtn.classList.toggle('is-active', fase==='avviato');
-    swapBtn.classList.toggle('is-active',  fase==='cambiato');
-    stopBtn.classList.toggle('is-active',  fase==='terminato');
+    // colori dei tasti come una "procedura guidata":
+    //  - "prossima azione" = contorno dorato (.nextstep)
+    //  - fase RIVELATO (cambiato) = Cambia pieno dorato (.curgold)
+    //  - tutti gli altri = grigi (disabilitati o ghost spento)
+    [startBtn,swapBtn,stopBtn].forEach(function(b){ b.classList.remove('nextstep','curgold'); });
+    if(fase==='avviato'){
+      swapBtn.classList.add('nextstep');            // Avvia premuto -> prossima = Cambia
+    } else if(fase==='cambiato'){
+      swapBtn.classList.add('curgold');             // Cambia premuto -> resta dorato
+      stopBtn.classList.add('nextstep');            // prossima = Finisci
+    } else {
+      startBtn.classList.add('nextstep');           // spento/terminato -> prossima = Avvia
+    }
 
     // timer "Attivo da": base = quanto tempo è passato dall'avvio (dal server),
     // poi scorre ogni secondo lato pannello. Si azzera quando il gioco non è attivo.

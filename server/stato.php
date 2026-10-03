@@ -35,22 +35,23 @@ function predizione_conta_aperture_ab(int $sessione): array {
     // i programmi di posta (es. Gmail) scaricano la stessa foto piu' volte per
     // una sola apertura, quindi contiamo una volta sola per id. Se l'id manca
     // (es. apertura di prova dal browser), quella riga conta comunque una volta.
-    $va = []; $vb = []; $n = 0;
+    $va = []; $vb = []; $vt = []; $n = 0;
     while (($line = fgets($fh)) !== false) {
         if (trim($line) === '') continue;
         $n++;
         $c = str_getcsv($line);
-        if (($c[1] ?? '') !== $sid) continue;
+        if (($c[1] ?? '') !== $sid) continue;   // solo la sessione corrente
         $lbl = (string)($c[3] ?? '');
         if ($lbl === '') continue;
         $id  = trim((string)($c[2] ?? ''));
         $key = ($id !== '') ? $id : ('_r' . $n);
         $first = strtoupper($lbl[0]);
-        if     ($first === 'A') $va[$key] = true;
-        elseif ($first === 'B') $vb[$key] = true;
+        if     ($first === 'A') { $va[$key] = true; $vt[$key] = true; }
+        elseif ($first === 'B') { $vb[$key] = true; $vt[$key] = true; }
     }
     fclose($fh);
-    return ['a' => count($va), 'b' => count($vb)];
+    // 'tot' = destinatari distinti di QUESTA sessione (si azzera a ogni nuova sessione)
+    return ['a' => count($va), 'b' => count($vb), 'tot' => count($vt)];
 }
 
 /* Normalizza il modo di invio: 'casella' | 'brevo' | 'ses'
@@ -93,7 +94,7 @@ function predizione_stato_pubblico(array $s): array {
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'ha_rivelazione_sess'=> ($sess && !empty($sess['after']) && is_file($sess['after'])),
-        'aperture'       => predizione_conta_aperture(),
+        'aperture'       => $ab['tot'],   // solo sessione corrente (azzerate a ogni "Avvia")
         'aperture_a'     => $ab['a'],
         'aperture_b'     => $ab['b'],
         'ora_server'     => time(),
