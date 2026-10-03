@@ -31,19 +31,26 @@ function predizione_conta_aperture_ab(int $sessione): array {
     $fh = @fopen(LOG_FILE, 'r');
     if (!$fh) return ['a' => 0, 'b' => 0];
     $sid = (string)$sessione;
-    $a = 0; $b = 0;
+    // Conta i DESTINATARI distinti (per codice "id"), non i singoli scaricamenti:
+    // i programmi di posta (es. Gmail) scaricano la stessa foto piu' volte per
+    // una sola apertura, quindi contiamo una volta sola per id. Se l'id manca
+    // (es. apertura di prova dal browser), quella riga conta comunque una volta.
+    $va = []; $vb = []; $n = 0;
     while (($line = fgets($fh)) !== false) {
         if (trim($line) === '') continue;
+        $n++;
         $c = str_getcsv($line);
         if (($c[1] ?? '') !== $sid) continue;
         $lbl = (string)($c[3] ?? '');
         if ($lbl === '') continue;
+        $id  = trim((string)($c[2] ?? ''));
+        $key = ($id !== '') ? $id : ('_r' . $n);
         $first = strtoupper($lbl[0]);
-        if     ($first === 'A') $a++;
-        elseif ($first === 'B') $b++;
+        if     ($first === 'A') $va[$key] = true;
+        elseif ($first === 'B') $vb[$key] = true;
     }
     fclose($fh);
-    return ['a' => $a, 'b' => $b];
+    return ['a' => count($va), 'b' => count($vb)];
 }
 
 /* Normalizza il modo di invio: 'casella' | 'brevo' | 'ses'

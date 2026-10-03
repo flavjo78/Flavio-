@@ -134,6 +134,8 @@
   .btn.reveal{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
   .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
   .btn[disabled]{opacity:.32;cursor:not-allowed}
+  /* tasto della fase in corso: ben evidenziato anche se disabilitato */
+  .btn.is-active{opacity:1 !important;border-color:var(--gold);box-shadow:0 0 0 2px var(--gold),0 6px 22px rgba(201,164,101,.35);cursor:default}
 
   /* ---- Settings overlay ---- */
   .settings{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;padding:0 20px 40px;
@@ -234,6 +236,7 @@
 
       <div class="meta">
         <span>Sessione&nbsp;·&nbsp;<b id="sessNum">—</b></span>
+        <span>Attivo da&nbsp;·&nbsp;<b id="elapsed">—</b></span>
         <span>Sicurezza&nbsp;·&nbsp;<b id="chipTime">—</b></span>
       </div>
 
@@ -282,12 +285,11 @@
 
     <section aria-label="Modo di invio">
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
-      <div class="game-btns" style="grid-template-columns:1fr 1fr 1fr">
+      <div class="game-btns" style="grid-template-columns:1fr 1fr">
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
-        <button class="btn ghost" id="modoBrevo" type="button">Mailgun</button>
-        <button class="btn ghost" id="modoSes" type="button">SES</button>
+        <button class="btn ghost" id="modoBrevo" type="button">$</button>
       </div>
-      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>Mailgun</b> = servizio dedicato, per <b>eventi grandi</b> (centinaia). <b>SES</b> = Amazon, per eventi grandi (richiede la produzione già approvata).</p>
+      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>$</b> (Mailgun) = servizio a pagamento, per <b>eventi grandi</b> (centinaia).</p>
     </section>
 
     <section aria-label="Le foto">
@@ -313,16 +315,6 @@
         <input type="time" id="swtime">
       </div>
       <p class="hint">Rete di sicurezza: se a quest'ora <b>non</b> hai ancora premuto "Finisci gioco", lo scambio A→B scatta da solo. Di solito coincide con la fine dello spettacolo. Lascia vuoto per comandare solo a mano.</p>
-    </section>
-
-    <section aria-label="Prova">
-      <div class="sec-head"><h2 class="sec-title">Prova (test)</h2><span class="sec-num">Forza</span></div>
-      <div class="game-btns" style="grid-template-columns:1fr 1fr 1fr">
-        <button class="btn ghost" id="forceA" type="button">Mostra A</button>
-        <button class="btn ghost" id="forceB" type="button">Mostra B</button>
-        <button class="btn ghost" id="forceOff" type="button">Auto</button>
-      </div>
-      <p class="hint">Solo per le prove: forza la Foto A o B ignorando le fasi. <b>Auto</b> torna al comportamento normale. Ricordati di lasciarlo su Auto prima dello show.</p>
     </section>
 
     <section aria-label="Messaggio automatico">
@@ -401,8 +393,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   function two(n){return (n<10?'0':'')+n;}
   function tsToHHMM(ts){ if(!ts) return '—'; var d=new Date(ts*1000); return two(d.getHours())+':'+two(d.getMinutes()); }
+  function fmtDur(s){ s=Math.max(0,Math.floor(s)); var h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60; return h>0 ? (h+':'+two(m)+':'+two(ss)) : (two(m)+':'+two(ss)); }
 
   var lastAperture=null;
+  var elapsedBase=null, elapsedAnchor=0; // timer "Attivo da" (parte da avvio_ts)
   var msgLoaded=false; // oggetto/testo caricati dal server una volta sola
   var cur={ ha_foto_a:false, ha_rivelazione:false, fase:'spento' }; // ultimo stato noto
 
@@ -436,7 +430,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
 
     setModoUI(st.invio_modo);
-    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'SES' : (st.invio_modo==='brevo') ? 'Mailgun' : 'Casella'; }
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='brevo') ? 'Mailgun ($)' : 'Casella'; }
 
     // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
     if(!msgLoaded){
@@ -457,6 +451,21 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
+    // evidenzia il tasto della fase in corso (anche se disabilitato)
+    startBtn.classList.toggle('is-active', fase==='avviato');
+    swapBtn.classList.toggle('is-active',  fase==='cambiato');
+    stopBtn.classList.toggle('is-active',  fase==='terminato');
+
+    // timer "Attivo da": base = quanto tempo è passato dall'avvio (dal server),
+    // poi scorre ogni secondo lato pannello. Si azzera quando il gioco non è attivo.
+    if(attivo && st.avvio_ts){
+      elapsedBase = Math.max(0, (st.ora_server||0) - st.avvio_ts);
+      elapsedAnchor = Date.now();
+    } else {
+      elapsedBase = null;
+      var elEl0=$('elapsed'); if(elEl0) elEl0.textContent='—';
+    }
+
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
     chipB.classList.toggle('ok', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
@@ -476,6 +485,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     chipConn.classList.remove('ok'); connLbl.textContent='Offline'; footHost.textContent='non collegato';
   }
   function poll(){ apiStato().then(function(j){ if(j && j.stato){ render(j.stato); } else { offline(); } }).catch(offline); }
+
+  // aggiorna il timer "Attivo da" ogni secondo (fluido, senza aspettare il polling)
+  setInterval(function(){
+    if(elapsedBase===null) return;
+    var elEl=$('elapsed'); if(!elEl) return;
+    elEl.textContent = fmtDur(elapsedBase + (Date.now()-elapsedAnchor)/1000);
+  }, 1000);
 
   function comando(azione, extra, okMsg){
     if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
@@ -510,7 +526,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // NB: il tasto "Mailgun" usa internamente il valore 'brevo' (canale riusato):
   //     nella Lambda le variabili BREVO_* puntano a Mailgun. Nessun'altra modifica serve.
   function setModoUI(m){
-    [['modoCasella','casella'],['modoBrevo','brevo'],['modoSes','ses']].forEach(function(p){
+    [['modoCasella','casella'],['modoBrevo','brevo']].forEach(function(p){
       var b=$(p[0]); if(!b) return; var on=(m===p[1]);
       b.style.borderColor = on ? 'var(--gold)' : '';
       b.style.color       = on ? 'var(--gold)' : '';
@@ -519,16 +535,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function setModo(m){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
-    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':m==='brevo'?'Mailgun':'SES'));
+    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'Mailgun ($)'));
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
   $('modoBrevo').addEventListener('click', function(){ setModo('brevo'); });
-  $('modoSes').addEventListener('click', function(){ setModo('ses'); });
 
   // ---- forza (test) ----
-  $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });
-  $('forceB').addEventListener('click', function(){ comando('forza',{valore:'B'},'Test: mostro Foto B'); });
-  $('forceOff').addEventListener('click', function(){ comando('forza',{valore:'OFF'},'Test disattivato · Auto'); });
 
   // ---- settings navigation ----
   var setView=$('setView');
