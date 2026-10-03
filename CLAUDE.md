@@ -257,18 +257,27 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       Ha un **interruttore ON/OFF** letto da `stato.php` (`autorisponditore`): a OFF la Lambda
       si sveglia ma esce subito senza leggere la posta né rispondere — comandato dal pannello
       (Impostazioni), così non lavora quando non c'è spettacolo senza toccare AWS.
-      **Modo di invio** comandato dal pannello (`invio_modo`): `smtp` invia dalla casella
-      `io@abraka.it` via **nodemailer** (Tophost, per eventi piccoli, nessuna approvazione) o
-      `ses` via Amazon (eventi grandi, richiede la produzione). **Oggetto e testo** della mail
+      **Modo di invio** a 3 scelte dal pannello (`invio_modo` = `casella`|`brevo`|`ses`;
+      il vecchio `smtp` vale come `casella`): **casella** = SMTP Tophost via nodemailer
+      (eventi piccoli, gratis); **brevo** = SMTP Brevo (eventi grandi); **ses** = Amazon
+      (richiede la produzione). TUTTI E TRE COLLAUDATI OK. **Oggetto e testo** della mail
       arrivano dal pannello (`mail_oggetto`/`mail_testo`); i valori env sono solo di riserva.
-      Variabili SMTP (Tophost, COLLAUDATO ok): `SMTP_HOST`=`mail.tophost.it`, `SMTP_PORT`=`587`
-      (STARTTLS), utente/password presi da IMAP_USER (`abraka.it`) / IMAP_PASS se SMTP_USER/PASS
-      vuoti. La casella spedisce e arriva in posta in arrivo (non spam) a basso volume.
+      Variabili: casella `SMTP_HOST`=`mail.tophost.it` `SMTP_PORT`=`587` (STARTTLS, utente/pass
+      da IMAP_* se vuoti); Brevo `BREVO_HOST`=`smtp-relay.brevo.com` `BREVO_PORT`=`587`
+      `BREVO_USER`=`<login @smtp-brevo.com>` `BREVO_PASS`=`<chiave SMTP>`.
+      Anti-doppione: la mail viene marcata \Seen PRIMA di rispondere (una mail = una risposta).
 - [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
       le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
       EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**
-- [ ] **Uscire dalla sandbox SES** ("Richiedi accesso alla produzione") + aumento limite,
-      qualche giorno prima dello show.
+- [x] **Brevo attivo e collaudato** come invio per eventi grandi: account creato, telefono
+      verificato, mittente `io@abraka.it` verificato, **dominio autenticato** (DKIM brevo1/brevo2
+      + brevo-code TXT + tag `rua` aggiunto al DMARC esistente, senza toccare SPF/SES). SMTP
+      `smtp-relay.brevo.com:587`, login `<...>@smtp-brevo.com`, chiave SMTP in `BREVO_PASS`.
+      Piano gratis 300/giorno (con logo Brevo); per eventi senza logo serve Starter ~9$/mese.
+      NB: la chiave SMTP mostrata in chat andrebbe rigenerata quando possibile.
+- [ ] **Uscire dalla sandbox SES** ("Richiedi accesso alla produzione"): Amazon ha rifiutato
+      2 volte. Opzionale ora che Brevo copre gli eventi grandi; eventualmente ritentare dopo
+      aver "scaldato" l'account.
 - [ ] Collegare il **contatore** del pannello alle mail reali (oggi mostra le aperture del log).
 - [ ] Prova completa in piccolo (2–3 mail) prima dello show, su Gmail e su iPhone.
 
