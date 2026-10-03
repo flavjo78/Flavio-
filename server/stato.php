@@ -59,7 +59,8 @@ function predizione_conta_aperture_ab(int $sessione): array {
 function predizione_invio_modo($v): string {
     $v = strtolower((string)$v);
     if ($v === 'ses')   return 'ses';
-    if ($v === 'brevo') return 'brevo';
+    // 'grande' (pannello) e 'brevo' (vecchio) indicano lo stesso canale dedicato
+    if ($v === 'grande' || $v === 'brevo') return 'brevo';
     return 'casella'; // 'casella', 'smtp' (vecchio) o vuoto
 }
 

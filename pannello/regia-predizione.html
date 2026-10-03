@@ -299,9 +299,9 @@
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
       <div class="game-btns" style="grid-template-columns:1fr 1fr">
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
-        <button class="btn ghost" id="modoBrevo" type="button">$</button>
+        <button class="btn ghost" id="modoBig" type="button">$</button>
       </div>
-      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>$</b> (Mailgun) = servizio a pagamento, per <b>eventi grandi</b> (centinaia).</p>
+      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>$</b> = canale dedicato, per <b>eventi grandi</b> (centinaia).</p>
     </section>
 
     <section aria-label="Le foto">
@@ -450,7 +450,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
 
     setModoUI(st.invio_modo);
-    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='brevo') ? 'Mailgun ($)' : 'Casella'; }
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : '$'; }
 
     // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
     if(!msgLoaded){
@@ -546,12 +546,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
 
 
-  // ---- modo di invio: Casella / Mailgun / SES ----
-  // NB: il tasto "Mailgun" usa internamente il valore 'brevo' (canale riusato):
-  //     nella Lambda le variabili BREVO_* puntano a Mailgun. Nessun'altra modifica serve.
+  // ---- modo di invio: Casella / $ ----
   function setModoUI(m){
-    [['modoCasella','casella'],['modoBrevo','brevo']].forEach(function(p){
-      var b=$(p[0]); if(!b) return; var on=(m===p[1]);
+    var cm = (m==='casella') ? 'casella' : 'grande';   // tutto cio' che non e' "casella" = modo "$"
+    [['modoCasella','casella'],['modoBig','grande']].forEach(function(p){
+      var b=$(p[0]); if(!b) return; var on=(cm===p[1]);
       b.style.borderColor = on ? 'var(--gold)' : '';
       b.style.color       = on ? 'var(--gold)' : '';
       b.style.background   = on ? 'var(--gold-soft)' : '';
@@ -559,10 +558,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function setModo(m){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
-    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'Mailgun ($)'));
+    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'$'));
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
-  $('modoBrevo').addEventListener('click', function(){ setModo('brevo'); });
+  $('modoBig').addEventListener('click', function(){ setModo('grande'); });
 
   // ---- forza (test) ----
 
