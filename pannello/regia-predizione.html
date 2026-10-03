@@ -479,19 +479,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
-    // colori dei tasti come una "procedura guidata":
-    //  - "prossima azione" = contorno dorato (.nextstep)
-    //  - fase RIVELATO (cambiato) = Cambia pieno dorato (.curgold)
-    //  - tutti gli altri = grigi (disabilitati o ghost spento)
-    [startBtn,swapBtn,stopBtn].forEach(function(b){ b.classList.remove('nextstep','curgold'); });
-    if(fase==='avviato'){
-      swapBtn.classList.add('nextstep');            // Avvia premuto -> prossima = Cambia
-    } else if(fase==='cambiato'){
-      swapBtn.classList.add('curgold');             // Cambia premuto -> resta dorato
-      stopBtn.classList.add('nextstep');            // prossima = Finisci
-    } else {
-      startBtn.classList.add('nextstep');           // spento/terminato -> prossima = Avvia
-    }
+    // i tasti ATTIVI (premibili) in questo momento si colorano d'ORO PIENO;
+    // quelli non premibili restano grigi. (va dopo l'assegnazione dei .disabled sopra)
+    [startBtn,swapBtn,stopBtn].forEach(function(b){
+      b.classList.remove('nextstep','curgold');
+      if(!b.disabled) b.classList.add('curgold');
+    });
 
     // timer "Attivo da": base = quanto tempo è passato dall'avvio (dal server),
     // poi scorre ogni secondo lato pannello. Si azzera quando il gioco non è attivo.
