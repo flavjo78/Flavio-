@@ -160,6 +160,18 @@ export const handler = async () => {
     try {
       const uids = await client.search({ seen: false }, { uid: true });
       for (const uid of uids) {
+        // ANTI-DOPPIONE: segna la mail come LETTA *prima* di rispondere.
+        // Cosi' ogni mail viene "presa" una volta sola: se un altro giro parte
+        // nel frattempo (o l'invio e' lento), non la rivede e non la rifa'.
+        // Se non riusciamo a segnarla, la saltiamo (niente invio) per non
+        // rischiare di risponderle all'infinito.
+        try {
+          await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
+        } catch (e) {
+          console.log('claim (Seen) fallito uid', uid, e.message, '-> salto');
+          continue;
+        }
+
         let mittente = '';
         try {
           const msg = await client.fetchOne(uid, { source: true }, { uid: true });
@@ -180,10 +192,6 @@ export const handler = async () => {
             console.log('invio (' + modo + ') fallito verso', mittente, e.message);
           }
         }
-
-        // segna come letta (processata) in ogni caso
-        try { await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true }); }
-        catch (e) { console.log('flag Seen fallito uid', uid, e.message); }
       }
     } finally {
       lock.release();
