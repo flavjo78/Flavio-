@@ -284,10 +284,10 @@
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
       <div class="game-btns" style="grid-template-columns:1fr 1fr 1fr">
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
-        <button class="btn ghost" id="modoBrevo" type="button">Brevo</button>
+        <button class="btn ghost" id="modoBrevo" type="button">Mailgun</button>
         <button class="btn ghost" id="modoSes" type="button">SES</button>
       </div>
-      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>Brevo</b> = servizio dedicato, per <b>eventi grandi</b> (centinaia). <b>SES</b> = Amazon, per eventi grandi (richiede la produzione già approvata).</p>
+      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>Mailgun</b> = servizio dedicato, per <b>eventi grandi</b> (centinaia). <b>SES</b> = Amazon, per eventi grandi (richiede la produzione già approvata).</p>
     </section>
 
     <section aria-label="Le foto">
@@ -436,7 +436,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
 
     setModoUI(st.invio_modo);
-    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'SES' : (st.invio_modo==='brevo') ? 'Brevo' : 'Casella'; }
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'SES' : (st.invio_modo==='brevo') ? 'Mailgun' : 'Casella'; }
 
     // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
     if(!msgLoaded){
@@ -506,7 +506,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('autorisponditore', {valore: on?'ON':'OFF'}, on?'Autorisponditore ACCESO':'Autorisponditore spento');
   });
 
-  // ---- modo di invio: Casella / Brevo / SES ----
+  // ---- modo di invio: Casella / Mailgun / SES ----
+  // NB: il tasto "Mailgun" usa internamente il valore 'brevo' (canale riusato):
+  //     nella Lambda le variabili BREVO_* puntano a Mailgun. Nessun'altra modifica serve.
   function setModoUI(m){
     [['modoCasella','casella'],['modoBrevo','brevo'],['modoSes','ses']].forEach(function(p){
       var b=$(p[0]); if(!b) return; var on=(m===p[1]);
@@ -517,7 +519,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function setModo(m){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
-    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':m==='brevo'?'Brevo':'SES'));
+    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':m==='brevo'?'Mailgun':'SES'));
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
   $('modoBrevo').addEventListener('click', function(){ setModo('brevo'); });
