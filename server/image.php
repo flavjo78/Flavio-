@@ -46,7 +46,13 @@ function predizione_file(array $stato, ?array $sess): array {
         if ($fase === 'avviato') {
             // rete di sicurezza: se l'orario e' scattato -> rivelazione (B)
             if (!empty($sess['orario_scambio']) && time() >= (int)$sess['orario_scambio']) {
-                return [$sess['after'] ?? null, 'B'];
+                if (!empty($sess['after']) && is_file($sess['after'])) {
+                    return [$sess['after'], 'B'];
+                }
+                // B non ancora congelata: usa quella pronta se c'e', altrimenti resta sulla A
+                if (!empty($stato['rivelazione_pronta']) && is_file($stato['rivelazione_pronta'])) {
+                    return [$stato['rivelazione_pronta'], 'B'];
+                }
             }
             return [$sess['before'] ?? null, 'A'];
         }

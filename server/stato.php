@@ -55,6 +55,19 @@ function predizione_invio_modo($v): string {
     return 'casella'; // 'casella', 'smtp' (vecchio) o vuoto
 }
 
+/* Congela la rivelazione pronta nel file "after" della sessione $nid
+   (sostituendo l'eventuale precedente) e la consuma. Cosi' l'ultima
+   rivelazione caricata prima di "Cambia"/"Finisci" e' quella che resta. */
+function predizione_congela_rivelazione(array &$stato, int $nid, string $riv): void {
+    $extR  = strtolower(pathinfo($riv, PATHINFO_EXTENSION)) ?: 'jpg';
+    $after = DATA_DIR . '/sess_' . $nid . '_after.' . $extR;
+    $prev  = $stato['sessioni'][(string)$nid]['after'] ?? null;
+    if (!empty($prev) && is_file($prev) && $prev !== $after) @unlink($prev);
+    @rename($riv, $after);
+    $stato['sessioni'][(string)$nid]['after'] = $after;
+    $stato['rivelazione_pronta'] = null;
+}
+
 /* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
     $sess = predizione_sessione_corrente($s);
@@ -72,6 +85,7 @@ function predizione_stato_pubblico(array $s): array {
         'mail_testo'     => (string)($s['mail_testo'] ?? ''),
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
+        'ha_rivelazione_sess'=> ($sess && !empty($sess['after']) && is_file($sess['after'])),
         'aperture'       => predizione_conta_aperture(),
         'aperture_a'     => $ab['a'],
         'aperture_b'     => $ab['b'],
@@ -102,9 +116,9 @@ switch ($azione) {
         if (!is_file($foto_a)) {
             predizione_json(['ok' => false, 'errore' => 'Manca la Foto A neutra (neutro.png)'], 400);
         }
-        if (empty($riv) || !is_file($riv)) {
-            predizione_json(['ok' => false, 'errore' => 'Carica prima la rivelazione di questa sessione'], 400);
-        }
+        // La rivelazione (Foto B) NON serve piu' per avviare: la puoi caricare
+        // anche a gioco avviato, fino a quando premi "Cambia". Serve pero'
+        // prima di "Cambia" (la controlliamo li').
 
         // orario di sicurezza opzionale: "HH:MM" (oggi) oppure timestamp
         $orario = p('orario_scambio');
@@ -121,25 +135,25 @@ switch ($azione) {
         // nuovo numero di sessione
         $nid = (int)($stato['ultimo_id'] ?? 0) + 1;
 
-        // congela le foto DI QUESTA sessione (file con nome dedicato)
+        // congela la Foto A DI QUESTA sessione (file con nome dedicato)
         $extA = strtolower(pathinfo($foto_a, PATHINFO_EXTENSION)) ?: 'jpg';
-        $extR = strtolower(pathinfo($riv, PATHINFO_EXTENSION)) ?: 'jpg';
         $before = DATA_DIR . '/sess_' . $nid . '_before.' . $extA;
-        $after  = DATA_DIR . '/sess_' . $nid . '_after.' . $extR;
         @copy($foto_a, $before);           // la neutra viene copiata (resta anche come default)
-        @rename($riv, $after);             // la rivelazione viene consumata per questa sessione
 
         $stato['sessioni'][(string)$nid] = [
             'fase'           => 'avviato',
             'before'         => $before,
-            'after'          => $after,
+            'after'          => null,       // la rivelazione si congela a "Cambia" (o se e' gia' pronta, qui sotto)
             'orario_scambio' => $ts ?: null,
             'avvio_ts'       => time(),
         ];
         $stato['sessione_corrente']  = $nid;
         $stato['ultimo_id']          = $nid;
-        $stato['rivelazione_pronta'] = null;   // consumata
         $stato['forza']              = null;
+        // se la rivelazione e' GIA' pronta, congelala subito (comodo per chi la carica prima)
+        if (!empty($riv) && is_file($riv)) {
+            predizione_congela_rivelazione($stato, $nid, $riv);
+        }
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -152,6 +166,16 @@ switch ($azione) {
         if (($stato['sessioni'][(string)$id]['fase'] ?? '') !== 'avviato') {
             predizione_json(['ok' => false, 'errore' => 'Il cambio si fa solo a gioco in corso'], 400);
         }
+        // congela l'ULTIMA rivelazione caricata (se c'e' una pronta nuova, vince lei)
+        $riv = $stato['rivelazione_pronta'] ?? null;
+        if (!empty($riv) && is_file($riv)) {
+            predizione_congela_rivelazione($stato, $id, $riv);
+        }
+        // deve esserci una rivelazione (ora o congelata prima): altrimenti non si rivela
+        $aft = $stato['sessioni'][(string)$id]['after'] ?? null;
+        if (empty($aft) || !is_file($aft)) {
+            predizione_json(['ok' => false, 'errore' => 'Carica la rivelazione prima di rivelare (Cambia)'], 400);
+        }
         $stato['sessioni'][(string)$id]['fase'] = 'cambiato';
         $stato['forza'] = null;
         predizione_scrivi_stato($stato);
@@ -162,6 +186,13 @@ switch ($azione) {
         $id = (int)($stato['sessione_corrente'] ?? 0);
         if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
             predizione_json(['ok' => false, 'errore' => 'Nessuna sessione da terminare'], 400);
+        }
+        // se si chiude senza aver mai premuto "Cambia" ma c'e' una rivelazione
+        // pronta, congelala (cosi' resta per sempre a chi apre dopo)
+        $aft = $stato['sessioni'][(string)$id]['after'] ?? null;
+        $riv = $stato['rivelazione_pronta'] ?? null;
+        if ((empty($aft) || !is_file($aft)) && !empty($riv) && is_file($riv)) {
+            predizione_congela_rivelazione($stato, $id, $riv);
         }
         $stato['sessioni'][(string)$id]['fase'] = 'terminato';
         $stato['forza'] = null;

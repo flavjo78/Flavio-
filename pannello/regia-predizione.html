@@ -459,7 +459,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
-    chipB.classList.toggle('ok', !!st.ha_rivelazione);
+    chipB.classList.toggle('ok', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
 
     var elA=$('cntA'); if(elA){ elA.textContent = st.aperture_a||0; }
     var elB=$('cntB'); if(elB){ elB.textContent = st.aperture_b||0; }
@@ -489,11 +489,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   startBtn.addEventListener('click', function(){
     if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
     if(!cur.ha_foto_a){ toast('Carica prima la Foto A neutra (impostazioni)','err'); return; }
-    if(!cur.ha_rivelazione){ toast('Carica prima la rivelazione di questa sessione','err'); return; }
+    // la rivelazione (Foto B) NON serve per avviare: si può caricare anche dopo, fino a "Cambia"
     var extra={}; var t=$('swtime').value; if(t){ extra.orario_scambio=t; }
     comando('avvia', extra, 'Nuova sessione avviata · Foto A');
   });
-  swapBtn.addEventListener('click', function(){ comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); });
+  swapBtn.addEventListener('click', function(){
+    if(!cur.ha_rivelazione && !cur.ha_rivelazione_sess){ toast('Carica prima la rivelazione (Foto B)','err'); return; }
+    comando('cambia', null, 'Rivelazione · ora si vede la Foto B');
+  });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
 
   // ---- interruttore autorisponditore ----
