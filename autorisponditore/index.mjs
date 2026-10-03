@@ -47,22 +47,39 @@ const {
   SMTP_PORT = '587',
   SMTP_USER,                 // se vuoto usa IMAP_USER
   SMTP_PASS,                 // se vuoto usa IMAP_PASS
+  // --- invio via BREVO (eventi piu' grandi) ---
+  // Brevo: server smtp-relay.brevo.com, porta 587; login = email Brevo, pass = chiave SMTP
+  BREVO_HOST = 'smtp-relay.brevo.com',
+  BREVO_PORT = '587',
+  BREVO_USER,                // la tua email/login Brevo
+  BREVO_PASS,                // la "SMTP key" generata su Brevo
 } = process.env;
 
 const ses = new SESClient({ region: AWS_REGION });
 
-/* trasporto SMTP creato una sola volta, solo quando serve */
-let smtpTx = null;
-function smtpTransport() {
-  if (!smtpTx) {
-    smtpTx = nodemailer.createTransport({
+/* trasporti SMTP creati una sola volta, solo quando servono */
+let txCasella = null, txBrevo = null;
+function casellaTransport() {
+  if (!txCasella) {
+    txCasella = nodemailer.createTransport({
       host: SMTP_HOST,
       port: Number(SMTP_PORT),
       secure: Number(SMTP_PORT) === 465,     // 465 = SSL, 587 = STARTTLS
       auth: { user: SMTP_USER || IMAP_USER, pass: SMTP_PASS || IMAP_PASS },
     });
   }
-  return smtpTx;
+  return txCasella;
+}
+function brevoTransport() {
+  if (!txBrevo) {
+    txBrevo = nodemailer.createTransport({
+      host: BREVO_HOST,
+      port: Number(BREVO_PORT),
+      secure: Number(BREVO_PORT) === 465,
+      auth: { user: BREVO_USER, pass: BREVO_PASS },
+    });
+  }
+  return txBrevo;
 }
 
 /* testo dell'utente -> HTML sicuro (niente tag iniettati, a capo = <br>) */
@@ -98,14 +115,10 @@ function corpoHtml(sessione, id, intro) {
 </body></html>`;
 }
 
-/* invia UNA mail, scegliendo la via: 'smtp' (casella Tophost) o 'ses' (Amazon). */
+/* invia UNA mail, scegliendo la via:
+   'casella' (SMTP Tophost) · 'brevo' (SMTP Brevo) · 'ses' (Amazon). */
 async function inviaMail(modo, dest, oggetto, html) {
-  if (modo === 'smtp') {
-    await smtpTransport().sendMail({
-      from: SES_FROM, to: dest, subject: oggetto,
-      html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
-    });
-  } else {
+  if (modo === 'ses') {
     await ses.send(new SendEmailCommand({
       Source: SES_FROM,
       Destination: { ToAddresses: [dest] },
@@ -114,6 +127,12 @@ async function inviaMail(modo, dest, oggetto, html) {
         Body: { Html: { Data: html, Charset: 'UTF-8' } },
       },
     }));
+  } else {
+    const tx = (modo === 'brevo') ? brevoTransport() : casellaTransport();
+    await tx.sendMail({
+      from: SES_FROM, to: dest, subject: oggetto,
+      html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
+    });
   }
 }
 
@@ -138,9 +157,11 @@ export const handler = async () => {
   const gioco_attivo = sessione > 0 && (fase === 'avviato' || fase === 'cambiato');
 
   // impostazioni scelte dal pannello (via stato.php):
-  //  - modo di invio: 'smtp' (casella, eventi piccoli) o 'ses' (Amazon, eventi grandi)
+  //  - modo di invio: 'casella' (SMTP Tophost) · 'brevo' (SMTP Brevo) · 'ses' (Amazon)
+  //    (per compatibilita' il vecchio valore 'smtp' vale come 'casella')
   //  - oggetto e testo personalizzati (se vuoti, si usano i valori di riserva)
-  const modo    = (stato && stato.invio_modo === 'smtp') ? 'smtp' : 'ses';
+  const modoRaw = stato ? String(stato.invio_modo || 'casella') : 'casella';
+  const modo    = (modoRaw === 'ses') ? 'ses' : (modoRaw === 'brevo') ? 'brevo' : 'casella';
   const oggetto = (stato && stato.mail_oggetto) ? String(stato.mail_oggetto) : MAIL_SUBJECT;
   const intro   = (stato && stato.mail_testo)   ? String(stato.mail_testo)   : MAIL_INTRO;
 

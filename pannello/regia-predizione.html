@@ -281,12 +281,13 @@
     </section>
 
     <section aria-label="Modo di invio">
-      <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num">Piccoli / Grandi</span></div>
-      <div class="toggle-row">
-        <div><div class="t">Tanti invii (SES)</div><div class="s" id="invioSub">spento = dalla casella, per pochi invii</div></div>
-        <label class="switch"><input type="checkbox" id="invioSes"><span class="track"></span><span class="knob"></span></label>
+      <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
+      <div class="game-btns" style="grid-template-columns:1fr 1fr 1fr">
+        <button class="btn ghost" id="modoCasella" type="button">Casella</button>
+        <button class="btn ghost" id="modoBrevo" type="button">Brevo</button>
+        <button class="btn ghost" id="modoSes" type="button">SES</button>
       </div>
-      <p class="hint"><b>Spento</b> = invio dalla <b>casella</b> <code>io@abraka.it</code>: pronto subito, adatto a <b>eventi piccoli</b> (fino a ~20-30 persone). <b>Acceso</b> = invio via <b>Amazon SES</b>: per <b>eventi grandi</b> (centinaia), richiede l'accesso alla produzione già approvato.</p>
+      <p class="hint"><b>Casella</b> = dalla tua mail <code>io@abraka.it</code>: gratis, per <b>eventi piccoli</b> (~20-30). <b>Brevo</b> = servizio dedicato, per <b>eventi grandi</b> (centinaia). <b>SES</b> = Amazon, per eventi grandi (richiede la produzione già approvata).</p>
     </section>
 
     <section aria-label="Le foto">
@@ -434,8 +435,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var ar=$('autoResp'); if(ar){ ar.checked = !!st.autorisponditore; }
     var arSub=$('autoSub'); if(arSub){ arSub.textContent = st.autorisponditore ? 'ACCESO · risponde alle mail' : 'spento · non risponde'; }
 
-    var iv=$('invioSes'); if(iv){ iv.checked = (st.invio_modo==='ses'); }
-    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'Amazon SES · per eventi grandi' : 'dalla casella · per pochi invii'; }
+    setModoUI(st.invio_modo);
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='ses') ? 'SES' : (st.invio_modo==='brevo') ? 'Brevo' : 'Casella'; }
 
     // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
     if(!msgLoaded){
@@ -502,12 +503,22 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('autorisponditore', {valore: on?'ON':'OFF'}, on?'Autorisponditore ACCESO':'Autorisponditore spento');
   });
 
-  // ---- interruttore modo di invio (SES / casella SMTP) ----
-  $('invioSes').addEventListener('change', function(){
-    var ses = this.checked;
-    if(!getPw()){ toast('Inserisci prima la password','err'); this.checked=!ses; return; }
-    comando('invio', {valore: ses?'ses':'smtp'}, ses?'Invio via Amazon SES (eventi grandi)':'Invio dalla casella (eventi piccoli)');
-  });
+  // ---- modo di invio: Casella / Brevo / SES ----
+  function setModoUI(m){
+    [['modoCasella','casella'],['modoBrevo','brevo'],['modoSes','ses']].forEach(function(p){
+      var b=$(p[0]); if(!b) return; var on=(m===p[1]);
+      b.style.borderColor = on ? 'var(--gold)' : '';
+      b.style.color       = on ? 'var(--gold)' : '';
+      b.style.background   = on ? 'var(--gold-soft)' : '';
+    });
+  }
+  function setModo(m){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':m==='brevo'?'Brevo':'SES'));
+  }
+  $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
+  $('modoBrevo').addEventListener('click', function(){ setModo('brevo'); });
+  $('modoSes').addEventListener('click', function(){ setModo('ses'); });
 
   // ---- forza (test) ----
   $('forceA').addEventListener('click', function(){ comando('forza',{valore:'A'},'Test: mostro Foto A'); });

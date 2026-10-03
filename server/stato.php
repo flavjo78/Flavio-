@@ -46,6 +46,15 @@ function predizione_conta_aperture_ab(int $sessione): array {
     return ['a' => $a, 'b' => $b];
 }
 
+/* Normalizza il modo di invio: 'casella' | 'brevo' | 'ses'
+   (il vecchio valore 'smtp' vale come 'casella'; default 'casella'). */
+function predizione_invio_modo($v): string {
+    $v = strtolower((string)$v);
+    if ($v === 'ses')   return 'ses';
+    if ($v === 'brevo') return 'brevo';
+    return 'casella'; // 'casella', 'smtp' (vecchio) o vuoto
+}
+
 /* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
     $sess = predizione_sessione_corrente($s);
@@ -58,7 +67,7 @@ function predizione_stato_pubblico(array $s): array {
         'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
         'autorisponditore'   => !empty($s['autorisponditore']),
-        'invio_modo'     => (($s['invio_modo'] ?? 'ses') === 'smtp') ? 'smtp' : 'ses',
+        'invio_modo'     => predizione_invio_modo($s['invio_modo'] ?? null),
         'mail_oggetto'   => (string)($s['mail_oggetto'] ?? ''),
         'mail_testo'     => (string)($s['mail_testo'] ?? ''),
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
@@ -192,9 +201,8 @@ switch ($azione) {
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     case 'invio':
-        // modo di invio: 'smtp' (casella, eventi piccoli) o 'ses' (Amazon, eventi grandi)
-        $valore = strtolower((string)p('valore'));
-        $stato['invio_modo'] = ($valore === 'smtp') ? 'smtp' : 'ses';
+        // modo di invio: 'casella' (SMTP Tophost) | 'brevo' (SMTP Brevo) | 'ses' (Amazon)
+        $stato['invio_modo'] = predizione_invio_modo(p('valore'));
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
