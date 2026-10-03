@@ -216,7 +216,7 @@
       <label for="loginPw">Password</label>
       <input id="loginPw" type="password" autocomplete="current-password" placeholder="password">
     </div>
-    <button class="btn" id="loginBtn" style="width:100%;margin-top:16px">Entra</button>
+    <button class="btn" id="loginBtn" style="width:100%;margin-top:16px">Accedi</button>
     <p class="hint" style="text-align:center;margin-top:12px">La password è quella impostata sul server (config.php). Resta memorizzata su questo dispositivo.</p>
   </div>
 </div>
@@ -291,15 +291,6 @@
       <div><h2>Impostazioni</h2><div class="sub">Prepara lo show</div></div>
     </div>
 
-    <section aria-label="Accesso">
-      <div class="sec-head"><h2 class="sec-title">Accesso</h2><span class="sec-num">Password</span></div>
-      <div class="field">
-        <label for="pw">Password del pannello</label>
-        <input type="password" id="pw" placeholder="la password scelta sul server" autocomplete="off">
-      </div>
-      <p class="hint">È la stessa password che hai messo in <b>config.php</b> sul server. Resta salvata solo su questo telefono.</p>
-    </section>
-
     <section aria-label="Autorisponditore">
       <div class="sec-head"><h2 class="sec-title">Autorisponditore</h2><span class="sec-num">On / Off</span></div>
       <div class="toggle-row">
@@ -371,30 +362,24 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // nella STESSA cartella (es. abraka.it/predizione/), quindi percorso "./".
   var API_BASE = './';
 
-  // ---- password salvata solo su questo dispositivo ----
-  var pwInput=$('pw');
-  try { pwInput.value = localStorage.getItem('pred_pw') || ''; } catch(e){}
-  pwInput.addEventListener('input', function(){
-    try { localStorage.setItem('pred_pw', pwInput.value); } catch(e){}
-  });
-  function getPw(){ return pwInput.value || ''; }
+  // ---- password salvata solo su questo dispositivo (in memoria, non più in Impostazioni) ----
+  var PW=''; try { PW = localStorage.getItem('pred_pw') || ''; } catch(e){}
+  function getPw(){ return PW; }
 
-  // ---- login iniziale (utente fisso 001, password memorizzata per gli accessi futuri) ----
+  // ---- login iniziale: compare SEMPRE come prima pagina.
+  //      La password resta salvata e viene già compilata: basta premere "Accedi". ----
   var loginView=$('loginView'), loginPw=$('loginPw'), loginBtn=$('loginBtn');
+  if(loginPw){ loginPw.value = PW; }      // precompilata con quella memorizzata
   function doLogin(){
     var p=(loginPw.value||'').trim();
     if(!p){ toast('Inserisci la password','err'); return; }
-    pwInput.value=p; try{ localStorage.setItem('pred_pw', p); }catch(e){}
+    PW=p; try{ localStorage.setItem('pred_pw', p); }catch(e){}
     if(loginView) loginView.classList.add('hidden');
     poll();
   }
   if(loginBtn) loginBtn.addEventListener('click', doLogin);
   if(loginPw)  loginPw.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
-  // se la password è già memorizzata, entra subito (accesso rapido)
-  (function(){
-    var saved=''; try{ saved=localStorage.getItem('pred_pw')||''; }catch(e){}
-    if(saved){ pwInput.value=saved; if(loginView) loginView.classList.add('hidden'); }
-  })();
+  // NB: il login NON viene saltato: anche con password salvata, bisogna premere "Accedi".
 
   // ---- toast (messaggi brevi) ----
   var toastEl=$('toast'), toastT=null;
