@@ -196,11 +196,13 @@ export const handler = async () => {
           continue;
         }
 
-        let mittente = '';
+        let mittente = '', mOggetto = '', mTesto = '';
         try {
           const msg = await client.fetchOne(uid, { source: true }, { uid: true });
           const parsed = await simpleParser(msg.source);
           mittente = parsed?.from?.value?.[0]?.address || '';
+          mOggetto = parsed?.subject || '';
+          mTesto   = parsed?.text || '';
         } catch (e) {
           console.log('parsing mail fallito uid', uid, e.message);
         }
@@ -211,6 +213,21 @@ export const handler = async () => {
             const id = idPulito(mittente);
             await inviaMail(modo, mittente, oggetto, corpoHtml(sessione, id, intro));
             risposte++;
+            // registra il mittente per il REPORT di sessione (chi ha scritto e cosa)
+            if (PANEL_PASS) {
+              try {
+                const lb = new URLSearchParams();
+                lb.set('azione', 'mail_log');
+                lb.set('utente', PANEL_USER);
+                lb.set('password', PANEL_PASS);
+                lb.set('sessione', String(sessione));
+                lb.set('mittente', mittente);
+                lb.set('oggetto', mOggetto);
+                lb.set('testo', mTesto);
+                lb.set('id', id);
+                await fetch(STATO_URL, { method: 'POST', body: lb });
+              } catch (e) { console.log('mail_log fallito:', e.message); }
+            }
           } catch (e) {
             errori++;
             console.log('invio (' + modo + ') fallito verso', mittente, e.message);

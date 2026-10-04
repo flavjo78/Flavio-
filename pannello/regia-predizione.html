@@ -296,6 +296,11 @@
         <button class="btn ghost" id="swapBtn" disabled>Cambia (rivela)</button>
         <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
       </div>
+
+      <div style="margin-top:12px">
+        <button class="btn ghost" id="reportBtn" type="button" style="width:100%">📄 Report della sessione</button>
+        <p class="hint" style="margin-top:8px;text-align:center">Chi ti ha scritto (indirizzo, oggetto, testo) e chi ha aperto per primo. Si apre in una nuova pagina da stampare o salvare.</p>
+      </div>
     </section>
 
     <p class="foot" id="foot">Regia Predizione · <b id="footHost">non collegato</b></p>
@@ -398,6 +403,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
       <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
       <p class="hint">Scrive la tua frase <b>sul foglio</b> in <b>prospettiva</b> (se hai segnato i 4 angoli) e la usa come <b>rivelazione</b>. La <b>gomma</b> evita che scriva sopra la mano. Tocca l'anteprima per vederla grande.</p>
+    </section>
+
+    <section aria-label="Dati della sessione">
+      <div class="sec-head"><h2 class="sec-title">Dati raccolti</h2><span class="sec-num">Privacy</span></div>
+      <button class="btn ghost" id="wipeBtn" type="button" style="width:100%">Cancella i dati del report</button>
+      <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati per il report (chi ti ha scritto). Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
     </section>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
@@ -665,6 +676,33 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('cambia', null, 'Rivelazione · ora si vede la Foto B');
   });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
+
+  // ---- report della sessione (una pagina: mittenti + aperture) ----
+  var reportBtn = $('reportBtn');
+  if(reportBtn) reportBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
+    toast('Preparo il report…');
+    var body=new URLSearchParams();
+    body.set('utente', getUser());
+    body.set('password', getPw());
+    fetch(API_BASE+'report.php', {method:'POST', body:body})
+      .then(function(r){ if(!r.ok && r.status===401){ throw new Error('Password errata'); } return r.text(); })
+      .then(function(html){
+        var blob = new Blob([html], {type:'text/html'});
+        var url  = URL.createObjectURL(blob);
+        var w = window.open(url, '_blank');
+        if(!w){ toast('Consenti le finestre pop-up per vedere il report','err'); }
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+      })
+      .catch(function(e){ toast(e.message||'Report non riuscito','err'); });
+  });
+
+  var wipeBtn = $('wipeBtn');
+  if(wipeBtn) wipeBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    if(!confirm('Cancellare gli indirizzi e i messaggi salvati per il report? Non si può annullare.')) return;
+    comando('report_cancella', null, 'Dati del report cancellati');
+  });
 
 
   // ---- modo di invio: Casella / $ ----

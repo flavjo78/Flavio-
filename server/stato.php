@@ -441,6 +441,28 @@ switch ($azione) {
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 
+    case 'mail_log':
+        // l'autorisponditore registra UNA mail in arrivo (per il report di sessione)
+        $sid = ctype_digit((string)p('sessione')) ? (int)p('sessione') : (int)($stato['sessione_corrente'] ?? 0);
+        if ($sid <= 0) predizione_json(['ok' => false, 'errore' => 'Nessuna sessione'], 400);
+        predizione_prepara_cartella();
+        $rec = [
+            'ora'      => date('Y-m-d H:i:s'),
+            'mittente' => substr((string)(p('mittente') ?? ''), 0, 160),
+            'oggetto'  => substr((string)(p('oggetto')  ?? ''), 0, 300),
+            'testo'    => substr((string)(p('testo')    ?? ''), 0, 4000),
+            'id'       => substr((string)(p('id')       ?? ''), 0, 60),
+        ];
+        $file = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
+        @file_put_contents($file, json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
+        predizione_json(['ok' => true]);
+
+    case 'report_cancella':
+        // cancella i dati personali dei mittenti (tutti i file mail_sess_*.jsonl dell'utente)
+        $dir = predizione_data_dir();
+        foreach (glob($dir . '/mail_sess_*.jsonl') ?: [] as $f) { @unlink($f); }
+        predizione_json(['ok' => true]);
+
     default:
         predizione_json(['ok' => false, 'errore' => 'Azione sconosciuta'], 400);
 }
