@@ -275,8 +275,6 @@
           <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail inviate</div>
         </div>
       </div>
-      <p class="hint" style="margin-top:8px;text-align:center">Aperture = chi ha <b>visto</b> la foto. Mail = quante <b>arrivate</b> e quante <b>risposte</b> nella sessione.</p>
-
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
 
       <div class="meta">
@@ -295,11 +293,6 @@
         <button class="btn ghost" id="startBtn">Avvia gioco</button>
         <button class="btn ghost" id="swapBtn" disabled>Cambia (rivela)</button>
         <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
-      </div>
-
-      <div style="margin-top:12px">
-        <button class="btn ghost" id="reportBtn" type="button" style="width:100%">📄 Report della sessione</button>
-        <p class="hint" style="margin-top:8px;text-align:center">Chi ti ha scritto (indirizzo, oggetto, testo) e chi ha aperto per primo. Si apre in una nuova pagina da stampare o salvare.</p>
       </div>
     </section>
 
@@ -397,7 +390,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         </div>
       </div>
 
-      <div class="field" style="margin-top:12px"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. Asso di cuori"></div>
+      <div class="field" style="margin-top:12px">
+        <label for="predText">Cosa deve comparire sul foglio</label>
+        <textarea id="predText" rows="2" placeholder="Es. Asso di cuori&#10;(puoi andare a capo)"></textarea>
+        <button class="btn ghost" id="predNL" type="button" style="width:100%;margin-top:6px">↵ Vai a capo</button>
+      </div>
       <div class="field"><label for="predSize">Dimensione scritta</label><input type="range" id="predSize" min="4" max="40" value="12" style="width:100%"></div>
       <div class="field"><label for="predPos">Posizione (alto ↔ basso)</label><input type="range" id="predPos" min="15" max="85" value="40" style="width:100%"></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
@@ -405,10 +402,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Scrive la tua frase <b>sul foglio</b> in <b>prospettiva</b> (se hai segnato i 4 angoli) e la usa come <b>rivelazione</b>. La <b>gomma</b> evita che scriva sopra la mano. Tocca l'anteprima per vederla grande.</p>
     </section>
 
-    <section aria-label="Dati della sessione">
-      <div class="sec-head"><h2 class="sec-title">Dati raccolti</h2><span class="sec-num">Privacy</span></div>
-      <button class="btn ghost" id="wipeBtn" type="button" style="width:100%">Cancella i dati del report</button>
-      <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati per il report (chi ti ha scritto). Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
+    <section aria-label="Report della sessione">
+      <div class="sec-head"><h2 class="sec-title">Report</h2><span class="sec-num">Sessione</span></div>
+      <button class="btn" id="reportBtn" type="button" style="width:100%">📄 Apri il report della sessione</button>
+      <p class="hint">Chi ti ha scritto (<b>indirizzo</b>, oggetto, testo) e chi ha <b>aperto per primo</b>. Si apre in una nuova pagina da stampare o salvare in PDF.</p>
+      <button class="btn ghost" id="wipeBtn" type="button" style="width:100%;margin-top:10px">Cancella i dati del report</button>
+      <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati. Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
     </section>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
@@ -773,6 +772,15 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var e=($('mailEmail').value||'').trim(), a=($('mailApp').value||'').trim(), f=($('mailFrom').value||'').trim();
     if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
     comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
+  });
+
+  // ---- "vai a capo" per il testo del foglio (la tastiera del telefono a volte non lo fa) ----
+  var predNL=$('predNL');
+  if(predNL) predNL.addEventListener('click', function(){
+    var t=$('predText'); if(!t) return;
+    var s=t.selectionStart, e=t.selectionEnd, v=t.value;
+    if(typeof s==='number'){ t.value=v.slice(0,s)+'\n'+v.slice(e); var pos=s+1; t.focus(); try{ t.setSelectionRange(pos,pos); }catch(_){} }
+    else { t.value=v+'\n'; t.focus(); }
   });
 
   // ---- genera la rivelazione scritta (strumento foto) ----

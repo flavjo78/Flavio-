@@ -103,8 +103,9 @@ if ($quad) {
         $size -= 2;
     }
     $bb = imagettfbbox($size, $angolo, $font, $testo);
-    $tw = abs($bb[2] - $bb[0]); $th = abs($bb[7] - $bb[1]);
-    imagettftext($img, $size, $angolo, (int)($W*0.5 - $tw/2), (int)($H*$posFrac + $th/2), $ink, $font, $testo);
+    $tw = abs($bb[2] - $bb[0]);
+    // centra verticalmente il blocco (vale anche per testo su piu' righe)
+    imagettftext($img, $size, $angolo, (int)($W*0.5 - $tw/2), (int)($H*$posFrac - ($bb[7]+$bb[1])/2), $ink, $font, $testo);
 }
 
 /* --- salva come rivelazione pronta (Foto B) ------------------------------- */
@@ -199,8 +200,9 @@ function predizione_scrivi_prospettiva($img, int $W, int $H, array $quad, string
         $size -= 2;
     }
     $bb = imagettfbbox($size, 0, $font, $testo);
-    $tw = abs($bb[2]-$bb[0]); $th = abs($bb[7]-$bb[1]);
-    imagettftext($label, $size, 0, (int)(($lW-$tw)/2), (int)($lH*$posFrac + $th/2), $black, $font, $testo);
+    $tw = abs($bb[2]-$bb[0]);
+    // centra verticalmente il blocco (vale anche per testo su piu' righe)
+    imagettftext($label, $size, 0, (int)(($lW-$tw)/2), (int)($lH*$posFrac - ($bb[7]+$bb[1])/2), $black, $font, $testo);
 
     $src = [[0,0],[$lW,0],[$lW,$lH],[0,$lH]];
     [$a,$b2,$c,$d,$e,$f,$g,$h] = predizione_homography($quad, $src); // dst(foglio)->src(etichetta)
