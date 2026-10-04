@@ -35,8 +35,11 @@ const {
   IMAP_USER,                 // nome della MAILBOX (es. abraka.it)
   IMAP_PASS,                 // password della casella
   SES_FROM = 'Predizione <io@abraka.it>',
-  STATO_URL = 'https://abraka.it/predizione/stato.php',
-  IMAGE_URL_BASE = 'https://abraka.it/predizione/image.php',
+  // IMPORTANTE: usare l'indirizzo CANONICO con "www". Senza www il sito
+  // rimbalza (redirect) su www e, in quel rimbalzo, le POST perdono i dati
+  // (i conteggi e il log mittenti non arriverebbero mai a stato.php).
+  STATO_URL = 'https://www.abraka.it/predizione/stato.php',
+  IMAGE_URL_BASE = 'https://www.abraka.it/predizione/image.php',
   MAIL_SUBJECT = 'La tua predizione',            // usato solo se il pannello non ha un oggetto
   MAIL_INTRO = 'Grazie per aver scritto. Ecco la tua predizione.', // idem per il testo
   MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto a io@abraka.it durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA. Contatto: io@abraka.it',

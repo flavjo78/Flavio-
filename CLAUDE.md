@@ -211,14 +211,24 @@ Vedi `server/ISTRUZIONI.txt`.
 
 ## 5. Limiti noti
 
-- **Cache di Apple Mail (iPhone).** Con "Protezione privacy Mail" (attiva di serie),
-  Apple **pre-scarica** le immagini all'arrivo, non all'apertura: può congelare la Foto A
-  prima dello scambio e mostrare quella anche se aperta dopo. È il punto debole; nessun
-  trucco lo aggira al 100%. **Gmail** invece scarica all'apertura → l'effetto è affidabile.
-  Mitigazione: far arrivare la mail il più vicino possibile al momento dell'apertura.
+- **Cache delle immagini (Gmail e Apple Mail).** Sia Gmail sia Apple Mail **scaricano la
+  foto una volta e ne tengono una copia**, poi non la riscaricano più. Conseguenza: su una
+  mail **già vista** lo scambio A→B **non si vede** (resta la A congelata). Gmail passa da
+  un suo proxy (`GoogleImageProxy`, nel log appare come "Gmail (anteprima)") che fotocopia
+  l'immagine; Apple Mail con "Protezione privacy" la pre-scarica all'arrivo. Nessun trucco
+  lo aggira al 100%. **Regola pratica che funziona:** lo spettatore deve aprire la mail
+  **per la PRIMA volta DOPO** aver premuto "Cambia" (riveli, poi "adesso aprite" → vede la
+  B). NON funziona il "guarda la foto che cambia dal vivo" mentre la mail è già aperta.
+  (Verificato in prova il 04/10/2026.)
 
 - **Il server non va mai spento.** La foto resta visibile agli spettatori solo finché
   `image.php` e le immagini restano online. Spegnere = immagini rotte per chi riscarica.
+
+- **Usare sempre l'indirizzo con `www`.** Il sito canonico è `www.abraka.it`: chiamare
+  `abraka.it` (senza www) provoca un redirect verso www e, in quel redirect, le richieste
+  **POST perdono il corpo** (le GET no). L'autorisponditore su AWS deve avere quindi
+  `STATO_URL` e `IMAGE_URL_BASE` con `www`, altrimenti i conteggi "Mail ricevute/inviate" e
+  il log mittenti del report non vengono mai scritti (bug trovato e risolto il 04/10/2026).
 
 - **Sandbox SES.** All'inizio SES limita a ~200 mail/giorno verso indirizzi verificati.
   Va richiesto il passaggio a "production" e l'aumento del limite **giorni prima** dello show.
