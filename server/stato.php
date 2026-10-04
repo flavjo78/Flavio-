@@ -199,6 +199,42 @@ function predizione_admin(string $azione): void {
             unset($utenti[$num]);
             predizione_utenti_scrivi($utenti);
             predizione_json(['ok' => true]);
+
+        case 'admin_caselle':
+            // Elenco delle caselle configurate, per l'autorisponditore MULTI-CASELLA.
+            // Esclude 000 (admin) e 001 (usa la casella "di casa" via variabili d'ambiente
+            // nella Lambda), gli utenti non attivi e quelli senza casella impostata.
+            // Restituisce credenziali IMAP/SMTP + stato del gioco di ciascun utente, cosi'
+            // la Lambda non deve fare altre chiamate. SOLO amministratore (gia' verificato).
+            $out = [];
+            foreach ($utenti as $num => $rec) {
+                if ($num === '000' || $num === '001') continue;
+                if (empty($rec['attivo'])) continue;
+                $m = (isset($rec['mail']) && is_array($rec['mail'])) ? $rec['mail'] : [];
+                if (empty($m['user']) || empty($m['pass'])) continue;   // nessuna casella configurata
+                $prevU = predizione_utente();
+                predizione_set_utente((string)$num);
+                $st   = predizione_leggi_stato();
+                $sess = predizione_sessione_corrente($st);
+                predizione_set_utente($prevU);
+                $out[] = [
+                    'utente'           => (string)$num,
+                    'pass_pannello'    => (string)($rec['pass'] ?? ''),
+                    'imap_host'        => (string)($m['imap_host'] ?? 'imap.gmail.com'),
+                    'imap_port'        => (int)($m['imap_port'] ?? 993),
+                    'imap_user'        => (string)$m['user'],
+                    'imap_pass'        => (string)$m['pass'],
+                    'smtp_host'        => (string)($m['smtp_host'] ?? 'smtp.gmail.com'),
+                    'smtp_port'        => (int)($m['smtp_port'] ?? 587),
+                    'from'             => (string)($m['from'] ?? $m['user']),
+                    'sessione'         => (int)($st['sessione_corrente'] ?? 0),
+                    'fase'             => $sess['fase'] ?? 'spento',
+                    'autorisponditore' => !empty($st['autorisponditore']),
+                    'mail_oggetto'     => (string)($st['mail_oggetto'] ?? ''),
+                    'mail_testo'       => (string)($st['mail_testo'] ?? ''),
+                ];
+            }
+            predizione_json(['ok' => true, 'caselle' => $out]);
     }
 }
 

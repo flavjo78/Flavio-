@@ -1,27 +1,22 @@
 /* =========================================================================
-   PREDIZIONE — Autorisponditore (AWS Lambda, Node.js)
+   PREDIZIONE — Autorisponditore MULTI-CASELLA (AWS Lambda, Node.js)
    -------------------------------------------------------------------------
-   Ogni volta che viene eseguito (lo lancia una pianificazione ogni minuto):
-   1) legge lo STATO del gioco da stato.php (sessione corrente + fase);
-   2) si collega alla casella io@abraka.it via IMAP e legge le mail NON lette;
-   3) per ogni mail, SOLO se il gioco e' "IN CORSO" (fase = avviato), invia una
-      risposta via Amazon SES con l'immagine dinamica  image.php?s=SESSIONE&id=MITTENTE ;
-   4) segna la mail come letta (cosi' non risponde due volte).
+   Ogni minuto (lo lancia una pianificazione):
+   1) gestisce la casella "di casa" io@abraka.it (utente 001), con le
+      credenziali nelle variabili d'ambiente;
+   2) se e' impostata la password admin (PANEL_ADMIN_PASS), chiede a stato.php
+      l'elenco delle ALTRE caselle configurate (002, 003, ...) con le loro
+      credenziali e stato, e gestisce anche quelle, ognuna sulla sua casella.
 
-   INTERRUTTORE GENERALE: nel pannello (Impostazioni) c'e' un interruttore
-   "Autorisponditore" ON/OFF. Se e' OFF, questa funzione si sveglia ma esce
-   subito senza fare nulla (non legge la posta, non risponde): cosi' non serve
-   spegnere la pianificazione su AWS quando non c'e' spettacolo.
+   Per OGNI casella, solo se l'autorisponditore di QUELL'utente e' ON e il
+   gioco e' "in corso" (fase avviato/cambiato): legge le mail non lette, segna
+   ciascuna come letta PRIMA di rispondere (una mail = una risposta), risponde
+   con l'immagine dinamica  image.php?u=UTENTE&s=SESSIONE&id=MITTENTE , registra
+   il mittente (mail_log) e aggiorna i conteggi (mail_report) nel pannello.
 
-   Con l'interruttore ON, risponde SOLO mentre il gioco e' "in corso":
-   - PRIMA di "Avvia" (spento)  -> non invia nulla;
-   - dopo "Finisci" (terminato) -> non invia piu' nulla (sessione chiusa).
-   In entrambi i casi segna comunque le mail come lette (non verranno processate
-   di nuovo). Nota operativa: premi "Finisci" ~1 minuto dopo l'ultima mail, cosi'
-   tutte le mail arrivate durante il gioco fanno in tempo a ricevere la risposta.
-
-   Tutte le impostazioni sono VARIABILI D'AMBIENTE (si impostano nella
-   configurazione della Lambda, senza toccare il codice) — vedi la guida.
+   Tutte le impostazioni sono VARIABILI D'AMBIENTE (nessuna da toccare nel
+   codice). IMPORTANTE: gli indirizzi (STATO_URL / IMAGE_URL_BASE) vanno con
+   "www", altrimenti il redirect del sito fa perdere il corpo delle POST.
    ========================================================================= */
 
 import { ImapFlow } from 'imapflow';
@@ -32,60 +27,50 @@ import nodemailer from 'nodemailer';
 const {
   IMAP_HOST = 'pop.tophost.it',
   IMAP_PORT = '993',
-  IMAP_USER,                 // nome della MAILBOX (es. abraka.it)
-  IMAP_PASS,                 // password della casella
+  IMAP_USER,                 // nome della MAILBOX di casa (es. abraka.it)
+  IMAP_PASS,                 // password della casella di casa
   SES_FROM = 'Predizione <io@abraka.it>',
-  // IMPORTANTE: usare l'indirizzo CANONICO con "www". Senza www il sito
-  // rimbalza (redirect) su www e, in quel rimbalzo, le POST perdono i dati
-  // (i conteggi e il log mittenti non arriverebbero mai a stato.php).
+  // IMPORTANTE: indirizzi CANONICI con "www" (senza www le POST perdono i dati).
   STATO_URL = 'https://www.abraka.it/predizione/stato.php',
   IMAGE_URL_BASE = 'https://www.abraka.it/predizione/image.php',
-  MAIL_SUBJECT = 'La tua predizione',            // usato solo se il pannello non ha un oggetto
+  MAIL_SUBJECT = 'La tua predizione',            // di riserva se il pannello non ha un oggetto
   MAIL_INTRO = 'Grazie per aver scritto. Ecco la tua predizione.', // idem per il testo
-  MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto a io@abraka.it durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA. Contatto: io@abraka.it',
+  MAIL_FOOTER = 'Hai ricevuto questa mail perché hai scritto durante lo spettacolo. Se non desideri altre comunicazioni, rispondi a questa mail con la parola CANCELLA.',
   AWS_REGION = 'eu-west-1',
-  // --- invio dalla CASELLA (SMTP Tophost) per gli eventi piccoli ---
-  // Tophost: server in uscita mail.tophost.it, porta 587 (STARTTLS), utente = abraka.it
+  // --- casella di casa: invio dalla CASELLA (SMTP Tophost) ---
   SMTP_HOST = 'mail.tophost.it',
   SMTP_PORT = '587',
   SMTP_USER,                 // se vuoto usa IMAP_USER
   SMTP_PASS,                 // se vuoto usa IMAP_PASS
-  // --- invio via BREVO (eventi piu' grandi) ---
-  // Brevo: server smtp-relay.brevo.com, porta 587; login = email Brevo, pass = chiave SMTP
+  // --- casella di casa: invio via BREVO (eventi grandi) ---
   BREVO_HOST = 'smtp-relay.brevo.com',
   BREVO_PORT = '587',
-  BREVO_USER,                // la tua email/login Brevo
-  BREVO_PASS,                // la "SMTP key" generata su Brevo
-  // --- conteggi mail nel pannello (caselle "Mail ricevute/inviate") ---
-  PANEL_USER = '001',        // numero utente da aggiornare (di solito 001)
-  PANEL_PASS,                // password di quell'utente (serve per scrivere i conteggi)
+  BREVO_USER,
+  BREVO_PASS,
+  // --- conteggi/registro nel pannello (casella di casa = 001) ---
+  PANEL_USER = '001',
+  PANEL_PASS,                // password dell'utente 001
+  // --- MULTI-CASELLA: password dell'amministratore (utente 000) ---
+  // Se impostata, il robottino chiede a stato.php l'elenco delle altre caselle
+  // (002, 003, ...) e le gestisce. Se vuota, lavora solo sulla casella di casa.
+  PANEL_ADMIN_PASS,
 } = process.env;
 
 const ses = new SESClient({ region: AWS_REGION });
 
-/* trasporti SMTP creati una sola volta, solo quando servono */
-let txCasella = null, txBrevo = null;
-function casellaTransport() {
-  if (!txCasella) {
-    txCasella = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: Number(SMTP_PORT),
-      secure: Number(SMTP_PORT) === 465,     // 465 = SSL, 587 = STARTTLS
-      auth: { user: SMTP_USER || IMAP_USER, pass: SMTP_PASS || IMAP_PASS },
-    });
+/* trasporti SMTP in cache (uno per host+porta+utente) */
+const txCache = new Map();
+function smtpTransport(host, port, user, pass) {
+  const key = host + ':' + port + ':' + user;
+  if (!txCache.has(key)) {
+    txCache.set(key, nodemailer.createTransport({
+      host,
+      port: Number(port),
+      secure: Number(port) === 465,   // 465 = SSL, 587 = STARTTLS
+      auth: { user, pass },
+    }));
   }
-  return txCasella;
-}
-function brevoTransport() {
-  if (!txBrevo) {
-    txBrevo = nodemailer.createTransport({
-      host: BREVO_HOST,
-      port: Number(BREVO_PORT),
-      secure: Number(BREVO_PORT) === 465,
-      auth: { user: BREVO_USER, pass: BREVO_PASS },
-    });
-  }
-  return txBrevo;
+  return txCache.get(key);
 }
 
 /* testo dell'utente -> HTML sicuro (niente tag iniettati, a capo = <br>) */
@@ -101,17 +86,33 @@ function idPulito(email) {
   return (base.slice(0, 36) || 'x') + '-' + Date.now().toString(36).slice(-4);
 }
 
-/* stato del gioco letto da stato.php */
-async function statoCorrente() {
-  const r = await fetch(STATO_URL + '?azione=stato', { cache: 'no-store' });
+/* stato del gioco della casella di casa (utente 001) */
+async function statoCasa() {
+  const r = await fetch(STATO_URL + '?azione=stato&u=' + encodeURIComponent(PANEL_USER), { cache: 'no-store' });
   const j = await r.json();
   return (j && j.stato) ? j.stato : null;
 }
 
-/* corpo HTML della risposta, con l'immagine dinamica.
-   intro = testo scritto dal pannello (o MAIL_INTRO di riserva). */
-function corpoHtml(sessione, id, intro) {
-  const src = `${IMAGE_URL_BASE}?s=${encodeURIComponent(sessione)}&id=${encodeURIComponent(id)}`;
+/* elenco delle ALTRE caselle (002, 003, ...) — serve la password admin */
+async function caselleExtra() {
+  if (!PANEL_ADMIN_PASS) return [];
+  try {
+    const rb = new URLSearchParams();
+    rb.set('azione', 'admin_caselle');
+    rb.set('utente', '000');
+    rb.set('password', PANEL_ADMIN_PASS);
+    const r = await fetch(STATO_URL, { method: 'POST', body: rb });
+    const j = await r.json();
+    return (j && j.ok && Array.isArray(j.caselle)) ? j.caselle : [];
+  } catch (e) {
+    console.log('admin_caselle fallito:', e.message);
+    return [];
+  }
+}
+
+/* corpo HTML della risposta, con l'immagine dinamica (porta ?u=UTENTE) */
+function corpoHtml(utente, sessione, id, intro) {
+  const src = `${IMAGE_URL_BASE}?u=${encodeURIComponent(utente)}&s=${encodeURIComponent(sessione)}&id=${encodeURIComponent(id)}`;
   return `<!doctype html><html><body style="margin:0;background:#0a0908;color:#ece0c9;font-family:Georgia,'Times New Roman',serif">
   <div style="max-width:560px;margin:0 auto;padding:26px 20px">
     <p style="font-size:16px;line-height:1.6;margin:0 0 18px">${testoSicuro(intro)}</p>
@@ -121,62 +122,35 @@ function corpoHtml(sessione, id, intro) {
 </body></html>`;
 }
 
-/* invia UNA mail, scegliendo la via:
-   'casella' (SMTP Tophost) · 'brevo' (SMTP Brevo) · 'ses' (Amazon). */
-async function inviaMail(modo, dest, oggetto, html) {
-  if (modo === 'ses') {
-    await ses.send(new SendEmailCommand({
-      Source: SES_FROM,
-      Destination: { ToAddresses: [dest] },
-      Message: {
-        Subject: { Data: oggetto, Charset: 'UTF-8' },
-        Body: { Html: { Data: html, Charset: 'UTF-8' } },
-      },
-    }));
-  } else {
-    const tx = (modo === 'brevo') ? brevoTransport() : casellaTransport();
-    await tx.sendMail({
-      from: SES_FROM, to: dest, subject: oggetto,
-      html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
-    });
-  }
+/* piccola POST a stato.php (mail_log / mail_report) per un dato utente */
+async function postPannello(campi) {
+  const b = new URLSearchParams();
+  for (const k in campi) b.set(k, String(campi[k]));
+  await fetch(STATO_URL, { method: 'POST', body: b });
 }
 
-export const handler = async () => {
-  // 1) stato del gioco
-  let stato = null;
-  try { stato = await statoCorrente(); } catch (e) { console.log('stato.php non raggiungibile:', e.message); }
-  const sessione = stato ? Number(stato.sessione || 0) : 0;
-  const fase = stato ? String(stato.fase || 'spento') : 'spento';
+/* Gestisce UNA casella: legge le mail non lette e, a gioco attivo, risponde.
+   cfg = {
+     utente, imap:{host,port,user,pass},
+     stato:{sessione,fase,autorisponditore,oggetto,intro},
+     invia: async (dest, oggetto, html) => {...},   // come spedire da questa casella
+     panelUser, panelPass                            // per scrivere conteggi/registro
+   }
+*/
+async function processaCasella(cfg) {
+  const { utente, imap, stato, invia, panelUser, panelPass } = cfg;
 
-  // INTERRUTTORE dal pannello: se l'autorisponditore e' SPENTO, la Lambda si sveglia
-  // ma non fa NULLA (non legge la posta, non risponde). Cosi' "non lo usi se non serve".
-  const auto_on = stato ? (stato.autorisponditore === true) : false;
-  if (!auto_on) {
-    const esito = { autorisponditore: false, saltato: true, sessione, fase };
-    console.log('ESITO', JSON.stringify(esito));
-    return esito;
+  if (!stato.autorisponditore) {
+    return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase };
   }
+  // risponde solo a gioco ATTIVO (avviato = mostra A, cambiato = mostra B)
+  const gioco_attivo = stato.sessione > 0 && (stato.fase === 'avviato' || stato.fase === 'cambiato');
 
-  // risponde mentre il gioco e' ATTIVO: fase "avviato" (mostra A) o "cambiato" (mostra B).
-  // NON risponde prima di "Avvia" (spento) ne' dopo "Finisci" (terminato).
-  const gioco_attivo = sessione > 0 && (fase === 'avviato' || fase === 'cambiato');
-
-  // impostazioni scelte dal pannello (via stato.php):
-  //  - modo di invio: 'casella' (SMTP Tophost) · 'brevo' (SMTP Brevo) · 'ses' (Amazon)
-  //    (per compatibilita' il vecchio valore 'smtp' vale come 'casella')
-  //  - oggetto e testo personalizzati (se vuoti, si usano i valori di riserva)
-  const modoRaw = stato ? String(stato.invio_modo || 'casella') : 'casella';
-  const modo    = (modoRaw === 'ses') ? 'ses' : (modoRaw === 'brevo') ? 'brevo' : 'casella';
-  const oggetto = (stato && stato.mail_oggetto) ? String(stato.mail_oggetto) : MAIL_SUBJECT;
-  const intro   = (stato && stato.mail_testo)   ? String(stato.mail_testo)   : MAIL_INTRO;
-
-  // 2) connessione IMAP
   const client = new ImapFlow({
-    host: IMAP_HOST,
-    port: Number(IMAP_PORT),
+    host: imap.host,
+    port: Number(imap.port),
     secure: true,
-    auth: { user: IMAP_USER, pass: IMAP_PASS },
+    auth: { user: imap.user, pass: imap.pass },
     logger: false,
   });
   await client.connect();
@@ -187,15 +161,11 @@ export const handler = async () => {
     try {
       const uids = await client.search({ seen: false }, { uid: true });
       for (const uid of uids) {
-        // ANTI-DOPPIONE: segna la mail come LETTA *prima* di rispondere.
-        // Cosi' ogni mail viene "presa" una volta sola: se un altro giro parte
-        // nel frattempo (o l'invio e' lento), non la rivede e non la rifa'.
-        // Se non riusciamo a segnarla, la saltiamo (niente invio) per non
-        // rischiare di risponderle all'infinito.
+        // ANTI-DOPPIONE: segna LETTA prima di rispondere (una mail = una risposta)
         try {
           await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
         } catch (e) {
-          console.log('claim (Seen) fallito uid', uid, e.message, '-> salto');
+          console.log('claim (Seen) fallito', utente, uid, e.message, '-> salto');
           continue;
         }
 
@@ -207,33 +177,27 @@ export const handler = async () => {
           mOggetto = parsed?.subject || '';
           mTesto   = parsed?.text || '';
         } catch (e) {
-          console.log('parsing mail fallito uid', uid, e.message);
+          console.log('parsing mail fallito', utente, uid, e.message);
         }
         lette++;
 
         if (gioco_attivo && mittente) {
           try {
             const id = idPulito(mittente);
-            await inviaMail(modo, mittente, oggetto, corpoHtml(sessione, id, intro));
+            await invia(mittente, stato.oggetto, corpoHtml(utente, stato.sessione, id, stato.intro));
             risposte++;
-            // registra il mittente per il REPORT di sessione (chi ha scritto e cosa)
-            if (PANEL_PASS) {
+            // registra il mittente per il report di sessione di QUESTO utente
+            if (panelPass) {
               try {
-                const lb = new URLSearchParams();
-                lb.set('azione', 'mail_log');
-                lb.set('utente', PANEL_USER);
-                lb.set('password', PANEL_PASS);
-                lb.set('sessione', String(sessione));
-                lb.set('mittente', mittente);
-                lb.set('oggetto', mOggetto);
-                lb.set('testo', mTesto);
-                lb.set('id', id);
-                await fetch(STATO_URL, { method: 'POST', body: lb });
-              } catch (e) { console.log('mail_log fallito:', e.message); }
+                await postPannello({
+                  azione: 'mail_log', utente: panelUser, password: panelPass,
+                  sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto, id,
+                });
+              } catch (e) { console.log('mail_log fallito', utente, e.message); }
             }
           } catch (e) {
             errori++;
-            console.log('invio (' + modo + ') fallito verso', mittente, e.message);
+            console.log('invio fallito', utente, '->', mittente, e.message);
           }
         }
       }
@@ -244,20 +208,102 @@ export const handler = async () => {
     await client.logout();
   }
 
-  // comunica i conteggi al pannello (caselle "Mail ricevute / inviate")
-  try {
-    if (PANEL_PASS && (lette > 0 || risposte > 0)) {
-      const rb = new URLSearchParams();
-      rb.set('azione', 'mail_report');
-      rb.set('utente', PANEL_USER);
-      rb.set('password', PANEL_PASS);
-      rb.set('ricevute', String(lette));
-      rb.set('inviate', String(risposte));
-      await fetch(STATO_URL, { method: 'POST', body: rb });
-    }
-  } catch (e) { console.log('mail_report fallito:', e.message); }
+  // conteggi nel pannello di QUESTO utente
+  if (panelPass && (lette > 0 || risposte > 0)) {
+    try {
+      await postPannello({
+        azione: 'mail_report', utente: panelUser, password: panelPass,
+        ricevute: lette, inviate: risposte,
+      });
+    } catch (e) { console.log('mail_report fallito', utente, e.message); }
+  }
 
-  const esito = { autorisponditore: true, modo, gioco_attivo, sessione, fase, lette, risposte, errori };
-  console.log('ESITO', JSON.stringify(esito));
-  return esito;
+  return { utente, sessione: stato.sessione, fase: stato.fase, lette, risposte, errori };
+}
+
+/* invio dalla casella di CASA (001): sceglie il canale (casella/brevo/ses) */
+async function inviaCasa(modo, dest, oggetto, html) {
+  if (modo === 'ses') {
+    await ses.send(new SendEmailCommand({
+      Source: SES_FROM,
+      Destination: { ToAddresses: [dest] },
+      Message: {
+        Subject: { Data: oggetto, Charset: 'UTF-8' },
+        Body: { Html: { Data: html, Charset: 'UTF-8' } },
+      },
+    }));
+    return;
+  }
+  const tx = (modo === 'brevo')
+    ? smtpTransport(BREVO_HOST, BREVO_PORT, BREVO_USER, BREVO_PASS)
+    : smtpTransport(SMTP_HOST, SMTP_PORT, SMTP_USER || IMAP_USER, SMTP_PASS || IMAP_PASS);
+  await tx.sendMail({
+    from: SES_FROM, to: dest, subject: oggetto,
+    html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
+  });
+}
+
+export const handler = async () => {
+  const esiti = [];
+
+  // ---------- casella di CASA (001 / io@abraka.it) ----------
+  let stato = null;
+  try { stato = await statoCasa(); } catch (e) { console.log('stato.php non raggiungibile:', e.message); }
+  if (stato) {
+    const modoRaw = String(stato.invio_modo || 'casella');
+    const modo    = (modoRaw === 'ses') ? 'ses' : (modoRaw === 'brevo') ? 'brevo' : 'casella';
+    try {
+      esiti.push(await processaCasella({
+        utente: PANEL_USER,
+        imap: { host: IMAP_HOST, port: IMAP_PORT, user: IMAP_USER, pass: IMAP_PASS },
+        stato: {
+          sessione: Number(stato.sessione || 0),
+          fase: String(stato.fase || 'spento'),
+          autorisponditore: stato.autorisponditore === true,
+          oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
+          intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
+        },
+        invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
+        panelUser: PANEL_USER, panelPass: PANEL_PASS,
+      }));
+    } catch (e) {
+      console.log('casella di casa fallita:', e.message);
+      esiti.push({ utente: PANEL_USER, errore: e.message });
+    }
+  }
+
+  // ---------- caselle EXTRA (002, 003, ...) ----------
+  const extra = await caselleExtra();
+  for (const c of extra) {
+    try {
+      esiti.push(await processaCasella({
+        utente: c.utente,
+        imap: { host: c.imap_host, port: c.imap_port, user: c.imap_user, pass: c.imap_pass },
+        stato: {
+          sessione: Number(c.sessione || 0),
+          fase: String(c.fase || 'spento'),
+          autorisponditore: c.autorisponditore === true,
+          oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
+          intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
+        },
+        // gli utenti con casella propria inviano dalla LORO casella (SMTP = stesse
+        // credenziali dell'IMAP; per Gmail: indirizzo + password per app).
+        // "from": se c.from e' un'email la uso cosi'; se e' solo un nome diventa
+        // "Nome <indirizzo>"; se manca uso l'indirizzo della casella.
+        invia: (dest, ogg, html) => smtpTransport(c.smtp_host, c.smtp_port, c.imap_user, c.imap_pass).sendMail({
+          from: (c.from && c.from.includes('@')) ? c.from
+                : (c.from ? { name: c.from, address: c.imap_user } : c.imap_user),
+          to: dest, subject: ogg,
+          html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
+        }),
+        panelUser: c.utente, panelPass: c.pass_pannello,
+      }));
+    } catch (e) {
+      console.log('casella fallita', c.utente, e.message);
+      esiti.push({ utente: c.utente, errore: e.message });
+    }
+  }
+
+  console.log('ESITO', JSON.stringify(esiti));
+  return { caselle: esiti };
 };
