@@ -79,8 +79,8 @@
   header{position:relative;text-align:center;padding:30px 0 8px}
   #wave{position:absolute;inset:-18px -20px auto -20px;width:calc(100% + 40px);height:150px;opacity:.5;pointer-events:none}
   .gear{
-    position:absolute;top:22px;right:0;z-index:3;
-    width:44px;height:44px;border-radius:50%;
+    flex:0 0 auto;
+    width:38px;height:38px;border-radius:50%;
     display:grid;place-items:center;cursor:pointer;
     background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-dim);
     transition:color .15s,border-color .15s,transform .1s;
@@ -88,7 +88,7 @@
   .gear:hover{color:var(--gold);border-color:var(--gold)}
   .gear:active{transform:scale(.94)}
   .gear:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
-  .gear svg{width:22px;height:22px}
+  .gear svg{width:20px;height:20px}
   .kicker{position:relative;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 2px}
   .wordmark{
     position:relative;margin:0;font-family:"Cormorant Garamond",Georgia,serif;
@@ -230,9 +230,6 @@
   <div class="main" id="mainView">
     <header>
       <canvas id="wave" aria-hidden="true"></canvas>
-      <button class="gear" id="openSet" aria-label="Impostazioni" title="Impostazioni">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-      </button>
       <p class="kicker">Regia dello spettacolo</p>
       <h1 class="wordmark">Predizione</h1>
       <p class="subwordmark">Pannello del mentalista</p>
@@ -241,7 +238,12 @@
     <section class="status" aria-label="Stato del gioco">
       <div class="sec-head">
         <h2 class="sec-title">Stato</h2>
-        <span id="statePill" class="pill"><span class="dot"></span><span id="stateLbl">In pausa</span></span>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button class="gear" id="openSet" aria-label="Impostazioni" title="Impostazioni">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          </button>
+          <span id="statePill" class="pill"><span class="dot"></span><span id="stateLbl">In pausa</span></span>
+        </div>
       </div>
 
       <div class="counter" id="counterWrap">
@@ -422,6 +424,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var elapsedBase=null, elapsedAnchor=0; // timer "Attivo da" (parte da avvio_ts)
   var msgLoaded=false; // oggetto/testo caricati dal server una volta sola
   var cur={ ha_foto_a:false, ha_rivelazione:false, fase:'spento' }; // ultimo stato noto
+  var pendingReveal=false; // true = dopo il caricamento della Foto B si rivela subito
 
   function render(st){
     cur=st;
@@ -540,7 +543,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('avvia', extra, 'Nuova sessione avviata · Foto A');
   });
   swapBtn.addEventListener('click', function(){
-    if(!cur.ha_rivelazione && !cur.ha_rivelazione_sess){ toast('Carica prima la rivelazione (Foto B)','err'); return; }
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    if(!cur.ha_rivelazione && !cur.ha_rivelazione_sess){
+      // Foto B non caricata: apri SUBITO il caricamento (senza passare da Impostazioni).
+      // Dopo il caricamento si rivela da solo (vedi wireSlot 'B').
+      toast('Scegli la rivelazione (Foto B): poi rivelo da solo','ok');
+      pendingReveal=true;
+      var inpB=document.querySelector('#slotB input');
+      if(inpB){ inpB.click(); } else { pendingReveal=false; toast('Carica la Foto B dalle impostazioni','err'); }
+      return;
+    }
     comando('cambia', null, 'Rivelazione · ora si vede la Foto B');
   });
   stopBtn.addEventListener('click', function(){ comando('finisci', null, 'Sessione chiusa · stop risposte'); });
@@ -593,11 +605,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         if(res.data && res.data.ok){
           sub.textContent='caricata · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
           toast(key==='A' ? 'Foto A neutra salvata' : 'Rivelazione pronta','ok'); poll();
+          // se stavamo rivelando (Foto B caricata al volo da "Cambia"), rivela ora
+          if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
         } else {
-          sub.textContent='errore'; tag.textContent='Riprova';
+          sub.textContent='errore'; tag.textContent='Riprova'; pendingReveal=false;
           toast((res.data&&res.data.errore)||'Upload fallito','err');
         }
-      }).catch(function(){ sub.textContent='errore'; tag.textContent='Riprova'; toast('Server non raggiungibile','err'); });
+      }).catch(function(){ sub.textContent='errore'; tag.textContent='Riprova'; pendingReveal=false; toast('Server non raggiungibile','err'); });
     });
   }
   wireSlot('slotA','A');
