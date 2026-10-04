@@ -1,0 +1,43 @@
+PROMPT PER GENERARE LA PRESENTAZIONE "PREDIZIONE" (PDF di vendita, con immagini)
+Da usare in: Gamma, Canva AI, ChatGPT/Immagini, Midjourney, o ridandolo a Claude.
+================================================================================
+
+Crea una presentazione PDF di vendita (6 slide, formato A4 verticale) per un
+prodotto di mentalismo da palco chiamato "Predizione", rivolta a un collega
+prestigiatore (il cliente).
+
+STILE VISIVO: elegante, misterioso, lusso sobrio. Sfondo nero profondo
+(#0a0908), accenti oro (#c9a465), testi color crema (#ece0c9). Titoli con font
+serif raffinato (tipo Playfair Display), testi in sans-serif pulito. Atmosfera
+"teatro magico", niente look tecnologico.
+
+REGOLE FERREE:
+- Nessun termine tecnico (niente nomi di programmi, servizi email, server, codici).
+- L'unico nome che puo' comparire e' "abraka.it", presentato come "il pannello
+  di controllo".
+- Non svelare MAI come funziona il trucco: descrivi solo l'effetto e la facilita'
+  d'uso.
+
+CONTENUTO DELLE 6 SLIDE:
+1. COPERTINA — Titolo "Predizione", sottotitolo "L'illusione che vive dentro una
+   mail", in basso "Pannello di controllo · abraka.it". Immagine: una busta/
+   lettera luminosa che si trasforma in una fotografia, stile dorato elegante.
+2. LA MAGIA VISTA DAL PUBBLICO — Uno spettatore scrive una mail e riceve una foto
+   neutra d'attesa; poi, al comando del mago, quella stessa foto gia' ricevuta si
+   trasforma nella predizione. Immagine: sequenza in 3 passi (mail -> foto neutra
+   -> foto rivelata con una stella dorata).
+3. PERCHE' E' IMPOSSIBILE — Frase forte: "Una foto ricevuta non puo' cambiare da
+   sola." Testo: e' la certezza in cui vive l'impossibile; il mago non tocca
+   nulla, non invia nulla di nuovo. Immagine: un occhio/una mano sospesa.
+4. IL TUO PANNELLO DI REGIA — Dal telefono, 3 gesti: Avvia (parte la foto
+   d'attesa), Cambia (appare la rivelazione), Finisci (resta per sempre).
+   Immagine: mockup elegante di un telefono con 3 pulsanti dorati.
+5. SI ABBINA ALLA TUA MAIL — Due riquadri: "Hai una Gmail" -> spettacoli
+   raccolti, poche decine di persone, con dei limiti di quantita'; "Hai un tuo
+   indirizzo" -> grandi eventi, fino a centinaia di spettatori, massima
+   affidabilita', a tuo nome. Immagine: due scenari (salotto intimo vs teatro).
+6. CHIUSURA — Frase: "Tu pensi all'effetto. Al resto pensa abraka.it."
+   Sottotitolo: nessun programma da installare, nessuna competenza tecnica.
+   In basso: "Richiedi il tuo accesso · abraka.it".
+
+TONO DEI TESTI: evocativo, breve, da brochure di lusso. Lingua: italiano.
