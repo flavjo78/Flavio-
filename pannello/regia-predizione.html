@@ -200,6 +200,13 @@
   .foot{text-align:center;color:var(--ink-faint);font-size:11px;letter-spacing:.1em;margin-top:22px;line-height:1.6}
   .foot .demo{display:inline-block;margin-top:6px;padding:3px 10px;border:1px solid var(--line);border-radius:999px;letter-spacing:.14em;text-transform:uppercase}
 
+  /* visore a tutto schermo per l'anteprima della rivelazione */
+  .lightbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:86vh;border-radius:10px;box-shadow:0 10px 60px rgba(0,0,0,.6)}
+  .lb-back{position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer}
+  .lb-back:active{transform:scale(.97)}
+
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.settings{transition:none!important}}
 </style>
 </head>
@@ -367,6 +374,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
     <p class="foot">Le impostazioni si preparano prima dello show.</p>
+  </div>
+
+  <!-- visore a tutto schermo -->
+  <div class="lightbox" id="lightbox">
+    <button class="lb-back" id="lbBack" type="button">← Indietro</button>
+    <img id="lbImg" alt="anteprima a tutto schermo">
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -693,6 +706,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       else { toast((res.data&&res.data.errore)||'Generazione fallita','err'); }
     }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
   });
+
+  // ---- visore a tutto schermo (clic sull'anteprima) ----
+  var lightbox=$('lightbox'), lbImg=$('lbImg'), lbBack=$('lbBack');
+  function openLightbox(src){ if(!src || !lightbox) return; lbImg.src=src; lightbox.classList.add('open'); }
+  function closeLightbox(){ if(lightbox) lightbox.classList.remove('open'); }
+  if(lbBack) lbBack.addEventListener('click', closeLightbox);
+  if(lightbox) lightbox.addEventListener('click', function(e){ if(e.target===lightbox) closeLightbox(); });
+  var gpEl=$('genPrev'); if(gpEl){ gpEl.style.cursor='zoom-in'; gpEl.addEventListener('click', function(){ openLightbox(gpEl.src); }); }
 
   // ---- primo aggiornamento + polling periodico ----
   poll();
