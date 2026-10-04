@@ -105,6 +105,10 @@ function predizione_stato_pubblico(array $s): array {
         'mail_impostata' => predizione_mail_impostata(predizione_utente()),
         'ha_zona'        => (!empty($s['foto_quad']) && is_array($s['foto_quad']) && count($s['foto_quad']) === 4),
         'ha_foto_base'   => (!empty($s['foto_base']) && is_file($s['foto_base'])),
+        'foto_quad'      => (!empty($s['foto_quad'])  && is_array($s['foto_quad']))  ? $s['foto_quad']  : null,
+        'foto_gomma'     => (!empty($s['foto_gomma']) && is_array($s['foto_gomma'])) ? $s['foto_gomma'] : null,
+        'mail_ricevute'  => (int)($s['mail_ricevute'] ?? 0),
+        'mail_inviate'   => (int)($s['mail_inviate'] ?? 0),
     ];
 }
 
@@ -300,6 +304,9 @@ switch ($azione) {
         }
         // l'autorisponditore si ACCENDE da solo all'avvio (non c'e' piu' un tasto nel pannello)
         $stato['autorisponditore'] = true;
+        // azzera i conteggi mail della nuova sessione
+        $stato['mail_ricevute'] = 0;
+        $stato['mail_inviate']  = 0;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -424,6 +431,15 @@ switch ($azione) {
         $stato['foto_gomma'] = $pulisci(json_decode((string)p('gomma'), true), 3); // null = nessuna gomma
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'mail_report':
+        // l'autorisponditore comunica quante mail ha letto/risposto (incrementi)
+        $ric = max(0, (int)p('ricevute'));
+        $inv = max(0, (int)p('inviate'));
+        $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + $ric;
+        $stato['mail_inviate']  = (int)($stato['mail_inviate']  ?? 0) + $inv;
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true]);
 
     default:
         predizione_json(['ok' => false, 'errore' => 'Azione sconosciuta'], 400);

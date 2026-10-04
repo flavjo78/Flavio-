@@ -53,6 +53,9 @@ const {
   BREVO_PORT = '587',
   BREVO_USER,                // la tua email/login Brevo
   BREVO_PASS,                // la "SMTP key" generata su Brevo
+  // --- conteggi mail nel pannello (caselle "Mail ricevute/inviate") ---
+  PANEL_USER = '001',        // numero utente da aggiornare (di solito 001)
+  PANEL_PASS,                // password di quell'utente (serve per scrivere i conteggi)
 } = process.env;
 
 const ses = new SESClient({ region: AWS_REGION });
@@ -220,6 +223,19 @@ export const handler = async () => {
   } finally {
     await client.logout();
   }
+
+  // comunica i conteggi al pannello (caselle "Mail ricevute / inviate")
+  try {
+    if (PANEL_PASS && (lette > 0 || risposte > 0)) {
+      const rb = new URLSearchParams();
+      rb.set('azione', 'mail_report');
+      rb.set('utente', PANEL_USER);
+      rb.set('password', PANEL_PASS);
+      rb.set('ricevute', String(lette));
+      rb.set('inviate', String(risposte));
+      await fetch(STATO_URL, { method: 'POST', body: rb });
+    }
+  } catch (e) { console.log('mail_report fallito:', e.message); }
 
   const esito = { autorisponditore: true, modo, gioco_attivo, sessione, fase, lette, risposte, errori };
   console.log('ESITO', JSON.stringify(esito));

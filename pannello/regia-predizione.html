@@ -265,7 +265,17 @@
           <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Rivelazione</div>
         </div>
       </div>
-      <p class="hint" style="margin-top:8px;text-align:center">Aperture della <b>sessione corrente</b>: quante persone hanno visto la Foto A e quante la Rivelazione.</p>
+      <div class="abstats" style="display:flex;gap:10px;margin-top:10px">
+        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntRic">0</div>
+          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail ricevute</div>
+        </div>
+        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntInv">0</div>
+          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail inviate</div>
+        </div>
+      </div>
+      <p class="hint" style="margin-top:8px;text-align:center">Aperture = chi ha <b>visto</b> la foto. Mail = quante <b>arrivate</b> e quante <b>risposte</b> nella sessione.</p>
 
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
 
@@ -592,11 +602,23 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
     var elA=$('cntA'); if(elA){ elA.textContent = st.aperture_a||0; }
     var elB=$('cntB'); if(elB){ elB.textContent = st.aperture_b||0; }
+    var elR=$('cntRic'); if(elR){ elR.textContent = st.mail_ricevute||0; }
+    var elI=$('cntInv'); if(elI){ elI.textContent = st.mail_inviate||0; }
+
+    // ripristina il marcatore (angoli/gomma salvati) una volta sola
+    if(FLAGS.foto && !markLoaded && (st.foto_quad || st.foto_gomma)){
+      markLoaded=true;
+      mCorners = st.foto_quad  ? st.foto_quad.map(function(p){return [p[0],p[1]];})  : [];
+      mGomma   = st.foto_gomma ? st.foto_gomma.map(function(p){return [p[0],p[1]];}) : [];
+      mSavedC=mClone(mCorners); mSavedG=mClone(mGomma); mDirty=false; mRedraw();
+    }
 
     var n=st.aperture||0;
-    elCount.textContent=n;
-    if(lastAperture!==null && n>lastAperture){
-      elCount.animate&&elCount.animate([{transform:'scale(1.14)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});
+    if(elCount){
+      elCount.textContent=n;
+      if(lastAperture!==null && n>lastAperture){
+        elCount.animate&&elCount.animate([{transform:'scale(1.14)'},{transform:'scale(1)'}],{duration:260,easing:'ease-out'});
+      }
     }
     lastAperture=n;
   }
@@ -735,37 +757,61 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
   });
 
-  // ---- marcatore foto: 4 angoli del foglio + gomma (mano) ----
+  // ---- marcatore foto: 4 angoli + gomma, con puntini TRASCINABILI ----
   var markArea=$('markArea'), markStage=$('markStage'), markImg=$('markImg'), markSvg=$('markSvg');
   var mMode=null, mCorners=[], mGomma=[];
+  var mSavedC=[], mSavedG=[], mDirty=false, mDrag=null, markLoaded=false;
+  function mClone(a){ return (a||[]).map(function(p){ return [p[0],p[1]]; }); }
   function showMarker(dataUrl){ if(!markArea||!dataUrl) return; markImg.src=dataUrl; markArea.style.display='block'; }
   function mFrac(e){
     var r=markImg.getBoundingClientRect();
     return [ Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)), Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)) ];
   }
+  function mNear(pf){ // trova un puntino vicino (per trascinarlo)
+    var r=markImg.getBoundingClientRect(), th=20;
+    function near(arr,layer){ for(var i=0;i<arr.length;i++){ var dx=(arr[i][0]-pf[0])*r.width, dy=(arr[i][1]-pf[1])*r.height; if(dx*dx+dy*dy<=th*th) return {layer:layer,idx:i}; } return null; }
+    return near(mCorners,'ang') || near(mGomma,'gom');
+  }
   function mRedraw(){
     if(!markSvg) return; var s='';
-    function dots(arr,col){ for(var i=0;i<arr.length;i++){ s+='<circle cx="'+arr[i][0]+'" cy="'+arr[i][1]+'" r="0.016" fill="'+col+'" stroke="#000" stroke-width="0.004"/>'; } }
+    function dots(arr,col){ for(var i=0;i<arr.length;i++){ s+='<circle cx="'+arr[i][0]+'" cy="'+arr[i][1]+'" r="0.018" fill="'+col+'" stroke="#000" stroke-width="0.005"/>'; } }
     if(mCorners.length>=2){ var p1=mCorners.map(function(p){return p[0]+','+p[1];}).join(' '); var t1=(mCorners.length>=4)?'polygon':'polyline'; s+='<'+t1+' points="'+p1+'" fill="'+(mCorners.length>=4?'rgba(201,164,101,.18)':'none')+'" stroke="#c9a465" stroke-width="2" vector-effect="non-scaling-stroke"/>'; }
     dots(mCorners,'#c9a465');
     if(mGomma.length>=2){ var p2=mGomma.map(function(p){return p[0]+','+p[1];}).join(' '); var t2=(mGomma.length>=3)?'polygon':'polyline'; s+='<'+t2+' points="'+p2+'" fill="'+(mGomma.length>=3?'rgba(207,130,98,.30)':'none')+'" stroke="#cf8262" stroke-width="2" vector-effect="non-scaling-stroke"/>'; }
     dots(mGomma,'#cf8262');
     markSvg.innerHTML=s;
   }
-  if(markStage) markStage.addEventListener('pointerdown', function(e){
-    if(!mMode){ toast('Scegli prima "Segna angoli" o "Gomma"','err'); return; }
-    var p=mFrac(e);
-    if(mMode==='ang'){ if(mCorners.length<4) mCorners.push(p); if(mCorners.length===4) toast('4 angoli fatti ✓','ok'); }
-    else { mGomma.push(p); }
-    mRedraw();
+  if(markStage){
+    markStage.addEventListener('pointerdown', function(e){
+      var pf=mFrac(e), hit=mNear(pf);
+      if(hit){ mDrag=hit; markStage.setPointerCapture(e.pointerId); return; } // trascina un puntino esistente
+      if(!mMode){ toast('Scegli "Segna angoli" o "Gomma"','err'); return; }
+      if(mMode==='ang'){ if(mCorners.length<4){ mCorners.push(pf); mDirty=true; if(mCorners.length===4) toast('4 angoli fatti ✓','ok'); } else toast('Già 4 angoli: trascinali per correggere','ok'); }
+      else { mGomma.push(pf); mDirty=true; }
+      mRedraw();
+    });
+    markStage.addEventListener('pointermove', function(e){
+      if(!mDrag) return;
+      var pf=mFrac(e); (mDrag.layer==='ang'?mCorners:mGomma)[mDrag.idx]=pf; mDirty=true; mRedraw(); e.preventDefault();
+    });
+    markStage.addEventListener('pointerup', function(){ mDrag=null; });
+    markStage.addEventListener('pointercancel', function(){ mDrag=null; });
+  }
+  if($('mAng')) $('mAng').addEventListener('click', function(){ mMode='ang'; toast(mCorners.length<4?'Tocca i 4 angoli (in ordine)':'Trascina i puntini per correggere','ok'); });
+  if($('mGom')) $('mGom').addEventListener('click', function(){ mMode='gom'; toast('Tocca intorno alla mano','ok'); });
+  if($('mClr')) $('mClr').addEventListener('click', function(){
+    if(mDirty){ // 1a pressione: annulla solo le modifiche NON salvate
+      mCorners=mClone(mSavedC); mGomma=mClone(mSavedG); mDirty=false; mRedraw(); toast('Modifiche annullate','ok');
+    } else { // 2a pressione: cancella TUTTO (anche il salvato)
+      mCorners=[]; mGomma=[]; mSavedC=[]; mSavedG=[]; mRedraw();
+      if(getPw()) comando('foto_zona', {quad:'[]', gomma:'[]'}, 'Tutto cancellato');
+    }
   });
-  if($('mAng')) $('mAng').addEventListener('click', function(){ mMode='ang'; mCorners=[]; mRedraw(); toast('Tocca i 4 angoli (in ordine)','ok'); });
-  if($('mGom')) $('mGom').addEventListener('click', function(){ mMode='gom'; mGomma=[]; mRedraw(); toast('Tocca intorno alla mano','ok'); });
-  if($('mClr')) $('mClr').addEventListener('click', function(){ mMode=null; mCorners=[]; mGomma=[]; mRedraw(); });
   if($('mSave')) $('mSave').addEventListener('click', function(){
     if(!getPw()){ toast('Accedi prima','err'); return; }
     if(mCorners.length!==4){ toast('Servono i 4 angoli del foglio','err'); return; }
-    comando('foto_zona', {quad:JSON.stringify(mCorners), gomma:JSON.stringify(mGomma)}, 'Posizione salvata ✓');
+    mSavedC=mClone(mCorners); mSavedG=mClone(mGomma); mDirty=false;   // blocca il lavoro fatto
+    comando('foto_zona', {quad:JSON.stringify(mCorners), gomma:JSON.stringify(mGomma)}, 'Posizione bloccata ✓');
   });
 
   // ---- visore a tutto schermo (clic sull'anteprima) ----
