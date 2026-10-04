@@ -103,6 +103,8 @@ function predizione_stato_pubblico(array $s): array {
         'utente'         => predizione_utente(),
         'flags'          => predizione_flags(predizione_utente()),  // il pannello sa cosa mostrare
         'mail_impostata' => predizione_mail_impostata(predizione_utente()),
+        'ha_zona'        => (!empty($s['foto_quad']) && is_array($s['foto_quad']) && count($s['foto_quad']) === 4),
+        'ha_foto_base'   => (!empty($s['foto_base']) && is_file($s['foto_base'])),
     ];
 }
 
@@ -399,6 +401,28 @@ switch ($azione) {
         $utenti = predizione_utenti_leggi();
         $utenti[$utente]['mail'] = predizione_mail_da_richiesta();
         predizione_utenti_scrivi($utenti);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'foto_zona':
+        // salva i 4 ANGOLI del foglio (quad) e la GOMMA (poligono, es. la mano)
+        if (empty(predizione_flags($utente)['foto'])) {
+            predizione_json(['ok' => false, 'errore' => 'Strumento foto non abilitato'], 403);
+        }
+        $pulisci = function($arr, $min) {
+            if (!is_array($arr)) return null;
+            $out = [];
+            foreach ($arr as $pt) {
+                if (is_array($pt) && isset($pt[0], $pt[1])) {
+                    $out[] = [ max(0.0, min(1.0, (float)$pt[0])), max(0.0, min(1.0, (float)$pt[1])) ];
+                }
+            }
+            return count($out) >= $min ? $out : null;
+        };
+        $quad = $pulisci(json_decode((string)p('quad'), true), 4);
+        if (is_array($quad)) $quad = array_slice($quad, 0, 4);
+        $stato['foto_quad']  = $quad;                                   // null = nessun angolo (ripiego piatto)
+        $stato['foto_gomma'] = $pulisci(json_decode((string)p('gomma'), true), 3); // null = nessuna gomma
+        predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     default:

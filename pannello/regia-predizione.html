@@ -366,10 +366,26 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         <span class="slot-txt"><span class="t">Foto base</span><span class="s">tu col foglio bianco in mano</span></span>
         <span class="tag">Carica</span>
       </label>
-      <div class="field"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. ASSO DI CUORI"></div>
+
+      <!-- marcatore: 4 angoli del foglio + gomma (mano) -->
+      <div id="markArea" style="display:none;margin-top:10px">
+        <p class="hint" id="markHint" style="margin:0 0 8px"><b>1)</b> Tocca i <b>4 angoli</b> del foglio (in ordine). <b>2)</b> Poi "Gomma" e tocca intorno alla <b>mano</b> da coprire. <b>3)</b> Salva.</p>
+        <div id="markStage" style="position:relative;touch-action:none;user-select:none;border-radius:10px;overflow:hidden;border:1px solid var(--line-2)">
+          <img id="markImg" alt="foto base" style="width:100%;display:block">
+          <svg id="markSvg" viewBox="0 0 1 1" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg>
+        </div>
+        <div class="game-btns" style="grid-template-columns:1fr 1fr;margin-top:8px">
+          <button class="btn ghost" id="mAng" type="button">Segna angoli</button>
+          <button class="btn ghost" id="mGom" type="button">Gomma (mano)</button>
+          <button class="btn ghost" id="mClr" type="button">Pulisci</button>
+          <button class="btn ghost" id="mSave" type="button">Salva posizione</button>
+        </div>
+      </div>
+
+      <div class="field" style="margin-top:12px"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. Asso di cuori"></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
-      <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2)">
-      <p class="hint">Scrive la tua frase <b>sul foglio</b> della foto base, con calligrafia a penna, e la usa come <b>rivelazione</b>. (Serve una foto base caricata.) Qui sotto vedi l'<b>anteprima</b>.</p>
+      <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
+      <p class="hint">Scrive la tua frase <b>sul foglio</b> in <b>prospettiva</b> (se hai segnato i 4 angoli) e la usa come <b>rivelazione</b>. La <b>gomma</b> evita che scriva sopra la mano. Tocca l'anteprima per vederla grande.</p>
     </section>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
@@ -409,6 +425,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function applyFlags(){
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
+    if(FLAGS.foto){ var b=''; try{ b=localStorage.getItem('pred_base_'+USER)||''; }catch(e){} if(b) showMarker(b); }
   }
   function doLogin(){
     var u=((loginUser&&loginUser.value)||'001').replace(/[^0-9]/g,'') || '001';
@@ -669,6 +686,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
           toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
           // se stavamo rivelando (Foto B caricata al volo da "Cambia"), rivela ora
           if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
+          if(key==='BASE' && res.data.preview){ try{ localStorage.setItem('pred_base_'+getUser(), res.data.preview); }catch(e){} showMarker(res.data.preview); }
         } else {
           sub.textContent='errore'; tag.textContent='Riprova'; pendingReveal=false;
           toast((res.data&&res.data.errore)||'Upload fallito','err');
@@ -705,6 +723,39 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       }
       else { toast((res.data&&res.data.errore)||'Generazione fallita','err'); }
     }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
+  });
+
+  // ---- marcatore foto: 4 angoli del foglio + gomma (mano) ----
+  var markArea=$('markArea'), markStage=$('markStage'), markImg=$('markImg'), markSvg=$('markSvg');
+  var mMode=null, mCorners=[], mGomma=[];
+  function showMarker(dataUrl){ if(!markArea||!dataUrl) return; markImg.src=dataUrl; markArea.style.display='block'; }
+  function mFrac(e){
+    var r=markImg.getBoundingClientRect();
+    return [ Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)), Math.max(0,Math.min(1,(e.clientY-r.top)/r.height)) ];
+  }
+  function mRedraw(){
+    if(!markSvg) return; var s='';
+    function dots(arr,col){ for(var i=0;i<arr.length;i++){ s+='<circle cx="'+arr[i][0]+'" cy="'+arr[i][1]+'" r="0.016" fill="'+col+'" stroke="#000" stroke-width="0.004"/>'; } }
+    if(mCorners.length>=2){ var p1=mCorners.map(function(p){return p[0]+','+p[1];}).join(' '); var t1=(mCorners.length>=4)?'polygon':'polyline'; s+='<'+t1+' points="'+p1+'" fill="'+(mCorners.length>=4?'rgba(201,164,101,.18)':'none')+'" stroke="#c9a465" stroke-width="2" vector-effect="non-scaling-stroke"/>'; }
+    dots(mCorners,'#c9a465');
+    if(mGomma.length>=2){ var p2=mGomma.map(function(p){return p[0]+','+p[1];}).join(' '); var t2=(mGomma.length>=3)?'polygon':'polyline'; s+='<'+t2+' points="'+p2+'" fill="'+(mGomma.length>=3?'rgba(207,130,98,.30)':'none')+'" stroke="#cf8262" stroke-width="2" vector-effect="non-scaling-stroke"/>'; }
+    dots(mGomma,'#cf8262');
+    markSvg.innerHTML=s;
+  }
+  if(markStage) markStage.addEventListener('pointerdown', function(e){
+    if(!mMode){ toast('Scegli prima "Segna angoli" o "Gomma"','err'); return; }
+    var p=mFrac(e);
+    if(mMode==='ang'){ if(mCorners.length<4) mCorners.push(p); if(mCorners.length===4) toast('4 angoli fatti ✓','ok'); }
+    else { mGomma.push(p); }
+    mRedraw();
+  });
+  if($('mAng')) $('mAng').addEventListener('click', function(){ mMode='ang'; mCorners=[]; mRedraw(); toast('Tocca i 4 angoli (in ordine)','ok'); });
+  if($('mGom')) $('mGom').addEventListener('click', function(){ mMode='gom'; mGomma=[]; mRedraw(); toast('Tocca intorno alla mano','ok'); });
+  if($('mClr')) $('mClr').addEventListener('click', function(){ mMode=null; mCorners=[]; mGomma=[]; mRedraw(); });
+  if($('mSave')) $('mSave').addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    if(mCorners.length!==4){ toast('Servono i 4 angoli del foglio','err'); return; }
+    comando('foto_zona', {quad:JSON.stringify(mCorners), gomma:JSON.stringify(mGomma)}, 'Posizione salvata ✓');
   });
 
   // ---- visore a tutto schermo (clic sull'anteprima) ----

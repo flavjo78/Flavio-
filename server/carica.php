@@ -62,10 +62,21 @@ elseif  ($slot === 'BASE') { $stato['foto_base'] = $dest; }   // per lo strument
 else                       { $stato['rivelazione_pronta'] = $dest; }
 predizione_scrivi_stato($stato);
 
+/* per la Foto base: restituisce anche l'anteprima (per marcare angoli/gomma) */
+$preview = '';
+if ($slot === 'BASE') {
+    $raw = @file_get_contents($dest);
+    if ($raw !== false) {
+        $m = ($ext === 'png') ? 'png' : (($ext === 'gif') ? 'gif' : (($ext === 'webp') ? 'webp' : 'jpeg'));
+        $preview = 'data:image/' . $m . ';base64,' . base64_encode($raw);
+    }
+}
+
 predizione_json([
     'ok'        => true,
     'slot'      => $slot,
     'tipo'      => $ext,
     'larghezza' => $info[0] ?? null,
     'altezza'   => $info[1] ?? null,
+    'preview'   => $preview,
 ]);
