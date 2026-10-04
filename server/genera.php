@@ -32,6 +32,15 @@ $testo = substr((string)(p('testo') ?? ''), 0, 120);
 if ($testo === '') {
     predizione_json(['ok' => false, 'errore' => 'Scrivi cosa deve comparire sul foglio'], 400);
 }
+/* dimensione e posizione verticale della scritta (frazioni del foglio).
+   Arrivano dal pannello (cursori); se assenti, valori di default piccoli. */
+$stato0 = predizione_leggi_stato();
+$sizeFrac = p('size');
+$sizeFrac = ($sizeFrac !== null && $sizeFrac !== '') ? (float)$sizeFrac : (isset($stato0['foto_size']) ? (float)$stato0['foto_size'] : 0.12);
+$posFrac  = p('pos');
+$posFrac  = ($posFrac !== null && $posFrac !== '') ? (float)$posFrac : (isset($stato0['foto_pos']) ? (float)$stato0['foto_pos'] : 0.40);
+$sizeFrac = max(0.03, min(0.50, $sizeFrac));
+$posFrac  = max(0.10, min(0.90, $posFrac));
 if (!function_exists('imagettftext')) {
     predizione_json(['ok' => false, 'errore' => 'Il server non supporta la grafica (GD/FreeType)'], 500);
 }
@@ -80,22 +89,22 @@ if (!empty($stato['foto_gomma']) && is_array($stato['foto_gomma']) && count($sta
    Caso A: 4 ANGOLI -> scrittura in PROSPETTIVA
    ========================================================================= */
 if ($quad) {
-    predizione_scrivi_prospettiva($img, $W, $H, $quad, $testo, $font, $gomma);
+    predizione_scrivi_prospettiva($img, $W, $H, $quad, $testo, $font, $gomma, $sizeFrac, $posFrac);
 } else {
 /* =========================================================================
    Caso B (ripiego): piazzamento piatto centrale
    ========================================================================= */
     $ink = imagecolorallocate($img, 24, 34, 82);
-    $angolo = -3; $boxW = $W * 0.60; $cx = $W * 0.50; $cy = $H * 0.52;
-    $size = max(14, (int)($W / 14));
-    for ($i = 0; $i < 60 && $size > 10; $i++) {
+    $angolo = -3; $boxW = $W * 0.80;
+    $size = max(8, (int)($H * $sizeFrac));
+    for ($i = 0; $i < 80 && $size > 6; $i++) {
         $bb = imagettfbbox($size, $angolo, $font, $testo);
         if (abs($bb[2] - $bb[0]) <= $boxW) break;
         $size -= 2;
     }
     $bb = imagettfbbox($size, $angolo, $font, $testo);
     $tw = abs($bb[2] - $bb[0]); $th = abs($bb[7] - $bb[1]);
-    imagettftext($img, $size, $angolo, (int)($cx - $tw/2), (int)($cy + $th/2), $ink, $font, $testo);
+    imagettftext($img, $size, $angolo, (int)($W*0.5 - $tw/2), (int)($H*$posFrac + $th/2), $ink, $font, $testo);
 }
 
 /* --- salva come rivelazione pronta (Foto B) ------------------------------- */
@@ -173,7 +182,7 @@ function predizione_in_poly(float $px, float $py, array $poly): bool {
     }
     return $in;
 }
-function predizione_scrivi_prospettiva($img, int $W, int $H, array $quad, string $testo, string $font, ?array $gomma = null): void {
+function predizione_scrivi_prospettiva($img, int $W, int $H, array $quad, string $testo, string $font, ?array $gomma = null, float $sizeFrac = 0.12, float $posFrac = 0.40): void {
     $dist = function($a,$b){ return sqrt(($a[0]-$b[0])**2 + ($a[1]-$b[1])**2); };
     $lW = (int)max(50, max($dist($quad[0],$quad[1]), $dist($quad[3],$quad[2])));
     $lH = (int)max(40, max($dist($quad[0],$quad[3]), $dist($quad[1],$quad[2])));
@@ -183,15 +192,15 @@ function predizione_scrivi_prospettiva($img, int $W, int $H, array $quad, string
     imagesavealpha($label, true);
     imagefill($label, 0, 0, imagecolorallocatealpha($label, 0, 0, 0, 127));
     $black = imagecolorallocate($label, 0, 0, 0);
-    $size = (int)($lH * 0.42);
-    for ($i = 0; $i < 40 && $size > 6; $i++) {
+    $size = max(6, (int)($lH * $sizeFrac));
+    for ($i = 0; $i < 80 && $size > 6; $i++) {
         $bb = imagettfbbox($size, 0, $font, $testo);
-        if (abs($bb[2]-$bb[0]) <= $lW * 0.9) break;
+        if (abs($bb[2]-$bb[0]) <= $lW * 0.90) break;
         $size -= 2;
     }
     $bb = imagettfbbox($size, 0, $font, $testo);
     $tw = abs($bb[2]-$bb[0]); $th = abs($bb[7]-$bb[1]);
-    imagettftext($label, $size, 0, (int)(($lW-$tw)/2), (int)(($lH+$th)/2), $black, $font, $testo);
+    imagettftext($label, $size, 0, (int)(($lW-$tw)/2), (int)($lH*$posFrac + $th/2), $black, $font, $testo);
 
     $src = [[0,0],[$lW,0],[$lW,$lH],[0,$lH]];
     [$a,$b2,$c,$d,$e,$f,$g,$h] = predizione_homography($quad, $src); // dst(foglio)->src(etichetta)

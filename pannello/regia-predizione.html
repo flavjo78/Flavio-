@@ -383,6 +383,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       </div>
 
       <div class="field" style="margin-top:12px"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. Asso di cuori"></div>
+      <div class="field"><label for="predSize">Dimensione scritta</label><input type="range" id="predSize" min="4" max="40" value="12" style="width:100%"></div>
+      <div class="field"><label for="predPos">Posizione (alto ↔ basso)</label><input type="range" id="predPos" min="15" max="85" value="40" style="width:100%"></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
       <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
       <p class="hint">Scrive la tua frase <b>sul foglio</b> in <b>prospettiva</b> (se hai segnato i 4 angoli) e la usa come <b>rivelazione</b>. La <b>gomma</b> evita che scriva sopra la mano. Tocca l'anteprima per vederla grande.</p>
@@ -425,7 +427,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function applyFlags(){
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
-    if(FLAGS.foto){ var b=''; try{ b=localStorage.getItem('pred_base_'+USER)||''; }catch(e){} if(b) showMarker(b); }
+    if(FLAGS.foto){
+      var b=''; try{ b=localStorage.getItem('pred_base_'+USER)||''; }catch(e){} if(b) showMarker(b);
+      try{ var sz=localStorage.getItem('pred_size_'+USER); if(sz && $('predSize')) $('predSize').value=sz;
+           var ps=localStorage.getItem('pred_pos_'+USER);  if(ps && $('predPos'))  $('predPos').value=ps; }catch(e){}
+    }
   }
   function doLogin(){
     var u=((loginUser&&loginUser.value)||'001').replace(/[^0-9]/g,'') || '001';
@@ -481,9 +487,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     return fetch(API_BASE+'carica.php', {method:'POST', body:fd})
       .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
   }
-  function apiGenera(testo){
+  function apiGenera(testo, size, pos){
     var body=new URLSearchParams();
     body.set('utente', getUser()); body.set('password', getPw()); body.set('testo', testo);
+    if(size!=null) body.set('size', size);
+    if(pos!=null)  body.set('pos', pos);
     return fetch(API_BASE+'genera.php', {method:'POST', body:body})
       .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
   }
@@ -713,8 +721,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var t=(($('predText').value)||'').trim();
     if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
+    var sz=$('predSize')?($('predSize').value/100):null, ps=$('predPos')?($('predPos').value/100):null;
+    try{ if(sz!=null) localStorage.setItem('pred_size_'+getUser(), $('predSize').value); if(ps!=null) localStorage.setItem('pred_pos_'+getUser(), $('predPos').value); }catch(e){}
     gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero…';
-    apiGenera(t).then(function(res){
+    apiGenera(t, sz, ps).then(function(res){
       gBtn.disabled=false; gBtn.textContent=old;
       if(res.data && res.data.ok){
         toast('Rivelazione creata ✓','ok');
