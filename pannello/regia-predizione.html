@@ -361,7 +361,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       </label>
       <div class="field"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. ASSO DI CUORI"></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
-      <p class="hint">Scrive la tua frase <b>sul foglio</b> della foto base, con calligrafia a penna, e la usa come <b>rivelazione</b>. (Serve una foto base caricata.)</p>
+      <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2)">
+      <p class="hint">Scrive la tua frase <b>sul foglio</b> della foto base, con calligrafia a penna, e la usa come <b>rivelazione</b>. (Serve una foto base caricata.) Qui sotto vedi l'<b>anteprima</b>.</p>
     </section>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
@@ -684,7 +685,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero…';
     apiGenera(t).then(function(res){
       gBtn.disabled=false; gBtn.textContent=old;
-      if(res.data && res.data.ok){ toast('Rivelazione creata ✓','ok'); poll(); }
+      if(res.data && res.data.ok){
+        toast('Rivelazione creata ✓','ok');
+        var gp=$('genPrev'); if(gp && res.data.preview){ gp.src=res.data.preview; gp.style.display='block'; }
+        poll();
+      }
       else { toast((res.data&&res.data.errore)||'Generazione fallita','err'); }
     }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
   });

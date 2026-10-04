@@ -103,4 +103,9 @@ $stato = predizione_leggi_stato();
 $stato['rivelazione_pronta'] = $dest;
 predizione_scrivi_stato($stato);
 
-predizione_json(['ok' => true]);
+/* anteprima per il pannello (immagine incorporata, così il performer la vede subito) */
+$preview = '';
+$raw = @file_get_contents($dest);
+if ($raw !== false) { $preview = 'data:image/jpeg;base64,' . base64_encode($raw); }
+
+predizione_json(['ok' => true, 'preview' => $preview]);
