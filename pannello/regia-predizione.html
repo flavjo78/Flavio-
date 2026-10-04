@@ -213,14 +213,14 @@
     <p class="subwordmark" style="margin:0 0 6px">Accesso</p>
     <div class="field">
       <label for="loginUser">Utente</label>
-      <input id="loginUser" value="001" readonly>
+      <input id="loginUser" value="001" inputmode="numeric" autocomplete="username" placeholder="001">
     </div>
     <div class="field">
       <label for="loginPw">Password</label>
       <input id="loginPw" type="password" autocomplete="current-password" placeholder="password">
     </div>
     <button class="btn" id="loginBtn" style="width:100%;margin-top:16px">Accedi</button>
-    <p class="hint" style="text-align:center;margin-top:12px">La password è quella impostata sul server (config.php). Resta memorizzata su questo dispositivo.</p>
+    <p class="hint" style="text-align:center;margin-top:12px">Inserisci il tuo <b>numero utente</b> e la <b>password</b>. Restano memorizzati su questo dispositivo.</p>
   </div>
 </div>
 
@@ -340,6 +340,30 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       </div>
     </section>
 
+    <!-- Sezione MAIL (visibile solo se l'utente ha la funzione 'mail') -->
+    <section aria-label="La tua casella" id="secMail" style="display:none">
+      <div class="sec-head"><h2 class="sec-title">La tua casella</h2><span class="sec-num">Gmail</span></div>
+      <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
+      <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
+      <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
+      <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
+      <p class="hint">Collega la <b>tua</b> Gmail: le risposte partiranno dal tuo indirizzo. Serve la <b>verifica in due passaggi</b> attiva e una <b>password per app</b> creata su Google (così non dai la password vera). Adatta ai <b>piccoli eventi</b>.</p>
+    </section>
+
+    <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
+    <section aria-label="Strumento foto" id="secFoto" style="display:none">
+      <div class="sec-head"><h2 class="sec-title">Strumento foto</h2><span class="sec-num">Rivelazione</span></div>
+      <label class="slot" id="slotBase">
+        <input type="file" accept="image/*" hidden>
+        <span class="thumb"><span class="ph">F</span></span>
+        <span class="slot-txt"><span class="t">Foto base</span><span class="s">tu col foglio bianco in mano</span></span>
+        <span class="tag">Carica</span>
+      </label>
+      <div class="field"><label for="predText">Cosa deve comparire sul foglio</label><input type="text" id="predText" placeholder="Es. ASSO DI CUORI"></div>
+      <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
+      <p class="hint">Scrive la tua frase <b>sul foglio</b> della foto base, con calligrafia a penna, e la usa come <b>rivelazione</b>. (Serve una foto base caricata.)</p>
+    </section>
+
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
     <p class="foot">Le impostazioni si preparano prima dello show.</p>
   </div>
@@ -356,24 +380,43 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // nella STESSA cartella (es. abraka.it/predizione/), quindi percorso "./".
   var API_BASE = './';
 
-  // ---- password salvata solo su questo dispositivo (in memoria, non più in Impostazioni) ----
-  var PW=''; try { PW = localStorage.getItem('pred_pw') || ''; } catch(e){}
+  // ---- utente + password (salvati solo su questo dispositivo) ----
+  var PW=''; var USER='001'; var FLAGS={mail:false,foto:false};
+  try { PW   = localStorage.getItem('pred_pw')   || ''; } catch(e){}
+  try { USER = localStorage.getItem('pred_user') || '001'; } catch(e){}
   function getPw(){ return PW; }
+  function getUser(){ return USER; }
 
-  // ---- login iniziale: compare SEMPRE come prima pagina.
-  //      La password resta salvata e viene già compilata: basta premere "Accedi". ----
-  var loginView=$('loginView'), loginPw=$('loginPw'), loginBtn=$('loginBtn');
-  if(loginPw){ loginPw.value = PW; }      // precompilata con quella memorizzata
+  // ---- login iniziale: compare SEMPRE come prima pagina. Utente + password
+  //      precompilati; basta premere "Accedi". L'admin (000) va al pannello Admin. ----
+  var loginView=$('loginView'), loginUser=$('loginUser'), loginPw=$('loginPw'), loginBtn=$('loginBtn');
+  if(loginUser){ loginUser.value = USER; }
+  if(loginPw){ loginPw.value = PW; }
+  function applyFlags(){
+    var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
+    var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
+  }
   function doLogin(){
+    var u=((loginUser&&loginUser.value)||'001').replace(/[^0-9]/g,'') || '001';
     var p=(loginPw.value||'').trim();
     if(!p){ toast('Inserisci la password','err'); return; }
-    PW=p; try{ localStorage.setItem('pred_pw', p); }catch(e){}
-    if(loginView) loginView.classList.add('hidden');
-    poll();
+    var body=new URLSearchParams();
+    body.set('azione','login'); body.set('utente',u); body.set('password',p);
+    fetch(API_BASE+'stato.php', {method:'POST', body:body})
+      .then(function(r){ return r.json(); })
+      .then(function(j){
+        if(!j || !j.ok){ toast((j&&j.errore)||'Accesso negato','err'); return; }
+        USER=u; PW=p; FLAGS=j.flags||{mail:false,foto:false};
+        try{ localStorage.setItem('pred_user',u); localStorage.setItem('pred_pw',p); }catch(e){}
+        if(j.admin){ window.location.href='admin.html'; return; }   // amministratore
+        if(loginView) loginView.classList.add('hidden');
+        applyFlags(); poll();
+      })
+      .catch(function(){ toast('Server non raggiungibile','err'); });
   }
   if(loginBtn) loginBtn.addEventListener('click', doLogin);
   if(loginPw)  loginPw.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
-  // NB: il login NON viene saltato: anche con password salvata, bisogna premere "Accedi".
+  // NB: il login NON viene saltato: anche con dati salvati, bisogna premere "Accedi".
 
   // ---- toast (messaggi brevi) ----
   var toastEl=$('toast'), toastT=null;
@@ -386,12 +429,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- chiamate al server ----
   function apiStato(){
-    return fetch(API_BASE+'stato.php?azione=stato', {cache:'no-store'})
+    return fetch(API_BASE+'stato.php?azione=stato&u='+encodeURIComponent(getUser()), {cache:'no-store'})
       .then(function(r){ return r.json(); });
   }
   function apiAzione(azione, extra){
     var body=new URLSearchParams();
     body.set('azione', azione);
+    body.set('utente', getUser());
     body.set('password', getPw());
     if(extra){ for(var k in extra){ body.set(k, extra[k]); } }
     return fetch(API_BASE+'stato.php', {method:'POST', body:body})
@@ -399,10 +443,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function apiCarica(slot, file){
     var fd=new FormData();
+    fd.set('utente', getUser());
     fd.set('password', getPw());
     fd.set('slot', slot);
     fd.set('foto', file);
     return fetch(API_BASE+'carica.php', {method:'POST', body:fd})
+      .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+  }
+  function apiGenera(testo){
+    var body=new URLSearchParams();
+    body.set('utente', getUser()); body.set('password', getPw()); body.set('testo', testo);
+    return fetch(API_BASE+'genera.php', {method:'POST', body:body})
       .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
   }
 
@@ -601,7 +652,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       apiCarica(key, f).then(function(res){
         if(res.data && res.data.ok){
           sub.textContent='caricata · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
-          toast(key==='A' ? 'Foto A neutra salvata' : 'Rivelazione pronta','ok'); poll();
+          toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
           // se stavamo rivelando (Foto B caricata al volo da "Cambia"), rivela ora
           if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
         } else {
@@ -613,6 +664,30 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   wireSlot('slotA','A');
   wireSlot('slotB','B');
+  if($('slotBase')) wireSlot('slotBase','BASE');   // foto base (strumento foto, utente 003)
+
+  // ---- salva la casella mail dell'utente (sezione mail) ----
+  var smBtn=$('saveMail');
+  if(smBtn) smBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var e=($('mailEmail').value||'').trim(), a=($('mailApp').value||'').trim(), f=($('mailFrom').value||'').trim();
+    if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
+    comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
+  });
+
+  // ---- genera la rivelazione scritta (strumento foto) ----
+  var gBtn=$('genBtn');
+  if(gBtn) gBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var t=(($('predText').value)||'').trim();
+    if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
+    gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero…';
+    apiGenera(t).then(function(res){
+      gBtn.disabled=false; gBtn.textContent=old;
+      if(res.data && res.data.ok){ toast('Rivelazione creata ✓','ok'); poll(); }
+      else { toast((res.data&&res.data.errore)||'Generazione fallita','err'); }
+    }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
+  });
 
   // ---- primo aggiornamento + polling periodico ----
   poll();

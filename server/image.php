@@ -18,6 +18,10 @@
 
 require __DIR__ . '/config.php';
 
+/* utente (multi-utente): la mail chiede image.php?u=NUMERO&s=SESSIONE&id=…
+   Se manca ?u= si usa 001 (compatibilita' con i vecchi indirizzi). */
+predizione_set_utente($_GET['u'] ?? '');
+
 /* --- parametri dalla mail ------------------------------------------------ */
 $id = isset($_GET['id']) ? preg_replace('/[^A-Za-z0-9_\-]/', '', $_GET['id']) : '';
 $id = substr($id, 0, 40);
@@ -67,7 +71,7 @@ if (ABILITA_LOG) {
     $ua = str_replace(["\r", "\n", '"'], '', ($_SERVER['HTTP_USER_AGENT'] ?? ''));
     $ip = $_SERVER['REMOTE_ADDR'] ?? '';
     $riga = date('Y-m-d H:i:s') . ',' . ($sid ?: '') . ',' . $id . ',' . $etichetta . ',' . $ip . ',"' . $ua . "\"\n";
-    @file_put_contents(LOG_FILE, $riga, FILE_APPEND | LOCK_EX);
+    @file_put_contents(predizione_log_file(), $riga, FILE_APPEND | LOCK_EX);
 }
 
 /* --- header ANTI-CACHE (fondamentali perche' lo scambio funzioni) -------- */

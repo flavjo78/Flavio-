@@ -14,14 +14,15 @@ require __DIR__ . '/config.php';
 
 header('Cache-Control: no-store');
 
+$utente   = predizione_set_utente($_POST['utente'] ?? $_GET['u'] ?? '');  // contesto utente
 $password = $_POST['password'] ?? null;
 $slot     = strtoupper((string)($_POST['slot'] ?? ''));   // 'A' oppure 'B'
 
-if (!predizione_password_ok(is_string($password) ? $password : null)) {
+if (!predizione_auth($utente, is_string($password) ? $password : null)) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
 }
-if ($slot !== 'A' && $slot !== 'B') {
-    predizione_json(['ok' => false, 'errore' => 'Slot non valido (usa A o B)'], 400);
+if ($slot !== 'A' && $slot !== 'B' && $slot !== 'BASE') {
+    predizione_json(['ok' => false, 'errore' => 'Slot non valido (usa A, B o BASE)'], 400);
 }
 if (!isset($_FILES['foto']) || !is_array($_FILES['foto']) || ($_FILES['foto']['error'] ?? 1) !== UPLOAD_ERR_OK) {
     predizione_json(['ok' => false, 'errore' => 'Nessun file ricevuto o errore di upload'], 400);
@@ -41,10 +42,10 @@ $ext = TIPI_IMG[$mime];
 predizione_prepara_cartella();
 
 /* nome base secondo lo slot */
-$nomeBase = ($slot === 'A') ? 'foto_a' : 'rivelazione_pronta';
+$nomeBase = ($slot === 'A') ? 'foto_a' : (($slot === 'BASE') ? 'foto_base' : 'rivelazione_pronta');
 
 /* togli eventuali versioni con estensione diversa */
-$base = DATA_DIR . '/' . $nomeBase;
+$base = predizione_data_dir() . '/' . $nomeBase;
 foreach (array_values(TIPI_IMG) as $vecchia) {
     if (is_file($base . '.' . $vecchia)) { @unlink($base . '.' . $vecchia); }
 }
@@ -56,8 +57,9 @@ if (!move_uploaded_file($tmp, $dest)) {
 
 /* aggiorna lo stato */
 $stato = predizione_leggi_stato();
-if ($slot === 'A') { $stato['foto_a'] = $dest; }
-else               { $stato['rivelazione_pronta'] = $dest; }
+if      ($slot === 'A')    { $stato['foto_a'] = $dest; }
+elseif  ($slot === 'BASE') { $stato['foto_base'] = $dest; }   // per lo strumento foto
+else                       { $stato['rivelazione_pronta'] = $dest; }
 predizione_scrivi_stato($stato);
 
 predizione_json([

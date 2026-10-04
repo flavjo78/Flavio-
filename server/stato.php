@@ -27,9 +27,10 @@ function p(string $k): ?string {
    Legge l'etichetta scritta da image.php (A / B / A(test) / B(test) / neutro).
    Definita qui (non in config.php) cosi' non serve ricaricare config.php sul server. */
 function predizione_conta_aperture_ab(int $sessione): array {
-    if ($sessione <= 0 || !is_file(LOG_FILE)) return ['a' => 0, 'b' => 0];
-    $fh = @fopen(LOG_FILE, 'r');
-    if (!$fh) return ['a' => 0, 'b' => 0];
+    $logf = predizione_log_file();
+    if ($sessione <= 0 || !is_file($logf)) return ['a' => 0, 'b' => 0, 'tot' => 0];
+    $fh = @fopen($logf, 'r');
+    if (!$fh) return ['a' => 0, 'b' => 0, 'tot' => 0];
     $sid = (string)$sessione;
     // Conta i DESTINATARI distinti (per codice "id"), non i singoli scaricamenti:
     // i programmi di posta (es. Gmail) scaricano la stessa foto piu' volte per
@@ -69,7 +70,7 @@ function predizione_invio_modo($v): string {
    rivelazione caricata prima di "Cambia"/"Finisci" e' quella che resta. */
 function predizione_congela_rivelazione(array &$stato, int $nid, string $riv): void {
     $extR  = strtolower(pathinfo($riv, PATHINFO_EXTENSION)) ?: 'jpg';
-    $after = DATA_DIR . '/sess_' . $nid . '_after.' . $extR;
+    $after = predizione_data_dir() . '/sess_' . $nid . '_after.' . $extR;
     $prev  = $stato['sessioni'][(string)$nid]['after'] ?? null;
     if (!empty($prev) && is_file($prev) && $prev !== $after) @unlink($prev);
     @rename($riv, $after);
@@ -99,18 +100,150 @@ function predizione_stato_pubblico(array $s): array {
         'aperture_a'     => $ab['a'],
         'aperture_b'     => $ab['b'],
         'ora_server'     => time(),
+        'utente'         => predizione_utente(),
+        'flags'          => predizione_flags(predizione_utente()),  // il pannello sa cosa mostrare
+        'mail_impostata' => predizione_mail_impostata(predizione_utente()),
+    ];
+}
+
+/* true se l'utente ha gia' configurato la sua casella (campi minimi presenti) */
+function predizione_mail_impostata(string $u): bool {
+    $rec = predizione_utente_record($u);
+    $m = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];
+    return !empty($m['user']) && !empty($m['pass']);
+}
+
+/* ---- AZIONI AMMINISTRATORE (comandate dal pannello Admin, utente 000) --- */
+function predizione_admin(string $azione): void {
+    $utenti = predizione_utenti_leggi();
+    switch ($azione) {
+
+        case 'admin_utenti':   // elenco utenti + stato in diretta
+            $out = [];
+            foreach ($utenti as $num => $rec) {
+                $prevU = predizione_utente();
+                predizione_set_utente((string)$num);
+                $st   = predizione_leggi_stato();
+                $sess = predizione_sessione_corrente($st);
+                $ab   = predizione_conta_aperture_ab((int)($st['sessione_corrente'] ?? 0));
+                predizione_set_utente($prevU);
+                $out[] = [
+                    'numero'         => (string)$num,
+                    'admin'          => !empty($rec['admin']),
+                    'attivo'         => !empty($rec['attivo']),
+                    'flags'          => predizione_flags((string)$num),
+                    'mail_impostata' => predizione_mail_impostata((string)$num),
+                    'pass'           => (string)($rec['pass'] ?? ''),
+                    'fase'           => $sess['fase'] ?? 'spento',
+                    'sessione'       => (int)($st['sessione_corrente'] ?? 0),
+                    'aperture'       => $ab['tot'],
+                ];
+            }
+            predizione_json(['ok' => true, 'utenti' => $out]);
+
+        case 'admin_crea':
+            $num = predizione_pulisci_utente(p('numero'));
+            if ($num === '000' || isset($utenti[$num])) {
+                predizione_json(['ok' => false, 'errore' => 'Numero già esistente o non valido'], 400);
+            }
+            $pw = substr((string)(p('pw') ?? ''), 0, 100);   // password del NUOVO utente (campo a parte)
+            $utenti[$num] = [
+                'pass'   => ($pw !== '' ? $pw : PRED_DEFAULT_PASS),
+                'admin'  => false, 'attivo' => true,
+                'flags'  => ['mail' => (p('mail') === '1'), 'foto' => (p('foto') === '1')],
+                'mail'   => new stdClass(),
+            ];
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_flags':
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $utenti[$num]['flags'] = ['mail' => (p('mail') === '1'), 'foto' => (p('foto') === '1')];
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_password':
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $np = substr((string)(p('pw') ?? ''), 0, 100);   // nuova password (campo a parte, non 'password')
+            if ($np === '') predizione_json(['ok' => false, 'errore' => 'Password vuota'], 400);
+            $utenti[$num]['pass'] = $np;
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_attiva':
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $v = strtoupper((string)p('valore'));
+            $utenti[$num]['attivo'] = ($v === '1' || $v === 'ON' || $v === 'TRUE');
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_mail':
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $utenti[$num]['mail'] = predizione_mail_da_richiesta();
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_elimina':
+            $num = predizione_pulisci_utente(p('numero'));
+            if ($num === '000') predizione_json(['ok' => false, 'errore' => 'L\'amministratore non si elimina'], 400);
+            unset($utenti[$num]);
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+    }
+}
+
+/* Costruisce la configurazione casella (Gmail) dai parametri ricevuti. */
+function predizione_mail_da_richiesta(): array {
+    $email   = substr((string)(p('email') ?? ''), 0, 160);
+    $apppass = substr((string)(p('app_password') ?? ''), 0, 200);
+    $from    = substr((string)(p('from') ?? ''), 0, 160);
+    return [
+        'imap_host' => 'imap.gmail.com', 'imap_port' => 993,
+        'smtp_host' => 'smtp.gmail.com', 'smtp_port' => 587,
+        'user' => $email, 'pass' => $apppass,
+        'from' => ($from !== '' ? $from : $email),
     ];
 }
 
 $azione   = p('azione') ?? 'stato';
+$utente   = predizione_set_utente(p('utente'));   // imposta il contesto utente
 $password = p('password');
-$stato    = predizione_leggi_stato();
 
+/* ---- LOGIN: verifica accesso e ritorna le funzioni abilitate ----------- */
+if ($azione === 'login') {
+    if (!predizione_auth($utente, $password)) {
+        predizione_json(['ok' => false, 'errore' => 'Numero o password non validi'], 401);
+    }
+    $rec = predizione_utente_record($utente);
+    predizione_json([
+        'ok' => true, 'utente' => $utente,
+        'admin' => !empty($rec['admin']),
+        'flags' => predizione_flags($utente),
+    ]);
+}
+
+/* ---- AZIONI AMMINISTRATORE (utente 000) -------------------------------- */
+if (strpos($azione, 'admin_') === 0) {
+    if (!predizione_is_admin($utente, $password)) {
+        predizione_json(['ok' => false, 'errore' => 'Solo amministratore'], 403);
+    }
+    predizione_admin($azione);   // gestisce la richiesta ed esce
+    predizione_json(['ok' => false, 'errore' => 'Azione admin sconosciuta'], 400);
+}
+
+$stato = predizione_leggi_stato();
+
+/* ---- lettura stato (senza password) ------------------------------------ */
 if ($azione === 'stato') {
     predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 }
 
-if (!predizione_password_ok($password)) {
+/* ---- da qui serve l'accesso dell'utente (numero + sua password) -------- */
+if (!predizione_auth($utente, $password)) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
 }
 
@@ -146,7 +279,7 @@ switch ($azione) {
 
         // congela la Foto A DI QUESTA sessione (file con nome dedicato)
         $extA = strtolower(pathinfo($foto_a, PATHINFO_EXTENSION)) ?: 'jpg';
-        $before = DATA_DIR . '/sess_' . $nid . '_before.' . $extA;
+        $before = predizione_data_dir() . '/sess_' . $nid . '_before.' . $extA;
         @copy($foto_a, $before);           // la neutra viene copiata (resta anche come default)
 
         $stato['sessioni'][(string)$nid] = [
@@ -255,6 +388,17 @@ switch ($azione) {
         $stato['mail_oggetto'] = substr((string)(p('oggetto') ?? ''), 0, 200);
         $stato['mail_testo']   = substr((string)(p('testo') ?? ''), 0, 2000);
         predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'mail_config':
+        // l'utente imposta la PROPRIA casella (serve il flag 'mail' abilitato)
+        $flags = predizione_flags($utente);
+        if (empty($flags['mail'])) {
+            predizione_json(['ok' => false, 'errore' => 'Funzione mail non abilitata'], 403);
+        }
+        $utenti = predizione_utenti_leggi();
+        $utenti[$utente]['mail'] = predizione_mail_da_richiesta();
+        predizione_utenti_scrivi($utenti);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     default:
