@@ -216,7 +216,9 @@ function predizione_mail_da_richiesta(): array {
 }
 
 $azione   = p('azione') ?? 'stato';
-$utente   = predizione_set_utente(p('utente'));   // imposta il contesto utente
+// contesto utente: accetta sia 'utente' (POST dei comandi) sia 'u' (GET della lettura
+// stato, come lo manda il pannello). Senza 'u' la lettura tornava sempre a 001.
+$utente   = predizione_set_utente(p('utente') ?? ($_GET['u'] ?? ''));
 $password = p('password');
 
 /* ---- LOGIN: verifica accesso e ritorna le funzioni abilitate ----------- */
