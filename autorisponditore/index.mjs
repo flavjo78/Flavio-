@@ -58,6 +58,9 @@ const {
 
 const ses = new SESClient({ region: AWS_REGION });
 
+// indirizzo email "di casa" (estratto da SES_FROM, es. "Predizione <io@abraka.it>")
+const CASA_FROM_EMAIL = (String(SES_FROM).match(/<([^>]+)>/) || [, SES_FROM])[1];
+
 /* trasporti SMTP in cache (uno per host+porta+utente) */
 const txCache = new Map();
 function smtpTransport(host, port, user, pass) {
@@ -140,6 +143,12 @@ async function postPannello(campi) {
 async function processaCasella(cfg) {
   const { utente, imap, stato, invia, panelUser, panelPass } = cfg;
 
+  // ANTI-LOOP: indirizzi "propri" a cui NON rispondere mai (altrimenti la
+  // risposta rientra come nuova mail e parte un giro infinito). Include
+  // l'indirizzo della casella e quello da cui spediamo.
+  const selfEmails = [cfg.selfEmail, imap.user]
+    .filter(Boolean).map((s) => String(s).toLowerCase());
+
   if (!stato.autorisponditore) {
     return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase };
   }
@@ -178,6 +187,14 @@ async function processaCasella(cfg) {
           mTesto   = parsed?.text || '';
         } catch (e) {
           console.log('parsing mail fallito', utente, uid, e.message);
+        }
+
+        // ANTI-LOOP: se la mail arriva dal nostro stesso indirizzo (o e' una
+        // nostra risposta rientrata), la ignoriamo. E' gia' segnata \Seen sopra,
+        // quindi non verra' riletta: niente conteggio, niente risposta.
+        if (mittente && selfEmails.includes(mittente.toLowerCase())) {
+          console.log('salto auto-mail', utente, '<-', mittente);
+          continue;
         }
         lette++;
 
@@ -265,6 +282,7 @@ export const handler = async () => {
         },
         invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
         panelUser: PANEL_USER, panelPass: PANEL_PASS,
+        selfEmail: CASA_FROM_EMAIL,            // io@abraka.it: non rispondere a se stessa
       }));
     } catch (e) {
       console.log('casella di casa fallita:', e.message);
@@ -297,6 +315,7 @@ export const handler = async () => {
           html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
         }),
         panelUser: c.utente, panelPass: c.pass_pannello,
+        selfEmail: (c.from && c.from.includes('@')) ? c.from : c.imap_user, // non rispondere a se stessa
       }));
     } catch (e) {
       console.log('casella fallita', c.utente, e.message);
