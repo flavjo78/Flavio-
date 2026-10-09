@@ -64,6 +64,11 @@
   - **Foto B / rivelazioni: MAI cancellate.** Il pubblico tiene la mail come ricordo e il trucco non deve svelarsi → restano online per sempre (il server non va mai spento).
   - **Foto A / neutre d'attesa:** cancellabili dopo **60 giorni** e sostituite da una **"Foto A per tutti"** standard condivisa (da scegliere). Sicuro, perché dopo lo show image.php mostra comunque la B.
 
+## 6-quater. Idea di ricavo futura — "Conserva foto"
+- [ ] Dopo i **5 anni** (o alla scadenza), per i **non più abbonati**: offrire a pagamento la
+  **conservazione delle Foto B** (il "ricordo" resta online). Esempio: piccola quota annua per
+  tenere vive le rivelazioni. Sostiene la promessa "foto per sempre" e diventa un ricavo.
+
 ## 7. Parte legale/fiscale (NON tecnica)
 - [ ] Verificare coerenza con la **Partita IVA** (vendere software = fatture + IVA).
 - [ ] Pagine legali minime (termini, privacy) sul sito.
