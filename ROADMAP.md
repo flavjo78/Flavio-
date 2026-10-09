@@ -60,7 +60,9 @@
   - lato lungo max **1280 px**, qualità JPEG **~82%**, proporzioni mantenute, salvata in JPEG.
   - vale per **Foto A, Rivelazione e foto base** (carica.php + genera.php).
   - risultato: da 2–5 MB a ~100–250 KB (−10/20×), senza differenza visibile nella mail (mostrata a 520 px).
-- [ ] (Abbinare a) **cancellazione automatica** delle foto vecchie dopo X giorni, per non crescere all'infinito.
+- [ ] **Regola di conservazione foto (decisa):**
+  - **Foto B / rivelazioni: MAI cancellate.** Il pubblico tiene la mail come ricordo e il trucco non deve svelarsi → restano online per sempre (il server non va mai spento).
+  - **Foto A / neutre d'attesa:** cancellabili dopo **60 giorni** e sostituite da una **"Foto A per tutti"** standard condivisa (da scegliere). Sicuro, perché dopo lo show image.php mostra comunque la B.
 
 ## 7. Parte legale/fiscale (NON tecnica)
 - [ ] Verificare coerenza con la **Partita IVA** (vendere software = fatture + IVA).
@@ -70,7 +72,7 @@
 ---
 
 ### Promemoria piani (bozza da rifinire)
-- **Una tantum 25 €** (attenzione: "per sempre" ha costi infiniti per te → valutare): 85 mail/mese, 12 sessioni/mese, IA a crediti.
+- **Acquisto app 25 € — "per sempre"** (presentazione al cliente). Internamente: prezzo **modificabile** e si potranno aggiungere **piani annuali** in futuro; chi ha già comprato "per sempre" mantiene il suo. Limiti: 85 mail/mese, 12 sessioni/mese, IA a crediti.
 - **6 €/mese**: 500 mail/mese (max 150/giorno), 3 sessioni/giorno, IA 20 generazioni, 2 link duo.
 - **12 €/mese**: max 3000 mail/mese (nei limiti della propria casella), IA 25 foto, 2 link duo.
 
