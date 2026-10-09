@@ -69,6 +69,13 @@
   **conservazione delle Foto B** (il "ricordo" resta online). Esempio: piccola quota annua per
   tenere vive le rivelazioni. Sostiene la promessa "foto per sempre" e diventa un ricavo.
 
+## 6-quinquies. Invio diretto (senza autorisponditore) — per piccoli gruppi
+- [ ] Modalità alternativa per **pochi spettatori (max ~5)**: il performer **non** aspetta che
+  gli scrivano; **inserisce lui gli indirizzi** nel pannello e **invia la mail direttamente**
+  dall'app. "Datemi il vostro indirizzo che vi scrivo io."
+- [ ] Utile quando non si vuole usare il flusso "scrivetemi → rispondo". Riusa l'invio già
+  esistente (Gmail/casella), solo con destinatari digitati a mano.
+
 ## 7. Parte legale/fiscale (NON tecnica)
 - [ ] Verificare coerenza con la **Partita IVA** (vendere software = fatture + IVA).
 - [ ] Pagine legali minime (termini, privacy) sul sito.
