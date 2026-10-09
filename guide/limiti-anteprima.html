@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>I miei limiti</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* Layout: schermata "consumi" del pannello — colonna singola, barre di utilizzo con colore a semaforo */
+  :root{
+    --bg:#f6f3ec; --surface:#ffffff; --fg:#24262c; --dim:#6f7480;
+    --line:#e4e0d6; --track:#eceadf; --gold:#9c6f27; --gold-ink:#7c571c; --gold-soft:#f3ead6;
+    --ok:#3f8f5b; --warn:#b4842a; --full:#b4452f;
+    --display:"Playfair Display", Georgia, serif;
+    --body:"Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --track:#2b2e36; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a;
+    --ok:#5fb87e; --warn:#d9a94e; --full:#e0735a; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --track:#2b2e36; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a;
+    --ok:#5fb87e; --warn:#d9a94e; --full:#e0735a; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.5;-webkit-text-size-adjust:100%}
+  .wrap{max-width:460px;margin:0 auto;padding-block:26px 48px;padding-left:16px;padding-right:16px}
+
+  header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px 12px;margin-bottom:4px}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(24px,7vw,28px);margin:0;min-width:0}
+  .plan{flex:0 0 auto;background:var(--gold-soft);color:var(--gold-ink);border:1px solid var(--line);
+        border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:700;white-space:nowrap}
+  .reset{color:var(--dim);font-size:13px;margin:2px 0 16px}
+
+  .meter{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:11px}
+  .mrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:9px}
+  .mlabel{font-weight:600;font-size:15.5px}
+  .mval{font-variant-numeric:tabular-nums;font-size:14px;color:var(--dim)}
+  .mval b{color:var(--fg);font-size:15px}
+  .bar{height:9px;border-radius:999px;background:var(--track);overflow:hidden}
+  .fill{height:100%;border-radius:999px}
+  .fill.ok{background:var(--ok)} .fill.warn{background:var(--warn)} .fill.full{background:var(--full)}
+  .note{font-size:12.5px;margin-top:7px}
+  .note.ok{color:var(--dim)} .note.warn{color:var(--warn)} .note.full{color:var(--full);font-weight:600}
+
+  .inc{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);
+       border-radius:14px;padding:12px 16px;margin-bottom:11px;font-size:15px}
+  .inc .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);flex:0 0 auto}
+  .inc b{font-weight:600}
+  .inc .tag{margin-left:auto;color:var(--ok);font-weight:700;font-size:13px}
+
+  h2{font-family:var(--display);font-weight:600;font-size:19px;margin:24px 0 10px}
+  .buy{display:flex;flex-wrap:wrap;gap:9px}
+  .buy a{flex:1 1 42%;text-align:center;text-decoration:none;font-weight:600;font-size:14px;
+         border:1px solid var(--gold);color:var(--gold-ink);border-radius:10px;padding:10px 8px;background:transparent}
+  .buy a .p{display:block;font-family:var(--display);font-weight:700;font-size:16px;color:var(--fg);margin-top:2px}
+  .foot{color:var(--dim);font-size:12px;text-align:center;margin-top:22px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <h1>I miei limiti</h1>
+    <span class="plan">Quinte · 6 €/mese</span>
+  </header>
+  <div class="reset">Si azzerano il 1° del mese. Oggi: 9 ottobre.</div>
+
+  <!-- Sessioni oggi (piena) -->
+  <div class="meter">
+    <div class="mrow"><span class="mlabel">Sessioni di oggi</span><span class="mval"><b>1</b> / 1</span></div>
+    <div class="bar"><div class="fill full" style="width:100%"></div></div>
+    <div class="note full">Esaurite per oggi · ne avrai 1 nuova domani (o usa il bonus del mese).</div>
+  </div>
+
+  <!-- Bonus sessioni mese -->
+  <div class="meter">
+    <div class="mrow"><span class="mlabel">Sessioni bonus del mese</span><span class="mval"><b>2</b> / 5 usate</span></div>
+    <div class="bar"><div class="fill ok" style="width:40%"></div></div>
+    <div class="note ok">Te ne restano 3 fino al 31 ottobre.</div>
+  </div>
+
+  <!-- Mail oggi -->
+  <div class="meter">
+    <div class="mrow"><span class="mlabel">Mail di oggi</span><span class="mval"><b>64</b> / 100</span></div>
+    <div class="bar"><div class="fill warn" style="width:64%"></div></div>
+    <div class="note warn">Ti restano 36 mail per oggi.</div>
+  </div>
+
+  <!-- Mail mese -->
+  <div class="meter">
+    <div class="mrow"><span class="mlabel">Mail del mese</span><span class="mval"><b>318</b> / 500</span></div>
+    <div class="bar"><div class="fill ok" style="width:64%"></div></div>
+    <div class="note ok">Ti restano 182 mail questo mese.</div>
+  </div>
+
+  <!-- Foto IA -->
+  <div class="meter">
+    <div class="mrow"><span class="mlabel">Foto con IA</span><span class="mval"><b>11</b> / 15</span></div>
+    <div class="bar"><div class="fill warn" style="width:73%"></div></div>
+    <div class="note warn">Ti restano 4 foto IA questo mese.</div>
+  </div>
+
+  <!-- Inclusi -->
+  <div class="inc"><span class="dot"></span><b>Assistente Duo</b><span class="tag">Incluso</span></div>
+  <div class="inc"><span class="dot"></span><b>Report di sessione</b><span class="tag">Incluso</span></div>
+
+  <h2>Finiti? Aggiungi al volo</h2>
+  <div class="buy">
+    <a href="#">+200 mail <span class="p">1 €</span></a>
+    <a href="#">10 foto IA <span class="p">2,50 €</span></a>
+    <a href="#">5 sessioni <span class="p">2 €</span></a>
+    <a href="#">Passa a Sipario <span class="p">9 €/mese</span></a>
+  </div>
+
+  <div class="foot">Anteprima · i numeri sono di esempio.</div>
+
+</div>
+</body>
+</html>
