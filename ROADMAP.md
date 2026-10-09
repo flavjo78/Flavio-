@@ -46,6 +46,15 @@
     oppure **Stripe** (fee più basse ma IVA/fatture a carico tuo).
 - [ ] Lo "stato pagato" lo stabilisce il sistema di pagamento (notifica verificata), non a mano.
 
+## 6-bis. Benvenuto e guida (onboarding)
+- [x] **Guida utente** con disegni → `guide/guida-registrazione.html` (BOZZA pronta, non ancora online).
+  - Da aggiornare a ogni nuova funzionalità (ha "Versione + data" in fondo).
+  - Da caricare su abraka.it in una cartella `guide/` quando si vuole.
+- [ ] **Mail di benvenuto** (bozza scritta): credenziali `{{NUMERO}}`/`{{PASSWORD}}` + link alla guida.
+  - La invierà in automatico il webhook del pagamento (punto 6).
+- [ ] Da decidere: nome/brand in cima, contatto assistenza, se fare una guida diversa per piano
+  oppure una sola con le parti opzionali segnate.
+
 ## 7. Parte legale/fiscale (NON tecnica)
 - [ ] Verificare coerenza con la **Partita IVA** (vendere software = fatture + IVA).
 - [ ] Pagine legali minime (termini, privacy) sul sito.
