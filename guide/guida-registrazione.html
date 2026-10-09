@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Guida Predizione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* Layout: guida a colonna singola, passi numerati in schede, accento oro su fondo caldo */
+  :root{
+    --bg:#f6f3ec; --surface:#ffffff; --fg:#24262c; --dim:#6f7480;
+    --line:#e4e0d6; --gold:#b0802f; --gold-soft:#f3ead6;
+    --display:"Playfair Display", Georgia, serif;
+    --body:"Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9a9fab;
+    --line:#2d3038; --gold:#d8aa52; --gold-soft:#2a241a; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9a9fab;
+    --line:#2d3038; --gold:#d8aa52; --gold-soft:#2a241a; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto;padding-block:32px 64px;padding-left:18px;padding-right:18px}
+
+  header.top{text-align:center;margin-bottom:10px}
+  .eyebrow{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(34px,8vw,52px);line-height:1.05;margin:6px 0 4px;text-wrap:balance}
+  .lede{color:var(--dim);font-size:18px;margin:0 auto;max-width:48ch}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:22px 20px;margin-top:18px}
+  .step-head{display:flex;align-items:center;gap:14px;margin-bottom:4px}
+  .num{flex:0 0 auto;width:38px;height:38px;border-radius:50%;background:var(--gold-soft);color:var(--gold);
+       font-family:var(--display);font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center}
+  h2{font-family:var(--display);font-weight:600;font-size:23px;margin:0;line-height:1.15}
+  .opt{display:inline-block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);
+       border:1px solid var(--line);border-radius:999px;padding:2px 9px;margin-left:2px;vertical-align:middle}
+  .card p{margin:10px 0}
+  ol.sub,ul.sub{margin:10px 0 2px;padding-left:22px}
+  ol.sub li,ul.sub li{margin:7px 0}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.92em;background:var(--gold-soft);
+        color:var(--fg);padding:1px 7px;border-radius:6px;word-break:break-all}
+  a{color:var(--gold);text-decoration:underline;text-underline-offset:2px}
+  .note{background:var(--gold-soft);border-radius:12px;padding:12px 15px;margin-top:14px;font-size:15.5px}
+  .note b{color:var(--gold)}
+
+  figure{margin:16px 0 2px}
+  figure svg{width:100%;height:auto;max-width:100%}
+  figcaption{color:var(--dim);font-size:14px;text-align:center;margin-top:8px}
+
+  .foot{margin-top:34px;text-align:center;color:var(--dim);font-size:14px;border-top:1px solid var(--line);padding-top:18px}
+  .ver{font-size:12.5px;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="eyebrow">Benvenuto</div>
+    <h1>Predizione</h1>
+    <p class="lede">La guida per preparare e fare il tuo spettacolo. Pochi passi, una volta sola.</p>
+  </header>
+
+  <section class="card">
+    <p style="margin-top:0">Hai ricevuto per mail il tuo <b>numero utente</b> e la tua <b>password</b>.
+    Tienili a portata di mano: servono per entrare nel pannello, cioè l'app con cui comandi il gioco dal telefono.</p>
+  </section>
+
+  <!-- 1 -->
+  <section class="card">
+    <div class="step-head"><div class="num">1</div><h2>Entra nel pannello</h2></div>
+    <p>Apri sul telefono l'indirizzo che trovi nella mail di benvenuto
+    (<span class="mono">https://www.abraka.it/predizione/regia-predizione.html</span>).
+    Nella schermata di accesso inserisci il tuo <b>numero</b> e la tua <b>password</b> e premi <b>Accedi</b>.</p>
+    <div class="note">Suggerimento: dopo il primo accesso, usa “Aggiungi a schermata Home” del browser per avere
+    l'app come un'icona sul telefono.</div>
+  </section>
+
+  <!-- 2 -->
+  <section class="card">
+    <div class="step-head"><div class="num">2</div><h2>Collega la tua casella Gmail <span class="opt">se previsto dal tuo piano</span></h2></div>
+    <p>Serve perché le risposte agli spettatori partano dalla <b>tua</b> casella. Si fa una volta sola.</p>
+    <ol class="sub">
+      <li>Nell'Account Google della tua Gmail, attiva la <b>Verifica in due passaggi</b>
+      (<span class="mono">myaccount.google.com/signinoptions/twosv</span>).</li>
+      <li>Crea una <b>password per app</b> (<span class="mono">myaccount.google.com/apppasswords</span>):
+      dai un nome qualsiasi, premi <b>Crea</b> e copia le <b>16 lettere</b> che compaiono.</li>
+      <li>Nel pannello: <b>Impostazioni</b> (l'ingranaggio) → <b>La tua casella</b>. Inserisci l'indirizzo Gmail,
+      le 16 lettere <b>senza spazi</b> e un nome mittente, poi <b>Salva</b>.</li>
+    </ol>
+    <div class="note"><b>Importante:</b> l'indirizzo Gmail nel pannello dev'essere <b>esattamente</b> quello su cui hai
+    creato la password per app.</div>
+  </section>
+
+  <!-- 3 -->
+  <section class="card">
+    <div class="step-head"><div class="num">3</div><h2>Prepara le due foto</h2></div>
+    <p>In <b>Impostazioni → Le foto</b> carichi:</p>
+    <ul class="sub">
+      <li><b>Foto A — neutra</b>: l'immagine d'attesa. Si carica una volta e resta (se non la carichi, ne viene usata una predefinita).</li>
+      <li><b>Rivelazione</b>: la foto “sorpresa”. Va caricata <b>prima di ogni spettacolo</b>: sarà quella che compare al momento giusto.</li>
+    </ul>
+  </section>
+
+  <!-- 4 -->
+  <section class="card">
+    <div class="step-head"><div class="num">4</div><h2>Durante lo spettacolo</h2></div>
+    <p>Tre tasti, in ordine. Lo spettatore vede cambiare la foto nella mail quando lo decidi tu.</p>
+
+    <figure>
+      <svg viewBox="0 0 680 150" role="img" aria-label="Le fasi del gioco: Spento, poi Avvia mostra la Foto A, poi Cambia mostra la Rivelazione, poi Finisci chiude e la rivelazione resta per sempre.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0 0 L10 5 L0 10 z" fill="currentColor"></path>
+          </marker>
+        </defs>
+        <!-- 4 riquadri -->
+        <g font-family="Source Sans 3, sans-serif">
+          <!-- Spento -->
+          <rect x="4" y="40" width="150" height="70" rx="12" fill="none" stroke="currentColor" stroke-opacity=".45"></rect>
+          <text x="79" y="70" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Spento</text>
+          <text x="79" y="92" text-anchor="middle" font-size="12.5" fill="currentColor" fill-opacity=".7">non risponde</text>
+
+          <!-- Avvia -->
+          <rect x="178" y="40" width="150" height="70" rx="12" fill="none" stroke="currentColor" stroke-opacity=".45"></rect>
+          <text x="253" y="64" text-anchor="middle" font-size="15" font-weight="700" fill="#b0802f">Avvia</text>
+          <text x="253" y="85" text-anchor="middle" font-size="12.5" fill="currentColor" fill-opacity=".8">mostra la Foto A</text>
+          <text x="253" y="101" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity=".6">(attesa)</text>
+
+          <!-- Cambia -->
+          <rect x="352" y="40" width="150" height="70" rx="12" fill="var(--gold-soft)" stroke="#b0802f"></rect>
+          <text x="427" y="64" text-anchor="middle" font-size="15" font-weight="700" fill="#b0802f">Cambia</text>
+          <text x="427" y="85" text-anchor="middle" font-size="12.5" fill="currentColor" fill-opacity=".85">mostra la</text>
+          <text x="427" y="101" text-anchor="middle" font-size="12.5" font-weight="700" fill="currentColor">Rivelazione</text>
+
+          <!-- Finisci -->
+          <rect x="526" y="40" width="150" height="70" rx="12" fill="none" stroke="currentColor" stroke-opacity=".45"></rect>
+          <text x="601" y="64" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Finisci</text>
+          <text x="601" y="85" text-anchor="middle" font-size="12.5" fill="currentColor" fill-opacity=".8">chiude</text>
+          <text x="601" y="101" text-anchor="middle" font-size="11.5" fill="currentColor" fill-opacity=".6">la B resta per sempre</text>
+
+          <!-- frecce -->
+          <line x1="158" y1="75" x2="174" y2="75" stroke="currentColor" marker-end="url(#ar)"></line>
+          <line x1="332" y1="75" x2="348" y2="75" stroke="currentColor" marker-end="url(#ar)"></line>
+          <line x1="506" y1="75" x2="522" y2="75" stroke="currentColor" marker-end="url(#ar)"></line>
+        </g>
+      </svg>
+      <figcaption>Spento → <b>Avvia</b> (Foto A) → <b>Cambia</b> (Rivelazione) → <b>Finisci</b>. Per il prossimo show, di nuovo “Avvia”.</figcaption>
+    </figure>
+
+    <ul class="sub">
+      <li><b>Avvia gioco</b>: da ora il sistema risponde; chi apre vede la <b>Foto A</b> d'attesa.</li>
+      <li><b>Cambia (rivela)</b>: la foto diventa la <b>Rivelazione</b>. Questo è il momento magico.</li>
+      <li><b>Finisci gioco</b>: chiude lo spettacolo. La rivelazione resta per sempre per chi l'ha ricevuta.</li>
+    </ul>
+    <div class="note"><b>La regola d'oro:</b> di' agli spettatori di <b>aprire la mail solo DOPO</b> che hai premuto
+    “Cambia”. Così vedono subito la rivelazione. (Le mail già aperte prima, su Gmail, restano con la Foto A.)</div>
+  </section>
+
+  <!-- 5 -->
+  <section class="card">
+    <div class="step-head"><div class="num">5</div><h2>Crea la rivelazione con la foto <span class="opt">strumento foto</span></h2></div>
+    <p>Se il tuo piano include lo strumento foto, puoi generare la rivelazione partendo da una tua foto:
+    carichi la <b>foto base</b>, segni i <b>4 angoli</b> del foglio, scrivi la frase e la ritrovi scritta
+    “a mano” sul foglio, in prospettiva. La usi come Rivelazione.</p>
+  </section>
+
+  <!-- 6 -->
+  <section class="card">
+    <div class="step-head"><div class="num">6</div><h2>Il report di fine serata</h2></div>
+    <p>In <b>Impostazioni → Report</b> apri una pagina con <b>chi ti ha scritto</b> (indirizzo, oggetto, testo)
+    e <b>chi ha aperto per primo</b>. Puoi salvarla o stamparla. Quando non ti serve più, usa
+    <b>“Cancella i dati del report”</b> per rispetto della privacy.</p>
+  </section>
+
+  <!-- consigli -->
+  <section class="card">
+    <div class="step-head"><div class="num">★</div><h2>Consigli utili</h2></div>
+    <ul class="sub">
+      <li>Fai sempre una <b>piccola prova</b> (1–2 mail) poco prima dello show.</li>
+      <li>Premi <b>“Finisci”</b> circa un minuto dopo l'ultima mail, così tutti fanno in tempo a ricevere la risposta.</li>
+      <li>Da una Gmail normale conviene restare sotto le <b>~300–400 mail al giorno</b>: per eventi molto grandi serve un canale dedicato.</li>
+    </ul>
+  </section>
+
+  <!-- assistenza -->
+  <section class="card">
+    <div class="step-head"><div class="num">?</div><h2>Assistenza</h2></div>
+    <p>Hai un problema o una domanda? Scrivici: <span class="mono">io@abraka.it</span>. Ti aiutiamo noi.</p>
+  </section>
+
+  <div class="foot">
+    <div>Predizione · guida rapida</div>
+    <div class="ver">Versione 1 — aggiornata il 9 ottobre 2026</div>
+  </div>
+
+</div>
+</body>
+</html>
