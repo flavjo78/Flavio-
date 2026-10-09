@@ -82,7 +82,7 @@
 | | Foyer | Quinte | Sipario | Palco |
 |---|---|---|---|---|
 | Prezzo/mese | 0 € | 6 € | 9 € | 19 € |
-| Prezzo/anno (10 mesi) | — | 60 € | 90 € | 190 € |
+| Prezzo/anno (10 mesi, confermato) | — | 60 € | 90 € | 190 € |
 | Sessioni | 12/mese | 1/g + 5/mese | 2/g + 10/mese | 3/g + 15/mese |
 | Mail | 85/mese | 500/mese (100/g) | 1.500/mese (150/g) | 3.500/mese (funz. Palco, no limite giorno) + Gmail nei suoi limiti |
 | Foto IA incluse | 10 (una tantum) | 15/mese | 30/mese | 100/mese |
