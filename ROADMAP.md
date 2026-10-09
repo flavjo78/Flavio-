@@ -76,10 +76,23 @@
 
 ---
 
-### Promemoria piani (bozza da rifinire)
-- **Acquisto app 25 € — "per sempre"** (presentazione al cliente). Internamente: prezzo **modificabile** e si potranno aggiungere **piani annuali** in futuro; chi ha già comprato "per sempre" mantiene il suo. Limiti: 85 mail/mese, 12 sessioni/mese, IA a crediti.
-- **6 €/mese**: 500 mail/mese (max 150/giorno), 3 sessioni/giorno, IA 20 generazioni, 2 link duo.
-- **12 €/mese**: max 3000 mail/mese (nei limiti della propria casella), IA 25 foto, 2 link duo.
+### Piani (nomi "teatro": Foyer → Platea → Sipario → Palco) — bozza da confermare
+Numeri in *corsivo* = da confermare.
+
+| | Foyer (una tantum, 5 anni) | Platea (mensile) | Sipario (mensile) | Palco (mensile) |
+|---|---|---|---|---|
+| Prezzo | 25 € una volta | *6 €* | *10 €* | *14 €* |
+| Sessioni | 5/mese | *15/mese* | *3/giorno* | 10/giorno |
+| Assistente Duo | 5 sessioni/mese | ogni sessione | ogni sessione | ogni sessione |
+| Mail (Gmail) | 85/mese | 500/mese | 500/mese | 500 + grandi invii |
+| Foto IA incluse | 10 omaggio | *10/mese* | *20/mese* | *25/mese* |
+| Grandi invii (Mailgun) | — | — | — | add-on |
+| Crediti extra (foto/sessioni) | sì | sì | sì | sì |
+
+- **Foyer 25 €** presentato come "per sempre / 5 anni"; prezzo modificabile, chi compra mantiene le sue condizioni.
+- **Palco – grandi invii:** setup una tantum **~50 €** (dominio + Mailgun, mail non-Gmail oltre le 500),
+  poi a consumo/pacchetti in base alle mail (personalizzabile). Costo vivo Mailgun: ~14 €/mese per 10.000 + ~1,5 €/1.000.
+- **Crediti** (da prezzare): foto IA (costo ~0,04 €), sessioni (costo ~0 €), assistente Duo (costo ~0 €).
 
 ### Costi di riferimento (ad oggi)
 - Hosting Tophost Topweb: ~19 €/anno (20 GB). Upgrade: Plus 30 GB / Ultra 50 GB.
