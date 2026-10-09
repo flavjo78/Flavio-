@@ -76,23 +76,37 @@
 
 ---
 
-### Piani (nomi "teatro": Foyer → Platea → Sipario → Palco) — bozza da confermare
-Numeri in *corsivo* = da confermare.
+### Piani — DEFINITIVI (nomi "teatro"): Foyer → Quinte → Sipario → Palco
+**Accesso all'app: 25 € / 5 anni** (una tantum, per tutti — scritto in piccolo ma chiaro). Poi si sceglie il livello.
 
-| | Foyer (una tantum, 5 anni) | Platea (mensile) | Sipario (mensile) | Palco (mensile) |
+| | Foyer | Quinte | Sipario | Palco |
 |---|---|---|---|---|
-| Prezzo | 25 € una volta | *6 €* | *10 €* | *14 €* |
-| Sessioni | 5/mese | *15/mese* | *3/giorno* | 10/giorno |
-| Assistente Duo | 5 sessioni/mese | ogni sessione | ogni sessione | ogni sessione |
-| Mail (Gmail) | 85/mese | 500/mese | 500/mese | 500 + grandi invii |
-| Foto IA incluse | 10 omaggio | *10/mese* | *20/mese* | *25/mese* |
-| Grandi invii (Mailgun) | — | — | — | add-on |
-| Crediti extra (foto/sessioni) | sì | sì | sì | sì |
+| Prezzo/mese | 0 € | 6 € | 9 € | 19 € |
+| Prezzo/anno (10 mesi) | — | 60 € | 90 € | 190 € |
+| Sessioni | 12/mese | 1/g + 5/mese | 2/g + 10/mese | 3/g + 15/mese |
+| Mail | 85/mese | 500/mese (100/g) | 1.500/mese (150/g) | 3.500/mese (funz. Palco, no limite giorno) + Gmail nei suoi limiti |
+| Foto IA incluse | 10 (una tantum) | 15/mese | 30/mese | 100/mese |
+| Assistente Duo | ✗ (a pagamento) | incluso | incluso | incluso |
+| Report sessione | ✗ (a pagamento) | incluso | incluso | incluso |
 
-- **Foyer 25 €** presentato come "per sempre / 5 anni"; prezzo modificabile, chi compra mantiene le sue condizioni.
-- **Palco – grandi invii:** setup una tantum **~50 €** (dominio + Mailgun, mail non-Gmail oltre le 500),
-  poi a consumo/pacchetti in base alle mail (personalizzabile). Costo vivo Mailgun: ~14 €/mese per 10.000 + ~1,5 €/1.000.
-- **Crediti** (da prezzare): foto IA (costo ~0,04 €), sessioni (costo ~0 €), assistente Duo (costo ~0 €).
+Note:
+- **Strumento foto manuale ELIMINATO**: esistono solo le **foto IA** (a crediti).
+- **"Grandi invii" (Mailgun) INCLUSO nel Palco** (niente setup separato).
+- Sessioni: si consumano **prima quelle del giorno**, poi il bonus del mese.
+- Foyer "0 €/mese" ma richiede l'accesso 25 €/5 anni; prezzo modificabile, chi compra mantiene le sue condizioni.
+
+### Acquisti extra (à la carte)
+| Opzione | Prezzo | Costo per te |
+|---|---|---|
+| +200 mail (Gmail) | 1 € | ~0 € |
+| 10 crediti foto IA | 2,5 € | ~0,40 € |
+| 5 crediti sessione | 2 € (~0,40/cad) | ~0 € |
+| Assistente Duo (solo Foyer) | 2 € / 30 gg | ~0 € |
+| Report sessione (solo Foyer) | 1 € / 30 gg | ~0 € |
+| 5.000 mail (funzione Palco) | 7 € (a costo) | ~7 € (Mailgun) |
+
+- Costi vivi: foto IA ~0,04 €/foto; sessioni ~0 €; Duo/Report ~0 €; mail Mailgun ~1,4 €/1.000.
+- Le **mail Palco** si vendono **a costo**: il guadagno è l'abbonamento (19 €/mese), non il pacchetto mail.
 
 ### Costi di riferimento (ad oggi)
 - Hosting Tophost Topweb: ~19 €/anno (20 GB). Upgrade: Plus 30 GB / Ultra 50 GB.
