@@ -55,6 +55,13 @@
 - [ ] Da decidere: nome/brand in cima, contatto assistenza, se fare una guida diversa per piano
   oppure una sola con le parti opzionali segnate.
 
+## 6-ter. Ridimensionamento automatico delle foto (risparmio spazio)
+- [ ] Al **caricamento**, ogni foto viene **rimpicciolita in automatico** (nessun tasto):
+  - lato lungo max **1280 px**, qualità JPEG **~82%**, proporzioni mantenute, salvata in JPEG.
+  - vale per **Foto A, Rivelazione e foto base** (carica.php + genera.php).
+  - risultato: da 2–5 MB a ~100–250 KB (−10/20×), senza differenza visibile nella mail (mostrata a 520 px).
+- [ ] (Abbinare a) **cancellazione automatica** delle foto vecchie dopo X giorni, per non crescere all'infinito.
+
 ## 7. Parte legale/fiscale (NON tecnica)
 - [ ] Verificare coerenza con la **Partita IVA** (vendere software = fatture + IVA).
 - [ ] Pagine legali minime (termini, privacy) sul sito.
