@@ -1,7 +1,31 @@
 # PREDIZIONE — Prossimi passi (promemoria)
 
 > Lista delle cose da fare per trasformare l'app in un prodotto vendibile.
-> Annotata il 5 ottobre 2026. NIENTE di questo è ancora implementato: è un piano.
+> Annotata il 5 ottobre 2026; aggiornata il 10 ottobre 2026.
+
+---
+
+## ▶ PROSSIMA SESSIONE (domani, 11 ottobre) — ordine deciso con Flavio
+1. **Home page del sito "abraka"** (la vetrina): scegliere tra le due anteprime salvate
+   (`guide/anteprime/vetrina-camera.html` foto, oppure `vetrina-video.html` col video vero),
+   rifinirla e prepararla come pagina reale.
+2. **Caricare tutto** nell'app ("grande caricamento"): gli **arretrati del Gruppo 1** (6 file:
+   config.php, stato.php, carica.php, genera_ia.php, assistente.html, regia-predizione.html)
+   + i pezzi del **Gruppo 2** che intanto costruiamo.
+
+### Anteprime di design approvate / da costruire (salvate in `guide/anteprime/`)
+- **App utente ridisegnata** (`app-redesign-anteprima.html`): login con **lingua** (bandiere SVG,
+  no traduzioni finché l'app non è pronta), **prima configurazione** una volta (telefono +39,
+  Gmail, codice 16 caratteri, mail comunicazioni), Regia uguale, **Impostazioni = menu a quadrati
+  oro** (7 tasti: Imposta foto · Testo mail · Autorisponditore · Assistente · Limiti · Report ·
+  Impostazioni avanzate). Imposta foto: A/B, spunta "A predefinita", **✕** per togliere,
+  Galleria/Fotocamera, **foto a tutto schermo** al tocco, Genera IA (grigio se fuori piano),
+  **orari con interruttore (default spento)**. Dettagli: `guide/app-redesign.md`.
+- **Pannello 000** (`admin-anteprima.html`): home (riepilogo acquisti + "in gioco ora" + ricerca),
+  pagina utente (acquistato, tutti i report, modifiche, **crediti a scadenza**).
+- **Report** (`report-anteprima.html`): + aggiungere mail inviate/ricevute; il "Cancella" toglie
+  solo all'utente, nell'archivio 000 resta segnato "sessione cancellata".
+- **Vetrina sito**: `vetrina-camera.html` (foto) e `vetrina-video.html` (video).
 
 ---
 

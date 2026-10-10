@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anteprima — app ridisegnata</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{color-scheme:dark;--bg:#0a0908;--bg-deep:#060505;--surface:#1b1712;--surface-2:#2a251d;--surface-3:#332d23;
+    --line:rgba(236,224,201,.09);--line-2:rgba(236,224,201,.16);--ink:#ece0c9;--ink-dim:#9a8f7b;--ink-faint:#6c6455;
+    --gold:#c9a465;--gold-soft:rgba(201,164,101,.14);--good:#86b26f;--good-soft:rgba(134,178,111,.14);
+    --stop:#cf8262;--stop-soft:rgba(207,130,98,.14);--r:18px;--r-lg:22px;}
+  *{box-sizing:border-box}html,body{margin:0}
+  body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5;padding:18px 0}
+  .demo{position:fixed;top:0;left:0;right:0;z-index:99;background:#3a2a0e;color:#f0d79a;text-align:center;font-size:12px;font-weight:700;padding:6px;letter-spacing:.04em}
+  .app{max-width:440px;margin:28px auto 0;min-height:calc(100vh - 56px);background:radial-gradient(120% 60% at 50% 0%,#14110c 0%,var(--bg) 46%,var(--bg-deep) 100%);
+    padding:0 20px 40px;position:relative;overflow:hidden;border:1px solid var(--line-2);border-radius:34px;box-shadow:0 30px 80px -30px #000}
+  header{position:relative;text-align:center;padding:26px 0 8px}
+  .kicker{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 2px}
+  .wordmark{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(34px,12vw,48px);letter-spacing:.02em;line-height:.98;text-shadow:0 2px 30px rgba(201,164,101,.18)}
+  .subwordmark{color:var(--ink-dim);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;margin-top:8px}
+  section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 18px;margin-top:16px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .sec-title{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin:0}
+  .status{background:linear-gradient(180deg,var(--surface) 0%,#211c15 100%)}
+  .gear{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-dim)}
+  .gear:hover{color:var(--gold);border-color:var(--gold)} .gear svg{width:24px;height:24px}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 13px;border-radius:999px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--line-2)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint)}
+  .pill.live{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .counter{text-align:center;padding:12px 0 4px}
+  .counter .num{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:72px;line-height:.9;color:var(--ink)}
+  .counter .lbl{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-top:2px}
+  .boxes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+  .box{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 6px;text-align:center}
+  .box b{display:block;font-family:"Cormorant Garamond",serif;font-size:28px;color:var(--ink)}
+  .box span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-top:14px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:6px 11px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-dim)}
+  .chip .st{width:7px;height:7px;border-radius:50%;background:var(--stop)} .chip.ok .st{background:var(--good)}
+  .game-btns{display:grid;gap:10px;margin-top:16px}
+  .btn{appearance:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;letter-spacing:.02em;padding:16px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);transition:transform .08s}
+  .btn:active{transform:scale(.985)}
+  .btn.primary{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  .btn.reveal{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
+  .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
+  .btn[disabled]{opacity:.32;cursor:not-allowed}
+  .field{margin-top:14px;text-align:left}
+  .field>label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin-bottom:7px}
+  input,textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:13px 14px}
+  input:focus{outline:none;border-color:var(--gold)} input[type=time]{max-width:150px}
+  input:disabled{opacity:.4}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:9px;line-height:1.45}.hint b{color:var(--ink-dim)}
+  .set-top{display:flex;align-items:center;gap:14px;padding:22px 0 6px}
+  .back{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);font-size:20px}
+  .set-top h2{margin:0;font-family:"Cormorant Garamond",serif;font-weight:600;font-size:28px}
+  .slot{display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px dashed var(--line-2);border-radius:var(--r);padding:12px;margin-bottom:10px}
+  .slot.filled{border-style:solid}
+  .thumb{width:52px;height:52px;flex:0 0 52px;border-radius:12px;display:grid;place-items:center;border:1px solid var(--line);font-family:"Cormorant Garamond",serif;font-size:22px;color:#231a0c;cursor:zoom-in;background:linear-gradient(180deg,#d8b877,#c39a52)}
+  .slot-txt{flex:1;min-width:0}.slot-txt .t{font-weight:700;font-size:14.5px}.slot-txt .s{font-size:12px;color:var(--ink-dim)}
+  .slot .tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+  .slotx{color:var(--stop);font-weight:800;cursor:pointer;font-size:18px}
+  .chk{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-dim);margin:4px 2px 12px}
+  /* switch */
+  .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+  .toggle-row .t{font-weight:700;font-size:14.5px}.toggle-row .s{font-size:12px;color:var(--ink-dim)}
+  .switch{position:relative;width:52px;height:30px;flex:0 0 auto;cursor:pointer}
+  .switch input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+  .track{position:absolute;inset:0;background:var(--surface-3);border:1px solid var(--line-2);border-radius:999px}
+  .knob{position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--ink);transition:transform .18s}
+  .switch input:checked ~ .track{background:var(--gold-soft);border-color:var(--gold)}
+  .switch input:checked ~ .knob{transform:translateX(22px);background:var(--gold)}
+  /* lingua */
+  .lang{display:flex;align-items:center;justify-content:center;gap:14px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:10px}
+  .lang .fl{width:48px;height:32px;border-radius:6px;overflow:hidden;border:1px solid var(--line);display:block}
+  .lang .fl svg{width:100%;height:100%;display:block}
+  .lang .nm{min-width:92px;text-align:center;font-weight:700}
+  .lang button{width:40px;height:40px;border-radius:50%;background:var(--surface-3);border:1px solid var(--line-2);color:var(--gold);font-size:20px;cursor:pointer}
+  /* tiles (menu come la home, quadrati oro) */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .tile{background:var(--gold-soft);border:1px solid var(--gold);border-radius:16px;padding:16px 8px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;box-shadow:0 0 0 2px rgba(201,164,101,.08)}
+  .tile:active{transform:scale(.98)}
+  .tile .ic{font-size:26px;line-height:1}
+  .tile .lb{font-size:13px;font-weight:700;color:var(--ink)}
+  .tile.wide{grid-column:1 / -1;flex-direction:row;justify-content:center;gap:12px;min-height:0;padding:16px;background:var(--surface-2);border-color:var(--line-2)}
+  .tile.wide .ic{font-size:20px}
+  /* opzioni autorisp */
+  .opt{display:flex;align-items:center;gap:12px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:var(--r);padding:14px;cursor:pointer;margin-bottom:8px}
+  .opt.sel{border-color:var(--gold);background:var(--gold-soft)}
+  .opt .rad{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);flex:0 0 auto}
+  .opt.sel .rad{background:var(--gold)}
+  .opt .s{font-size:12px;color:var(--ink-faint)}
+  .row2{display:flex;gap:10px}.row2 .btn{flex:1}
+  .screen{display:none}.screen.on{display:block}
+  /* lightbox */
+  .lb{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px}
+  .lb.open{display:flex}
+  .lb .big{width:min(90vw,520px);aspect-ratio:3/4;border-radius:14px;display:grid;place-items:center;font-family:"Cormorant Garamond",serif;font-size:120px;color:#231a0c;background:linear-gradient(180deg,#d8b877,#c39a52);box-shadow:0 10px 60px rgba(0,0,0,.6)}
+  .lb .x{position:absolute;top:16px;left:16px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:9px 15px;font-weight:700;cursor:pointer}
+</style></head>
+<body>
+<div class="demo">ANTEPRIMA FINTA · app ridisegnata · tutto cliccabile</div>
+<div class="app">
+
+  <!-- ===== LOGIN ===== -->
+  <div class="screen on" id="login">
+    <header><p class="kicker">abraka</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Accesso</p></header>
+    <section>
+      <div class="field"><label>Lingua</label>
+        <div class="lang"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox"></span><span class="nm" id="langnm">Italiano</span><button onclick="lang(1)">&#8250;</button></div>
+      </div>
+      <div class="field"><label>Numero utente</label><input value="003" inputmode="numeric"></div>
+      <div class="field"><label>Password</label><input type="password" value="aaa"></div>
+      <div class="game-btns"><button class="btn primary" onclick="go('first')">Accedi</button></div>
+      <p class="hint">Lingua e password restano impostate per la prossima volta.</p>
+      <div class="game-btns"><button class="btn ghost" onclick="go('regia')">(salta → vai alla Regia)</button></div>
+    </section>
+  </div>
+
+  <!-- ===== PRIMA CONFIGURAZIONE ===== -->
+  <div class="screen" id="first">
+    <header><p class="kicker">Prima configurazione</p><h1 class="wordmark" style="font-size:34px">Quasi pronto</h1><p class="subwordmark">Si imposta una volta sola</p></header>
+    <section>
+      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input placeholder="333 1234567"></div></div>
+      <div class="field"><label>La tua Gmail (casella del gioco)</label><input placeholder="tuonome@gmail.com"></div>
+      <div class="field"><label>Codice Gmail · password per app (16 caratteri)</label><input placeholder="xxxx xxxx xxxx xxxx"></div>
+      <div class="field"><label>Mail per le comunicazioni</label><input placeholder="dove ricevere gli avvisi"></div>
+      <div class="game-btns"><button class="btn primary" onclick="go('regia')">Salva e continua</button></div>
+      <p class="hint">Finiscono nelle <b>Impostazioni avanzate</b> e non te le chiederà più.</p>
+    </section>
+  </div>
+
+  <!-- ===== REGIA ===== -->
+  <div class="screen" id="regia">
+    <header><p class="kicker">Regia dello spettacolo</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Pannello del mentalista</p></header>
+    <section class="status">
+      <div class="sec-head"><div class="gear" onclick="go('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-2.9 1.1V21a2 2 0 01-4 0v-.09A1.65 1.65 0 007 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06A1.65 1.65 0 004.6 14H4.5a2 2 0 010-4h.09A1.65 1.65 0 006 7a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 0010 4.6h.09A1.65 1.65 0 0012 3.09V3a2 2 0 014 0v.09A1.65 1.65 0 0019 4.6a1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06A1.65 1.65 0 0019.4 9v.09c.66.17 1.1.77 1.1 1.5"/></svg></div><span class="pill"><span class="dot"></span>Spento</span></div>
+      <div class="counter"><div class="num">0</div><div class="lbl">Aperture · questa sessione</div></div>
+      <div class="boxes"><div class="box"><b>0</b><span>Viste Foto A</span></div><div class="box"><b>0</b><span>Viste rivelazione</span></div><div class="box"><b>0</b><span>Mail ricevute</span></div><div class="box"><b>0</b><span>Mail inviate</span></div></div>
+      <div class="chips"><span class="chip ok"><span class="st"></span>Foto A</span><span class="chip"><span class="st"></span>Rivelazione</span><span class="chip ok"><span class="st"></span>Collegato</span></div>
+      <div class="game-btns"><button class="btn primary">▶ Avvia gioco</button><button class="btn" disabled>✦ Cambia (rivela)</button><button class="btn ghost" disabled>■ Finisci gioco</button></div>
+    </section>
+  </div>
+
+  <!-- ===== IMPOSTAZIONI (come la home, quadrati oro) ===== -->
+  <div class="screen" id="settings">
+    <header><p class="kicker">Regia dello spettacolo</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Impostazioni</p></header>
+    <section class="status">
+      <div class="sec-head"><div class="gear" onclick="go('regia')" title="torna al gioco"><span style="font-size:22px">✕</span></div><span class="pill"><span class="dot"></span>Menu</span></div>
+      <div class="tiles">
+        <div class="tile" onclick="go('foto')"><div class="ic">🖼️</div><div class="lb">Imposta foto</div></div>
+        <div class="tile" onclick="go('testomail')"><div class="ic">✍️</div><div class="lb">Testo mail</div></div>
+        <div class="tile" onclick="go('autorisp')"><div class="ic">🤖</div><div class="lb">Autorisponditore</div></div>
+        <div class="tile" onclick="go('assist')"><div class="ic">🎭</div><div class="lb">Assistente di scena</div></div>
+        <div class="tile" onclick="go('limiti')"><div class="ic">📊</div><div class="lb">Limiti</div></div>
+        <div class="tile" onclick="go('report')"><div class="ic">📄</div><div class="lb">Report</div></div>
+        <div class="tile wide" onclick="go('avanzate')"><div class="ic">⚙️</div><div class="lb">Impostazioni avanzate</div></div>
+      </div>
+      <p class="hint" style="text-align:center">Premi <b>✕</b> (dov'era la rotella) per tornare al gioco.</p>
+    </section>
+  </div>
+
+  <!-- ===== IMPOSTA FOTO ===== -->
+  <div class="screen" id="foto">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Imposta foto</h2></div>
+    <section>
+      <div class="slot filled"><div class="thumb" onclick="zoom('A')">A</div><div class="slot-txt"><div class="t">Foto A (attesa)</div><div class="s">tocca per vederla grande</div></div><span class="slotx">✕</span></div>
+      <label class="chk"><input type="checkbox" checked> Tieni la Foto A come <b>&nbsp;predefinita</b>&nbsp; (non ricaricarla ogni volta)</label>
+      <div class="slot filled"><div class="thumb" onclick="zoom('B')">B</div><div class="slot-txt"><div class="t">Foto B (rivelazione)</div><div class="s">da caricare o generare a ogni sessione</div></div><span class="slotx">✕</span></div>
+      <div class="row2" style="margin-top:4px"><button class="btn">🖼️ Galleria</button><button class="btn">📷 Fotocamera</button></div>
+      <div class="game-btns"><button class="btn reveal">✨ Genera con IA</button></div>
+      <div class="game-btns"><button class="btn" disabled>✨ Genera con IA (non incluso nel piano)</button></div>
+      <p class="hint">Tocca una foto per vederla <b>a tutto schermo</b>. La Foto B generata con IA diventa in automatico la rivelazione.</p>
+    </section>
+    <section>
+      <div class="toggle-row">
+        <div><div class="t">Orari automatici</div><div class="s">Cambia e fine gioco a orario</div></div>
+        <label class="switch"><input type="checkbox" id="swOrari" onchange="orari()"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <div class="field"><label>Orario del "Cambia" (sicurezza)</label><input type="time" value="21:30" id="o1" disabled></div>
+      <div class="field"><label>Orario di fine gioco</label><input type="time" value="22:00" id="o2" disabled></div>
+      <p class="hint">Di default gli orari sono <b>spenti</b>: accendi l'interruttore per usarli.</p>
+    </section>
+  </div>
+
+  <!-- ===== TESTO MAIL ===== -->
+  <div class="screen" id="testomail">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Testo mail</h2></div>
+    <section>
+      <div class="field"><label>Oggetto</label><input value="La tua foto"></div>
+      <div class="field"><label>Testo</label><textarea style="min-height:120px">Ecco la foto che hai richiesto…</textarea></div>
+      <div class="game-btns"><button class="btn primary">Salva</button></div>
+    </section>
+  </div>
+
+  <!-- ===== AUTORISPONDITORE ===== -->
+  <div class="screen" id="autorisp">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Autorisp. / Invia</h2></div>
+    <section>
+      <div class="opt sel" onclick="pick(0)"><span class="rad"></span><div><b>Funzione autorisponditore</b><div class="s">risponde da solo a chi scrive</div></div></div>
+      <div class="opt" onclick="pick(1)"><span class="rad"></span><div><b>Funzione Palco</b><div class="s">grandi invii (eventi grandi)</div></div></div>
+      <div class="opt" onclick="pick(2)"><span class="rad"></span><div><b>Inserisci mail</b><div class="s">scrivi tu gli indirizzi e invii</div></div></div>
+      <div id="maillist" style="display:none">
+        <div class="field"><label>Indirizzi destinatari</label>
+          <div class="row2" style="margin-bottom:8px"><input placeholder="mario@gmail.com"><button class="btn" style="flex:0 0 auto;padding:0 16px">✕</button></div>
+          <div class="row2"><input placeholder="giulia@gmail.com"><button class="btn" style="flex:0 0 auto;padding:0 16px">✕</button></div>
+        </div>
+        <div class="game-btns"><button class="btn">＋ Aggiungi indirizzo</button><button class="btn primary">Invia a tutti</button></div>
+      </div>
+      <p class="hint">La scelta selezionata apparirà come <b>anteprima sul tasto</b> nella Regia.</p>
+    </section>
+  </div>
+
+  <!-- ===== ASSISTENTE ===== -->
+  <div class="screen" id="assist">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Assistente di scena</h2></div>
+    <section>
+      <div class="game-btns"><button class="btn primary">🔗 Crea link per l'assistente</button></div>
+      <div class="field"><input value="abraka.it/…/assistente?t=…" readonly></div>
+      <div class="row2" style="margin-top:8px"><button class="btn">Copia</button><button class="btn">Condividi</button></div>
+      <div style="margin-top:14px"><span class="pill live"><span class="dot"></span>Assistente collegato</span></div>
+      <div class="game-btns"><button class="btn ghost">Revoca link</button></div>
+      <p class="hint">Il link scade quando premi "Finisci".</p>
+    </section>
+  </div>
+
+  <!-- ===== LIMITI ===== -->
+  <div class="screen" id="limiti">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>I miei limiti</h2></div>
+    <section><p class="hint" style="margin:0">(qui va la schermata "I miei limiti" già approvata: barre a semaforo per mail, sessioni, foto IA…)</p></section>
+  </div>
+
+  <!-- ===== REPORT ===== -->
+  <div class="screen" id="report">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Report</h2></div>
+    <section>
+      <div class="game-btns"><button class="btn primary">📄 Apri il report della sessione</button></div>
+      <p class="hint">Chi ha scritto, chi ha aperto, mail ricevute/inviate.</p>
+      <div class="game-btns"><button class="btn ghost">Cancella i dati del report</button></div>
+      <p class="hint">Il "Cancella" lo toglie <b>solo a te</b>: nell'archivio dell'<b>amministratore (000)</b> resta, segnato come <b>"sessione cancellata"</b>.</p>
+    </section>
+  </div>
+
+  <!-- ===== IMPOSTAZIONI AVANZATE ===== -->
+  <div class="screen" id="avanzate">
+    <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Impostazioni avanzate</h2></div>
+    <section>
+      <p class="hint" style="margin-top:0">Cose che si impostano <b>una volta sola</b>.</p>
+      <div class="field"><label>Lingua</label>
+        <div class="lang"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox2"></span><span class="nm" id="langnm2">Italiano</span><button onclick="lang(1)">&#8250;</button></div>
+      </div>
+      <div class="field"><label>La tua casella (Gmail)</label><input placeholder="tuonome@gmail.com"></div>
+      <div class="field"><label>Codice Gmail · password per app (16 caratteri)</label><input placeholder="xxxx xxxx xxxx xxxx"></div>
+      <div class="field"><label>Nome mittente (facoltativo)</label><input placeholder="Il Mentalista"></div>
+      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input placeholder="333 1234567"></div></div>
+      <div class="field"><label>Mail per le comunicazioni</label><input placeholder="avvisi@…"></div>
+      <div class="field"><label>Cambia password di accesso</label><input type="password" placeholder="nuova password"></div>
+      <div class="game-btns"><button class="btn primary">Salva</button></div>
+    </section>
+  </div>
+
+</div>
+
+<div class="lb" id="lightbox" onclick="document.getElementById('lightbox').classList.remove('open')">
+  <button class="x">← Chiudi</button><div class="big" id="lbBig">A</div>
+</div>
+
+<script>
+  var FLAGS={
+    it:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',
+    gb:'<svg viewBox="0 0 60 30"><clipPath id="g"><rect width="60" height="30"/></clipPath><g clip-path="url(#g)"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></g></svg>',
+    fr:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#0055A4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#EF4135"/></svg>',
+    es:'<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#AA151B"/><rect y="0.5" width="3" height="1" fill="#F1BF00"/></svg>',
+    de:'<svg viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>'
+  };
+  var LANGS=[['it','Italiano'],['gb','English'],['fr','Français'],['es','Español'],['de','Deutsch']];
+  var li=0;
+  function paintLang(){ var f=FLAGS[LANGS[li][0]], n=LANGS[li][1];
+    ['flagbox','flagbox2'].forEach(function(id){var e=document.getElementById(id); if(e)e.innerHTML=f;});
+    ['langnm','langnm2'].forEach(function(id){var e=document.getElementById(id); if(e)e.textContent=n;}); }
+  function lang(d){ li=(li+d+LANGS.length)%LANGS.length; paintLang(); }
+  function go(id){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');}); document.getElementById(id).classList.add('on'); window.scrollTo(0,0); }
+  function pick(i){ document.querySelectorAll('#autorisp .opt').forEach(function(o,k){o.classList.toggle('sel',k===i);}); document.getElementById('maillist').style.display=(i===2)?'block':'none'; }
+  function orari(){ var on=document.getElementById('swOrari').checked; document.getElementById('o1').disabled=!on; document.getElementById('o2').disabled=!on; }
+  function zoom(l){ document.getElementById('lbBig').textContent=l; document.getElementById('lightbox').classList.add('open'); }
+  paintLang();
+</script>
+</body></html>
