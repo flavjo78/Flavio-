@@ -1,0 +1,257 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Licenza d'uso Predizione</title>
+<meta name="description" content="Contratto di licenza d'uso del software PREDIZIONE, versione 1.0 (bozza).">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  /* Stesso linguaggio visivo della pagina prezzi: fondo caldo, accento oro, testo leggibile da telefono */
+  :root{
+    --bg:#f6f3ec; --surface:#ffffff; --fg:#24262c; --dim:#6f7480;
+    --line:#e4e0d6; --gold:#9c6f27; --gold-ink:#7c571c; --gold-soft:#f3ead6;
+    --warn:#a33a2a; --warn-soft:#f8e6e2;
+    --display:"Playfair Display", Georgia, serif;
+    --body:"Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a;
+    --warn:#e58a7a; --warn-soft:#2d1f1c; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a;
+    --warn:#e58a7a; --warn-soft:#2d1f1c; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16.5px;line-height:1.6;-webkit-text-size-adjust:100%}
+  .wrap{max-width:760px;margin:0 auto;padding:34px 18px 70px}
+
+  header.top{text-align:center;margin-bottom:22px}
+  .eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(30px,7vw,44px);line-height:1.08;margin:6px 0 8px;text-wrap:balance}
+  .lede{color:var(--dim);margin:0;font-size:16px}
+  .version{display:inline-block;margin-top:12px;font-size:13px;color:var(--gold-ink);background:var(--gold-soft);border:1px solid var(--line);border-radius:999px;padding:4px 12px}
+
+  .draft{background:var(--warn-soft);border:1px solid var(--warn);color:var(--fg);border-radius:14px;padding:12px 16px;font-size:14.5px;margin:0 0 22px}
+  .draft b{color:var(--warn)}
+
+  .brief{background:var(--surface);border:1px solid var(--gold);border-radius:18px;padding:20px 20px 8px;margin-bottom:28px;box-shadow:0 10px 30px -22px var(--gold)}
+  .brief h2{font-family:var(--display);font-size:22px;margin:0 0 10px}
+  .brief ul{margin:0 0 12px;padding-left:20px}
+  .brief li{margin:6px 0}
+
+  h2.sec{font-family:var(--display);font-weight:700;font-size:22px;margin:34px 0 8px;line-height:1.2}
+  h2.sec .n{color:var(--gold);margin-right:8px}
+  p{margin:10px 0}
+  ul,ol{margin:8px 0;padding-left:22px}
+  li{margin:5px 0}
+  .note{color:var(--dim);font-size:14.5px}
+  .fill{background:var(--gold-soft);border-bottom:1px dashed var(--gold);padding:0 4px;border-radius:4px}
+
+  table{width:100%;border-collapse:collapse;margin:14px 0;font-size:14.5px;background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:var(--gold-soft);color:var(--gold-ink);font-weight:700;font-size:13px;letter-spacing:.04em;text-transform:uppercase}
+  tr:last-child td{border-bottom:0}
+  .wrap-table{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .accept{margin-top:34px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px}
+  .accept h2{font-family:var(--display);font-size:22px;margin:0 0 10px}
+  .accept .box{display:flex;gap:12px;align-items:flex-start;background:var(--gold-soft);border-radius:12px;padding:12px 14px;font-size:15px}
+  .accept .box .chk{flex:0 0 auto;width:22px;height:22px;border:2px solid var(--gold);border-radius:6px;margin-top:2px}
+
+  footer{margin-top:40px;text-align:center;color:var(--dim);font-size:13px}
+  footer a{color:var(--gold-ink)}
+  @media print{ .draft{display:none} body{font-size:12.5pt} .wrap{padding:0} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="eyebrow">Predizione</div>
+  <h1>Licenza d'uso</h1>
+  <p class="lede">Le condizioni con cui l'autore ti concede l'uso del software PREDIZIONE per i tuoi spettacoli.</p>
+  <span class="version">Versione 1.0 · bozza del 10 ottobre 2026</span>
+</header>
+
+<div class="draft"><b>Bozza di lavoro.</b> Testo da far verificare al commercialista (inquadramento come licenza d'uso di
+opera dell'ingegno) e, se possibile, a un legale, prima di pubblicarlo. Le parti evidenziate
+<span class="fill">così</span> vanno completate con i dati dell'autore.</div>
+
+<section class="brief">
+  <h2>In breve</h2>
+  <ul>
+    <li><b>Cosa compri:</b> il diritto di usare PREDIZIONE per i tuoi spettacoli, per la durata del piano scelto. Il software resta dell'autore.</li>
+    <li><b>Cosa non puoi fare:</b> rivenderlo, prestarlo, usarlo per ingannare qualcuno fuori dal palco, imitare marchi o raccogliere password altrui.</li>
+    <li><b>Le tue foto:</b> le rivelazioni restano online perché il pubblico conserva la mail; le foto d'attesa possono essere cancellate dopo 60 giorni.</li>
+    <li><b>I tuoi spettatori:</b> scrivono loro per primi; tu sei responsabile di come usi i loro indirizzi.</li>
+    <li><b>Se qualcosa non va:</b> l'autore si impegna a tenere il sistema online, ma non può garantire il comportamento di Gmail, Apple Mail o dei servizi esterni.</li>
+    <li><b>Recesso:</b> hai 14 giorni, salvo che tu chieda l'attivazione immediata, come avviene al momento dell'acquisto.</li>
+  </ul>
+</section>
+
+<h2 class="sec"><span class="n">1.</span>Chi siamo e cosa regola questo contratto</h2>
+<p>Questo contratto è stipulato tra <span class="fill">NOME E COGNOME DELL'AUTORE</span>, codice fiscale
+<span class="fill">CODICE FISCALE</span>, residente in <span class="fill">INDIRIZZO, CAP CITTÀ (PROVINCIA)</span>,
+e-mail <span class="fill">io@abraka.it</span> (di seguito <b>l'Autore</b>), e la persona o l'impresa che
+acquista una licenza (di seguito <b>il Licenziatario</b> o <b>tu</b>).</p>
+<p>PREDIZIONE è un programma per elaboratore ideato e realizzato dall'Autore, protetto come opera dell'ingegno
+ai sensi della legge 22 aprile 1941 n. 633 (art. 2 n. 8 e artt. 64-bis e seguenti). Con questo contratto
+l'Autore ti concede una <b>licenza d'uso</b>: non ti vende il programma, non ti cede alcun diritto d'autore e
+resta l'unico titolare del software, del codice, del nome "Predizione" e della grafica.</p>
+
+<h2 class="sec"><span class="n">2.</span>Che cosa comprende la licenza</h2>
+<p>La licenza ti consente di usare, tramite il sito <b>www.abraka.it</b>, le seguenti componenti dell'opera:</p>
+<ul>
+  <li>il <b>pannello di regia</b> (applicazione web installabile sul telefono), con il tuo numero utente e la tua password;</li>
+  <li>il <b>motore immagine</b> che, nelle mail ricevute dai tuoi spettatori, mostra prima la foto d'attesa e poi la rivelazione;</li>
+  <li>l'<b>autorisponditore</b> che legge la casella di posta che tu colleghi e risponde agli spettatori a tuo nome, solo mentre il gioco è avviato;</li>
+  <li>la <b>generazione di immagini</b> con intelligenza artificiale, nei limiti del piano;</li>
+  <li>la <b>guida</b> d'uso e i suoi aggiornamenti.</li>
+</ul>
+<p>La licenza è <b>personale, non esclusiva e non trasferibile</b>. Puoi usarla per i tuoi spettacoli, anche a
+pagamento e per conto di terzi (un cliente che ti ingaggia), ma non puoi cederla, rivenderla, affittarla o farne
+usare le credenziali ad altri, salvo l'utenza <b>Assistente (Duo)</b> prevista dal piano o acquistata come estensione.</p>
+
+<h2 class="sec"><span class="n">3.</span>Durata, piani e limiti d'uso</h2>
+<p>Per usare PREDIZIONE serve prima l'<b>Accesso</b>, che vale <b>5 anni</b> dall'attivazione, e poi un
+<b>livello di licenza</b> mensile o annuale. Ogni livello fissa i limiti d'uso dell'opera:</p>
+<div class="wrap-table">
+<table>
+  <tr><th>Livello</th><th>Sessioni</th><th>Invii (mail agli spettatori)</th><th>Immagini IA</th><th>Assistente e Report</th></tr>
+  <tr><td><b>Foyer</b> (incluso nell'Accesso)</td><td>12 al mese</td><td>85 al mese</td><td>10 una tantum</td><td>come estensione</td></tr>
+  <tr><td><b>Quinte</b></td><td>1 al giorno + 5 al mese</td><td>500 al mese (100 al giorno)</td><td>15 al mese</td><td>inclusi</td></tr>
+  <tr><td><b>Sipario</b></td><td>2 al giorno + 10 al mese</td><td>1.500 al mese (150 al giorno)</td><td>30 al mese</td><td>inclusi</td></tr>
+  <tr><td><b>Palco</b></td><td>3 al giorno + 15 al mese</td><td>3.500 al mese + invii grandi</td><td>100 al mese</td><td>inclusi</td></tr>
+</table>
+</div>
+<p>I limiti si azzerano a ogni mese di licenza. Le quote non usate non si accumulano e non si rimborsano.
+Puoi ampliare i limiti acquistando un'<b>estensione della licenza</b> (ad esempio invii o sessioni aggiuntivi,
+l'utenza Assistente o la funzione Report per 30 giorni): l'estensione segue le regole di questo contratto.</p>
+<p>La licenza mensile dura 30 giorni, quella annuale 365 giorni, dall'attivazione. <b>Il rinnovo non è
+automatico</b>: prima della scadenza ricevi un avviso per e-mail; se non rinnovi, il pannello torna al livello
+Foyer finché vale l'Accesso. Le tue sessioni passate e le rivelazioni già inviate restano visibili agli spettatori
+(vedi articolo 7).</p>
+
+<h2 class="sec"><span class="n">4.</span>Prezzi e pagamento</h2>
+<p>I prezzi sono quelli pubblicati su www.abraka.it al momento dell'ordine. Il prezzo di listino può essere
+ridotto da uno <b>sconto per pagamento diretto</b> (bonifico o Satispay), indicato nella pagina dei prezzi.
+Chi ha acquistato mantiene le condizioni del proprio piano fino alla scadenza anche se il listino cambia.</p>
+<p>La licenza viene <b>attivata quando il pagamento risulta ricevuto</b>: pochi minuti con Satispay o PayPal,
+di solito un giorno lavorativo con il bonifico. Al momento dell'attivazione ricevi per e-mail le credenziali e
+la <b>ricevuta</b> emessa dall'Autore quale titolare dei diritti sull'opera. Il corrispettivo è il compenso per
+la concessione in uso dell'opera; <span class="fill">la ricevuta riporta la dicitura fiscale concordata con il
+commercialista</span>.</p>
+<p>Un ordine non pagato entro 7 giorni decade automaticamente.</p>
+
+<h2 class="sec"><span class="n">5.</span>Che cosa ti impegni a fare (e a non fare)</h2>
+<p>PREDIZIONE è uno strumento per spettacoli di mentalismo con un <b>pubblico consenziente</b>: gli spettatori
+sanno di partecipare a un gioco e ti scrivono per primi. Ti impegni a:</p>
+<ol>
+  <li>usare il software <b>solo nel contesto di uno spettacolo</b> o di una sua prova, e mai per ingannare, truffare,
+      intimidire o danneggiare qualcuno al di fuori del gioco;</li>
+  <li><b>non imitare</b> marchi, aziende, enti o persone reali nelle mail, nelle immagini o nel nome del mittente;</li>
+  <li><b>non raccogliere</b> password, dati di pagamento o altre credenziali degli spettatori, e non chiedere loro informazioni oltre a quelle che scelgono di scriverti;</li>
+  <li>non inviare mail a chi <b>non ti ha scritto</b> per primo, salvo la funzione di invio diretto a persone che ti hanno dato l'indirizzo di persona;</li>
+  <li>caricare o generare solo immagini <b>lecite</b>: niente contenuti che violino diritti altrui, diffamatori, osceni o che riguardino minori in modo inappropriato;</li>
+  <li>custodire le tue credenziali e la <b>password per app</b> della casella che colleghi, che puoi revocare in qualsiasi momento dal tuo account Google;</li>
+  <li>non copiare, decompilare, modificare o riprodurre il software, né aggirarne i limiti d'uso;</li>
+  <li>non rivelare il funzionamento tecnico dell'effetto al pubblico (il segreto del gioco è parte del valore dell'opera per tutti i licenziatari).</li>
+</ol>
+<p>Sei l'unico responsabile dei contenuti che carichi, delle mail che il sistema invia a tuo nome e dell'uso che
+fai del software nei tuoi spettacoli, anche verso i tuoi committenti.</p>
+
+<h2 class="sec"><span class="n">6.</span>Dati personali e privacy</h2>
+<p>Per erogare la licenza l'Autore tratta i tuoi dati di contatto, il tuo numero utente, i dati dell'ordine e,
+in forma cifrata, le credenziali della casella che colleghi. Non vengono ceduti a terzi né usati per pubblicità.</p>
+<p>Gli indirizzi e-mail dei tuoi spettatori, il contenuto delle loro mail e i dati di apertura delle immagini
+(data e ora, indirizzo IP, tipo di dispositivo) sono dati di cui <b>tu sei il titolare</b>, perché raccolti nel
+tuo spettacolo; l'Autore li tratta per tuo conto, solo per far funzionare l'effetto e il Report di sessione,
+e li conserva per il tempo minimo necessario. Puoi chiederne la cancellazione in qualsiasi momento. Sta a te
+informare i tuoi spettatori nel modo previsto dalla normativa applicabile al tuo spettacolo.</p>
+<p>I servizi tecnici utilizzati (hosting in Italia, lettura della posta su Amazon Web Services nella regione
+europea, servizi di invio e-mail, generazione immagini) agiscono come fornitori dell'Autore.</p>
+
+<h2 class="sec"><span class="n">7.</span>Le immagini: conservazione</h2>
+<ul>
+  <li>Le <b>rivelazioni</b> (foto B) di ogni sessione restano online a tempo indeterminato, per tutta la durata del
+      servizio, perché gli spettatori conservano la mail come ricordo e l'effetto deve restare intatto. Non vengono
+      cancellate al termine della licenza.</li>
+  <li>Le <b>foto d'attesa</b> (foto A) possono essere cancellate dall'Autore dopo <b>60 giorni</b> dalla sessione e
+      sostituite da un'immagine d'attesa standard; questo non altera l'effetto, perché a sessione chiusa viene comunque mostrata la rivelazione.</li>
+  <li>Le immagini vengono ridimensionate al caricamento per ragioni di spazio, senza differenze visibili nella mail.</li>
+  <li>Puoi chiedere in qualsiasi momento la cancellazione anticipata delle tue immagini; in tal caso gli spettatori non le vedranno più.</li>
+</ul>
+
+<h2 class="sec"><span class="n">8.</span>Disponibilità, limiti tecnici e responsabilità</h2>
+<p>L'Autore si impegna a mantenere online il motore immagine e il pannello con la diligenza di un buon fornitore,
+e ad avvisarti per e-mail delle manutenzioni programmate. Il software è però fornito <b>"così com'è"</b> e dipende
+da servizi di terzi (hosting, Google e la tua casella di posta, Amazon Web Services, il fornitore di intelligenza
+artificiale): l'Autore non risponde di interruzioni o comportamenti imputabili a questi servizi.</p>
+<p>Esistono <b>limiti tecnici noti e inaggirabili</b>, descritti nella guida, che accetti espressamente. Il principale:
+Gmail e Apple Mail scaricano la foto una sola volta; perché lo spettatore veda la rivelazione, deve aprire la mail
+per la <b>prima volta dopo</b> che hai premuto "Cambia". L'Autore non garantisce il risultato artistico dello
+spettacolo né il comportamento dei programmi di posta degli spettatori.</p>
+<p>Fatti salvi i casi di dolo o colpa grave e i diritti inderogabili del consumatore, la responsabilità dell'Autore
+per qualsiasi danno è limitata all'importo che hai pagato per la licenza negli <b>ultimi 12 mesi</b>, ed è esclusa
+per i danni indiretti (mancato guadagno, perdita di ingaggi, danno d'immagine).</p>
+<p>La guida è parte della licenza. Eventuali chiarimenti via e-mail sono forniti dall'Autore a titolo di cortesia,
+senza obbligo di tempi di risposta e senza corrispettivo aggiuntivo.</p>
+
+<h2 class="sec"><span class="n">9.</span>Recesso e rimborsi</h2>
+<p>Se acquisti come <b>consumatore</b> (non per la tua attività professionale), hai diritto di recedere entro
+<b>14 giorni</b> dall'acquisto (artt. 52 e seguenti del Codice del Consumo). Poiché la licenza riguarda un contenuto
+digitale che viene attivato subito, al momento dell'ordine ti viene chiesto di <b>richiedere espressamente
+l'attivazione immediata</b> e di prendere atto che, con l'attivazione, <b>perdi il diritto di recesso</b>
+(art. 59, lettera o). Se preferisci conservare il diritto di recesso, puoi chiedere che l'attivazione avvenga
+dopo 14 giorni.</p>
+<p>Se acquisti con partita IVA per la tua attività, il diritto di recesso non si applica.</p>
+<p>In ogni caso, se il software non funziona per causa dell'Autore e il problema non viene risolto entro 15 giorni
+dalla tua segnalazione, hai diritto al rimborso della parte di licenza non goduta.</p>
+
+<h2 class="sec"><span class="n">10.</span>Sospensione, risoluzione e fine del servizio</h2>
+<ul>
+  <li>Se violi l'articolo 5 (uso fuori dal palco, imitazione di marchi, raccolta di credenziali, contenuti illeciti),
+      l'Autore può <b>sospendere o chiudere</b> la licenza con effetto immediato, senza rimborso, e conservare i dati
+      necessari a tutelarsi.</li>
+  <li>In caso di uso anomalo che metta a rischio il servizio per gli altri licenziatari (per esempio invii massivi
+      segnalati come spam), l'Autore può sospendere temporaneamente la licenza e contattarti.</li>
+  <li>Se l'Autore decidesse di <b>cessare il servizio</b>, ti avviserà con almeno <b>90 giorni</b> di preavviso,
+      rimborserà la parte di licenza non goduta e ti darà il modo di scaricare le tue immagini.</li>
+  <li>Puoi chiudere il tuo account in qualsiasi momento scrivendo all'Autore; le rivelazioni già inviate restano online salvo tua richiesta contraria.</li>
+</ul>
+
+<h2 class="sec"><span class="n">11.</span>Modifiche al contratto e al software</h2>
+<p>L'Autore può aggiornare il software e questa licenza. Le modifiche che peggiorano le tue condizioni ti vengono
+comunicate per e-mail con almeno 30 giorni di anticipo e si applicano dal rinnovo successivo; se non le accetti,
+puoi non rinnovare. Il numero di versione e la data in fondo a questa pagina indicano il testo in vigore.</p>
+
+<h2 class="sec"><span class="n">12.</span>Legge applicabile e foro</h2>
+<p>Il contratto è regolato dalla legge italiana. Per le controversie con un consumatore è competente il giudice
+del luogo di residenza o domicilio del consumatore; negli altri casi il Foro di <span class="fill">TARANTO</span>.
+Prima di rivolgersi al giudice, le parti si impegnano a cercare una soluzione amichevole via e-mail.</p>
+
+<section class="accept">
+  <h2>Come si accetta</h2>
+  <p class="note">Al momento dell'ordine, nella pagina di pagamento, compare questa casella. Spuntandola il contratto è concluso;
+  una copia ti arriva per e-mail insieme alle istruzioni di pagamento e, dopo l'attivazione, con le credenziali.</p>
+  <div class="box">
+    <span class="chk" aria-hidden="true"></span>
+    <span>Ho letto e accetto la <b>Licenza d'uso di PREDIZIONE</b> (versione 1.0). Chiedo che la licenza sia attivata
+    subito dopo il pagamento e prendo atto che, con l'attivazione, perdo il diritto di recesso di 14 giorni.</span>
+  </div>
+</section>
+
+<footer>
+  Predizione · Licenza d'uso · Versione 1.0 (bozza) · 10 ottobre 2026<br>
+  Autore: <span class="fill">NOME E COGNOME</span> · <a href="mailto:io@abraka.it">io@abraka.it</a> · www.abraka.it
+</footer>
+
+</div>
+</body>
+</html>

@@ -85,29 +85,98 @@
 > Annotato il 10 ottobre 2026. Ipotesi di lavoro: il performer non compra "un servizio" ma una
 > **licenza d'uso dell'opera PREDIZIONE** (diritto d'autore, art. 53 c.2 lett. b TUIR; fuori campo
 > IVA art. 3 c.4 lett. a DPR 633/72). Niente IVA, niente fattura elettronica, niente INPS; ricevuta
-> semplice con bollo 2 € sopra 77,47 €; incasso diretto (bonifico / Satispay) senza commissione fissa.
+> semplice con bollo 2 € sopra 77,47 €; incasso diretto senza commissione fissa.
 > **Da confermare con il commercialista prima di andare online.** Se non conferma, si torna a Paddle (§7).
+> Partita IVA personale (70.20.09, ordinario) NON si tocca: questi redditi viaggiano separati (quadro RL).
 
-- [ ] **Contratto di licenza d'uso (EULA)** da far accettare al checkout (checkbox + copia via mail):
-      oggetto (licenza non esclusiva, non trasferibile), durata del piano, limiti inclusi
-      (sessioni/mail/foto), divieto di rivendita e di uso fuori dal palco (vincoli etici §6 CLAUDE.md),
-      conservazione foto B "per sempre" vs foto A 60 gg, assistenza, recesso, foro.
-      File: `guide/licenza-uso.html` (+ versione testo da allegare alla mail di benvenuto).
-- [ ] **Nuovo listino a LIVELLI DI LICENZA** (niente servizi a consumo da 1–2 €, che "sanno" di
-      prestazione di servizi e bruciano il 45–66% in commissioni): "Licenza Quinte annuale" che
-      *include* 500 mail/mese e 15 foto, "Licenza Sipario", "Licenza Palco", "Accesso 5 anni".
-      Gli extra diventano upgrade di licenza oppure spariscono. Aggiornare `guide/prezzi-predizione.html`
-      e la tabella piani qui sopra (sezione "Piani — DEFINITIVI").
-- [ ] **Ricevuta + registro incassi** in `admin.html`:
-      - ordine dal sito → codice `PRD-NNNN`, mail cliente, piano, importo; stato "in attesa";
-        pagina mostra IBAN (causale = codice) e/o link/QR Satispay;
-      - in `admin.html` tasto **"Attiva"** sull'ordine pagato → crea utente, accredita piano,
-        manda mail di benvenuto con credenziali + **ricevuta PDF** ("ricevuta per cessione diritti
-        d'autore – licenza d'uso software PREDIZIONE", dati autore, cliente, importo, bollo se >77,47 €);
-      - `_dati/vendite.csv` (data, codice, cliente, piano, importo, canale, bollo) = registro per il
-        quadro RL a fine anno; riquadro "Incassi dell'anno" in `admin.html`.
-      - Canali: bonifico (0 €), Satispay Business (0 € sotto 10 €, poi ~0,20 €/0,95%), eventualmente
-        Stripe solo per clienti esteri. Verificare le tariffe Satispay al momento dell'apertura.
+### 8.1 Regole decise
+- **Tre canali in fase 1:** bonifico SEPA (0 €), Satispay Business con richiesta manuale dall'app
+  (0 € sotto 10 €, poi ~0,20 €), PayPal con link PayPal.Me a importo fisso (3,4% + 0,35 €).
+  PayPal è anche il canale per l'**estero**; Stripe arriva in fase 2 quando ci sono clienti esteri veri.
+- **Sconto, MAI sovrapprezzo.** In Italia è vietato far pagare la commissione al cliente
+  (D.Lgs. 11/2010 art. 3 c.4, mod. D.Lgs. 218/2017) e lo vietano anche le regole PayPal.
+  Quindi: **prezzo di listino unico** (copre PayPal) e **sconto "pagamento diretto"** per Satispay/bonifico
+  che riporta al prezzo di tabella.
+- **Extra sotto 10 € solo con Satispay o bonifico** (con PayPal su 1 € si perde il 38%).
+- **Gli extra sono "estensioni della licenza d'uso"** (più invii, più sessioni, utenza assistente,
+  funzione Report), MAI "assistenza" o "servizio": nella ricevuta si scrive ciò che amplia la licenza.
+  Le **foto IA** sono il punto debole (si paga Gemini per produrle → somiglia a un servizio):
+  tenerle incluse nei piani; se vendute a parte, un solo pacchetto grande (50 foto / 10 €).
+  Alzare la soglia minima degli extra a 2–3 € accorpandoli (meno micro-ordini da attivare a mano).
+- **Listino unico (tondo) e sconto diretto:**
+
+| Prodotto | Prezzo tabella | Listino (PayPal) | Sconto Satispay/bonifico |
+|---|---|---|---|
+| Accesso 5 anni | 25 € | **27 €** | −2 € |
+| Quinte mensile / annuale | 6 € / 60 € | **7 € / 65 €** | −1 € / −5 € |
+| Sipario mensile / annuale | 9 € / 90 € | **10 € / 95 €** | −1 € / −5 € |
+| Palco mensile / annuale | 19 € / 190 € | **21 € / 199 €** | −2 € / −9 € |
+| 5.000 invii Palco | 7 € | **8 €** | −1 € |
+| +200 invii · 5 sessioni · Duo 30 gg · Report 30 gg | 1 € · 2 € · 2 € · 1 € | solo Satispay/bonifico | — |
+| 50 foto IA (se tenute) | 9 € | **10 €** | −1 € |
+
+- **Fiscale:** ricevuta per diritti d'autore (non fattura), numerata per anno, bollo 2 € se > 77,47 €;
+  privati: nessuna ritenuta; aziende italiane: ritenuta 20% sul 75% applicata da loro.
+  UE sotto 10.000 €/anno B2C → regole italiane, niente OSS. Extra-UE: se diventano tanti → Paddle solo per loro.
+
+### 8.2 Iter (scenario: ordine lunedì 1 feb ore 10:00, Quinte annuale)
+Parte comune automatica (PC): `ordine.php` crea `PRD-NNNN` (in attesa; salva mail, telefono, prodotto,
+canale, importo dovuto, accettazione licenza con data/ora/IP) → mail "come pagare" al cliente (+ licenza)
+→ mail "nuovo ordine" a me → promemoria a +3 gg, scaduto a +7 gg (il robottino AWS chiama
+`ordini.php?azione=scadenze` una volta l'ora: Tophost non ha cron affidabile).
+Quando l'ordine diventa **pagato** → **`attiva_ordine()`** (UNICA funzione, chiamata dal mio clic o da un
+callback): crea utente / estende limiti → ricevuta PDF (FPDF) → mail benvenuto (credenziali + ricevuta +
+guida + licenza) → riga in `_dati/vendite.csv` → riquadro incassi in admin.
+
+| Canale | Passo "in attesa → pagato" | Cliente attivo dopo | Lavoro mio |
+|---|---|---|---|
+| Bonifico | vedo l'accredito (giorno lav. dopo), premo **Attiva** | ~1 giorno (30 min se istantaneo) | 1 min |
+| Satispay manuale | mail ordine → richiesta dall'app Business al numero del cliente (20 s) → paga → **Attiva** | ~30 min | 1 min |
+| PayPal link | mail PayPal "hai ricevuto…" con nota PRD → **Attiva** | ~20 min | 30 s |
+| Satispay API (fase 2) | `paga.php` crea pagamento → `satispay-callback.php` verifica ACCEPTED → attiva da solo | 2 min | 0 |
+| Stripe (fase 2) | Checkout/Payment Link → `stripe-webhook.php` → attiva da solo | 2 min | 0 |
+| PayPal webhook (fase 2) | pulsante Checkout → `paypal-webhook.php` → attiva da solo | 2 min | 0 |
+
+Soldi sul conto: bonifico subito; Satispay bonifico mensile gratis (impostare **mensile**);
+PayPal al prelievo (1 g); Stripe 2–7 gg.
+
+### 8.3 Attivazione: chi fa cosa (stato attuale del codice)
+- **IO:** vedo il pagamento → admin (utente 000) → oggi "Crea utente" (numero, password, flag mail/foto)
+  e mail a mano; domani tasto **Attiva** sull'ordine (o **Aggiungi** sull'utente per gli extra).
+  **Lambda: NON si tocca.** Il robottino chiede a ogni giro `admin_caselle` e prende da solo gli utenti
+  attivi con casella configurata (eccezione: 001 è cablato nelle env). Niente da fare su Tophost/SES/Brevo.
+- **PC:** `admin_crea` in `utenti.json` (attivo, permessi dal piano) → cartella `_dati/NNN/` → piano e
+  limiti (DA COSTRUIRE: oggi non esistono piani) → ricevuta → mail benvenuto → `vendite.csv` → conferma a me.
+- **CLIENTE (una volta):** installa la PWA → login numero+password (la cambia) → su Google attiva la
+  verifica in 2 passaggi e crea una **password per app** → Impostazioni → "La tua casella" → Salva →
+  oggetto/testo mail → interruttore Autorisponditore ON → prova con 1 mail (apre DOPO il Cambia).
+  Operativo in ~30 min senza il mio intervento. Punto critico d'assistenza: la password per app Google
+  (curare quella pagina della guida).
+- **CLIENTE (ogni show):** carica rivelazione → Avvia → Cambia → Finisci.
+
+### 8.4 Da costruire (in ordine)
+- [x] **(a) Contratto di licenza d'uso (EULA)** → `guide/licenza-uso.html` + `guide/licenza-uso.txt` (BOZZA v1.0 del 10/10/2026;
+      completare i dati dell'autore evidenziati; dicitura fiscale della ricevuta da concordare)
+      (da allegare alla mail di benvenuto e far accettare al checkout con checkbox).
+      Contenuti: oggetto (licenza non esclusiva, non trasferibile), durata piani, limiti inclusi,
+      estensioni, divieto di rivendita/uso fuori dal palco (vincoli etici §6 CLAUDE.md), foto B per sempre
+      vs foto A 60 gg, assistenza, recesso, privacy spettatori, foro. **Portarlo al commercialista.**
+- [ ] **(b) Nuovo listino a LIVELLI DI LICENZA** in `guide/prezzi-predizione.html`: listino tondo + sconto
+      diretto; extra piccoli solo Satispay/bonifico; foto IA incluse nei piani. Aggiornare la tabella piani sotto.
+- [ ] **(c) `ordine.php` + pagina "Paga"**: scelta prodotto e canale, mail+telefono, checkbox licenza,
+      codice `PRD-NNNN`, istruzioni per canale (IBAN+causale / "riceverai richiesta Satispay" + QR /
+      link `paypal.me/<nome>/<importo>EUR` + "scrivi il codice nella nota"), mail cliente e mail a me,
+      promemoria/scadenza via chiamata oraria del robottino. Dati in `_dati/ordini.json`.
+- [ ] **(d) `admin.html`**: elenco **Ordini in attesa** con **Attiva**; `attiva_ordine()` in `stato.php`
+      (nuova azione `admin_attiva_ordine`); **Aggiungi** extra su utente; ricevuta PDF (FPDF, PHP puro)
+      numerata per anno in `_dati/ricevute/`; `_dati/vendite.csv`; riquadro **Incassi dell'anno**.
+      Mail di benvenuto automatica via SMTP Tophost (stesso del robottino).
+- [ ] **(e) Piani e limiti per utente** (vedi §4): necessari perché "Attiva" assegni Quinte/Sipario/Palco.
+- [ ] **(f) Fase 2 automazione**: `paga.php` + `satispay-callback.php` (API Satispay: attivazione canale
+      online, chiavi RSA, tariffa 1,5% + 0,20 €), `stripe-webhook.php` per l'estero, `paypal-webhook.php`.
+      Tutti chiamano la stessa `attiva_ordine()`.
+- [ ] **Satispay Business da aprire** (professionista: certificato P.IVA, documento, IBAN); bonifico
+      **mensile**; creare i link a importo fisso per i piani principali. Verificare tariffe al momento.
 
 ---
 

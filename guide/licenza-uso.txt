@@ -1,0 +1,152 @@
+PREDIZIONE — LICENZA D'USO
+Versione 1.0 (bozza) · 10 ottobre 2026
+Testo completo: https://www.abraka.it/guide/licenza-uso.html
+
+[BOZZA: da far verificare al commercialista e a un legale prima dell'uso.
+ Le parti tra parentesi quadre vanno completate con i dati dell'autore.]
+
+IN BREVE
+- Compri il diritto di usare PREDIZIONE per i tuoi spettacoli, per la durata
+  del piano scelto. Il software resta dell'autore.
+- Non puoi rivenderlo, prestarlo, usarlo per ingannare qualcuno fuori dal
+  palco, imitare marchi o raccogliere password altrui.
+- Le rivelazioni restano online perché il pubblico conserva la mail; le foto
+  d'attesa possono essere cancellate dopo 60 giorni.
+- Gli spettatori ti scrivono per primi; dei loro indirizzi sei responsabile tu.
+- L'autore tiene il sistema online, ma non può garantire Gmail, Apple Mail o i
+  servizi esterni.
+- Hai 14 giorni di recesso, salvo che tu chieda l'attivazione immediata (come
+  avviene al momento dell'acquisto).
+
+1. CHI SIAMO E COSA REGOLA QUESTO CONTRATTO
+Contratto tra [NOME E COGNOME DELL'AUTORE], codice fiscale [CF], residente in
+[INDIRIZZO, CAP CITTÀ (PROV)], e-mail io@abraka.it ("l'Autore") e chi acquista
+una licenza ("il Licenziatario" o "tu").
+PREDIZIONE è un programma per elaboratore ideato e realizzato dall'Autore,
+protetto come opera dell'ingegno (legge 633/1941, art. 2 n. 8 e artt. 64-bis e
+seguenti). L'Autore ti concede una LICENZA D'USO: non vende il programma, non
+cede diritti d'autore, resta unico titolare di software, codice, nome e grafica.
+
+2. CHE COSA COMPRENDE LA LICENZA
+Uso, tramite www.abraka.it, di: pannello di regia (app web installabile sul
+telefono) con numero utente e password; motore immagine (foto d'attesa e poi
+rivelazione nelle mail degli spettatori); autorisponditore che legge la casella
+che colleghi e risponde a tuo nome solo a gioco avviato; generazione immagini con
+IA nei limiti del piano; guida e aggiornamenti.
+Licenza personale, non esclusiva, non trasferibile. Puoi usarla per i tuoi
+spettacoli, anche a pagamento e per conto di terzi; non puoi cederla, rivenderla,
+affittarla o far usare le credenziali ad altri, salvo l'utenza Assistente (Duo).
+
+3. DURATA, PIANI E LIMITI D'USO
+Serve prima l'ACCESSO (vale 5 anni), poi un livello di licenza mensile o annuale:
+- Foyer (incluso nell'Accesso): 12 sessioni/mese, 85 invii/mese, 10 immagini IA
+  una tantum; Assistente e Report come estensione.
+- Quinte: 1 sessione/giorno + 5/mese, 500 invii/mese (100/giorno), 15 immagini
+  IA/mese, Assistente e Report inclusi.
+- Sipario: 2 sessioni/giorno + 10/mese, 1.500 invii/mese (150/giorno), 30
+  immagini IA/mese, Assistente e Report inclusi.
+- Palco: 3 sessioni/giorno + 15/mese, 3.500 invii/mese + invii grandi, 100
+  immagini IA/mese, Assistente e Report inclusi.
+I limiti si azzerano ogni mese di licenza; le quote non usate non si accumulano
+né si rimborsano. Puoi ampliarli con un'ESTENSIONE DELLA LICENZA (invii o
+sessioni aggiuntivi, utenza Assistente, funzione Report per 30 giorni).
+Mensile = 30 giorni, annuale = 365 giorni dall'attivazione. Il rinnovo NON è
+automatico: ricevi un avviso prima della scadenza; se non rinnovi torni al
+livello Foyer finché vale l'Accesso. Sessioni passate e rivelazioni inviate
+restano visibili agli spettatori (art. 7).
+
+4. PREZZI E PAGAMENTO
+Valgono i prezzi pubblicati su www.abraka.it al momento dell'ordine. Il listino
+può essere ridotto da uno sconto per pagamento diretto (bonifico o Satispay).
+Chi ha acquistato mantiene le condizioni del proprio piano fino alla scadenza.
+La licenza è attivata quando il pagamento risulta ricevuto (minuti con Satispay
+o PayPal, di solito un giorno lavorativo col bonifico). All'attivazione ricevi
+credenziali e ricevuta emessa dall'Autore quale titolare dei diritti sull'opera;
+il corrispettivo è il compenso per la concessione in uso dell'opera.
+[Dicitura fiscale della ricevuta: da concordare con il commercialista.]
+Un ordine non pagato entro 7 giorni decade.
+
+5. CHE COSA TI IMPEGNI A FARE (E A NON FARE)
+PREDIZIONE serve per spettacoli di mentalismo con pubblico consenziente: gli
+spettatori sanno di partecipare a un gioco e ti scrivono per primi. Ti impegni a:
+ 1) usare il software solo nel contesto di uno spettacolo o di una sua prova,
+    mai per ingannare, truffare, intimidire o danneggiare qualcuno fuori dal gioco;
+ 2) non imitare marchi, aziende, enti o persone reali in mail, immagini o mittente;
+ 3) non raccogliere password, dati di pagamento o credenziali degli spettatori;
+ 4) non inviare mail a chi non ti ha scritto per primo, salvo l'invio diretto a
+    persone che ti hanno dato l'indirizzo di persona;
+ 5) caricare o generare solo immagini lecite (no violazioni di diritti, contenuti
+    diffamatori, osceni o inappropriati riguardo a minori);
+ 6) custodire le tue credenziali e la password per app della casella collegata
+    (revocabile in ogni momento dal tuo account Google);
+ 7) non copiare, decompilare, modificare o riprodurre il software né aggirarne i
+    limiti;
+ 8) non rivelare al pubblico il funzionamento tecnico dell'effetto.
+Sei l'unico responsabile dei contenuti, delle mail inviate a tuo nome e dell'uso
+del software nei tuoi spettacoli, anche verso i tuoi committenti.
+
+6. DATI PERSONALI E PRIVACY
+L'Autore tratta i tuoi dati di contatto, numero utente, dati dell'ordine e, in
+forma cifrata, le credenziali della casella collegata; non li cede né li usa per
+pubblicità. Indirizzi e mail dei tuoi spettatori e dati di apertura (data/ora,
+IP, dispositivo) sono dati di cui sei TU il titolare; l'Autore li tratta per tuo
+conto solo per l'effetto e il Report, per il tempo minimo necessario, e li
+cancella su richiesta. Informi tu i tuoi spettatori secondo la normativa
+applicabile. Fornitori tecnici: hosting in Italia, Amazon Web Services (regione
+europea), servizi di invio e-mail, generazione immagini.
+
+7. LE IMMAGINI: CONSERVAZIONE
+- Rivelazioni (foto B): restano online a tempo indeterminato per tutta la durata
+  del servizio, anche dopo la fine della licenza, perché il pubblico conserva la
+  mail.
+- Foto d'attesa (foto A): cancellabili dall'Autore dopo 60 giorni e sostituite da
+  un'immagine standard (l'effetto non cambia).
+- Le immagini sono ridimensionate al caricamento.
+- Puoi chiedere in ogni momento la cancellazione anticipata delle tue immagini.
+
+8. DISPONIBILITÀ, LIMITI TECNICI E RESPONSABILITÀ
+L'Autore mantiene online motore e pannello con la diligenza di un buon fornitore
+e avvisa delle manutenzioni. Il software è fornito "così com'è" e dipende da
+terzi (hosting, Google/casella, AWS, fornitore IA): l'Autore non risponde di
+interruzioni imputabili a questi. Limite tecnico principale, che accetti: Gmail e
+Apple Mail scaricano la foto una sola volta; lo spettatore deve aprire la mail
+per la PRIMA volta DOPO il "Cambia". Nessuna garanzia sul risultato artistico.
+Salvo dolo, colpa grave e diritti inderogabili del consumatore, la responsabilità
+dell'Autore è limitata a quanto pagato negli ultimi 12 mesi ed esclude i danni
+indiretti. La guida è parte della licenza; i chiarimenti via e-mail sono una
+cortesia, senza obbligo di tempi né corrispettivo aggiuntivo.
+
+9. RECESSO E RIMBORSI
+Consumatore: 14 giorni di recesso (artt. 52 ss. Codice del Consumo). Poiché la
+licenza è un contenuto digitale attivato subito, al momento dell'ordine chiedi
+espressamente l'attivazione immediata e prendi atto che con l'attivazione perdi
+il diritto di recesso (art. 59 lett. o). Puoi in alternativa chiedere
+l'attivazione dopo 14 giorni. Acquisto con partita IVA: nessun recesso.
+Se il software non funziona per causa dell'Autore e il problema non è risolto
+entro 15 giorni dalla segnalazione: rimborso della parte di licenza non goduta.
+
+10. SOSPENSIONE, RISOLUZIONE E FINE DEL SERVIZIO
+- Violazione dell'art. 5: sospensione o chiusura immediata senza rimborso.
+- Uso anomalo che mette a rischio il servizio (es. invii segnalati come spam):
+  sospensione temporanea e contatto.
+- Cessazione del servizio da parte dell'Autore: preavviso di almeno 90 giorni,
+  rimborso della parte non goduta, possibilità di scaricare le tue immagini.
+- Puoi chiudere l'account in ogni momento; le rivelazioni inviate restano online
+  salvo tua richiesta contraria.
+
+11. MODIFICHE
+L'Autore può aggiornare software e licenza. Le modifiche peggiorative sono
+comunicate per e-mail con 30 giorni di anticipo e valgono dal rinnovo successivo;
+se non le accetti, non rinnovi. Versione e data indicano il testo in vigore.
+
+12. LEGGE APPLICABILE E FORO
+Legge italiana. Consumatore: giudice del suo luogo di residenza o domicilio;
+altrimenti Foro di [TARANTO]. Prima del giudice, tentativo di soluzione
+amichevole via e-mail.
+
+ACCETTAZIONE (casella nella pagina di pagamento)
+[ ] Ho letto e accetto la Licenza d'uso di PREDIZIONE (versione 1.0). Chiedo che
+    la licenza sia attivata subito dopo il pagamento e prendo atto che, con
+    l'attivazione, perdo il diritto di recesso di 14 giorni.
+
+Autore: [NOME E COGNOME] · io@abraka.it · www.abraka.it
