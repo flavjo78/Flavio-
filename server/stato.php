@@ -109,6 +109,7 @@ function predizione_stato_pubblico(array $s): array {
         'foto_gomma'     => (!empty($s['foto_gomma']) && is_array($s['foto_gomma'])) ? $s['foto_gomma'] : null,
         'mail_ricevute'  => (int)($s['mail_ricevute'] ?? 0),
         'mail_inviate'   => (int)($s['mail_inviate'] ?? 0),
+        'assistente_attivo' => !empty($s['assistente_token']),  // c'e' un link assistente attivo?
     ];
 }
 
@@ -287,8 +288,13 @@ if ($azione === 'stato') {
     predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 }
 
-/* ---- da qui serve l'accesso dell'utente (numero + sua password) -------- */
-if (!predizione_auth($utente, $password)) {
+/* ---- da qui serve l'accesso: password dell'utente OPPURE, per i soli
+       comandi del gioco, un valido lasciapassare "Assistente di scena" ---- */
+$AZIONI_ASSISTENTE = ['avvia', 'cambia', 'finisci'];
+$assistTok = p('assistente');
+$accessoOk = predizione_auth($utente, $password)
+    || (in_array($azione, $AZIONI_ASSISTENTE, true) && predizione_assistente_valido($stato, $assistTok));
+if (!$accessoOk) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
 }
 
@@ -390,6 +396,8 @@ switch ($azione) {
         $stato['forza'] = null;
         // l'autorisponditore si SPEGNE da solo alla fine (la Lambda smette di leggere la posta)
         $stato['autorisponditore'] = false;
+        // il link "Assistente di scena" scade con la fine della sessione
+        $stato['assistente_token'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -435,6 +443,21 @@ switch ($azione) {
         // oggetto e testo personalizzati della mail automatica (usati dalla Lambda)
         $stato['mail_oggetto'] = substr((string)(p('oggetto') ?? ''), 0, 200);
         $stato['mail_testo']   = substr((string)(p('testo') ?? ''), 0, 2000);
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'assistente_crea':
+        // il performer crea un link "Assistente di scena" (lasciapassare temporaneo).
+        // Vale finche' non si preme "Finisci" o non si revoca. Solo il performer (password).
+        $tok = bin2hex(random_bytes(16));
+        $stato['assistente_token'] = $tok;
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'token' => $tok, 'utente' => $utente,
+                         'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'assistente_revoca':
+        // il performer annulla il link assistente (smette subito di funzionare).
+        $stato['assistente_token'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

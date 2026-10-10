@@ -411,6 +411,20 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati. Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
     </section>
 
+    <section aria-label="Assistente di scena">
+      <div class="sec-head"><h2 class="sec-title">Assistente di scena</h2><span class="sec-num" id="assistSub">—</span></div>
+      <button class="btn" id="assistCrea" type="button" style="width:100%">🔗 Crea link per l'assistente</button>
+      <div id="assistBox" style="display:none;margin-top:10px">
+        <div class="field"><input type="text" id="assistLink" readonly style="width:100%" onclick="this.select()"></div>
+        <div class="game-btns" style="grid-template-columns:1fr 1fr;margin-top:8px">
+          <button class="btn ghost" id="assistCopia" type="button">Copia link</button>
+          <button class="btn ghost" id="assistCondividi" type="button">Condividi</button>
+        </div>
+        <button class="btn ghost" id="assistRevoca" type="button" style="width:100%;margin-top:8px">Revoca link</button>
+      </div>
+      <p class="hint">Crea un <b>link</b> da mandare a chi ti aiuta (WhatsApp, ecc.). L'assistente può <b>preparare la rivelazione</b> e <b>comandare il gioco</b>, ma <b>non</b> vede password, casella o report. Il link <b>scade quando premi "Finisci"</b> o quando lo revochi.</p>
+    </section>
+
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
     <p class="foot">Le impostazioni si preparano prima dello show.</p>
   </div>
@@ -631,6 +645,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       mSavedC=mClone(mCorners); mSavedG=mClone(mGomma); mDirty=false; mRedraw();
     }
 
+    // Assistente di scena: allinea il box allo stato reale del server
+    if($('assistBox')){
+      if(st.assistente_attivo){
+        var sv=''; try{ sv=localStorage.getItem('pred_assist_'+getUser())||''; }catch(e){}
+        if(sv){ mostraAssist(sv); } else { $('assistBox').style.display='none'; var asb=$('assistSub'); if(asb) asb.textContent='attivo'; }
+      } else {
+        try{ localStorage.removeItem('pred_assist_'+getUser()); }catch(e){}
+        mostraAssist(null);
+      }
+    }
+
     var n=st.aperture||0;
     if(elCount){
       elCount.textContent=n;
@@ -709,6 +734,48 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
     if(!confirm('Cancellare gli indirizzi e i messaggi salvati per il report? Non si può annullare.')) return;
     comando('report_cancella', null, 'Dati del report cancellati');
+  });
+
+  // ---- Assistente di scena: crea / copia / condividi / revoca link ----
+  function assistLinkUrl(tok){
+    var dir = location.href.split('?')[0].replace(/[^/]*$/, '');
+    return dir + 'assistente.html?u=' + encodeURIComponent(getUser()) + '&t=' + encodeURIComponent(tok);
+  }
+  function mostraAssist(link){
+    var box=$('assistBox'); if(!box) return; var s=$('assistSub');
+    if(link){ $('assistLink').value=link; box.style.display='block'; if(s) s.textContent='attivo'; }
+    else { box.style.display='none'; if($('assistLink')) $('assistLink').value=''; if(s) s.textContent='—'; }
+  }
+  var assistCrea=$('assistCrea');
+  if(assistCrea) assistCrea.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    apiAzione('assistente_crea').then(function(res){
+      if(res.data && res.data.ok && res.data.token){
+        var link=assistLinkUrl(res.data.token);
+        try{ localStorage.setItem('pred_assist_'+getUser(), link); }catch(e){}
+        mostraAssist(link); toast('Link creato ✓','ok');
+      } else { toast((res.data&&res.data.errore)||'Non riuscito','err'); }
+    }).catch(function(){ toast('Server non raggiungibile','err'); });
+  });
+  var assistCopia=$('assistCopia');
+  if(assistCopia) assistCopia.addEventListener('click', function(){
+    var v=$('assistLink').value; if(!v) return;
+    function fb(){ $('assistLink').select(); try{ document.execCommand('copy'); toast('Link copiato ✓','ok'); }catch(e){ toast('Copia il link a mano','err'); } }
+    if(navigator.clipboard){ navigator.clipboard.writeText(v).then(function(){ toast('Link copiato ✓','ok'); }, fb); } else fb();
+  });
+  var assistCond=$('assistCondividi');
+  if(assistCond) assistCond.addEventListener('click', function(){
+    var v=$('assistLink').value; if(!v) return;
+    if(navigator.share){ navigator.share({title:'Assistente di scena', url:v}).catch(function(){}); }
+    else { toast('Condivisione non disponibile: usa Copia','err'); }
+  });
+  var assistRev=$('assistRevoca');
+  if(assistRev) assistRev.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    apiAzione('assistente_revoca').then(function(res){
+      if(res.data && res.data.ok){ try{ localStorage.removeItem('pred_assist_'+getUser()); }catch(e){} mostraAssist(null); toast('Link revocato','ok'); }
+      else { toast((res.data&&res.data.errore)||'Non riuscito','err'); }
+    }).catch(function(){ toast('Server non raggiungibile','err'); });
   });
 
 

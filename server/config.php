@@ -140,6 +140,16 @@ function predizione_flags(string $u): array {
     return ['mail' => !empty($f['mail']), 'foto' => !empty($f['foto'])];
 }
 
+/* -------------------- ASSISTENTE DI SCENA (link temporaneo) ------------- */
+/* Il performer crea un "lasciapassare" (token) salvato nello stato dell'utente.
+   Vale finche' e' presente: lo si cancella alla fine della sessione ("Finisci")
+   o con la revoca. Permette i comandi del gioco e la preparazione della
+   rivelazione SENZA password e SENZA accedere a impostazioni o report. */
+function predizione_assistente_valido(array $stato, ?string $token): bool {
+    $t = (string)($stato['assistente_token'] ?? '');
+    return $t !== '' && is_string($token) && $token !== '' && hash_equals($t, $token);
+}
+
 /* -------------------- STATO DEL GIOCO (per-utente) ---------------------- */
 function predizione_stato_default(): array {
     return [

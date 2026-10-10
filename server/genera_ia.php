@@ -25,11 +25,15 @@ function pia(string $k): ?string {
     return is_string($v) ? trim($v) : null;
 }
 
-/* ---- accesso ------------------------------------------------------------ */
-$utente   = predizione_set_utente($_POST['utente'] ?? $_GET['u'] ?? '');
-$password = $_POST['password'] ?? null;
+/* ---- accesso: password dell'utente OPPURE lasciapassare assistente ------ */
+$utente    = predizione_set_utente($_POST['utente'] ?? $_GET['u'] ?? '');
+$password  = $_POST['password'] ?? null;
+$assistTok = $_POST['assistente'] ?? $_GET['assistente'] ?? null;
+$statoAuth = predizione_leggi_stato();
 
-if (!predizione_auth($utente, is_string($password) ? $password : null)) {
+$autorizzato = predizione_auth($utente, is_string($password) ? $password : null)
+    || predizione_assistente_valido($statoAuth, is_string($assistTok) ? $assistTok : null);
+if (!$autorizzato) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
 }
 if (empty(predizione_flags($utente)['foto'])) {

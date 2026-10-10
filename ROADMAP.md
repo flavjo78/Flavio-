@@ -51,10 +51,25 @@
 - [ ] Azzeramento automatico (giornaliero / mensile) + blocco al raggiungimento del tetto.
 - [ ] Gestiti dal pannello admin per ogni utente, secondo il piano acquistato.
 
-## 5. Funzione "DUO" (assistente temporaneo)
-- [ ] Un **link** che permette a **un'altra persona** di aiutare il prestigiatore durante lo show:
-  scrivere la predizione o caricare la foto, in modo temporaneo.
-- [ ] Nei piani: "2 link" = 2 assistenti abilitabili.
+## 5. "Assistente di scena" (ex DUO) — COSTRUITO (10/10/2026)
+- [x] Un **link** che permette a **un'altra persona** di aiutare il prestigiatore durante lo show.
+  L'assistente può preparare la rivelazione (frase + Genera con IA / caricare foto) e comandare
+  il gioco (Avvia/Cambia/Finisci); NON vede password, casella mail, report/consumi, né crea altri
+  assistenti. Accesso con **link temporaneo** (niente password): valido da quando il performer lo
+  condivide fino a **"Finisci"** (fine sessione) o alla revoca.
+  Realizzazione: lasciapassare (token) in `stato.json` (`assistente_token`), helper
+  `predizione_assistente_valido()`, azioni `assistente_crea`/`assistente_revoca` in stato.php,
+  token accettato da stato.php (solo avvia/cambia/finisci), genera_ia.php e carica.php (B/BASE,
+  non la Foto A). Pagina dedicata `pannello/assistente.html`. Tasto "Crea link" nel pannello.
+- [ ] Nei piani: "2 link" = 2 assistenti abilitabili (serve il sistema limiti §4).
+
+## 5-bis. Admin 000 — da potenziare (richiesto 10/10/2026)
+- [ ] **Più funzioni** nel pannello admin (da dettagliare con Flavio).
+- [ ] **Accesso a TUTTI i report** dal 000: il 000 deve poter aprire i report di ogni utente
+  per monitorare l'uso e capire eventuali problemi.
+- [ ] **Aggiungere crediti a piacimento** ai singoli utenti dal 000: crediti **mail** e crediti
+  **IA (foto)**, anche **con scadenza** (es. +100 mail validi 30 giorni, +20 foto IA validi fino a X).
+  Serve il sistema di contatori/limiti per utente (vedi §4) come base.
 
 ## 6. Vendita e pagamenti (automazione)
 - [ ] **Pagina di acquisto** su abraka.it.
