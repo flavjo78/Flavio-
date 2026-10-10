@@ -67,6 +67,11 @@
 - [ ] **Più funzioni** nel pannello admin (da dettagliare con Flavio).
 - [ ] **Accesso a TUTTI i report** dal 000: il 000 deve poter aprire i report di ogni utente
   per monitorare l'uso e capire eventuali problemi.
+- [ ] **Report: aggiungere Mail inviate e Mail ricevute** nei riquadri in alto (oggi mostra
+  mittenti/aperture; vanno aggiunti i due conteggi mail della sessione).
+- [ ] **Ordine dei file in `_dati/` con tanti utenti** (archiviazione): ogni utente nella sua
+  cartella `uNNN/`; valutare lo spostamento del 001 da radice a `u001/` (migrazione sicura) e,
+  dentro ogni utente, sottocartelle ordinate (foto/ sessioni/ log/). Da fare senza rompere il live.
 - [ ] **Aggiungere crediti a piacimento** ai singoli utenti dal 000: crediti **mail** e crediti
   **IA (foto)**, anche **con scadenza** (es. +100 mail validi 30 giorni, +20 foto IA validi fino a X).
   Serve il sistema di contatori/limiti per utente (vedi §4) come base.
