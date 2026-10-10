@@ -70,8 +70,19 @@
 - [ ] **Report: aggiungere Mail inviate e Mail ricevute** nei riquadri in alto (oggi mostra
   mittenti/aperture; vanno aggiunti i due conteggi mail della sessione).
 - [ ] **Ordine dei file in `_dati/` con tanti utenti** (archiviazione): ogni utente nella sua
-  cartella `uNNN/`; valutare lo spostamento del 001 da radice a `u001/` (migrazione sicura) e,
-  dentro ogni utente, sottocartelle ordinate (foto/ sessioni/ log/). Da fare senza rompere il live.
+  cartella `uNNN/`; dentro ogni utente, sottocartelle ordinate (foto/ sessioni/ log/).
+  **Deciso (10/10/2026):** puntare alla **versione pulita** con ANCHE il **001 archiviato** in
+  `u001/` (migrazione sicura, con backup, provata prima sul 003). Nella radice solo "roba di
+  sistema" (utenti.json, .htaccess, gemini.key) + le cartelle `uNNN/`.
+
+## 5-ter. Pannello 000 — struttura decisa (anteprima 10/10/2026)
+- [ ] **Home:** riquadri (utenti, in gioco ora, incasso anno, foto IA oggi), **riepilogo acquisti**
+  (cosa è stato comprato finora), lista **"In gioco adesso"** (chi ha premuto Avvia), e
+  **ricerca/menù** per trovare un utente.
+- [ ] **Pagina del singolo utente:** sezione **"Acquistato"** (accesso, piano, estensioni, scadenze,
+  totale speso), **tutti i report** delle sue sessioni (apribili), e le **modifiche**
+  (aggiungi/cambia abbonamento, aggiungi crediti anche a scadenza, password, casella, sospendi,
+  elimina).
 - [ ] **Aggiungere crediti a piacimento** ai singoli utenti dal 000: crediti **mail** e crediti
   **IA (foto)**, anche **con scadenza** (es. +100 mail validi 30 giorni, +20 foto IA validi fino a X).
   Serve il sistema di contatori/limiti per utente (vedi §4) come base.
