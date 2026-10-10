@@ -81,6 +81,34 @@
 - [ ] Pagine legali minime (termini, privacy) sul sito.
 - [ ] Valutare "merchant of record" (Lemon Squeezy/Paddle) per semplificare IVA internazionale.
 
+## 8. Vendita come AUTORE (licenza d'uso, senza merchant of record) — DA COSTRUIRE
+> Annotato il 10 ottobre 2026. Ipotesi di lavoro: il performer non compra "un servizio" ma una
+> **licenza d'uso dell'opera PREDIZIONE** (diritto d'autore, art. 53 c.2 lett. b TUIR; fuori campo
+> IVA art. 3 c.4 lett. a DPR 633/72). Niente IVA, niente fattura elettronica, niente INPS; ricevuta
+> semplice con bollo 2 € sopra 77,47 €; incasso diretto (bonifico / Satispay) senza commissione fissa.
+> **Da confermare con il commercialista prima di andare online.** Se non conferma, si torna a Paddle (§7).
+
+- [ ] **Contratto di licenza d'uso (EULA)** da far accettare al checkout (checkbox + copia via mail):
+      oggetto (licenza non esclusiva, non trasferibile), durata del piano, limiti inclusi
+      (sessioni/mail/foto), divieto di rivendita e di uso fuori dal palco (vincoli etici §6 CLAUDE.md),
+      conservazione foto B "per sempre" vs foto A 60 gg, assistenza, recesso, foro.
+      File: `guide/licenza-uso.html` (+ versione testo da allegare alla mail di benvenuto).
+- [ ] **Nuovo listino a LIVELLI DI LICENZA** (niente servizi a consumo da 1–2 €, che "sanno" di
+      prestazione di servizi e bruciano il 45–66% in commissioni): "Licenza Quinte annuale" che
+      *include* 500 mail/mese e 15 foto, "Licenza Sipario", "Licenza Palco", "Accesso 5 anni".
+      Gli extra diventano upgrade di licenza oppure spariscono. Aggiornare `guide/prezzi-predizione.html`
+      e la tabella piani qui sopra (sezione "Piani — DEFINITIVI").
+- [ ] **Ricevuta + registro incassi** in `admin.html`:
+      - ordine dal sito → codice `PRD-NNNN`, mail cliente, piano, importo; stato "in attesa";
+        pagina mostra IBAN (causale = codice) e/o link/QR Satispay;
+      - in `admin.html` tasto **"Attiva"** sull'ordine pagato → crea utente, accredita piano,
+        manda mail di benvenuto con credenziali + **ricevuta PDF** ("ricevuta per cessione diritti
+        d'autore – licenza d'uso software PREDIZIONE", dati autore, cliente, importo, bollo se >77,47 €);
+      - `_dati/vendite.csv` (data, codice, cliente, piano, importo, canale, bollo) = registro per il
+        quadro RL a fine anno; riquadro "Incassi dell'anno" in `admin.html`.
+      - Canali: bonifico (0 €), Satispay Business (0 € sotto 10 €, poi ~0,20 €/0,95%), eventualmente
+        Stripe solo per clienti esteri. Verificare le tariffe Satispay al momento dell'apertura.
+
 ---
 
 ### Piani — DEFINITIVI (nomi "teatro"): Foyer → Quinte → Sipario → Palco
