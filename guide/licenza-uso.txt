@@ -17,7 +17,7 @@ IN BREVE
 
 1. CHI SIAMO E COSA REGOLA QUESTO CONTRATTO
 Contratto tra l'autore del software, Flavio Addonizio, Galatina (LE),
-contattabile a io@abraka.it ("l'Autore"; dati identificativi completi nella
+contattabile a supporto@abraka.it ("l'Autore"; dati identificativi completi nella
 conferma d'ordine e nella ricevuta) e chi acquista una licenza ("il
 Licenziatario" o "tu").
 PREDIZIONE è un programma per elaboratore ideato e realizzato dall'Autore,
@@ -150,4 +150,4 @@ ACCETTAZIONE (casella nella pagina di pagamento)
 [ ] Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0),
     compresa l'attivazione immediata di cui agli articoli 4 e 9, e la accetto.
 
-io@abraka.it · www.abraka.it
+supporto@abraka.it · www.abraka.it

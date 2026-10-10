@@ -312,7 +312,8 @@ etici del §6 sono obblighi del cliente (art. 5), foto B conservate per sempre e
 60 gg (art. 7), privacy spettatori con il prestigiatore titolare (art. 6). Al checkout si accetta con una
 sola spunta: *"Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0), compresa l'attivazione
 immediata di cui agli articoli 4 e 9, e la accetto."* Fornitori citati solo come "servizi gestiti da terzi".
-La pagina ha `noindex` e va linkata solo dal flusso d'ordine.
+La pagina ha `noindex` e va linkata solo dal flusso d'ordine. **Contatto nella licenza, nelle mail d'ordine e nelle
+ricevute: `supporto@abraka.it`** (casella da creare su Tophost, separata da `io@abraka.it` che resta la casella del gioco).
 
 **Dati personali dell'autore (regola ferrea).** Il repo è PUBBLICO: nei file solo nome, città e mail.
 Indirizzo completo e codice fiscale stanno sul server in `server/_dati/autore.json` (non versionato) e
