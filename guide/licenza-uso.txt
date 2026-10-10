@@ -14,14 +14,12 @@ IN BREVE
 - Gli spettatori ti scrivono per primi; dei loro indirizzi sei responsabile tu.
 - L'autore tiene il sistema online, ma non può garantire Gmail, Apple Mail o i
   servizi esterni.
-- Hai 14 giorni di recesso, ma accettando la licenza chiedi l'attivazione
-  immediata e il recesso si esaurisce con l'attivazione (art. 9).
 
 1. CHI SIAMO E COSA REGOLA QUESTO CONTRATTO
-Contratto tra Flavio Addonizio, Galatina (Lecce), e-mail io@abraka.it
-("l'Autore"; dati completi di identificazione nella ricevuta e nelle
-comunicazioni contrattuali) e chi acquista una licenza ("il Licenziatario" o
-"tu").
+Contratto tra l'autore del software, Flavio Addonizio, Galatina (LE),
+contattabile a io@abraka.it ("l'Autore"; dati identificativi completi nella
+conferma d'ordine e nella ricevuta) e chi acquista una licenza ("il
+Licenziatario" o "tu").
 PREDIZIONE è un programma per elaboratore ideato e realizzato dall'Autore,
 protetto come opera dell'ingegno (legge 633/1941, art. 2 n. 8 e artt. 64-bis e
 seguenti). L'Autore ti concede una LICENZA D'USO: non vende il programma, non
@@ -60,7 +58,9 @@ Valgono i prezzi pubblicati su www.abraka.it al momento dell'ordine. Il listino
 può essere ridotto da uno sconto per pagamento diretto (bonifico o Satispay).
 Chi ha acquistato mantiene le condizioni del proprio piano fino alla scadenza.
 La licenza è attivata quando il pagamento risulta ricevuto (minuti con Satispay
-o PayPal, di solito un giorno lavorativo col bonifico). All'attivazione ricevi
+o PayPal, di solito un giorno lavorativo col bonifico). Con l'ordine chiedi che
+l'attivazione avvenga subito, senza attendere i termini previsti per i contratti
+a distanza (art. 9). All'attivazione ricevi
 credenziali e ricevuta emessa dall'Autore quale titolare dei diritti sull'opera;
 il corrispettivo è il compenso per la concessione in uso dell'opera.
 [Dicitura fiscale della ricevuta: da concordare con il commercialista.]
@@ -119,11 +119,11 @@ indiretti. La guida è parte della licenza; i chiarimenti via e-mail sono una
 cortesia, senza obbligo di tempi né corrispettivo aggiuntivo.
 
 9. RECESSO E RIMBORSI
-Consumatore: 14 giorni di recesso (artt. 52 ss. Codice del Consumo). Poiché la
-licenza è un contenuto digitale attivato subito, accettandola chiedi
-espressamente l'attivazione immediata e prendi atto che con l'attivazione il
-diritto di recesso si esaurisce (art. 59 lett. o). Se preferisci conservarlo,
-scrivi all'Autore prima di pagare: l'attivazione avverrà dopo 14 giorni. Acquisto con partita IVA: nessun recesso.
+Consumatore: si applicano gli artt. 52 ss. del Codice del Consumo sui contratti
+a distanza. Poiché la licenza è un contenuto digitale attivato subito su tua
+richiesta (art. 4), con l'attivazione il periodo di ripensamento di 14 giorni si
+considera esaurito (art. 59 lett. o). Se preferisci l'attivazione dopo 14
+giorni, scrivilo all'Autore prima di pagare. Acquisto con partita IVA: nessun recesso.
 Se il software non funziona per causa dell'Autore e il problema non è risolto
 entro 15 giorni dalla segnalazione: rimborso della parte di licenza non goduta.
 
@@ -147,7 +147,7 @@ altrimenti Foro di Lecce. Prima del giudice, tentativo di soluzione
 amichevole via e-mail.
 
 ACCETTAZIONE (casella nella pagina di pagamento)
-[ ] Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0) e la
-    accetto.
+[ ] Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0),
+    compresa l'attivazione immediata di cui agli articoli 4 e 9, e la accetto.
 
-Autore: Flavio Addonizio · Galatina (LE) · io@abraka.it · www.abraka.it
+io@abraka.it · www.abraka.it

@@ -3,7 +3,7 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 28 settembre 2026 (online su abraka.it; SES verificato; casella io@ ok).
+Ultimo aggiornamento: 10 ottobre 2026 (modello di vendita come autore + licenza d'uso, vedi §8 e ROADMAP §8).
 
 ---
 
@@ -96,7 +96,10 @@ predizione/
 │   ├─ _dati/                      ← [creata sul server] foto, stato.json, aperture.csv
 │   └─ ISTRUZIONI.txt              ← come caricare i file su abraka.it
 └─ guide/
-    └─ guida-acquisti.html         ← cosa comprare (dominio, hosting, invio) a confronto
+    ├─ guida-acquisti.html         ← cosa comprare (dominio, hosting, invio) a confronto
+    ├─ licenza-uso.html            ← LICENZA D'USO (contratto con il prestigiatore), pagina web — BOZZA v1.0
+    ├─ licenza-uso.txt             ← stessa licenza in testo semplice, da allegare alla mail di benvenuto
+    └─ prezzi-predizione.html      ← listino (da riscrivere a "livelli di licenza", ROADMAP §8.4 b)
 ```
 
 ### `pannello/regia-predizione.html`
@@ -290,6 +293,41 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
       aver "scaldato" l'account.
 - [ ] Collegare il **contatore** del pannello alle mail reali (oggi mostra le aperture del log).
 - [ ] Prova completa in piccolo (2–3 mail) prima dello show, su Gmail e su iPhone.
+
+---
+
+## 8. Modello di vendita: licenza d'uso come AUTORE (dal 10 ottobre 2026)
+
+**Cosa si vende.** Non un servizio ma una **licenza d'uso dell'opera PREDIZIONE** concessa dall'autore
+(diritto d'autore sul software, L. 633/1941 art. 2 n. 8 e 64-bis). Conseguenze che il codice deve rispettare:
+- il cliente compra **livelli di licenza** (Accesso 5 anni + Foyer/Quinte/Sipario/Palco mensili o annuali)
+  con limiti d'uso; gli extra sono **"estensioni della licenza"** (più invii, più sessioni, utenza Assistente,
+  funzione Report). **Mai** chiamarli "assistenza" o "servizio", in nessuna pagina, mail o ricevuta;
+- niente IVA e niente fattura: si emette una **ricevuta** numerata per anno (bollo 2 € se > 77,47 €);
+- l'autore **non** tocca partita IVA né ATECO: i redditi vanno a parte (quadro RL). Tutto da confermare
+  con il commercialista; se non conferma, piano B = Paddle (ROADMAP §7).
+
+**Il contratto.** `guide/licenza-uso.html` (+ `.txt`), bozza v1.0: 12 articoli, foro di Lecce, i vincoli
+etici del §6 sono obblighi del cliente (art. 5), foto B conservate per sempre e foto A cancellabili dopo
+60 gg (art. 7), privacy spettatori con il prestigiatore titolare (art. 6). Al checkout si accetta con una
+sola spunta: *"Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0), compresa l'attivazione
+immediata di cui agli articoli 4 e 9, e la accetto."* Fornitori citati solo come "servizi gestiti da terzi".
+La pagina ha `noindex` e va linkata solo dal flusso d'ordine.
+
+**Dati personali dell'autore (regola ferrea).** Il repo è PUBBLICO: nei file solo nome, città e mail.
+Indirizzo completo e codice fiscale stanno sul server in `server/_dati/autore.json` (non versionato) e
+compaiono solo nella conferma d'ordine e nella ricevuta PDF. Non scriverli mai in codice, guide o ROADMAP.
+
+**Incasso.** Tre canali in fase 1: bonifico (0 €), Satispay con richiesta manuale dall'app (0 € sotto 10 €),
+PayPal via link PayPal.Me (anche per l'estero). **Listino unico + sconto "pagamento diretto"** per
+Satispay/bonifico; **mai** un sovrapprezzo per PayPal (vietato). Extra sotto 10 € solo Satispay/bonifico.
+Fase 2: API Satispay, Stripe, webhook PayPal, tutti verso la stessa `attiva_ordine()`.
+
+**Attivazione.** `ordine.php` crea `PRD-NNNN` (in attesa) → pagato (clic in admin o callback) →
+`attiva_ordine()`: utente in `utenti.json` + piano/limiti + ricevuta PDF + mail di benvenuto + riga in
+`_dati/vendite.csv`. **La Lambda non si tocca**: prende da sola gli utenti attivi via `admin_caselle`.
+Dettagli, tabelle prezzi/sconti e ordine dei lavori: **ROADMAP §8** (8.1 regole, 8.2 iter, 8.3 chi fa cosa,
+8.4 da costruire: b listino → c ordine.php → d admin/ricevuta → e piani e limiti → f fase 2).
 
 ### Credenziali/risorse in uso (per riprendere)
 - AWS: account root con la Gmail; regione **eu-west-1 (Irlanda)** per SES.
