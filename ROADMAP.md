@@ -24,6 +24,14 @@
 - [ ] (Più avanti) **parallelo interno**: ogni postino gestisce più caselle insieme → giri di pochi secondi.
   - Nota: la "coda + tanti postini" serve solo a numeri estremi (centinaia di show accesi nello stesso minuto).
 
+## 2-bis. Robottino: non rispondere a mail "sbagliate" (IMPORTANTE)
+- [ ] **All'Avvia**: segnare come lette (SENZA rispondere) tutte le mail **già presenti** in casella,
+  così la nuova sessione conta solo chi scrive **dopo** l'avvio (niente "arretrati").
+- [ ] **Saltare i mittenti automatici/pubblicitari**: `no-reply@`, `noreply@`, `mailer-daemon`,
+  `bounce`, newsletter/marketing (es. Mailgun, Google notifiche). Rispondere solo a persone vere.
+  - Motivo: su una Gmail dedicata arrivano comunque notifiche e pubblicità → il robottino non deve
+    rispondere a quelle (sprecate e brutte). Emerso nel test del 10/10/2026 (report di 002).
+
 ## 3. Intelligenza artificiale (foto B)
 - [ ] Collegare un servizio IA per generare la rivelazione (consigliato: **Google Gemini 2.5 Flash Image** — ~0,04 €/foto, spesso gratis a basso volume; alternativa **FLUX Kontext**).
 - [ ] Serve una **chiave API** (a consumo, separata dall'abbonamento personale Gemini).
