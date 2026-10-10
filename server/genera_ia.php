@@ -72,15 +72,30 @@ $ext  = strtolower(pathinfo($base, PATHINFO_EXTENSION));
 $mime = ['jpg'=>'image/jpeg','jpeg'=>'image/jpeg','png'=>'image/png','gif'=>'image/gif','webp'=>'image/webp'][$ext] ?? 'image/jpeg';
 
 /* ---- il prompt (ricetta collaudata) con la frase inserita --------------- */
-/* La frase viene inserita SENZA parentesi quadre (vedi guide/prompt-foto-ia.md). */
-$frase = str_replace(['"', "\n", "\r"], [' ', ' / ', ''], $testo); // una riga pulita, niente virgolette
+/* La frase viene inserita SENZA parentesi quadre (vedi guide/prompt-foto-ia.md).
+   Se il performer ha scritto piu' righe (tasto "Vai a capo"), le scriviamo una
+   sotto l'altra, come una lista a mano. */
+$righe = preg_split('/\r\n|\r|\n/', $testo);
+$righe = array_map(function ($r) { return trim(str_replace('"', ' ', (string)$r)); }, $righe);
+$righe = array_values(array_filter($righe, function ($r) { return $r !== ''; }));
+if (count($righe) <= 1) {
+    $frase = $righe[0] ?? '';
+    $istruzioneFrase =
+        "Scrivi sul foglio bianco al centro, in un'unica riga orizzontale, la frase: $frase . " .
+        "La frase va scritta una sola volta, senza alcuna ripetizione.";
+} else {
+    $elenco = implode("\n", array_map(function ($r) { return '- ' . $r; }, $righe));
+    $istruzioneFrase =
+        "Scrivi sul foglio bianco, a mano, le seguenti righe UNA SOTTO L'ALTRA (ognuna su una " .
+        "riga nuova, come una lista scritta a mano, ben spaziate e allineate a sinistra):\n$elenco\n" .
+        "Scrivi esattamente queste parole, ogni voce una sola volta, SENZA trattini, numeri, " .
+        "puntini o altri simboli davanti.";
+}
 $prompt =
 "Modifica l'immagine allegata mantenendo tutto il resto (posa, mano, dita, sfondo) " .
-"completamente invariato, senza aggiungere alcun oggetto come penne o altro. Scrivi sul " .
-"foglio bianco al centro, in un'unica riga orizzontale, la frase: $frase . La frase va " .
-"scritta una sola volta, senza alcuna ripetizione, lasciando del tutto visibili e scoperte " .
-"le dita che tengono la carta. Scrivi esclusivamente le parole della frase, senza virgolette, " .
-"parentesi o altri simboli.\n" .
+"completamente invariato, senza aggiungere alcun oggetto come penne o altro. $istruzioneFrase " .
+"Lascia del tutto visibili e scoperte le dita che tengono la carta. Scrivi esclusivamente le " .
+"parole indicate, senza virgolette, parentesi o altri simboli.\n" .
 "La grafia deve essere un corsivo quotidiano, veloce, informale e imperfetto (non scolastico " .
 "o calligrafico), come un appunto frettoloso. Lettere collegate in modo rapido, altezze " .
 "irregolari e spontanee, la scritta tende a stringersi verso la fine della riga.\n" .
