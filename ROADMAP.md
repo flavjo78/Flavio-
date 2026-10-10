@@ -156,7 +156,12 @@ PayPal al prelievo (1 g); Stripe 2–7 gg.
 
 ### 8.4 Da costruire (in ordine)
 - [x] **(a) Contratto di licenza d'uso (EULA)** → `guide/licenza-uso.html` + `guide/licenza-uso.txt` (BOZZA v1.0 del 10/10/2026;
-      completare i dati dell'autore evidenziati; dicitura fiscale della ricevuta da concordare)
+      foro di Lecce; spunta di sola presa visione, la rinuncia al recesso sta nell'art. 9; fornitori citati solo come
+      "servizi gestiti da terzi"; dicitura fiscale della ricevuta da concordare col commercialista).
+      **Dati personali dell'autore:** nei file del repo (PUBBLICO) solo nome, città e mail. Indirizzo completo e
+      codice fiscale vanno in un file sul server NON versionato (`server/_dati/autore.json`, cartella già in
+      `.gitignore`) e compaiono solo nella ricevuta PDF e nella mail d'ordine al cliente. Pagina licenza con
+      `noindex`, linkata solo dal flusso d'ordine.
       (da allegare alla mail di benvenuto e far accettare al checkout con checkbox).
       Contenuti: oggetto (licenza non esclusiva, non trasferibile), durata piani, limiti inclusi,
       estensioni, divieto di rivendita/uso fuori dal palco (vincoli etici §6 CLAUDE.md), foto B per sempre

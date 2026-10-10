@@ -2,8 +2,7 @@ PREDIZIONE — LICENZA D'USO
 Versione 1.0 (bozza) · 10 ottobre 2026
 Testo completo: https://www.abraka.it/guide/licenza-uso.html
 
-[BOZZA: da far verificare al commercialista e a un legale prima dell'uso.
- Le parti tra parentesi quadre vanno completate con i dati dell'autore.]
+[BOZZA: da far verificare al commercialista e a un legale prima dell'uso.]
 
 IN BREVE
 - Compri il diritto di usare PREDIZIONE per i tuoi spettacoli, per la durata
@@ -15,13 +14,14 @@ IN BREVE
 - Gli spettatori ti scrivono per primi; dei loro indirizzi sei responsabile tu.
 - L'autore tiene il sistema online, ma non può garantire Gmail, Apple Mail o i
   servizi esterni.
-- Hai 14 giorni di recesso, salvo che tu chieda l'attivazione immediata (come
-  avviene al momento dell'acquisto).
+- Hai 14 giorni di recesso, ma accettando la licenza chiedi l'attivazione
+  immediata e il recesso si esaurisce con l'attivazione (art. 9).
 
 1. CHI SIAMO E COSA REGOLA QUESTO CONTRATTO
-Contratto tra [NOME E COGNOME DELL'AUTORE], codice fiscale [CF], residente in
-[INDIRIZZO, CAP CITTÀ (PROV)], e-mail io@abraka.it ("l'Autore") e chi acquista
-una licenza ("il Licenziatario" o "tu").
+Contratto tra Flavio Addonizio, Galatina (Lecce), e-mail io@abraka.it
+("l'Autore"; dati completi di identificazione nella ricevuta e nelle
+comunicazioni contrattuali) e chi acquista una licenza ("il Licenziatario" o
+"tu").
 PREDIZIONE è un programma per elaboratore ideato e realizzato dall'Autore,
 protetto come opera dell'ingegno (legge 633/1941, art. 2 n. 8 e artt. 64-bis e
 seguenti). L'Autore ti concede una LICENZA D'USO: non vende il programma, non
@@ -92,8 +92,9 @@ pubblicità. Indirizzi e mail dei tuoi spettatori e dati di apertura (data/ora,
 IP, dispositivo) sono dati di cui sei TU il titolare; l'Autore li tratta per tuo
 conto solo per l'effetto e il Report, per il tempo minimo necessario, e li
 cancella su richiesta. Informi tu i tuoi spettatori secondo la normativa
-applicabile. Fornitori tecnici: hosting in Italia, Amazon Web Services (regione
-europea), servizi di invio e-mail, generazione immagini.
+applicabile. L'Autore si avvale di servizi gestiti da terzi (hosting,
+elaborazione della posta, invio e-mail, generazione immagini), con server
+nell'Unione Europea dove possibile, che non usano i dati per scopi propri.
 
 7. LE IMMAGINI: CONSERVAZIONE
 - Rivelazioni (foto B): restano online a tempo indeterminato per tutta la durata
@@ -107,7 +108,8 @@ europea), servizi di invio e-mail, generazione immagini.
 8. DISPONIBILITÀ, LIMITI TECNICI E RESPONSABILITÀ
 L'Autore mantiene online motore e pannello con la diligenza di un buon fornitore
 e avvisa delle manutenzioni. Il software è fornito "così com'è" e dipende da
-terzi (hosting, Google/casella, AWS, fornitore IA): l'Autore non risponde di
+servizi gestiti da terzi (hosting, casella di posta, elaborazione e invio
+e-mail, generazione immagini): l'Autore non risponde di
 interruzioni imputabili a questi. Limite tecnico principale, che accetti: Gmail e
 Apple Mail scaricano la foto una sola volta; lo spettatore deve aprire la mail
 per la PRIMA volta DOPO il "Cambia". Nessuna garanzia sul risultato artistico.
@@ -118,10 +120,10 @@ cortesia, senza obbligo di tempi né corrispettivo aggiuntivo.
 
 9. RECESSO E RIMBORSI
 Consumatore: 14 giorni di recesso (artt. 52 ss. Codice del Consumo). Poiché la
-licenza è un contenuto digitale attivato subito, al momento dell'ordine chiedi
-espressamente l'attivazione immediata e prendi atto che con l'attivazione perdi
-il diritto di recesso (art. 59 lett. o). Puoi in alternativa chiedere
-l'attivazione dopo 14 giorni. Acquisto con partita IVA: nessun recesso.
+licenza è un contenuto digitale attivato subito, accettandola chiedi
+espressamente l'attivazione immediata e prendi atto che con l'attivazione il
+diritto di recesso si esaurisce (art. 59 lett. o). Se preferisci conservarlo,
+scrivi all'Autore prima di pagare: l'attivazione avverrà dopo 14 giorni. Acquisto con partita IVA: nessun recesso.
 Se il software non funziona per causa dell'Autore e il problema non è risolto
 entro 15 giorni dalla segnalazione: rimborso della parte di licenza non goduta.
 
@@ -141,12 +143,11 @@ se non le accetti, non rinnovi. Versione e data indicano il testo in vigore.
 
 12. LEGGE APPLICABILE E FORO
 Legge italiana. Consumatore: giudice del suo luogo di residenza o domicilio;
-altrimenti Foro di [TARANTO]. Prima del giudice, tentativo di soluzione
+altrimenti Foro di Lecce. Prima del giudice, tentativo di soluzione
 amichevole via e-mail.
 
 ACCETTAZIONE (casella nella pagina di pagamento)
-[ ] Ho letto e accetto la Licenza d'uso di PREDIZIONE (versione 1.0). Chiedo che
-    la licenza sia attivata subito dopo il pagamento e prendo atto che, con
-    l'attivazione, perdo il diritto di recesso di 14 giorni.
+[ ] Ho preso visione della Licenza d'uso di PREDIZIONE (versione 1.0) e la
+    accetto.
 
-Autore: [NOME E COGNOME] · io@abraka.it · www.abraka.it
+Autore: Flavio Addonizio · Galatina (LE) · io@abraka.it · www.abraka.it
