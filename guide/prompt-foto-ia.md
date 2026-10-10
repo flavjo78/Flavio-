@@ -17,9 +17,12 @@ Ultimo aggiornamento: 10 ottobre 2026.
 
 ---
 
-## Prompt 1 — Scrivere a mano su un foglio bianco già fotografato (EDIT)
+## Prompt 1 — Scrivere a mano su un foglio bianco già fotografato (EDIT) ⭐ RICETTA VINCENTE
 **Uso:** si allega la foto reale del foglio bianco tenuto in mano e si fa aggiungere la scritta.
 **Stile ottenuto:** corsivo naturale a penna bic blu.
+**Esito prova 10/10/2026 (Nano Banana 2.1):** OTTIMO. Scritta leggibilissima, corsivo
+naturale con lievi imperfezioni credibili, posizionata nello spazio vuoto senza coprire
+mani/viso, resto della foto perfettamente invariato. Promosso: formula da riusare nell'app.
 
 ```
 Modifica l'immagine mantenendo tutto il resto completamente invariato. Scrivi sul
