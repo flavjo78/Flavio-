@@ -29,10 +29,7 @@ if (!$pwOk && !$assistOk) {
 if ($slot !== 'A' && $slot !== 'B' && $slot !== 'BASE') {
     predizione_json(['ok' => false, 'errore' => 'Slot non valido (usa A, B o BASE)'], 400);
 }
-/* l'assistente (senza password) puo' preparare la rivelazione (B/BASE), NON la Foto A neutra */
-if (!$pwOk && $assistOk && $slot === 'A') {
-    predizione_json(['ok' => false, 'errore' => 'L\'assistente non puo\' cambiare la Foto A neutra'], 403);
-}
+/* l'assistente (link temporaneo) puo' preparare le foto del gioco: A, BASE e B. */
 if (!isset($_FILES['foto']) || !is_array($_FILES['foto']) || ($_FILES['foto']['error'] ?? 1) !== UPLOAD_ERR_OK) {
     predizione_json(['ok' => false, 'errore' => 'Nessun file ricevuto o errore di upload'], 400);
 }
