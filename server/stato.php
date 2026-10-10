@@ -229,6 +229,7 @@ function predizione_admin(string $azione): void {
                     'from'             => (string)($m['from'] ?? $m['user']),
                     'sessione'         => (int)($st['sessione_corrente'] ?? 0),
                     'fase'             => $sess['fase'] ?? 'spento',
+                    'avvio_ts'         => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : 0,
                     'autorisponditore' => !empty($st['autorisponditore']),
                     'mail_oggetto'     => (string)($st['mail_oggetto'] ?? ''),
                     'mail_testo'       => (string)($st['mail_testo'] ?? ''),

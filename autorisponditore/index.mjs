@@ -178,13 +178,14 @@ async function processaCasella(cfg) {
           continue;
         }
 
-        let mittente = '', mOggetto = '', mTesto = '';
+        let mittente = '', mOggetto = '', mTesto = '', arrivataMs = 0;
         try {
-          const msg = await client.fetchOne(uid, { source: true }, { uid: true });
+          const msg = await client.fetchOne(uid, { source: true, internalDate: true }, { uid: true });
           const parsed = await simpleParser(msg.source);
           mittente = parsed?.from?.value?.[0]?.address || '';
           mOggetto = parsed?.subject || '';
           mTesto   = parsed?.text || '';
+          if (msg.internalDate) arrivataMs = new Date(msg.internalDate).getTime();
         } catch (e) {
           console.log('parsing mail fallito', utente, uid, e.message);
         }
@@ -194,6 +195,15 @@ async function processaCasella(cfg) {
         // quindi non verra' riletta: niente conteggio, niente risposta.
         if (mittente && selfEmails.includes(mittente.toLowerCase())) {
           console.log('salto auto-mail', utente, '<-', mittente);
+          continue;
+        }
+
+        // SALTA POSTA VECCHIA: se la mail e' ARRIVATA PRIMA dell'orario di "Avvia"
+        // di questa sessione, non e' uno spettatore di adesso -> la ignoriamo
+        // (gia' \Seen): niente conteggio, niente risposta. Cosi' la sessione conta
+        // solo chi scrive DOPO l'avvio (niente arretrati ne' pubblicita' pregresse).
+        if (stato.avvioMs && arrivataMs && arrivataMs < stato.avvioMs) {
+          console.log('salto mail precedente all\'avvio', utente, '<-', mittente);
           continue;
         }
         lette++;
@@ -279,6 +289,7 @@ export const handler = async () => {
           autorisponditore: stato.autorisponditore === true,
           oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
           intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
+          avvioMs: Number(stato.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
         },
         invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
         panelUser: PANEL_USER, panelPass: PANEL_PASS,
@@ -303,6 +314,7 @@ export const handler = async () => {
           autorisponditore: c.autorisponditore === true,
           oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
           intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
+          avvioMs: Number(c.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
         },
         // gli utenti con casella propria inviano dalla LORO casella (SMTP = stesse
         // credenziali dell'IMAP; per Gmail: indirizzo + password per app).
