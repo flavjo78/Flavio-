@@ -87,6 +87,19 @@
   **IA (foto)**, anche **con scadenza** (es. +100 mail validi 30 giorni, +20 foto IA validi fino a X).
   Serve il sistema di contatori/limiti per utente (vedi §4) come base.
 
+## 5-quater. Sito vetrina "abraka" (da cui si comprano le app) — in design (10/10/2026)
+- In alto SOLO il tasto **Accedi**; le **app in primo piano** (per ora 1: Predizione), scorribili
+  con le **frecce** per mostrarne altre in futuro; **niente prezzi** in vetrina.
+- Sfondo a **tutto schermo** (foto teatro: sipario + pubblico), app come **medaglione tondo** sul palco.
+- **Due direzioni candidate (da scegliere):**
+  - **A) Vetrina camera** (solo foto): clic sull'app → effetto telecamera dal palco alla platea
+    verso il palcoscenico (2 foto + zoom/dissolvenza). Leggera, gratis, istantanea.
+  - **B) Vetrina video + app** ⭐: clic sull'app → parte un **video vero** (camera che entra in teatro);
+    a fine video il selettore dell'app **sale dal basso al centro** e si cambia app con le frecce.
+    Serve il video (generabile con IA "foto→video", ~qualche €, oppure girato). Più "wow".
+- Da definire: nome/brand (abraka), dove porta "Accedi" (pannello performer), testi, e per la (B)
+  comprimere il video per il web + immagine sicura/libera da diritti per il pubblico.
+
 ## 6. Vendita e pagamenti (automazione)
 - [ ] **Pagina di acquisto** su abraka.it.
 - [ ] **Pagamento automatico** (webhook): pagato → crea utente → invia credenziali via mail, da solo.
