@@ -366,8 +366,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </section>
 
     <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
-    <section aria-label="Strumento foto" id="secFoto" style="display:none">
-      <div class="sec-head"><h2 class="sec-title">Strumento foto</h2><span class="sec-num">Rivelazione</span></div>
+    <section aria-label="Rivelazione con IA" id="secFoto" style="display:none">
+      <div class="sec-head"><h2 class="sec-title">Rivelazione con IA</h2><span class="sec-num">Foto B</span></div>
       <label class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
         <span class="thumb"><span class="ph">F</span></span>
@@ -375,14 +375,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         <span class="tag">Carica</span>
       </label>
 
-      <!-- marcatore: 4 angoli del foglio + gomma (mano) -->
+      <!-- anteprima della foto base (i comandi di marcatura sono nascosti: con l'IA non servono) -->
       <div id="markArea" style="display:none;margin-top:10px">
-        <p class="hint" id="markHint" style="margin:0 0 8px"><b>1)</b> Tocca i <b>4 angoli</b> del foglio (in ordine). <b>2)</b> Poi "Gomma" e tocca intorno alla <b>mano</b> da coprire. <b>3)</b> Salva.</p>
+        <p class="hint" id="markHint" style="display:none"></p>
         <div id="markStage" style="position:relative;touch-action:none;user-select:none;border-radius:10px;overflow:hidden;border:1px solid var(--line-2)">
           <img id="markImg" alt="foto base" style="width:100%;display:block">
           <svg id="markSvg" viewBox="0 0 1 1" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none"></svg>
         </div>
-        <div class="game-btns" style="grid-template-columns:1fr 1fr;margin-top:8px">
+        <div class="game-btns" style="display:none">
           <button class="btn ghost" id="mAng" type="button">Segna angoli</button>
           <button class="btn ghost" id="mGom" type="button">Gomma (mano)</button>
           <button class="btn ghost" id="mClr" type="button">Pulisci</button>
@@ -392,14 +392,15 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
       <div class="field" style="margin-top:12px">
         <label for="predText">Cosa deve comparire sul foglio</label>
-        <textarea id="predText" rows="2" placeholder="Es. Asso di cuori&#10;(puoi andare a capo)"></textarea>
+        <textarea id="predText" rows="2" placeholder="Es. Asso di cuori"></textarea>
         <button class="btn ghost" id="predNL" type="button" style="width:100%;margin-top:6px">↵ Vai a capo</button>
       </div>
-      <div class="field"><label for="predSize">Dimensione scritta</label><input type="range" id="predSize" min="4" max="40" value="12" style="width:100%"></div>
-      <div class="field"><label for="predPos">Posizione (alto ↔ basso)</label><input type="range" id="predPos" min="15" max="85" value="40" style="width:100%"></div>
-      <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione (Foto B)</button>
+      <!-- cursori della vecchia scrittura grafica: nascosti (con l'IA non servono) -->
+      <div class="field" style="display:none"><label for="predSize">Dimensione scritta</label><input type="range" id="predSize" min="4" max="40" value="12" style="width:100%"></div>
+      <div class="field" style="display:none"><label for="predPos">Posizione (alto ↔ basso)</label><input type="range" id="predPos" min="15" max="85" value="40" style="width:100%"></div>
+      <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione con IA (Foto B)</button>
       <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
-      <p class="hint">Scrive la tua frase <b>sul foglio</b> in <b>prospettiva</b> (se hai segnato i 4 angoli) e la usa come <b>rivelazione</b>. La <b>gomma</b> evita che scriva sopra la mano. Tocca l'anteprima per vederla grande.</p>
+      <p class="hint">Carica la <b>foto base</b> (tu col foglio bianco), scrivi la <b>frase</b> e premi <b>Genera con IA</b>: l'intelligenza artificiale scrive la frase a mano sul foglio e la usa come <b>rivelazione</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
     </section>
 
     <section aria-label="Report della sessione">
@@ -513,6 +514,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(size!=null) body.set('size', size);
     if(pos!=null)  body.set('pos', pos);
     return fetch(API_BASE+'genera.php', {method:'POST', body:body})
+      .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+  }
+  // genera la rivelazione con l'intelligenza artificiale (Gemini)
+  function apiGeneraIa(testo){
+    var body=new URLSearchParams();
+    body.set('utente', getUser()); body.set('password', getPw()); body.set('testo', testo);
+    return fetch(API_BASE+'genera_ia.php', {method:'POST', body:body})
       .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
   }
 
@@ -783,16 +791,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     else { t.value=v+'\n'; t.focus(); }
   });
 
-  // ---- genera la rivelazione scritta (strumento foto) ----
+  // ---- genera la rivelazione con l'IA (Gemini) ----
   var gBtn=$('genBtn');
   if(gBtn) gBtn.addEventListener('click', function(){
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var t=(($('predText').value)||'').trim();
     if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
-    var sz=$('predSize')?($('predSize').value/100):null, ps=$('predPos')?($('predPos').value/100):null;
-    try{ if(sz!=null) localStorage.setItem('pred_size_'+getUser(), $('predSize').value); if(ps!=null) localStorage.setItem('pred_pos_'+getUser(), $('predPos').value); }catch(e){}
-    gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero…';
-    apiGenera(t, sz, ps).then(function(res){
+    gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero con IA… (~30s)';
+    apiGeneraIa(t).then(function(res){
       gBtn.disabled=false; gBtn.textContent=old;
       if(res.data && res.data.ok){
         toast('Rivelazione creata ✓','ok');
