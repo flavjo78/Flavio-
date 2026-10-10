@@ -58,3 +58,17 @@
 ## Note
 - Le "impostazioni secondarie" (telefono, mail, ecc.) stanno a parte, impostate una volta.
 - Obiettivo: Impostazioni più **pulite** (oggi è troppo piena) → menu + sotto-pagine.
+
+## Aggiornamenti (10/10/2026, sera)
+- **Bandiere**: le emoji bandiera NON si vedono su Windows → usare **bandiere disegnate (SVG)**.
+- **Prima configurazione ("Quasi pronto")**: aggiungere il **codice Gmail / password per app
+  (16 caratteri)** insieme a telefono, Gmail e mail comunicazioni.
+- **Grafica**: usare **la stessa grafica dell'app vera** (header Cormorant, card, tasti oro,
+  .btn/.gear/.slot/.pill ecc.), non uno stile nuovo.
+- **"Impostazioni avanzate"**: voce di menu che **sostituisce** Imposta mail + password ecc.
+  Dentro: casella Gmail, codice 16 caratteri, mittente, telefono, mail comunicazioni, cambia
+  password. (= le cose impostate una volta sola.)
+- **Menu impostazioni** (ordine): Imposta foto · Autorisponditore/Invia mail · Assistente di
+  scena · Limiti · Report · Impostazioni avanzate.
+- **Cancella report**: lo rimuove **solo per l'utente**; nell'**archivio del 000** la sessione
+  **resta**, segnata come **"sessione cancellata"** (il 000 vede tutto).
