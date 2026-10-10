@@ -92,3 +92,19 @@ sfocatura (micro-mosso) dell'immagine originale, come se fosse parte originaria 
 - La parola/frase della rivelazione sarà il pezzo variabile inserito dal pannello.
 - Valutare se partire sempre da una **foto base del foglio** (edit) oppure far
   disegnare tutto da zero (mano + foglio + scritta).
+- Inserire la frase SENZA parentesi quadre (vedi Prompt 2).
+
+### Multi-riga / lista di previsioni (DA IMPLEMENTARE)
+Richiesta del performer: poter scrivere **più righe** (una lista, una previsione per riga,
+con testo a capo), non solo una frase singola.
+**Metodo scelto (incrementale, una riga alla volta):**
+1. Genera la foto con la 1ª riga (Prompt 2, ma "al centro-alto del foglio" invece di
+   "un'unica riga orizzontale").
+2. Riprendi la foto generata come nuova immagine di partenza e chiedi di aggiungere la
+   2ª riga SOTTO la precedente, con lo stesso stile di grafia, ben allineata e spaziata.
+3. Ripeti per ogni riga successiva.
+Motivo: scrivere molte righe in un solo colpo fa sbagliare il modello; procedere riga per
+riga mantiene qualità e coerenza. L'app dovrà gestire questo ciclo in automatico (loop sulle
+righe inserite nel pannello, ognuna reimmette la foto precedente).
+Da definire nel prompt: posizione iniziale, interlinea, "scrivi solo questa nuova riga senza
+modificare o riscrivere le righe già presenti".

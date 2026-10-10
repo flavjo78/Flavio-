@@ -33,8 +33,17 @@
     rispondere a quelle (sprecate e brutte). Emerso nel test del 10/10/2026 (report di 002).
 
 ## 3. Intelligenza artificiale (foto B)
-- [ ] Collegare un servizio IA per generare la rivelazione (consigliato: **Google Gemini 2.5 Flash Image** — ~0,04 €/foto, spesso gratis a basso volume; alternativa **FLUX Kontext**).
-- [ ] Serve una **chiave API** (a consumo, separata dall'abbonamento personale Gemini).
+- [x] **Scelto il modello: Google Nano Banana 2.1** (`gemini-nano-banana-2.1`) — provato il
+      10/10/2026 su un foglio reale: scrittura a mano perfetta e credibile. ~0,034 €/foto.
+- [x] **Chiave API creata** (progetto "Predizione", credito prepagato 5 € con ricarica
+      automatica OFF = tetto di spesa blindato). Input immagine ~259 token = frazione di cent.
+- [x] **Prompt collaudati salvati** in `guide/prompt-foto-ia.md` (Prompt 1 base, Prompt 2
+      avanzato con regole di grafia naturale; nota: inserire la frase senza parentesi quadre).
+- [ ] **Collegare la chiave all'app** (genera.php/nuovo endpoint): il pannello invia la frase
+      → il server chiama Nano Banana 2.1 con il Prompt 2 → salva la foto come rivelazione (B).
+- [ ] **Multi-riga / lista di previsioni**: scrivere più righe (una per previsione, a capo).
+      Metodo incrementale: una riga alla volta, reimmettendo ogni volta la foto precedente
+      (vedi `guide/prompt-foto-ia.md`). L'app gestisce il ciclo in automatico.
 - [ ] **Definire i crediti**: regola chiara **1 credito = 1 foto generata**.
 
 ## 4. Limiti per utente (per rendere i piani imponibili)
