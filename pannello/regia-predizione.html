@@ -393,9 +393,9 @@
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
       <div class="game-btns" style="grid-template-columns:1fr 1fr">
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
-        <button class="btn ghost" id="modoBig" type="button">$</button>
+        <button class="btn ghost" id="modoBig" type="button">Palco</button>
       </div>
-      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>$</b> = canale dedicato, per <b>eventi grandi</b> (centinaia).</p>
+      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato (Mailgun), per <b>eventi grandi</b> (centinaia).</p>
     </section>
 
     <section class="sp" data-sp="foto" aria-label="Le foto">
@@ -553,7 +553,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var a = st.ha_foto_a?'A ✔':'A —';
     var b = (st.ha_rivelazione_sess||st.ha_rivelazione)?'B ✔':'B —';
     set('tsFoto', a+' · '+b);
-    set('tsInvio', (st.autorisponditore?'ON':'OFF')+' · '+(st.invio_modo==='ses'?'$ grande':(st.invio_modo==='brevo'?'$ grande':'casella')));
+    set('tsInvio', (st.autorisponditore?'ON':'OFF')+' · '+((st.invio_modo==='ses'||st.invio_modo==='brevo')?'Palco':'casella'));
     set('tsCasella', st.mail_impostata?'collegata':'da impostare');
     set('tsAssist', st.assistente_attivo?'collegato':'non collegato');
     var ac=st.account;

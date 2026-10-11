@@ -162,9 +162,54 @@ function predizione_admin(string $azione): void {
                     'accesso_scad'   => (int)($rec['accesso_scadenza'] ?? 0),
                     'piano_scad'     => (int)($rec['piano_scadenza'] ?? 0),
                     'crediti'        => predizione_limiti_utente(is_array($rec) ? $rec : [])['crediti'],
+                    'nome'           => (string)($rec['nome'] ?? ''),
+                    'email'          => (string)($rec['email_comunicazione'] ?? ''),
+                    'tel'            => (string)($rec['telefono'] ?? ''),
                 ];
             }
             predizione_json(['ok' => true, 'utenti' => $out]);
+
+        case 'admin_scheda':   // dettaglio di UN utente: anagrafica + cronologia sessioni
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $rec = $utenti[$num];
+            $prevU = predizione_utente();
+            predizione_set_utente($num);
+            $st = predizione_leggi_stato();
+            $sessOut = [];
+            foreach (($st['sessioni'] ?? []) as $sid => $s) {
+                if (!is_array($s)) continue;
+                $ab = predizione_conta_aperture_ab((int)$sid);
+                $mfile = predizione_data_dir() . '/mail_sess_' . (int)$sid . '.jsonl';
+                $nmitt = 0;
+                if (is_file($mfile)) { $fh = @fopen($mfile, 'r'); if ($fh) { while (fgets($fh) !== false) $nmitt++; fclose($fh); } }
+                $sessOut[] = [
+                    'id'        => (int)$sid,
+                    'fase'      => (string)($s['fase'] ?? 'spento'),
+                    'avvio_ts'  => (int)($s['avvio_ts'] ?? 0),
+                    'mittenti'  => $nmitt,
+                    'aperture'  => (int)($ab['tot'] ?? 0),
+                    'aperture_b'=> (int)($ab['b'] ?? 0),
+                ];
+            }
+            predizione_set_utente($prevU);
+            // ordina le sessioni dalla più recente
+            usort($sessOut, fn($a, $b) => $b['id'] - $a['id']);
+            $lim = predizione_limiti_utente(is_array($rec) ? $rec : []);
+            predizione_json(['ok' => true, 'scheda' => [
+                'numero'   => $num,
+                'nome'     => (string)($rec['nome'] ?? ''),
+                'email'    => (string)($rec['email_comunicazione'] ?? ''),
+                'tel'      => (string)($rec['telefono'] ?? ''),
+                'pass'     => (string)($rec['pass'] ?? ''),
+                'attivo'   => !empty($rec['attivo']),
+                'flags'    => predizione_flags($num),
+                'piano'    => (string)($rec['piano'] ?? 'Foyer'),
+                'accesso_scad' => (int)($rec['accesso_scadenza'] ?? 0),
+                'piano_scad'   => (int)($rec['piano_scadenza'] ?? 0),
+                'limiti'   => $lim,
+                'sessioni' => $sessOut,
+            ]]);
 
         case 'admin_piano':   // upgrade/cambio piano (per X mesi o X anni)
             $num = predizione_pulisci_utente(p('numero'));

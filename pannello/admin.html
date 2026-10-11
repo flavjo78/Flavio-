@@ -15,38 +15,48 @@
   }
   *{box-sizing:border-box;margin:0;padding:0}
   body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,sans-serif;line-height:1.5}
-  .wrap{max-width:720px;margin:0 auto;padding:22px 16px 60px}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 16px 60px}
   .kicker{color:var(--gold);letter-spacing:.4em;text-transform:uppercase;font-size:10px;font-weight:600;text-align:center}
   h1{font-family:Georgia,serif;font-weight:400;font-size:30px;text-align:center;margin:2px 0 2px}
   .sub{text-align:center;color:var(--ink-dim);font-size:12px;margin-bottom:18px}
-  .card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:16px;margin-bottom:14px}
+  h2{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim);margin:22px 0 8px}
+  .card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:16px;margin-bottom:12px}
   .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-  .num{font-family:Georgia,serif;font-size:22px;color:var(--gold);min-width:52px}
-  .pill{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--line-2)}
+  .pill{font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:3px 9px;border-radius:999px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--line-2);white-space:nowrap}
   .pill.on{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .pill.rev{background:var(--gold-soft);color:var(--gold);border-color:transparent}
   .pill.off{background:var(--stop-soft);color:var(--stop);border-color:transparent}
   .meta{color:var(--faint);font-size:12px;margin-top:6px}
+  .search{width:100%;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:12px;padding:12px 14px;font-size:15px;font-family:inherit}
+  .urow{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:12px;padding:12px 14px;margin-bottom:8px;cursor:pointer}
+  .urow:hover{border-color:var(--gold)}
+  .urow .n{font-family:Georgia,serif;font-size:20px;color:var(--gold);min-width:46px}
+  .urow .info{flex:1;min-width:0}
+  .urow .info .t{font-weight:600;font-size:14px}
+  .urow .info .s{font-size:12px;color:var(--faint);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .urow .arr{color:var(--faint)}
   label.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-dim);cursor:pointer}
-  input,button,select{font-family:inherit}
-  input[type=text],input[type=email],input[type=password]{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px;width:100%}
+  input[type=text],input[type=email],input[type=password]{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:14px;width:100%;font-family:inherit}
+  select,input[type=number],input[type=date]{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:8px;padding:8px 9px;font-size:13px;font-family:inherit}
   .field{margin-top:8px}
   .field label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:4px}
   .btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .btn{cursor:pointer;font-size:13px;font-weight:700;padding:9px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink)}
+  .btn{cursor:pointer;font-size:13px;font-weight:700;padding:9px 12px;border-radius:10px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);font-family:inherit}
   .btn.gold{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
   .btn.danger{color:var(--stop);border-color:var(--stop-soft)}
   .btn:active{transform:scale(.98)}
   .sep{height:1px;background:var(--line);margin:12px 0}
-  .small{font-size:12px;color:var(--faint)}
+  .small{font-size:12px;color:var(--faint);margin-top:6px}
+  .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:6px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border:none}.kv span{color:var(--ink-dim)}.kv b{color:var(--ink)}
+  .srow{display:flex;align-items:center;gap:10px;font-size:13px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .srow:last-child{border:none}.srow .d{flex:1;color:var(--ink-dim)}
+  .plinfo{font-size:12px;color:var(--ink-dim);margin-bottom:6px}.plinfo b{color:var(--gold)}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s}
-  .toast.show{opacity:1}
-  .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
-  .toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .toast.show{opacity:1}.toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}.toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
   .hidden{display:none}
   .login-card{max-width:340px;margin:40px auto}
-  a.back{display:inline-block;color:var(--ink-dim);font-size:12px;text-decoration:none;margin-top:8px}
-  select,input[type=number],input[type=date]{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:8px;padding:8px 9px;font-size:13px;font-family:inherit}
-  .plinfo{font-size:12px;color:var(--ink-dim);margin-bottom:6px}.plinfo b{color:var(--gold)}
+  a.back,button.back{display:inline-block;color:var(--ink-dim);font-size:13px;text-decoration:none;background:none;border:none;cursor:pointer;margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -55,7 +65,7 @@
   <h1>Amministrazione</h1>
   <p class="sub">Gestione utenti · accesso 000</p>
 
-  <!-- LOGIN ADMIN -->
+  <!-- LOGIN -->
   <div class="card login-card" id="adminLogin">
     <div class="field"><label for="aUser">Utente (admin)</label><input type="text" id="aUser" value="000" inputmode="numeric"></div>
     <div class="field"><label for="aPass">Password</label><input type="password" id="aPass" placeholder="password admin"></div>
@@ -63,28 +73,55 @@
     <a class="back" href="regia-predizione.html">← torna al pannello</a>
   </div>
 
-  <!-- CONTENUTO ADMIN -->
   <div id="adminBody" class="hidden">
-    <div class="card">
-      <div class="row" style="justify-content:space-between">
-        <b>Nuovo utente</b>
-        <a class="back" href="regia-predizione.html">← pannello</a>
+    <!-- ===== HOME ===== -->
+    <div id="home">
+      <div class="card">
+        <div class="row" style="justify-content:space-between"><b>Nuovo utente</b><a class="back" href="regia-predizione.html">← pannello</a></div>
+        <div class="field"><label for="nNum">Numero (es. 004)</label><input type="text" id="nNum" inputmode="numeric" placeholder="004"></div>
+        <div class="field"><label for="nPw">Password</label><input type="text" id="nPw" placeholder="aaa"></div>
+        <div class="row" style="margin-top:10px">
+          <label class="chk"><input type="checkbox" id="nMail"> funzione mail</label>
+          <label class="chk"><input type="checkbox" id="nFoto"> strumento foto</label>
+        </div>
+        <div class="btns"><button class="btn gold" id="nCrea">Crea utente</button></div>
       </div>
-      <div class="field"><label for="nNum">Numero (es. 004)</label><input type="text" id="nNum" inputmode="numeric" placeholder="004"></div>
-      <div class="field"><label for="nPw">Password</label><input type="text" id="nPw" placeholder="aaa"></div>
-      <div class="row" style="margin-top:10px">
-        <label class="chk"><input type="checkbox" id="nMail"> funzione mail</label>
-        <label class="chk"><input type="checkbox" id="nFoto"> strumento foto</label>
-      </div>
-      <div class="btns"><button class="btn gold" id="nCrea">Crea utente</button></div>
-    </div>
 
-    <div class="card">
-      <div class="row" style="justify-content:space-between"><b>Ordini</b><button class="btn" id="ordRefresh">Aggiorna</button></div>
+      <input class="search" id="search" placeholder="🔎 Cerca numero, nome, mail, piano…" oninput="renderHome()">
+
+      <h2>In gioco adesso</h2>
+      <div id="liveList"></div>
+
+      <div class="row" style="justify-content:space-between"><h2 style="margin:22px 0 8px">Ordini</h2><button class="btn" id="ordRefresh" style="align-self:center">Aggiorna</button></div>
       <div id="ordiniBox"><div class="small">—</div></div>
+
+      <h2>Tutti gli utenti</h2>
+      <div id="allList"></div>
     </div>
 
-    <div id="lista"></div>
+    <!-- ===== SCHEDA UTENTE ===== -->
+    <div id="detail" class="hidden">
+      <button class="back" id="dBack">← Torna a tutti gli utenti</button>
+      <div class="card">
+        <div class="row" style="justify-content:space-between">
+          <span style="font-family:Georgia,serif;font-size:30px;color:var(--gold)" id="dNum">—</span>
+          <span id="dPill"></span>
+        </div>
+        <div class="meta" id="dStato">—</div>
+      </div>
+
+      <h2>Anagrafica</h2>
+      <div class="card" id="dAnag"></div>
+
+      <h2>Piano e limiti</h2>
+      <div class="card" id="dPiano"></div>
+
+      <h2>Sessioni (cronologia)</h2>
+      <div class="card" id="dSess"></div>
+
+      <h2>Gestione</h2>
+      <div class="card" id="dManage"></div>
+    </div>
   </div>
 </div>
 
@@ -96,159 +133,161 @@
   var $=function(id){return document.getElementById(id);};
   var AU='000', AP='';
   try{ if((localStorage.getItem('pred_user')||'')==='000') AP=localStorage.getItem('pred_pw')||''; }catch(e){}
+  var UT=[];           // elenco utenti (cache)
+  var CUR=null;        // scheda corrente
 
   var toastEl=$('toast'), tT=null;
   function toast(m,k){ toastEl.textContent=m; toastEl.className='toast show'+(k?(' '+k):''); clearTimeout(tT); tT=setTimeout(function(){toastEl.className='toast';},2600); }
+  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function faseLbl(f){ return {spento:'Spento',avviato:'In corso',cambiato:'Rivelato',terminato:'Terminato'}[f]||f; }
+  function fasePill(f){ if(f==='avviato')return '<span class="pill on">In corso</span>'; if(f==='cambiato')return '<span class="pill rev">Rivelato</span>'; if(f==='terminato')return '<span class="pill">Terminato</span>'; return '<span class="pill">Spento</span>'; }
+  function fdata(ts){ if(!ts)return '—'; try{var d=new Date(ts*1000);return d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return '—';} }
 
   function call(azione, params){
     var b=new URLSearchParams(); b.set('azione',azione); b.set('utente',AU); b.set('password',AP);
     if(params){ for(var k in params){ b.set(k, params[k]); } }
     return fetch(API+'stato.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});});
   }
-
-  function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
-  function faseLbl(f){ return {spento:'Spento',avviato:'In corso',cambiato:'Rivelato',terminato:'Terminato'}[f]||f; }
-
-  function render(utenti){
-    var box=$('lista'); box.innerHTML='';
-    utenti.forEach(function(u){
-      if(u.admin) return; // l'admin non si gestisce come utente
-      var c=document.createElement('div'); c.className='card';
-      c.innerHTML=
-        '<div class="row" style="justify-content:space-between">'+
-          '<span class="num">'+esc(u.numero)+'</span>'+
-          '<span class="pill '+(u.attivo?'on':'off')+'">'+(u.attivo?'attivo':'sospeso')+'</span>'+
-        '</div>'+
-        '<div class="meta">Stato: <b>'+faseLbl(u.fase)+'</b> · sessione '+(u.sessione||'—')+' · aperture '+(u.aperture||0)+
-          ' · password: <b>'+esc(u.pass)+'</b> · mail: '+(u.mail_impostata?'✔ impostata':'—')+'</div>'+
-        '<div class="row" style="margin-top:10px">'+
-          '<label class="chk"><input type="checkbox" class="fMail" '+(u.flags.mail?'checked':'')+'> mail</label>'+
-          '<label class="chk"><input type="checkbox" class="fFoto" '+(u.flags.foto?'checked':'')+'> foto</label>'+
-          '<button class="btn" data-a="flags">Salva funzioni</button>'+
-        '</div>'+
-        '<div class="sep"></div>'+
-        '<div class="field"><label>Cambia password</label><input type="text" class="inPw" placeholder="nuova password"></div>'+
-        '<div class="btns">'+
-          '<button class="btn" data-a="pw">Salva password</button>'+
-          '<button class="btn" data-a="attiva">'+(u.attivo?'Sospendi':'Riattiva')+'</button>'+
-          '<button class="btn danger" data-a="del">Elimina</button>'+
-        '</div>'+
-        '<div class="sep"></div>'+
-        '<div class="plinfo">Piano: <b>'+esc(u.piano||'Foyer')+'</b> · crediti → mail '+(u.crediti?u.crediti.mail:0)+' · foto IA '+(u.crediti?u.crediti.foto_ia:0)+' · sessioni '+(u.crediti?u.crediti.sessioni:0)+'</div>'+
-        '<div class="row">'+
-          '<select class="inPiano"><option>Foyer</option><option selected>Quinte</option><option>Sipario</option><option>Palco</option></select>'+
-          '<span class="small" style="margin:0">per</span>'+
-          '<input class="inQ" type="number" min="1" value="1" style="width:56px">'+
-          '<select class="inDur"><option value="anno">anni</option><option value="mese">mesi</option></select>'+
-          '<button class="btn gold" data-a="piano">Applica upgrade</button>'+
-        '</div>'+
-        '<div class="row" style="margin-top:8px">'+
-          '<select class="inTipo"><option value="mail">Crediti mail</option><option value="foto_ia">Crediti foto IA</option><option value="sessioni">Crediti sessioni</option></select>'+
-          '<input class="inQta" type="number" min="1" placeholder="quantità" style="width:92px">'+
-          '<span class="small" style="margin:0">scad.</span><input class="inScad" type="date">'+
-          '<button class="btn" data-a="crediti">Aggiungi crediti</button>'+
-        '</div>'+
-        '<div class="sep"></div>'+
-        '<div class="field"><label>Casella (Gmail dell\'utente) — facoltativa</label><input type="email" class="inEmail" placeholder="utente@gmail.com"></div>'+
-        '<div class="field"><input type="text" class="inApp" placeholder="password per app (16 lettere)"></div>'+
-        '<div class="field"><input type="text" class="inFrom" placeholder="nome mittente (facoltativo)"></div>'+
-        '<div class="btns"><button class="btn" data-a="mail">Salva casella</button></div>';
-
-      c.querySelectorAll('button[data-a]').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          var a=btn.getAttribute('data-a'), num=u.numero;
-          if(a==='flags'){
-            call('admin_flags',{numero:num, mail:c.querySelector('.fMail').checked?'1':'0', foto:c.querySelector('.fFoto').checked?'1':'0'}).then(function(r){ done(r,'Funzioni salvate'); });
-          } else if(a==='pw'){
-            var v=c.querySelector('.inPw').value.trim(); if(!v){toast('Scrivi la nuova password','err');return;}
-            call('admin_password',{numero:num, pw:v}).then(function(r){ done(r,'Password aggiornata'); });
-          } else if(a==='attiva'){
-            call('admin_attiva',{numero:num, valore:(u.attivo?'0':'1')}).then(function(r){ done(r,'Stato aggiornato'); });
-          } else if(a==='del'){
-            if(!confirm('Eliminare l\'utente '+num+'? I suoi dati restano sul server ma l\'accesso viene rimosso.')) return;
-            call('admin_elimina',{numero:num}).then(function(r){ done(r,'Utente eliminato'); });
-          } else if(a==='mail'){
-            var e=c.querySelector('.inEmail').value.trim(), ap=c.querySelector('.inApp').value.trim(), fr=c.querySelector('.inFrom').value.trim();
-            if(!e||!ap){toast('Email e password per app','err');return;}
-            call('admin_mail',{numero:num, email:e, app_password:ap, from:fr}).then(function(r){ done(r,'Casella salvata'); });
-          } else if(a==='piano'){
-            var pi=c.querySelector('.inPiano').value, q=c.querySelector('.inQ').value||'1', du=c.querySelector('.inDur').value;
-            call('admin_piano',{numero:num, piano:pi, durata:du, quante:q}).then(function(r){ done(r,'Upgrade applicato'); });
-          } else if(a==='crediti'){
-            var ti=c.querySelector('.inTipo').value, qt=c.querySelector('.inQta').value, sc=c.querySelector('.inScad').value;
-            if(!qt||parseInt(qt,10)<=0){toast('Scrivi la quantità','err');return;}
-            call('admin_crediti',{numero:num, tipo:ti, qta:qt, scad:sc}).then(function(r){ done(r,'Crediti aggiunti'); });
-          }
-        });
-      });
-      box.appendChild(c);
-    });
-  }
-
-  function done(r, ok){
-    if(r.data && r.data.ok){ toast(ok,'ok'); carica(); }
-    else { toast((r.data&&r.data.errore)||'Errore','err'); }
-  }
-
-  /* ---- ORDINI (ordine.php) ---- */
   function callOrdini(azione, params){
     var b=new URLSearchParams(); b.set('azione',azione); b.set('u',AU); b.set('pass',AP);
     if(params){ for(var k in params){ b.set(k, params[k]); } }
     return fetch(API+'ordine.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});});
   }
-  function statoPill(s){
-    if(s==='attivato') return '<span class="pill on">attivato</span>';
-    if(s==='annullato') return '<span class="pill off">annullato</span>';
-    return '<span class="pill">in attesa</span>';
+
+  /* ---------- HOME ---------- */
+  function urow(u){
+    var sub=(u.nome?esc(u.nome)+' · ':'')+(u.email&&u.email!=='—'?esc(u.email)+' · ':'')+'piano '+esc(u.piano||'Foyer');
+    return '<div class="urow" data-u="'+esc(u.numero)+'"><span class="n">'+esc(u.numero)+'</span>'+
+      '<span class="info"><span class="t">'+(u.nome?esc(u.nome):('Utente '+esc(u.numero)))+'</span><span class="s">'+sub+'</span></span>'+
+      fasePill(u.fase)+'<span class="arr">›</span></div>';
   }
-  function renderOrdini(ordini){
-    var box=$('ordiniBox');
-    if(!ordini || !ordini.length){ box.innerHTML='<div class="small">Nessun ordine.</div>'; return; }
-    box.innerHTML='';
-    ordini.forEach(function(o){
-      var d=document.createElement('div'); d.style.cssText='border-top:1px solid var(--line);padding:10px 0';
-      var azioni = (o.stato==='attesa')
-        ? '<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>'
-        : (o.utente? '<span class="small">utente assegnato: <b>'+esc(o.utente)+'</b></span>' : '');
-      d.innerHTML=
-        '<div class="row" style="justify-content:space-between"><b>'+esc(o.id)+'</b>'+statoPill(o.stato)+'</div>'+
-        '<div class="meta">'+esc(o.nome)+' · '+esc(o.mail)+'<br>'+esc(o.gioco)+' · '+esc(o.piano)+' ('+esc(o.durata)+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale)+'</div>'+
-        '<div class="btns">'+azioni+'</div>';
-      d.querySelectorAll('button[data-oa]').forEach(function(btn){
-        btn.addEventListener('click', function(){
-          var a=btn.getAttribute('data-oa');
-          if(a==='attiva'){
-            if(!confirm('Confermi che il pagamento di '+o.id+' è arrivato? Verrà creato l\'utente e inviata la password.')) return;
-            callOrdini('admin_attiva',{id:o.id}).then(function(r){
-              if(r.data&&r.data.ok){
-                if(r.data.nuovo){ alert('Attivato!\nUtente: '+r.data.utente+'\nPassword: '+r.data.password+'\nRicevuta: '+r.data.ricevuta+'\n\n(La mail di benvenuto è stata inviata al cliente.)'); }
-                toast('Ordine attivato','ok'); caricaOrdini(); carica();
-              } else { toast((r.data&&r.data.errore)||'Errore','err'); }
-            });
-          } else if(a==='annulla'){
-            if(!confirm('Annullare l\'ordine '+o.id+'?')) return;
-            callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Ordine annullato','ok');caricaOrdini();} else {toast('Errore','err');} });
-          }
-        });
-      });
-      box.appendChild(d);
+  function renderHome(){
+    var q=($('search').value||'').toLowerCase().trim();
+    var live=UT.filter(function(u){return !u.admin && (u.fase==='avviato'||u.fase==='cambiato');});
+    live.sort(function(a,b){return a.numero.localeCompare(b.numero);});
+    $('liveList').innerHTML = live.length? live.map(urow).join('') : '<div class="card" style="color:var(--faint)">Nessuno sta giocando ora.</div>';
+    var all=UT.filter(function(u){ if(u.admin)return false;
+      if(!q)return true;
+      return (u.numero.indexOf(q)>=0)||((u.nome||'').toLowerCase().indexOf(q)>=0)||((u.email||'').toLowerCase().indexOf(q)>=0)||((u.piano||'').toLowerCase().indexOf(q)>=0);
     });
-  }
-  function caricaOrdini(){
-    callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok){ renderOrdini(r.data.ordini||[]); } }).catch(function(){});
+    all.sort(function(a,b){ // prima chi è in gioco, poi per numero
+      var la=(a.fase==='avviato'||a.fase==='cambiato')?0:1, lb=(b.fase==='avviato'||b.fase==='cambiato')?0:1;
+      return la-lb || a.numero.localeCompare(b.numero);
+    });
+    $('allList').innerHTML = all.length? all.map(urow).join('') : '<div class="card" style="color:var(--faint)">Nessun utente trovato.</div>';
+    document.querySelectorAll('#home .urow').forEach(function(r){ r.addEventListener('click',function(){ openUser(r.getAttribute('data-u')); }); });
   }
 
   function carica(){
     call('admin_utenti').then(function(r){
       if(r.code===403 || !(r.data&&r.data.ok)){ mostraLogin(); return; }
       $('adminLogin').classList.add('hidden'); $('adminBody').classList.remove('hidden');
-      render(r.data.utenti||[]);
-      caricaOrdini();
+      UT=r.data.utenti||[]; renderHome(); caricaOrdini();
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   }
-
   function mostraLogin(){ $('adminBody').classList.add('hidden'); $('adminLogin').classList.remove('hidden'); }
 
+  /* ---------- ORDINI ---------- */
+  function statoPill(s){ if(s==='attivato')return '<span class="pill on">attivato</span>'; if(s==='annullato')return '<span class="pill off">annullato</span>'; return '<span class="pill">in attesa</span>'; }
+  function renderOrdini(ordini){
+    var box=$('ordiniBox');
+    if(!ordini||!ordini.length){ box.innerHTML='<div class="small">Nessun ordine.</div>'; return; }
+    box.innerHTML='';
+    ordini.forEach(function(o){
+      var d=document.createElement('div'); d.style.cssText='border-top:1px solid var(--line);padding:10px 0';
+      var az=(o.stato==='attesa')?'<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>':(o.utente?'<span class="small">utente: <b>'+esc(o.utente)+'</b></span>':'');
+      d.innerHTML='<div class="row" style="justify-content:space-between"><b>'+esc(o.id)+'</b>'+statoPill(o.stato)+'</div>'+
+        '<div class="meta">'+esc(o.nome)+' · '+esc(o.mail)+'<br>'+esc(o.gioco)+' · '+esc(o.piano)+' ('+esc(o.durata)+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale)+'</div><div class="btns">'+az+'</div>';
+      d.querySelectorAll('button[data-oa]').forEach(function(btn){ btn.addEventListener('click',function(){
+        var a=btn.getAttribute('data-oa');
+        if(a==='attiva'){ if(!confirm('Confermi che il pagamento di '+o.id+' è arrivato?'))return;
+          callOrdini('admin_attiva',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){ if(r.data.nuovo)alert('Attivato!\nUtente: '+r.data.utente+'\nPassword: '+r.data.password+'\nRicevuta: '+r.data.ricevuta); toast('Ordine attivato','ok'); caricaOrdini(); carica(); } else toast((r.data&&r.data.errore)||'Errore','err'); }); }
+        else if(a==='annulla'){ if(!confirm('Annullare '+o.id+'?'))return; callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Annullato','ok');caricaOrdini();}else toast('Errore','err'); }); }
+      }); });
+      box.appendChild(d);
+    });
+  }
+  function caricaOrdini(){ callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok) renderOrdini(r.data.ordini||[]); }).catch(function(){}); }
+
+  /* ---------- SCHEDA UTENTE ---------- */
+  function openUser(num){
+    call('admin_scheda',{numero:num}).then(function(r){
+      if(!(r.data&&r.data.ok)){ toast((r.data&&r.data.errore)||'Errore','err'); return; }
+      CUR=r.data.scheda; renderDetail(CUR);
+      $('home').classList.add('hidden'); $('detail').classList.remove('hidden'); window.scrollTo(0,0);
+    });
+  }
+  function showHome(){ $('detail').classList.add('hidden'); $('home').classList.remove('hidden'); window.scrollTo(0,0); }
+
+  function renderDetail(s){
+    $('dNum').textContent=s.numero;
+    $('dPill').innerHTML=(s.attivo?'<span class="pill on">attivo</span>':'<span class="pill off">sospeso</span>');
+    var lastFase=(s.sessioni&&s.sessioni[0])?s.sessioni[0].fase:'spento';
+    $('dStato').innerHTML='Stato gioco: '+fasePill(lastFase)+' · password: <b>'+esc(s.pass)+'</b>';
+    // anagrafica
+    $('dAnag').innerHTML=
+      '<div class="kv"><span>Nome</span><b>'+(s.nome?esc(s.nome):'—')+'</b></div>'+
+      '<div class="kv"><span>Email</span><b>'+(s.email?esc(s.email):'—')+'</b></div>'+
+      '<div class="kv"><span>Telefono</span><b>'+(s.tel?esc(s.tel):'—')+'</b></div>'+
+      '<div class="kv"><span>Funzioni</span><b>'+(s.flags.mail?'mail ':'')+(s.flags.foto?'foto IA':'')+((!s.flags.mail&&!s.flags.foto)?'—':'')+'</b></div>';
+    // piano
+    var cr=(s.limiti&&s.limiti.crediti)||{};
+    $('dPiano').innerHTML=
+      '<div class="kv"><span>Piano</span><b style="color:var(--gold)">'+esc(s.piano||'Foyer')+'</b></div>'+
+      '<div class="kv"><span>Accesso fino a</span><b>'+fdata(s.accesso_scad)+'</b></div>'+
+      '<div class="kv"><span>Abbonamento</span><b>'+(s.piano_scad?('rinnovo '+fdata(s.piano_scad)):'incluso')+'</b></div>'+
+      '<div class="kv"><span>Crediti extra</span><b>mail '+(cr.mail||0)+' · foto IA '+(cr.foto_ia||0)+' · sessioni '+(cr.sessioni||0)+'</b></div>';
+    // sessioni
+    if(!s.sessioni||!s.sessioni.length){ $('dSess').innerHTML='<div class="small">Nessuna sessione registrata.</div>'; }
+    else{
+      $('dSess').innerHTML=s.sessioni.map(function(se){
+        var rep=API+'report.php?au='+encodeURIComponent(AU)+'&ap='+encodeURIComponent(AP)+'&u='+encodeURIComponent(s.numero)+'&s='+se.id;
+        return '<div class="srow"><b>#'+se.id+'</b><span class="d">'+fdata(se.avvio_ts)+' · '+faseLbl(se.fase)+' · '+se.mittenti+' mitt · '+se.aperture+' aperture</span>'+
+          '<a class="btn" href="'+rep+'" target="_blank" style="text-decoration:none">📄 Report</a></div>';
+      }).join('');
+    }
+    // gestione
+    renderManage(s);
+  }
+
+  function renderManage(s){
+    var num=s.numero;
+    $('dManage').innerHTML=
+      '<div class="row"><label class="chk"><input type="checkbox" id="mFlagMail" '+(s.flags.mail?'checked':'')+'> mail</label>'+
+        '<label class="chk"><input type="checkbox" id="mFlagFoto" '+(s.flags.foto?'checked':'')+'> foto IA</label>'+
+        '<button class="btn" id="mSalvaFlags">Salva funzioni</button></div>'+
+      '<div class="sep"></div>'+
+      '<div class="field"><label>Cambia password</label><input type="text" id="mPw" placeholder="nuova password"></div>'+
+      '<div class="btns"><button class="btn" id="mSalvaPw">Salva password</button>'+
+        '<button class="btn" id="mAttiva">'+(s.attivo?'Sospendi':'Riattiva')+'</button>'+
+        '<button class="btn danger" id="mDel">Elimina</button></div>'+
+      '<div class="sep"></div>'+
+      '<div class="plinfo">Upgrade / cambio piano</div>'+
+      '<div class="row"><select id="mPiano"><option>Foyer</option><option selected>Quinte</option><option>Sipario</option><option>Palco</option></select>'+
+        '<span class="small" style="margin:0">per</span><input id="mQ" type="number" min="1" value="1" style="width:56px">'+
+        '<select id="mDur"><option value="anno">anni</option><option value="mese">mesi</option></select>'+
+        '<button class="btn gold" id="mUpgrade">Applica</button></div>'+
+      '<div class="row" style="margin-top:8px"><select id="mTipo"><option value="mail">Crediti mail</option><option value="foto_ia">Crediti foto IA</option><option value="sessioni">Crediti sessioni</option></select>'+
+        '<input id="mQta" type="number" min="1" placeholder="quantità" style="width:92px"><span class="small" style="margin:0">scad.</span><input id="mScad" type="date">'+
+        '<button class="btn" id="mCrediti">Aggiungi</button></div>'+
+      '<div class="sep"></div>'+
+      '<div class="field"><label>Casella (Gmail) — facoltativa</label><input type="email" id="mEmail" placeholder="utente@gmail.com"></div>'+
+      '<div class="field"><input type="text" id="mApp" placeholder="password per app (16 lettere)"></div>'+
+      '<div class="field"><input type="text" id="mFrom" placeholder="nome mittente (facoltativo)"></div>'+
+      '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button></div>';
+
+    function refresh(){ openUser(num); carica(); }
+    function done(r,ok){ if(r.data&&r.data.ok){toast(ok,'ok');refresh();}else toast((r.data&&r.data.errore)||'Errore','err'); }
+    $('mSalvaFlags').onclick=function(){ call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0'}).then(function(r){done(r,'Funzioni salvate');}); };
+    $('mSalvaPw').onclick=function(){ var v=$('mPw').value.trim(); if(!v){toast('Scrivi la password','err');return;} call('admin_password',{numero:num,pw:v}).then(function(r){done(r,'Password aggiornata');}); };
+    $('mAttiva').onclick=function(){ call('admin_attiva',{numero:num,valore:(s.attivo?'0':'1')}).then(function(r){done(r,'Stato aggiornato');}); };
+    $('mDel').onclick=function(){ if(!confirm('Eliminare l\'utente '+num+'? I dati restano sul server ma l\'accesso viene rimosso.'))return; call('admin_elimina',{numero:num}).then(function(r){ if(r.data&&r.data.ok){toast('Eliminato','ok');showHome();carica();}else toast('Errore','err'); }); };
+    $('mUpgrade').onclick=function(){ call('admin_piano',{numero:num,piano:$('mPiano').value,durata:$('mDur').value,quante:$('mQ').value||'1'}).then(function(r){done(r,'Upgrade applicato');}); };
+    $('mCrediti').onclick=function(){ var q=$('mQta').value; if(!q||parseInt(q,10)<=0){toast('Scrivi la quantità','err');return;} call('admin_crediti',{numero:num,tipo:$('mTipo').value,qta:q,scad:$('mScad').value}).then(function(r){done(r,'Crediti aggiunti');}); };
+    $('mSalvaMail').onclick=function(){ var e=$('mEmail').value.trim(),ap=$('mApp').value.trim(),fr=$('mFrom').value.trim(); if(!e||!ap){toast('Email e password per app','err');return;} call('admin_mail',{numero:num,email:e,app_password:ap,from:fr}).then(function(r){done(r,'Casella salvata');}); };
+  }
+
+  /* ---------- eventi base ---------- */
   $('aEnter').addEventListener('click', function(){
     AU=($('aUser').value||'000').replace(/[^0-9]/g,'')||'000';
     AP=($('aPass').value||'').trim();
@@ -258,15 +297,14 @@
   });
   $('aPass').addEventListener('keydown',function(e){ if(e.key==='Enter') $('aEnter').click(); });
   $('ordRefresh').addEventListener('click', caricaOrdini);
-
+  $('dBack').addEventListener('click', showHome);
   $('nCrea').addEventListener('click', function(){
     var num=($('nNum').value||'').replace(/[^0-9]/g,'');
     if(!num){toast('Scrivi il numero','err');return;}
     call('admin_crea',{numero:num, pw:($('nPw').value||'').trim(), mail:$('nMail').checked?'1':'0', foto:$('nFoto').checked?'1':'0'})
-      .then(function(r){ if(r.data&&r.data.ok){ toast('Utente creato','ok'); $('nNum').value='';$('nPw').value='';$('nMail').checked=false;$('nFoto').checked=false; carica(); } else { toast((r.data&&r.data.errore)||'Errore','err'); } });
+      .then(function(r){ if(r.data&&r.data.ok){ toast('Utente creato','ok'); $('nNum').value='';$('nPw').value='';$('nMail').checked=false;$('nFoto').checked=false; carica(); } else toast((r.data&&r.data.errore)||'Errore','err'); });
   });
 
-  // avvio: se ho gia' le credenziali admin salvate, entro; altrimenti mostro il login
   if(AP){ carica(); } else { mostraLogin(); }
 })();
 </script>

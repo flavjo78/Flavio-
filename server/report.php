@@ -18,7 +18,13 @@ function h($s){ return htmlspecialchars((string)$s, ENT_QUOTES, 'UTF-8'); }
 $utente   = predizione_set_utente($_POST['utente'] ?? $_GET['u'] ?? '');
 $password = $_POST['password'] ?? $_GET['password'] ?? null;
 
-if (!predizione_auth($utente, is_string($password) ? $password : null)) {
+/* Lasciapassare AMMINISTRATORE: 000 + password admin può aprire il report di
+   qualsiasi utente (per la scheda nel pannello 000), senza la password dell'utente. */
+$adminU  = (string)($_POST['au'] ?? $_GET['au'] ?? '');
+$adminPw = $_POST['ap'] ?? $_GET['ap'] ?? null;
+$okAdmin = ($adminU !== '' && predizione_is_admin(predizione_pulisci_utente($adminU), is_string($adminPw) ? $adminPw : null));
+
+if (!$okAdmin && !predizione_auth($utente, is_string($password) ? $password : null)) {
     http_response_code(401);
     header('Content-Type: text/html; charset=utf-8');
     echo '<!doctype html><meta charset="utf-8"><body style="font-family:sans-serif;padding:30px">Accesso negato.</body>';
