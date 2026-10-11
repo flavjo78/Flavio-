@@ -77,6 +77,11 @@
       <div class="btns"><button class="btn gold" id="nCrea">Crea utente</button></div>
     </div>
 
+    <div class="card">
+      <div class="row" style="justify-content:space-between"><b>Ordini</b><button class="btn" id="ordRefresh">Aggiorna</button></div>
+      <div id="ordiniBox"><div class="small">—</div></div>
+    </div>
+
     <div id="lista"></div>
   </div>
 </div>
@@ -161,11 +166,60 @@
     else { toast((r.data&&r.data.errore)||'Errore','err'); }
   }
 
+  /* ---- ORDINI (ordine.php) ---- */
+  function callOrdini(azione, params){
+    var b=new URLSearchParams(); b.set('azione',azione); b.set('u',AU); b.set('pass',AP);
+    if(params){ for(var k in params){ b.set(k, params[k]); } }
+    return fetch(API+'ordine.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});});
+  }
+  function statoPill(s){
+    if(s==='attivato') return '<span class="pill on">attivato</span>';
+    if(s==='annullato') return '<span class="pill off">annullato</span>';
+    return '<span class="pill">in attesa</span>';
+  }
+  function renderOrdini(ordini){
+    var box=$('ordiniBox');
+    if(!ordini || !ordini.length){ box.innerHTML='<div class="small">Nessun ordine.</div>'; return; }
+    box.innerHTML='';
+    ordini.forEach(function(o){
+      var d=document.createElement('div'); d.style.cssText='border-top:1px solid var(--line);padding:10px 0';
+      var azioni = (o.stato==='attesa')
+        ? '<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>'
+        : (o.utente? '<span class="small">utente assegnato: <b>'+esc(o.utente)+'</b></span>' : '');
+      d.innerHTML=
+        '<div class="row" style="justify-content:space-between"><b>'+esc(o.id)+'</b>'+statoPill(o.stato)+'</div>'+
+        '<div class="meta">'+esc(o.nome)+' · '+esc(o.mail)+'<br>'+esc(o.gioco)+' · '+esc(o.piano)+' ('+esc(o.durata)+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale)+'</div>'+
+        '<div class="btns">'+azioni+'</div>';
+      d.querySelectorAll('button[data-oa]').forEach(function(btn){
+        btn.addEventListener('click', function(){
+          var a=btn.getAttribute('data-oa');
+          if(a==='attiva'){
+            if(!confirm('Confermi che il pagamento di '+o.id+' è arrivato? Verrà creato l\'utente e inviata la password.')) return;
+            callOrdini('admin_attiva',{id:o.id}).then(function(r){
+              if(r.data&&r.data.ok){
+                if(r.data.nuovo){ alert('Attivato!\nUtente: '+r.data.utente+'\nPassword: '+r.data.password+'\nRicevuta: '+r.data.ricevuta+'\n\n(La mail di benvenuto è stata inviata al cliente.)'); }
+                toast('Ordine attivato','ok'); caricaOrdini(); carica();
+              } else { toast((r.data&&r.data.errore)||'Errore','err'); }
+            });
+          } else if(a==='annulla'){
+            if(!confirm('Annullare l\'ordine '+o.id+'?')) return;
+            callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Ordine annullato','ok');caricaOrdini();} else {toast('Errore','err');} });
+          }
+        });
+      });
+      box.appendChild(d);
+    });
+  }
+  function caricaOrdini(){
+    callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok){ renderOrdini(r.data.ordini||[]); } }).catch(function(){});
+  }
+
   function carica(){
     call('admin_utenti').then(function(r){
       if(r.code===403 || !(r.data&&r.data.ok)){ mostraLogin(); return; }
       $('adminLogin').classList.add('hidden'); $('adminBody').classList.remove('hidden');
       render(r.data.utenti||[]);
+      caricaOrdini();
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   }
 
@@ -179,6 +233,7 @@
     carica();
   });
   $('aPass').addEventListener('keydown',function(e){ if(e.key==='Enter') $('aEnter').click(); });
+  $('ordRefresh').addEventListener('click', caricaOrdini);
 
   $('nCrea').addEventListener('click', function(){
     var num=($('nNum').value||'').replace(/[^0-9]/g,'');
