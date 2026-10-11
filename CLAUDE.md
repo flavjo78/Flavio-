@@ -3,7 +3,25 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 10 ottobre 2026 (modello di vendita come autore + licenza d'uso, vedi §8 e ROADMAP §8).
+Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prima: modello di vendita come autore + licenza d'uso, §8 e ROADMAP §8).
+
+> ### ⚠️ Correzioni recenti (11 ottobre 2026) — leggere PRIMA del resto
+> Alcune parti più vecchie di questo documento citano ancora Brevo: sono **superate**.
+> Lo stato VERO oggi è questo:
+> - **Invio grandi volumi = Mailgun, NON Brevo.** Brevo è stato abbandonato (non funzionava).
+>   Il canale "Palco" del pannello usa **Mailgun (SMTP)**. Nel codice della Lambda le variabili
+>   del canale grande sono ora `MAILGUN_HOST/PORT/USER/PASS` (i vecchi `BREVO_*` restano accettati
+>   solo per compatibilità). Guida aggiornata: `guide/palco-aws.html`.
+> - **abraka.it NON invia più mail agli spettatori.** Il sito/dominio abraka serve solo come
+>   **vetrina di vendita** e **pannello di controllo** dei clienti, e per le mail **commerciali**
+>   ai clienti (benvenuto, ricevute, da `supporto@abraka.it`). Le mail agli spettatori le invia
+>   **ciascun cliente**: dal **proprio dominio** via Mailgun (modo "Palco") o dalla **propria
+>   casella** (modo "Casella", es. Gmail con password per app, eventi piccoli).
+> - **Mailgun è multi-dominio con UN solo account (quello dell'autore, che paga lui).** L'autore
+>   aggiunge in Mailgun un dominio per ogni cliente; il cliente deve solo **incollare 3-4 righe DNS**
+>   nel proprio dominio (istruzioni pronte nella guida). Il cliente non crea account né paga Mailgun.
+> - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
+>   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
 ---
 
@@ -282,15 +300,15 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
 - [ ] **Deploy dell'autorisponditore su AWS**: creare la Lambda, caricare lo zip, impostare
       le variabili (IMAP_USER/PASS ecc.), timeout 2 min, policy `AmazonSESFullAccess`, trigger
       EventBridge `rate(1 minute)`. **Guida completa: `guide/autorisponditore.md`.**
-- [x] **Brevo attivo e collaudato** come invio per eventi grandi: account creato, telefono
-      verificato, mittente `io@abraka.it` verificato, **dominio autenticato** (DKIM brevo1/brevo2
-      + brevo-code TXT + tag `rua` aggiunto al DMARC esistente, senza toccare SPF/SES). SMTP
-      `smtp-relay.brevo.com:587`, login `<...>@smtp-brevo.com`, chiave SMTP in `BREVO_PASS`.
-      Piano gratis 300/giorno (con logo Brevo); per eventi senza logo serve Starter ~9$/mese.
-      NB: la chiave SMTP mostrata in chat andrebbe rigenerata quando possibile.
+- [~] **Invio grandi volumi: MAILGUN** (sostituisce Brevo, che è stato abbandonato perché non
+      funzionava). È il canale "Palco". UN solo account Mailgun dell'autore (paga lui), **multi-dominio**:
+      si aggiunge un dominio per ogni cliente, il cliente incolla 3-4 righe DNS nel proprio dominio.
+      SMTP `smtp.mailgun.org:587` (UE: `smtp.eu.mailgun.org`), login tipo `postmaster@<dominio-cliente>`,
+      password SMTP in `MAILGUN_PASS`. **Palco richiede un dominio: NON va con Gmail** (chi ha solo
+      Gmail usa il modo "Casella"). Guida illustrata con le istruzioni per il cliente: `guide/palco-aws.html`.
+      _(Storico: Brevo era stato collaudato — DKIM brevo1/brevo2 + DMARC `rua` — ma è stato dismesso.)_
 - [ ] **Uscire dalla sandbox SES** ("Richiedi accesso alla produzione"): Amazon ha rifiutato
-      2 volte. Opzionale ora che Brevo copre gli eventi grandi; eventualmente ritentare dopo
-      aver "scaldato" l'account.
+      2 volte. Opzionale ora che Mailgun copre gli eventi grandi.
 - [ ] Collegare il **contatore** del pannello alle mail reali (oggi mostra le aperture del log).
 - [ ] Prova completa in piccolo (2–3 mail) prima dello show, su Gmail e su iPhone.
 

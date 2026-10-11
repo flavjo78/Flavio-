@@ -42,7 +42,12 @@ const {
   SMTP_PORT = '587',
   SMTP_USER,                 // se vuoto usa IMAP_USER
   SMTP_PASS,                 // se vuoto usa IMAP_PASS
-  // --- casella di casa: invio via BREVO (eventi grandi) ---
+  // --- canale dedicato "PALCO" per gli eventi grandi (SMTP) ---
+  // Ora si usa MAILGUN; i vecchi BREVO_* restano accettati per compatibilita'.
+  MAILGUN_HOST,
+  MAILGUN_PORT,
+  MAILGUN_USER,
+  MAILGUN_PASS,
   BREVO_HOST = 'smtp-relay.brevo.com',
   BREVO_PORT = '587',
   BREVO_USER,
@@ -261,8 +266,13 @@ async function inviaCasa(modo, dest, oggetto, html) {
     }));
     return;
   }
+  // canale "Palco": preferisci MAILGUN_*; se vuoti, ripiega sui vecchi BREVO_*
+  const grandeHost = MAILGUN_HOST || BREVO_HOST;
+  const grandePort = MAILGUN_PORT || BREVO_PORT;
+  const grandeUser = MAILGUN_USER || BREVO_USER;
+  const grandePass = MAILGUN_PASS || BREVO_PASS;
   const tx = (modo === 'brevo')
-    ? smtpTransport(BREVO_HOST, BREVO_PORT, BREVO_USER, BREVO_PASS)
+    ? smtpTransport(grandeHost, grandePort, grandeUser, grandePass)
     : smtpTransport(SMTP_HOST, SMTP_PORT, SMTP_USER || IMAP_USER, SMTP_PASS || IMAP_PASS);
   await tx.sendMail({
     from: SES_FROM, to: dest, subject: oggetto,
