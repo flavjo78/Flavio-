@@ -396,6 +396,11 @@
         <button class="btn ghost" id="modoBig" type="button">Palco</button>
       </div>
       <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato (Mailgun), per <b>eventi grandi</b> (centinaia).</p>
+
+      <div class="sec-head" style="margin-top:20px"><h2 class="sec-title">Invia a mano</h2><span class="sec-num">max 10</span></div>
+      <div class="field"><label for="inviaList">Indirizzi (uno per riga)</label><textarea id="inviaList" rows="4" placeholder="mario@gmail.com&#10;giulia@libero.it"></textarea></div>
+      <button class="btn" id="inviaBtn" type="button" style="width:100%">✉️ Invia a tutti</button>
+      <p class="hint" id="inviaMsg">Manda la mail con la <b>foto del gioco</b> a pochi indirizzi, direttamente dalla <b>tua casella</b>. Serve il gioco <b>avviato</b> e la casella impostata.</p>
     </section>
 
     <section class="sp" data-sp="foto" aria-label="Le foto">
@@ -932,6 +937,19 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
   $('modoBig').addEventListener('click', function(){ setModo('grande'); });
+  // invio manuale a pochi indirizzi (dalla propria casella)
+  var inviaBtn=$('inviaBtn');
+  if(inviaBtn) inviaBtn.addEventListener('click', function(){
+    var txt=($('inviaList').value||'').trim();
+    if(!txt){ $('inviaMsg').textContent='Scrivi almeno un indirizzo.'; return; }
+    inviaBtn.disabled=true; $('inviaMsg').textContent='Invio in corso…';
+    var fd=new FormData(); fd.append('azione','invia'); fd.append('utente',USER); fd.append('password',PW); fd.append('indirizzi',txt);
+    fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      inviaBtn.disabled=false;
+      if(d && d.ok){ $('inviaMsg').innerHTML='Inviate <b>'+d.inviate+'</b> / '+d.totali+'.'+(d.errori&&d.errori.length?(' Non riuscite: '+d.errori.length):''); toast('Inviate '+d.inviate+' mail','ok'); }
+      else { $('inviaMsg').textContent=(d&&d.errore)||((d&&d.errori&&d.errori[0])?('Errore: '+d.errori[0].err):'Invio non riuscito'); toast('Invio non riuscito','err'); }
+    }).catch(function(){ inviaBtn.disabled=false; $('inviaMsg').textContent='Server non raggiungibile.'; });
+  });
 
   // ---- forza (test) ----
 
