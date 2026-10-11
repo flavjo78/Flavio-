@@ -203,7 +203,7 @@
         <div class="hint" style="color:var(--faint)">La password arriva <b>solo dopo la verifica del pagamento</b>, da <b>supporto@abraka.it</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma del pagamento.</div>
         <button class="aback" onclick="ago(4)">‹ indietro</button></div></div>
 
-    <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2>Ordine ricevuto!</h2><p class="sub">Codice ordine <b>PRD-0042</b></p>
+    <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2>Ordine ricevuto!</h2><p class="sub">Codice ordine <b id="ordId">PRD-0042</b></p>
       <p style="color:var(--dim);font-size:14px">Stiamo <b>verificando il pagamento</b>. Appena risulta ricevuto, parte in automatico la mail con la tua <b>password</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma.</p>
       <div class="mailbox">📧 Da: <b>supporto@abraka.it</b><br>A: <b id="mailTo">…</b><br>Oggetto: <b>Benvenuto — i tuoi accessi</b></div>
       <p style="color:var(--faint);font-size:13px;margin-top:10px">Non vedi la mail? <b>Controlla anche lo spam</b>.</p>
@@ -280,7 +280,34 @@
     document.getElementById('tot').textContent=tot+' €';document.getElementById('pagaTxt').textContent='Paga '+tot+' € e conferma';var bi=document.getElementById('bonImporto');if(bi)bi.textContent=tot+' €';
     document.getElementById('totnote').textContent=k>0?('Oggi: accesso 25 € + '+planNames[k]+(curDur==='anno'?(' per 1 anno ('+planAnnual[k]+' €)'):(' per 1 mese ('+planMonthly[k]+' €)'))+'. Totale '+tot+' €.'):'Solo l’accesso 25 €. L’estensione puoi comprarla ora o attivarla dall’app.';}
   function pay(el){document.querySelectorAll('#a_pag .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');document.getElementById('causaleBox').style.display=(el.textContent.trim()==='Bonifico')?'block':'none';}
-  function paga(){if(!document.getElementById('acc1').checked){document.getElementById('eAcc').textContent='Per continuare accetta la Licenza d’uso.';return;}document.getElementById('eAcc').textContent='';ago(6);}
+  var ORDINE_URL='/predizione/ordine.php';
+  function paga(){
+    if(!document.getElementById('acc1').checked){document.getElementById('eAcc').textContent='Per continuare accetta la Licenza d’uso.';return;}
+    document.getElementById('eAcc').textContent='';
+    var sel=document.querySelector('#a_pag .m.sel');
+    var canale=sel?sel.textContent.trim().toLowerCase():'bonifico';
+    var fd=new FormData();
+    fd.append('azione','crea');
+    fd.append('nome',(document.getElementById('nome').value||'').trim());
+    fd.append('cognome',(document.getElementById('cognome').value||'').trim());
+    fd.append('mail',(document.getElementById('email').value||'').trim());
+    fd.append('tel',(document.getElementById('tel').value||'').trim());
+    fd.append('prov',document.getElementById('prov').value||'');
+    fd.append('citta',document.getElementById('citta').value||'');
+    fd.append('via',(document.getElementById('via').value||'').trim());
+    fd.append('lingua',(LANGS[li]?LANGS[li][0]:'it'));
+    fd.append('gioco',GAMES[i][1]);
+    fd.append('piano',planNames[curPlan]);
+    fd.append('durata',curDur);
+    fd.append('canale',canale);
+    fd.append('licenza','1');
+    var btn=document.getElementById('pagaBtn'); if(btn)btn.disabled=true;
+    fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      if(btn)btn.disabled=false;
+      if(d&&d.ok){var oi=document.getElementById('ordId'); if(oi)oi.textContent=d.ordine; ago(6);}
+      else{document.getElementById('eAcc').textContent=(d&&d.errore)||'Errore, riprova.';}
+    }).catch(function(){ if(btn)btn.disabled=false; ago(6); /* anteprima/offline: mostra conferma demo */ });
+  }
   paint();paintLang();
 </script>
 </body></html>

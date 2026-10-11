@@ -64,10 +64,17 @@ function predizione_utente(): string {
     return $GLOBALS['PRED_U'] ?? '001';
 }
 
-/* Cartella dati dell'utente corrente. 001 resta sulla radice (compatibilita'). */
+/* Cartella dati dell'utente corrente.
+   001: storicamente sulla radice _dati/. Dopo la migrazione (quando esiste
+   _dati/u001/) passa automaticamente a quella cartella, SENZA rompere i vecchi
+   indirizzi (image.php con ?u mancante usa comunque 001 -> questa cartella). */
 function predizione_data_dir(): string {
     $u = predizione_utente();
-    return ($u === '001') ? DATA_DIR : (DATA_DIR . '/u' . $u);
+    if ($u === '001') {
+        $u001 = DATA_DIR . '/u001';
+        return is_dir($u001) ? $u001 : DATA_DIR;
+    }
+    return DATA_DIR . '/u' . $u;
 }
 function predizione_stato_file(): string { return predizione_data_dir() . '/stato.json'; }
 function predizione_log_file():   string { return predizione_data_dir() . '/aperture.csv'; }
