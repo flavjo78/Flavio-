@@ -117,7 +117,7 @@
       </div>
       <div class="addbox" id="addAbb">
         <div class="small" style="margin:0 0 6px">Upgrade per <b id="upName">003 · Mario Rossi</b></div>
-        <select id="upPlan" onchange="upRecalc()"><option>Foyer (0 €)</option><option>Quinte (6 €/mese · 72 €/anno)</option><option>Sipario (9 €/mese · 108 €/anno)</option><option selected>Palco (19 €/mese · 228 €/anno)</option></select>
+        <select id="upPlan" onchange="upRecalc()"><option>Foyer (0 €)</option><option>Quinte (5,5 €/mese · 66 €/anno)</option><option>Sipario (8 €/mese · 96 €/anno)</option><option selected>Palco (19 €/mese · 228 €/anno)</option></select>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
           <span class="small">per</span>
           <input class="mini" id="upQty" type="number" min="1" value="3" style="width:64px" oninput="upRecalc()">
@@ -202,7 +202,7 @@
   function showHome(){ $('detail').classList.add('hidden'); $('home').classList.remove('hidden'); window.scrollTo(0,0); }
   function tog(id){ var b=$(id); b.style.display=(b.style.display==='block')?'none':'block'; }
   function upRecalc(){
-    var mon=[0,6,9,19], ann=[0,72,108,228];
+    var mon=[0,5.5,8,19], ann=[0,66,96,228];
     var p=document.getElementById('upPlan').selectedIndex;
     var q=Math.max(1, parseInt(document.getElementById('upQty').value||'1',10));
     var unit=document.getElementById('upUnit').value;

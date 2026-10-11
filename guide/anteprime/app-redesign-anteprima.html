@@ -173,8 +173,8 @@
     <div class="set-top"><div class="back" onclick="go('mioaccount')">‹</div><h2>Acquista un upgrade</h2></div>
     <section>
       <p class="hint" style="margin-top:0">Potenzia il tuo piano. L'upgrade si attiva sul tuo stesso account <b>003</b>.</p>
-      <div class="opt" onclick="upick(1)"><span class="rad"></span><div><b>Quinte</b><div class="s">eventi piccoli · 6 €/mese · 72 €/anno</div></div></div>
-      <div class="opt sel" onclick="upick(2)"><span class="rad"></span><div><b>Sipario</b><div class="s">eventi medi · 9 €/mese · 108 €/anno</div></div></div>
+      <div class="opt" onclick="upick(1)"><span class="rad"></span><div><b>Quinte</b><div class="s">eventi piccoli · 5,5 €/mese · 66 €/anno</div></div></div>
+      <div class="opt sel" onclick="upick(2)"><span class="rad"></span><div><b>Sipario</b><div class="s">eventi medi · 8 €/mese · 96 €/anno</div></div></div>
       <div class="opt" onclick="upick(3)"><span class="rad"></span><div><b>Palco</b><div class="s">grandi eventi · 19 €/mese · 228 €/anno</div></div></div>
     </section>
     <section>
@@ -182,7 +182,7 @@
       <div class="row2"><button class="btn">＋ Pacchetto mail</button><button class="btn">＋ Foto IA</button></div>
     </section>
     <section>
-      <div class="kv"><span>Da pagare oggi</span><b style="color:var(--gold)" id="upTot">108 €</b></div>
+      <div class="kv"><span>Da pagare oggi</span><b style="color:var(--gold)" id="upTot">96 €</b></div>
       <div class="game-btns"><button class="btn primary">Vai al pagamento</button></div>
       <p class="hint">Dopo il pagamento l'upgrade è <b>subito sul tuo account</b>.</p>
     </section>
@@ -359,7 +359,7 @@
     ['flagbox','flagbox2'].forEach(function(id){var e=document.getElementById(id); if(e)e.innerHTML=f;});
     ['langnm','langnm2'].forEach(function(id){var e=document.getElementById(id); if(e)e.textContent=n;});
     var lc=document.getElementById('langcode'); if(lc)lc.textContent=c; }
-  function upick(i){ document.querySelectorAll('#upgrade .opt').forEach(function(o,k){o.classList.toggle('sel',k===(i-1));}); document.getElementById('upTot').textContent=[72,108,228][i-1]+' €'; }
+  function upick(i){ document.querySelectorAll('#upgrade .opt').forEach(function(o,k){o.classList.toggle('sel',k===(i-1));}); document.getElementById('upTot').textContent=[66,96,228][i-1]+' €'; }
   function lang(d){ li=(li+d+LANGS.length)%LANGS.length; paintLang(); }
   function go(id){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');}); document.getElementById(id).classList.add('on'); window.scrollTo(0,0); }
   function pick(i){ document.querySelectorAll('#autorisp .opt').forEach(function(o,k){o.classList.toggle('sel',k===i);}); document.getElementById('maillist').style.display=(i===2)?'block':'none'; }
