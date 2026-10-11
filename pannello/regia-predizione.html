@@ -400,7 +400,7 @@
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
         <button class="btn ghost" id="modoBig" type="button">Palco</button>
       </div>
-      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato (Mailgun), per <b>eventi grandi</b> (centinaia).</p>
+      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato (Brevo), per <b>eventi grandi</b> (centinaia).</p>
 
       <div class="sec-head" style="margin-top:20px"><h2 class="sec-title">Invia a mano</h2><span class="sec-num">max 10</span></div>
       <div class="field"><label for="inviaList">Indirizzi (uno per riga)</label><textarea id="inviaList" rows="4" placeholder="mario@gmail.com&#10;giulia@libero.it"></textarea></div>
@@ -732,7 +732,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
 
     setModoUI(st.invio_modo);
-    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : '$'; }
+    var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : 'Palco'; }
 
     // oggetto/testo: li carico UNA volta sola, per non cancellare mentre scrivi
     if(!msgLoaded){
@@ -933,9 +933,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
 
 
-  // ---- modo di invio: Casella / $ ----
+  // ---- modo di invio: Casella / Palco ----
   function setModoUI(m){
-    var cm = (m==='casella') ? 'casella' : 'grande';   // tutto cio' che non e' "casella" = modo "$"
+    var cm = (m==='casella') ? 'casella' : 'grande';   // tutto cio' che non e' "casella" = modo "Palco"
     [['modoCasella','casella'],['modoBig','grande']].forEach(function(p){
       var b=$(p[0]); if(!b) return; var on=(cm===p[1]);
       b.style.borderColor = on ? 'var(--gold)' : '';
@@ -945,7 +945,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function setModo(m){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
-    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'$'));
+    comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'Palco'));
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
   $('modoBig').addEventListener('click', function(){ setModo('grande'); });

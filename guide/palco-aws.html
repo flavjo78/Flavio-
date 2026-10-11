@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Palco su AWS — guida illustrata</title>
+<style>
+  :root{
+    --bg:#0a0908; --bg-deep:#060505; --surface:#1b1712; --surface-2:#2a251d;
+    --line:rgba(236,224,201,.10); --line-2:rgba(236,224,201,.18);
+    --ink:#ece0c9; --ink-dim:#9a8f7b; --faint:#6c6455;
+    --gold:#c9a465; --gold-soft:rgba(201,164,101,.14);
+    --good:#86b26f; --good-soft:rgba(134,178,111,.14);
+    --stop:#cf8262; --stop-soft:rgba(207,130,98,.14); --r:16px;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#fbf7ee; --bg-deep:#f3ecdd; --surface:#fffdf8; --surface-2:#f4edde;
+      --line:rgba(60,50,30,.12); --line-2:rgba(60,50,30,.20);
+      --ink:#2c2518; --ink-dim:#6d6450; --faint:#8a7f68; --gold:#9a7636; --gold-soft:rgba(154,118,54,.12);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,sans-serif;line-height:1.6}
+  .wrap{max-width:720px;margin:0 auto;padding:26px 16px 70px}
+  .kicker{color:var(--gold);letter-spacing:.4em;text-transform:uppercase;font-size:11px;font-weight:700;text-align:center}
+  h1{font-family:Georgia,serif;font-weight:400;font-size:30px;text-align:center;margin:4px 0 6px}
+  .sub{text-align:center;color:var(--ink-dim);font-size:14px;margin-bottom:22px}
+  h2{font-family:Georgia,serif;font-weight:400;font-size:21px;color:var(--gold);margin:4px 0 10px}
+  .card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:18px 18px;margin-bottom:16px}
+  .step{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .num{flex:0 0 30px;width:30px;height:30px;border-radius:50%;background:var(--gold-soft);border:1px solid var(--gold);color:var(--gold);font-weight:800;display:grid;place-items:center;font-size:14px}
+  ol,ul{margin:6px 0 2px 2px;padding-left:20px}
+  li{margin-bottom:7px}
+  b,strong{color:var(--ink)}
+  code,.k{background:var(--surface-2);border:1px solid var(--line);border-radius:7px;padding:2px 7px;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--ink)}
+  table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13.5px}
+  th,td{text-align:left;padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--ink-dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+  td:first-child{white-space:nowrap}
+  .note{background:var(--gold-soft);border:1px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+  .warn{background:var(--stop-soft);border:1px solid var(--stop);color:var(--stop);border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+  .ok{background:var(--good-soft);border:1px solid var(--good);border-radius:12px;padding:12px 14px;font-size:14px;margin-top:10px}
+  .hint{color:var(--faint);font-size:13px;margin-top:6px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="kicker">Predizione</p>
+  <h1>Mettere “Palco” su AWS</h1>
+  <p class="sub">La risposta automatica per i grandi eventi, passo-passo. Solo clic guidati: il codice è già pronto.</p>
+
+  <div class="card">
+    <h2>Che cos’è “Palco”</h2>
+    <p>“Palco” è il canale per i <b>grandi invii</b> (centinaia/migliaia di mail). Quando uno
+    spettatore scrive a <code>io@abraka.it</code>, un piccolo programma sul cloud Amazon
+    (si chiama <b>Lambda</b>) legge la posta <b>ogni minuto</b> e, a gioco avviato, risponde
+    da solo con la mail che contiene la <b>foto dinamica</b>. Spedisce tramite <b>Brevo</b>,
+    che manda grandi volumi in sicurezza. Il dominio <code>abraka.it</code> è <b>già autenticato</b>
+    su Brevo: non devi collegare nessun dominio.</p>
+    <div class="note">Non serve tenere acceso PC o telefono: gira nel cloud. Lo accendi e spegni
+    comodamente dal <b>pannello → Impostazioni → interruttore “Autorisponditore”</b>.</div>
+  </div>
+
+  <div class="card">
+    <h2>0 · Cosa serve prima</h2>
+    <ul>
+      <li>Un <b>account Amazon AWS</b> (quello che hai già creato per SES).</li>
+      <li>Il file <b><code>autorisponditore.zip</code></b> (te lo mando io: è il programma).</li>
+      <li>La <b>password della casella</b> <code>abraka.it</code> (quella dell’email).</li>
+      <li>Le <b>credenziali Brevo SMTP</b>: login <code>…@smtp-brevo.com</code> e la <b>chiave SMTP</b>
+          (dal pannello Brevo → <i>SMTP &amp; API</i>).</li>
+    </ul>
+    <div class="warn"><b>Importante:</b> con Palco (Brevo) <b>non</b> serve uscire dalla sandbox di Amazon SES.
+    Brevo è indipendente e già pronto.</div>
+  </div>
+
+  <div class="card">
+    <h2>1 · Creare la funzione</h2>
+    <ol>
+      <li>Nella console AWS, in alto a destra scegli la regione <b>Europa (Irlanda)</b>.</li>
+      <li>Cerca <code>Lambda</code> nella barra in alto e aprilo.</li>
+      <li><b>Crea funzione</b> → <b>Crea da zero</b>.</li>
+      <li>Nome: <code>predizione-palco</code> · Runtime: <b>Node.js 22.x</b> (o 20.x) · Architettura: <code>x86_64</code>.</li>
+      <li><b>Crea funzione</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>2 · Caricare il programma (lo zip)</h2>
+    <ol>
+      <li>Scheda <b>Codice</b> → a destra <b>Carica da</b> → <b>.zip file</b>.</li>
+      <li>Scegli <code>autorisponditore.zip</code> → <b>Salva</b>. Compariranno <code>index.mjs</code> e <code>node_modules</code>.</li>
+      <li>In basso, <b>Impostazioni runtime</b> → <b>Modifica</b> → il campo <b>Handler</b> deve essere
+          <code>index.handler</code>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>3 · Le variabili (i dati di collegamento)</h2>
+    <p>Scheda <b>Configurazione</b> → <b>Variabili d’ambiente</b> → <b>Modifica</b> → aggiungi queste righe
+    (Chiave = Valore). Copia esatto:</p>
+    <table>
+      <tr><th>Chiave</th><th>Valore</th></tr>
+      <tr><td class="k">IMAP_HOST</td><td><code>pop.tophost.it</code></td></tr>
+      <tr><td class="k">IMAP_PORT</td><td><code>993</code></td></tr>
+      <tr><td class="k">IMAP_USER</td><td><code>abraka.it</code> <span class="hint">(se non va, prova <code>io@abraka.it</code>)</span></td></tr>
+      <tr><td class="k">IMAP_PASS</td><td>la password della casella <code>abraka.it</code></td></tr>
+      <tr><td class="k">BREVO_HOST</td><td><code>smtp-relay.brevo.com</code></td></tr>
+      <tr><td class="k">BREVO_PORT</td><td><code>587</code></td></tr>
+      <tr><td class="k">BREVO_USER</td><td>il tuo login <code>…@smtp-brevo.com</code></td></tr>
+      <tr><td class="k">BREVO_PASS</td><td>la <b>chiave SMTP</b> di Brevo</td></tr>
+      <tr><td class="k">SES_FROM</td><td><code>Predizione &lt;io@abraka.it&gt;</code> <span class="hint">(il mittente)</span></td></tr>
+      <tr><td class="k">STATO_URL</td><td><code>https://www.abraka.it/predizione/stato.php</code></td></tr>
+      <tr><td class="k">IMAGE_URL_BASE</td><td><code>https://www.abraka.it/predizione/image.php</code></td></tr>
+    </table>
+    <div class="warn"><b>Sempre con <code>www</code>!</b> Senza <code>www</code> i conteggi “Mail ricevute/inviate”
+    non vengono scritti (il redirect perde i dati).</div>
+    <div class="hint">Oggetto e testo della mail li decidi dal pannello (Impostazioni → Messaggio);
+    le variabili servono solo di riserva. La password resta solo qui su Amazon.</div>
+  </div>
+
+  <div class="card">
+    <h2>4 · Dare più tempo</h2>
+    <p>Scheda <b>Configurazione</b> → <b>Configurazione generale</b> → <b>Modifica</b>:</p>
+    <ul>
+      <li><b>Timeout:</b> <code>2 min 0 sec</code> (di serie sono 3 secondi, troppo pochi).</li>
+      <li><b>Memoria:</b> <code>256 MB</code>.</li>
+    </ul>
+    <div class="note">Con Brevo <b>non</b> serve la policy <code>AmazonSESFullAccess</code>: quella serviva solo
+    per il canale Amazon SES. Puoi saltarla.</div>
+  </div>
+
+  <div class="card">
+    <h2>5 · Farla partire ogni minuto</h2>
+    <ol>
+      <li>Torna alla funzione → <b>Aggiungi trigger</b>.</li>
+      <li>Sorgente: <b>EventBridge (CloudWatch Events)</b> → <b>Crea una nuova regola</b>.</li>
+      <li>Nome regola: <code>predizione-ogni-minuto</code> · Tipo: <b>Espressione di pianificazione</b> ·
+          Espressione: <code>rate(1 minute)</code>.</li>
+      <li><b>Aggiungi</b>.</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>6 · Scegliere “Palco” nel pannello</h2>
+    <ol>
+      <li>Apri <code>https://www.abraka.it/predizione/regia-predizione.html</code>, metti la password.</li>
+      <li><b>Impostazioni</b> → <b>Modo di invio</b> → scegli <b>Palco</b> (= Brevo).</li>
+      <li>Accendi l’interruttore <b>Autorisponditore</b>.</li>
+      <li>Carica la <b>Rivelazione</b> e premi <b>Avvia</b> (nasce la Sessione #N).</li>
+    </ol>
+  </div>
+
+  <div class="card">
+    <h2>7 · Prova che funzioni</h2>
+    <p><b>A secco:</b> nella funzione → scheda <b>Test</b> → crea un evento qualsiasi (JSON <code>{}</code>) →
+    <b>Test</b>. Nei log cerca la riga <code>ESITO</code>: <code>"lette":0</code> è normale se non ci sono mail nuove.</p>
+    <p><b>Reale:</b> manda una mail a <code>io@abraka.it</code>, aspetta <b>~1 minuto</b>, ti arriva la risposta
+    con la foto. A gioco “In corso” è la <b>Foto A</b>; dopo <b>Cambia/Finisci</b> è la <b>Rivelazione</b>.</p>
+    <div class="ok"><b>Fatto!</b> Da ora, a gioco avviato, le risposte partono da sole tramite Brevo,
+    anche a volumi alti.</div>
+  </div>
+
+  <div class="card">
+    <h2>Promemoria</h2>
+    <ul>
+      <li><b>Accendi</b> l’autorisponditore prima dello show, <b>spegnilo</b> alla fine (dal pannello):
+          quando è spento, la funzione si sveglia ma esce subito senza far nulla.</li>
+      <li><b>Finisci</b> circa 1 minuto dopo l’ultima mail, così tutte fanno in tempo a ricevere la risposta.</li>
+      <li><b>Cache di Gmail/Apple Mail:</b> chi ha già aperto la mail può restare con la foto vecchia.
+          Fai aprire la mail <b>dopo</b> aver premuto “Cambia”.</li>
+      <li><b>Costi:</b> Lambda è quasi gratis; Brevo gratis fino a 300/giorno (con logo Brevo),
+          Starter ~9$/mese per volumi più alti senza logo.</li>
+    </ul>
+  </div>
+</div>
+</body>
+</html>
