@@ -68,8 +68,8 @@
 - **Pannello 000 — upgrade:** si fa **per nome** (collegato al sito, si attiva sull'account di quell'utente),
   con **durata a scelta: X mesi o X anni** e costo calcolato (annuale ×12 pieno).
 
-- **Prezzi (nuova logica):** annuale **Quinte 66 / Sipario 96 / Palco 228**; mese-nel-blocco = anno÷12
-  (5,5 / 8 / 19), **minimo 3 mesi**; **mese singolo da rivedere**. Mensile non ricorrente in fase 1. Dettagli §8.1 e §8.4(b).
+- **Prezzi (DECISI):** annuale di default **Quinte 66 / Sipario 96 / Palco 228**; **mese singolo 15 / 30 / 58**
+  (più alto, così l'annuale conviene). Non ricorrente in fase 1. Tabella comparativa pubblica in `guide/prezzi-predizione.html`.
 
 ---
 
@@ -254,20 +254,18 @@
   Alzare la soglia minima degli extra a 2–3 € accorpandoli (meno micro-ordini da attivare a mano).
 - **Listino unico (tondo) e sconto diretto:**
 
-> **Logica prezzi (agg. 11/10/2026):** si parte dall'**annuale**; il **mese incluso nel blocco = annuale ÷ 12**.
-> Il **mensile** non è ricorrente (fase 1 senza addebito automatico): si compra a **blocchi, minimo 3 mesi**,
-> per evitare l'ordine "un mese solo" (es. Quinte 5,5 €/mese → minimo 16,5 € per 3 mesi; annuale 66 €).
-> Il **prezzo del mese SINGOLO è ancora da rivedere** (Flavio deciderà, sarà più alto del mese-nel-blocco).
-> Dal pannello 000 l'upgrade si fa "per X mesi/anni".
+> **Logica prezzi (DECISA 11/10/2026):** sul piano, di **default si compra l'ANNUALE** (66/96/228). Chi vuole
+> **un solo mese** paga il **prezzo mese singolo** (Quinte 15 · Sipario 30 · Palco 58), più alto: così l'annuale
+> conviene nettamente e si evita il "compro-e-scompaio". Nessun addebito ricorrente in fase 1 (si ricompra a mano).
+> Dal pannello 000 l'upgrade si fa "per X mesi (al prezzo mese singolo) / X anni (al prezzo annuale)".
 
-| Prodotto | Prezzo tabella | Listino (PayPal) | Sconto Satispay/bonifico |
-|---|---|---|---|
-| Accesso 4 anni | 25 € | **27 €** | −2 € |
-| Quinte · annuale / mese-nel-blocco | 66 € / 5,5 €·mese | **71 € / —** | −5 € |
-| Sipario · annuale / mese-nel-blocco | 96 € / 8 €·mese | **101 € / —** | −5 € |
-| Palco · annuale / mese-nel-blocco | 228 € / 19 €·mese | **237 € / —** | −9 € |
-| Mese singolo (fuori blocco) | **da decidere** | — | — |
-| 5.000 invii Palco | 7 € | **8 €** | −1 € |
+| Prodotto | Annuale | Mese singolo | Listino PayPal (annuale) | Sconto diretto |
+|---|---|---|---|---|
+| Accesso 4 anni | 25 € (una tantum) | — | **27 €** | −2 € |
+| Quinte | **66 €** | **15 €** | 71 € | −5 € |
+| Sipario | **96 €** | **30 €** | 101 € | −5 € |
+| Palco | **228 €** | **58 €** | 237 € | −9 € |
+| 5.000 invii Palco | 7 € (a costo) | — | **8 €** | −1 € |
 | +200 invii · 5 sessioni · Duo 30 gg · Report 30 gg | 1 € · 2 € · 2 € · 1 € | solo Satispay/bonifico | — |
 | 50 foto IA (se tenute) | 9 € | **10 €** | −1 € |
 
@@ -324,7 +322,8 @@ PayPal al prelievo (1 g); Stripe 2–7 gg.
       vs foto A 60 gg, assistenza, recesso, privacy spettatori, foro. **Portarlo al commercialista.**
 - [ ] **(b) Nuovo listino a LIVELLI DI LICENZA** in `guide/prezzi-predizione.html`: listino tondo + sconto
       diretto; extra piccoli solo Satispay/bonifico; foto IA incluse nei piani. Aggiornare la tabella piani sotto.
-      **Prezzi: annuale 66/96/228; mese nel blocco = anno÷12 (5,5/8/19), minimo 3 mesi; mese singolo da decidere** (no addebito ricorrente in fase 1).
+      **Prezzi: annuale di default 66/96/228; mese singolo 15/30/58** (no addebito ricorrente in fase 1).
+      La **tabella comparativa pubblica** (cosa include + prezzi) vive qui e si apre dal sito con "Confronta i piani".
       **Dove mettere i DETTAGLI delle estensioni** (deciso 11/10): una sezione **"Estensioni"** mostrata in 3 punti,
       sempre dalla stessa fonte dati (così si aggiorna una volta sola): (1) nel **sito** al passo "scelta acquisto"
       (card Quinte/Sipario/Palco con €/mese + €/anno + cosa includono), (2) nell'**app → Mio account → Acquista un
@@ -353,9 +352,8 @@ PayPal al prelievo (1 g); Stripe 2–7 gg.
 
 | | Foyer | Quinte | Sipario | Palco |
 |---|---|---|---|---|
-| Prezzo/anno | — | **66 €** | **96 €** | **228 €** |
-| Mese nel blocco (anno÷12, min 3 mesi) | 0 € | 5,5 € | 8 € | 19 € |
-| Mese singolo (fuori blocco) | — | da decidere | da decidere | da decidere |
+| Prezzo/anno (default) | — | **66 €** | **96 €** | **228 €** |
+| Prezzo/mese singolo | — | **15 €** | **30 €** | **58 €** |
 | Sessioni | 12/mese | 1/g + 5/mese | 2/g + 10/mese | 3/g + 15/mese |
 | Mail | 85/mese | 500/mese (100/g) | 1.500/mese (150/g) | 3.500/mese (funz. Palco, no limite giorno) + Gmail nei suoi limiti |
 | Foto IA incluse | 10 (una tantum) | 15/mese | 30/mese | 100/mese |

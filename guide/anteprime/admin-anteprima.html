@@ -202,7 +202,7 @@
   function showHome(){ $('detail').classList.add('hidden'); $('home').classList.remove('hidden'); window.scrollTo(0,0); }
   function tog(id){ var b=$(id); b.style.display=(b.style.display==='block')?'none':'block'; }
   function upRecalc(){
-    var mon=[0,5.5,8,19], ann=[0,66,96,228];
+    var mon=[0,15,30,58], ann=[0,66,96,228];
     var p=document.getElementById('upPlan').selectedIndex;
     var q=Math.max(1, parseInt(document.getElementById('upQty').value||'1',10));
     var unit=document.getElementById('upUnit').value;
