@@ -157,9 +157,38 @@ function predizione_admin(string $azione): void {
                     'fase'           => $sess['fase'] ?? 'spento',
                     'sessione'       => (int)($st['sessione_corrente'] ?? 0),
                     'aperture'       => $ab['tot'],
+                    'piano'          => (string)($rec['piano'] ?? 'Foyer'),
+                    'accesso_scad'   => (int)($rec['accesso_scadenza'] ?? 0),
+                    'piano_scad'     => (int)($rec['piano_scadenza'] ?? 0),
+                    'crediti'        => predizione_limiti_utente(is_array($rec) ? $rec : [])['crediti'],
                 ];
             }
             predizione_json(['ok' => true, 'utenti' => $out]);
+
+        case 'admin_piano':   // upgrade/cambio piano (per X mesi o X anni)
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $piano = predizione_piano_valido((string)(p('piano') ?? ''));
+            if (!$piano) predizione_json(['ok' => false, 'errore' => 'Piano non valido'], 400);
+            $durata = (p('durata') === 'mese') ? 'mese' : 'anno';
+            $quante = max(1, (int)(p('quante') ?? 1));
+            predizione_applica_piano($utenti[$num], $piano, $durata, $quante);
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_crediti':   // aggiunge crediti (mail / foto_ia / sessioni), con scadenza facoltativa
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $tipo = (string)(p('tipo') ?? '');
+            $qta  = (int)(p('qta') ?? 0);
+            $scad = 0; $sc = (string)(p('scad') ?? '');
+            if ($sc !== '') { $ts = strtotime($sc); if ($ts) $scad = $ts; }
+            if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true) || $qta <= 0) {
+                predizione_json(['ok' => false, 'errore' => 'Tipo o quantità crediti non validi'], 400);
+            }
+            predizione_aggiungi_crediti($utenti[$num], $tipo, $qta, $scad);
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
 
         case 'admin_crea':
             $num = predizione_pulisci_utente(p('numero'));

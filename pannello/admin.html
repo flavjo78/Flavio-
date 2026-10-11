@@ -45,6 +45,8 @@
   .hidden{display:none}
   .login-card{max-width:340px;margin:40px auto}
   a.back{display:inline-block;color:var(--ink-dim);font-size:12px;text-decoration:none;margin-top:8px}
+  select,input[type=number],input[type=date]{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:8px;padding:8px 9px;font-size:13px;font-family:inherit}
+  .plinfo{font-size:12px;color:var(--ink-dim);margin-bottom:6px}.plinfo b{color:var(--gold)}
 </style>
 </head>
 <body>
@@ -132,6 +134,21 @@
           '<button class="btn danger" data-a="del">Elimina</button>'+
         '</div>'+
         '<div class="sep"></div>'+
+        '<div class="plinfo">Piano: <b>'+esc(u.piano||'Foyer')+'</b> · crediti → mail '+(u.crediti?u.crediti.mail:0)+' · foto IA '+(u.crediti?u.crediti.foto_ia:0)+' · sessioni '+(u.crediti?u.crediti.sessioni:0)+'</div>'+
+        '<div class="row">'+
+          '<select class="inPiano"><option>Foyer</option><option selected>Quinte</option><option>Sipario</option><option>Palco</option></select>'+
+          '<span class="small" style="margin:0">per</span>'+
+          '<input class="inQ" type="number" min="1" value="1" style="width:56px">'+
+          '<select class="inDur"><option value="anno">anni</option><option value="mese">mesi</option></select>'+
+          '<button class="btn gold" data-a="piano">Applica upgrade</button>'+
+        '</div>'+
+        '<div class="row" style="margin-top:8px">'+
+          '<select class="inTipo"><option value="mail">Crediti mail</option><option value="foto_ia">Crediti foto IA</option><option value="sessioni">Crediti sessioni</option></select>'+
+          '<input class="inQta" type="number" min="1" placeholder="quantità" style="width:92px">'+
+          '<span class="small" style="margin:0">scad.</span><input class="inScad" type="date">'+
+          '<button class="btn" data-a="crediti">Aggiungi crediti</button>'+
+        '</div>'+
+        '<div class="sep"></div>'+
         '<div class="field"><label>Casella (Gmail dell\'utente) — facoltativa</label><input type="email" class="inEmail" placeholder="utente@gmail.com"></div>'+
         '<div class="field"><input type="text" class="inApp" placeholder="password per app (16 lettere)"></div>'+
         '<div class="field"><input type="text" class="inFrom" placeholder="nome mittente (facoltativo)"></div>'+
@@ -154,6 +171,13 @@
             var e=c.querySelector('.inEmail').value.trim(), ap=c.querySelector('.inApp').value.trim(), fr=c.querySelector('.inFrom').value.trim();
             if(!e||!ap){toast('Email e password per app','err');return;}
             call('admin_mail',{numero:num, email:e, app_password:ap, from:fr}).then(function(r){ done(r,'Casella salvata'); });
+          } else if(a==='piano'){
+            var pi=c.querySelector('.inPiano').value, q=c.querySelector('.inQ').value||'1', du=c.querySelector('.inDur').value;
+            call('admin_piano',{numero:num, piano:pi, durata:du, quante:q}).then(function(r){ done(r,'Upgrade applicato'); });
+          } else if(a==='crediti'){
+            var ti=c.querySelector('.inTipo').value, qt=c.querySelector('.inQta').value, sc=c.querySelector('.inScad').value;
+            if(!qt||parseInt(qt,10)<=0){toast('Scrivi la quantità','err');return;}
+            call('admin_crediti',{numero:num, tipo:ti, qta:qt, scad:sc}).then(function(r){ done(r,'Crediti aggiunti'); });
           }
         });
       });
