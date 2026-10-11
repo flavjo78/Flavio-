@@ -1,0 +1,7 @@
+{
+  "_nota": "COPIA questo file sul server come  _dati/pagamenti.json  e metti i dati VERI. NON mettere i dati veri nel repo (è pubblico).",
+  "intestatario": "ABRAKA di Nome Cognome",
+  "iban": "IT00 X000 0000 0000 0000 0000 000",
+  "paypal": "https://paypal.me/iltuonome",
+  "satispay": "+39 333 1234567"
+}
