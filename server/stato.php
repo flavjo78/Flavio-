@@ -14,6 +14,7 @@
    ========================================================================= */
 
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/piani.php';   // piani/limiti per il "Mio account"
 
 header('Cache-Control: no-store');
 
@@ -110,7 +111,19 @@ function predizione_stato_pubblico(array $s): array {
         'mail_ricevute'  => (int)($s['mail_ricevute'] ?? 0),
         'mail_inviate'   => (int)($s['mail_inviate'] ?? 0),
         'assistente_attivo' => !empty($s['assistente_token']),  // c'e' un link assistente attivo?
+        'account'        => predizione_account_pubblico(predizione_utente()),  // piano e limiti (Mio account)
     ];
+}
+
+/* Dati "commerciali" dell'utente per il Mio account (piano, scadenze, crediti). */
+function predizione_account_pubblico(string $u): ?array {
+    if (!function_exists('predizione_limiti_utente')) return null;
+    $rec = predizione_utente_record($u);
+    if (!$rec) return null;
+    $lim = predizione_limiti_utente($rec);
+    $lim['nome']  = (string)($rec['nome'] ?? '');
+    $lim['email'] = (string)($rec['email_comunicazione'] ?? '');
+    return $lim;
 }
 
 /* true se l'utente ha gia' configurato la sua casella (campi minimi presenti) */

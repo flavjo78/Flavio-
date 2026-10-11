@@ -208,6 +208,38 @@
   .lb-back:active{transform:scale(.97)}
 
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.settings{transition:none!important}}
+
+  /* ---- Menu impostazioni a quadrati oro (come la home) ---- */
+  .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+  .tile{background:var(--gold-soft);border:1px solid var(--gold);border-radius:16px;padding:16px 10px;text-align:center;cursor:pointer;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:104px;box-shadow:0 0 0 2px rgba(201,164,101,.07);transition:transform .08s}
+  .tile:active{transform:scale(.98)}
+  .tile .ic svg{width:28px;height:28px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tile .tl{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+  .tile .ts{font-size:10.5px;font-weight:600;color:var(--gold);line-height:1.2}
+  .tile.wide{grid-column:1 / -1;flex-direction:row;justify-content:center;gap:12px;min-height:0;padding:15px;background:var(--surface-2);border-color:var(--line-2)}
+  .tile.wide .ic svg{width:22px;height:22px}
+  /* sotto-pagine: nascoste finche' non si sceglie un tasto */
+  .sp{display:none}
+  body.sp-open .sp.on{display:block}
+  body.sp-open #setMenu{display:none}
+  .sp-back{display:none;align-items:center;gap:8px;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:13px;font-weight:700;margin-top:4px}
+  body.sp-open .sp-back{display:inline-flex}
+  /* riepilogo in fondo alla Regia */
+  .riepilogo{text-align:center;border-top:1px solid var(--line);margin-top:14px;padding-top:12px;color:var(--ink-faint);font-size:12.5px;line-height:1.7}
+  .riepilogo b{color:var(--ink-dim)}
+  /* bandiera lingua sobria (login) */
+  .langmini{display:inline-flex;align-items:center;gap:9px;background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:0 auto 10px}
+  .langmini .fl{width:24px;height:16px;border-radius:3px;overflow:hidden;display:block}
+  .langmini .fl svg{width:100%;height:100%;display:block}
+  .langmini .nm{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);min-width:26px;text-align:center}
+  .langmini button{width:22px;height:22px;border-radius:50%;background:none;border:none;color:var(--ink-faint);font-size:16px;line-height:1;cursor:pointer}
+  .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border:none}.kv span{color:var(--ink-dim)}.kv b{color:var(--ink)}
+  .boxes2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+  .box2{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
+  .box2 b{display:block;font-family:"Cormorant Garamond",serif;font-size:26px;color:var(--ink)}
+  .box2 span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
 </style>
 </head>
 <body>
@@ -215,6 +247,7 @@
 <!-- ============ LOGIN ============ -->
 <div class="login" id="loginView">
   <div class="login-card">
+    <div class="langmini"><button type="button" onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox"></span><span class="nm" id="langcode">IT</span><button type="button" onclick="lang(1)">&#8250;</button></div>
     <p class="kicker">Regia dello spettacolo</p>
     <h1 class="wordmark" style="font-size:30px;margin:2px 0 2px">Predizione</h1>
     <p class="subwordmark" style="margin:0 0 6px">Accesso</p>
@@ -308,8 +341,37 @@
       <div><h2>Impostazioni</h2><div class="sub">Prepara lo show</div></div>
     </div>
 
+    <button class="sp-back" id="spBack" type="button">‹ torna al menu</button>
 
-    <section aria-label="Modo di invio">
+    <div id="setMenu">
+      <div class="tiles">
+        <div class="tile" data-go="foto"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg></div><div class="tx"><div class="tl">Imposta foto</div><div class="ts" id="tsFoto">—</div></div></div>
+        <div class="tile" data-go="testomail"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h8"/><path d="M15 19l5-5 1.6 1.6-5 5H15z"/></svg></div><div class="tx"><div class="tl">Testo mail</div><div class="ts">oggetto e testo</div></div></div>
+        <div class="tile" data-go="invio"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
+        <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></svg></div><div class="tx"><div class="tl">Rivelazione IA</div><div class="ts">genera la Foto B</div></div></div>
+        <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div><div class="tx"><div class="tl">La tua casella</div><div class="ts" id="tsCasella">—</div></div></div>
+        <div class="tile" data-go="report"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">chi apre e scrive</div></div></div>
+        <div class="tile" data-go="assist"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5"/><circle cx="17" cy="9" r="2.6"/><path d="M13.6 19c.4-2.3 1.8-3.4 3.6-3.4s3.2 1.1 3.6 3.4"/></svg></div><div class="tx"><div class="tl">Assistente</div><div class="ts" id="tsAssist">—</div></div></div>
+        <div class="tile wide" data-go="account"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/></svg></div><div class="tx"><div class="tl">Il mio account</div><div class="ts" id="tsAccount">piano e limiti</div></div></div>
+      </div>
+    </div>
+
+    <!-- ===== MIO ACCOUNT ===== -->
+    <section class="sp" data-sp="account" aria-label="Il mio account">
+      <div class="sec-head"><h2 class="sec-title">Il mio account</h2><span class="sec-num" id="accNum">—</span></div>
+      <div class="kv"><span>Piano</span><b id="accPiano">—</b></div>
+      <div class="kv"><span>Accesso valido fino a</span><b id="accAccesso">—</b></div>
+      <div class="kv"><span>Abbonamento</span><b id="accScad">—</b></div>
+      <div class="boxes2">
+        <div class="box2"><b id="accMail">—</b><span>Mail / mese</span></div>
+        <div class="box2"><b id="accFoto">—</b><span>Foto IA / mese</span></div>
+        <div class="box2"><b id="accSess">—</b><span>Sessioni / mese</span></div>
+        <div class="box2"><b id="accCred">—</b><span>Crediti extra</span></div>
+      </div>
+      <p class="hint">Vedi <b>solo le tue cose</b>. Per cambiare piano o comprare un'estensione, scrivi a <b>supporto@abraka.it</b>.</p>
+    </section>
+
+    <section class="sp" data-sp="invio" aria-label="Modo di invio">
       <div class="sec-head"><h2 class="sec-title">Modo di invio</h2><span class="sec-num" id="invioSub">—</span></div>
       <div class="game-btns" style="grid-template-columns:1fr 1fr">
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
@@ -318,7 +380,7 @@
       <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>$</b> = canale dedicato, per <b>eventi grandi</b> (centinaia).</p>
     </section>
 
-    <section aria-label="Le foto">
+    <section class="sp" data-sp="foto" aria-label="Le foto">
       <div class="sec-head"><h2 class="sec-title">Le foto</h2><span class="sec-num">A / rivelazione</span></div>
 
       <label class="slot" id="slotA">
@@ -343,7 +405,7 @@
       <p class="hint">Rete di sicurezza: se a quest'ora <b>non</b> hai ancora premuto "Finisci gioco", lo scambio A→B scatta da solo. Di solito coincide con la fine dello spettacolo. Lascia vuoto per comandare solo a mano.</p>
     </section>
 
-    <section aria-label="Messaggio automatico">
+    <section class="sp" data-sp="testomail" aria-label="Messaggio automatico">
       <div class="sec-head"><h2 class="sec-title">Messaggio automatico</h2><span class="sec-num">Risposta</span></div>
       <div class="field"><label for="subj">Oggetto</label><input type="text" id="subj" value="La lettera (non aprire ancora)"></div>
       <div class="field"><label for="body">Testo della mail</label><textarea id="body">CIAO,
@@ -356,7 +418,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </section>
 
     <!-- Sezione MAIL (visibile solo se l'utente ha la funzione 'mail') -->
-    <section aria-label="La tua casella" id="secMail" style="display:none">
+    <section class="sp" data-sp="casella" aria-label="La tua casella" id="secMail">
       <div class="sec-head"><h2 class="sec-title">La tua casella</h2><span class="sec-num">Gmail</span></div>
       <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
       <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
@@ -366,7 +428,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </section>
 
     <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
-    <section aria-label="Rivelazione con IA" id="secFoto" style="display:none">
+    <section class="sp" data-sp="ia" aria-label="Rivelazione con IA" id="secFoto">
       <div class="sec-head"><h2 class="sec-title">Rivelazione con IA</h2><span class="sec-num">Foto B</span></div>
       <label class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
@@ -403,7 +465,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Carica la <b>foto base</b> (tu col foglio bianco), scrivi la <b>frase</b> e premi <b>Genera con IA</b>: l'intelligenza artificiale scrive la frase a mano sul foglio e la usa come <b>rivelazione</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
     </section>
 
-    <section aria-label="Report della sessione">
+    <section class="sp" data-sp="report" aria-label="Report della sessione">
       <div class="sec-head"><h2 class="sec-title">Report</h2><span class="sec-num">Sessione</span></div>
       <button class="btn" id="reportBtn" type="button" style="width:100%">📄 Apri il report della sessione</button>
       <p class="hint">Chi ti ha scritto (<b>indirizzo</b>, oggetto, testo) e chi ha <b>aperto per primo</b>. Si apre in una nuova pagina da stampare o salvare in PDF.</p>
@@ -411,7 +473,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati. Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
     </section>
 
-    <section aria-label="Assistente di scena">
+    <section class="sp" data-sp="assist" aria-label="Assistente di scena">
       <div class="sec-head"><h2 class="sec-title">Assistente di scena</h2><span class="sec-num" id="assistSub">—</span></div>
       <button class="btn" id="assistCrea" type="button" style="width:100%">🔗 Crea link per l'assistente</button>
       <div id="assistBox" style="display:none;margin-top:10px">
@@ -451,6 +513,44 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var PW=''; var USER='001'; var FLAGS={mail:false,foto:false};
   try { PW   = localStorage.getItem('pred_pw')   || ''; } catch(e){}
   try { USER = localStorage.getItem('pred_user') || '001'; } catch(e){}
+
+  // ---- selettore lingua (solo grafico per ora; traduzioni in futuro) ----
+  var FLAGSVG={
+    it:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',
+    gb:'<svg viewBox="0 0 60 30"><clipPath id="gb"><rect width="60" height="30"/></clipPath><g clip-path="url(#gb)"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></g></svg>',
+    fr:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#0055A4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#EF4135"/></svg>',
+    es:'<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#AA151B"/><rect y="0.5" width="3" height="1" fill="#F1BF00"/></svg>',
+    de:'<svg viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>'
+  };
+  var LANGS=[['it','IT'],['gb','EN'],['fr','FR'],['es','ES'],['de','DE']]; var li=0;
+  try{ var sl=localStorage.getItem('pred_lang'); if(sl){ for(var x=0;x<LANGS.length;x++){ if(LANGS[x][0]===sl) li=x; } } }catch(e){}
+  function paintLang(){ var fb=$('flagbox'), lc=$('langcode'); if(fb) fb.innerHTML=FLAGSVG[LANGS[li][0]]; if(lc) lc.textContent=LANGS[li][1]; }
+  window.lang=function(d){ li=(li+d+LANGS.length)%LANGS.length; try{localStorage.setItem('pred_lang',LANGS[li][0]);}catch(e){} paintLang(); };
+
+  // ---- riepiloghi sui quadrati + Mio account ----
+  function fmtData(ts){ if(!ts) return '—'; try{ return new Date(ts*1000).toLocaleDateString('it-IT'); }catch(e){ return '—'; } }
+  function aggiornaMenu(st){
+    if(!st) return;
+    var set=function(id,v){ var e=$(id); if(e) e.textContent=v; };
+    var a = st.ha_foto_a?'A ✔':'A —';
+    var b = (st.ha_rivelazione_sess||st.ha_rivelazione)?'B ✔':'B —';
+    set('tsFoto', a+' · '+b);
+    set('tsInvio', (st.autorisponditore?'ON':'OFF')+' · '+(st.invio_modo==='ses'?'$ grande':(st.invio_modo==='brevo'?'$ grande':'casella')));
+    set('tsCasella', st.mail_impostata?'collegata':'da impostare');
+    set('tsAssist', st.assistente_attivo?'collegato':'non collegato');
+    var ac=st.account;
+    if(ac){
+      set('accNum', st.utente||'—');
+      set('accPiano', ac.piano||'Foyer');
+      set('accAccesso', fmtData(ac.accesso_scadenza));
+      set('accScad', ac.piano_scadenza? ('rinnovo '+fmtData(ac.piano_scadenza)) : 'incluso (Foyer)');
+      set('accMail', ac.mail_mese||0);
+      set('accFoto', ac.foto_ia_mese||0);
+      set('accSess', ac.sessioni_mese||0);
+      var cr=ac.crediti||{}; set('accCred', (cr.mail||0)+'·'+(cr.foto_ia||0)+'·'+(cr.sessioni||0));
+      set('tsAccount', 'piano '+(ac.piano||'Foyer'));
+    }
+  }
   function getPw(){ return PW; }
   function getUser(){ return USER; }
 
@@ -460,6 +560,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(loginUser){ loginUser.value = USER; }
   if(loginPw){ loginPw.value = PW; }
   function applyFlags(){
+    var tc=$('tileCasella'); if(tc) tc.style.display = FLAGS.mail ? '' : 'none';
+    var ti=$('tileIa');      if(ti) ti.style.display = FLAGS.foto ? '' : 'none';
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
     if(FLAGS.foto){
@@ -669,7 +771,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function offline(){
     chipConn.classList.remove('ok'); connLbl.textContent='Offline'; footHost.textContent='non collegato';
   }
-  function poll(){ apiStato().then(function(j){ if(j && j.stato){ render(j.stato); } else { offline(); } }).catch(offline); }
+  function poll(){ apiStato().then(function(j){ if(j && j.stato){ render(j.stato); aggiornaMenu(j.stato); } else { offline(); } }).catch(offline); }
 
   // aggiorna il timer "Attivo da" ogni secondo (fluido, senza aspettare il polling)
   setInterval(function(){
@@ -800,8 +902,25 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- settings navigation ----
   var setView=$('setView');
-  $('openSet').addEventListener('click', function(){ setView.classList.add('open'); setView.scrollTop=0; });
-  $('closeSet').addEventListener('click', function(){ setView.classList.remove('open'); poll(); });
+  // --- navigazione a sotto-pagine (menu a quadrati) ---
+  function goSP(name){
+    document.querySelectorAll('#setView .sp').forEach(function(s){ s.classList.toggle('on', s.getAttribute('data-sp')===name); });
+    document.body.classList.add('sp-open'); setView.scrollTop=0;
+  }
+  function backMenu(){
+    document.body.classList.remove('sp-open');
+    document.querySelectorAll('#setView .sp').forEach(function(s){ s.classList.remove('on'); });
+    setView.scrollTop=0;
+  }
+  document.querySelectorAll('#setMenu .tile').forEach(function(t){
+    t.addEventListener('click', function(){ goSP(t.getAttribute('data-go')); });
+  });
+  var spb=$('spBack'); if(spb) spb.addEventListener('click', backMenu);
+  $('openSet').addEventListener('click', function(){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; });
+  $('closeSet').addEventListener('click', function(){
+    if(document.body.classList.contains('sp-open')){ backMenu(); return; }
+    setView.classList.remove('open'); poll();
+  });
   $('saveSet').addEventListener('click', function(){
     // salva sul server l'oggetto e il testo personalizzati (se c'è la password)
     if(getPw()){
@@ -942,6 +1061,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var gpEl=$('genPrev'); if(gpEl){ gpEl.style.cursor='zoom-in'; gpEl.addEventListener('click', function(){ openLightbox(gpEl.src); }); }
 
   // ---- primo aggiornamento + polling periodico ----
+  paintLang();
   poll();
   setInterval(poll, 4000);
 
