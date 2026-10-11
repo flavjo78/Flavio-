@@ -117,7 +117,7 @@
       </div>
       <div class="addbox" id="addAbb">
         <div class="small" style="margin:0 0 6px">Upgrade per <b id="upName">003 · Mario Rossi</b></div>
-        <select id="upPlan" onchange="upRecalc()"><option>Foyer (0 €)</option><option>Quinte (5,5 €/mese · 66 €/anno)</option><option>Sipario (8 €/mese · 96 €/anno)</option><option selected>Palco (19 €/mese · 228 €/anno)</option></select>
+        <select id="upPlan" onchange="upRecalc()"><option>Foyer (0 €)</option><option>Quinte (15 €/mese · 66 €/anno)</option><option>Sipario (30 €/mese · 96 €/anno)</option><option selected>Palco (58 €/mese · 228 €/anno)</option></select>
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
           <span class="small">per</span>
           <input class="mini" id="upQty" type="number" min="1" value="3" style="width:64px" oninput="upRecalc()">
@@ -148,13 +148,13 @@
 
 <script>
   var UTENTI=[
-    {n:'001', piano:'Palco', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:31, speso:'215 €',
+    {n:'001', piano:'Palco', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:31, speso:'260 €',
      acq:[['Accesso 4 anni','12/03/2026'],['Palco annuale','attivo · rinnovo 12/03/2027'],['+5000 mail','10/10 · scad. 10/11']],
      reports:[[31,'oggi 21:03','5 mitt · 9 aperture'],[30,'08/10','12 mitt · 20 aperture'],[29,'05/10','3 mitt · 4 aperture']]},
-    {n:'002', piano:'Sipario', stato:'cambiato', mail:'io2@gmail.com', pass:'aaa', foto:false, sess:12, speso:'90 €',
+    {n:'002', piano:'Sipario', stato:'cambiato', mail:'io2@gmail.com', pass:'aaa', foto:false, sess:12, speso:'121 €',
      acq:[['Accesso 4 anni','20/04/2026'],['Sipario annuale','attivo · rinnovo 20/04/2027']],
      reports:[[12,'oggi 20:40','8 mitt · 15 aperture'],[11,'02/10','6 mitt · 9 aperture']]},
-    {n:'003', piano:'Quinte', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:24, speso:'60 €',
+    {n:'003', piano:'Quinte', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:24, speso:'101 €',
      acq:[['Accesso 4 anni','01/09/2026'],['Quinte annuale','attivo · rinnovo 01/09/2027'],['+20 foto IA','10/10 · scad. 30/11']],
      reports:[[24,'oggi 21:05','5 mitt · 9 aperture'],[23,'06/10','4 mitt · 6 aperture']]},
     {n:'004', piano:'Foyer', stato:'spento', mail:'—', pass:'sole12', foto:true, sess:2, speso:'25 €',

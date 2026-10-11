@@ -1,145 +1,217 @@
 <!doctype html>
-<html lang="it"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
-<title>abraka — Piani e prezzi</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<title>Prezzi Predizione</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
 <style>
-  :root{--bg:#0e0b0a;--surface:#1b1712;--surface2:#2a251d;--line:rgba(236,224,201,.1);--line2:rgba(236,224,201,.18);
-    --fg:#f0e6d4;--dim:#b39b84;--faint:#7c6f5c;--gold:#d8aa52;--goldink:#f0d79a;--good:#86b26f;--stop:#e0735a;
-    --display:"Playfair Display",Georgia,serif;--body:"Source Sans 3",system-ui,sans-serif}
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:var(--body);color:var(--fg);background:var(--bg);line-height:1.5;padding:28px 16px 70px}
-  .wrap{max-width:860px;margin:0 auto}
-  .brand{font-family:var(--display);font-weight:700;font-size:clamp(34px,6vw,52px);color:var(--goldink);text-align:center}
-  .rule{width:120px;height:2px;background:repeating-linear-gradient(90deg,var(--gold) 0 14px,transparent 14px 22px);margin:10px auto 6px}
-  .sub{text-align:center;color:var(--dim);font-size:13px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:22px}
-  .access{background:var(--surface2);border:1px solid var(--gold);border-radius:16px;padding:16px 18px;text-align:center;margin-bottom:24px}
-  .access .big{font-family:var(--display);font-weight:700;font-size:22px;color:var(--goldink)}
-  .access .old{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--stop);font-size:30px;font-weight:700;margin-right:8px}
-  .access .promo{display:inline-block;background:var(--stop);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
-  .access .s{font-size:13px;color:var(--dim);margin-top:4px}
-  h2{font-family:var(--display);font-weight:700;font-size:22px;color:var(--goldink);margin:26px 0 10px}
-  .tablewrap{overflow-x:auto;border:1px solid var(--line2);border-radius:16px}
-  table{width:100%;border-collapse:collapse;min-width:620px}
-  th,td{padding:12px 12px;text-align:center;border-bottom:1px solid var(--line);font-size:14px}
-  thead th{background:var(--surface2);font-family:var(--display);font-size:19px;color:var(--goldink);font-weight:700}
-  thead th.lbl,tbody th{background:transparent}
-  tbody th{text-align:left;color:var(--dim);font-weight:600;font-size:13px;white-space:nowrap}
-  tbody tr:last-child td,tbody tr:last-child th{border-bottom:none}
-  .col-pop{background:rgba(216,170,82,.07)}
-  .price{font-family:var(--display);font-weight:700;font-size:20px;color:var(--fg)}
-  .price small{display:block;font-family:var(--body);font-size:12px;color:var(--dim);font-weight:600;margin-top:2px}
-  .yes{color:var(--good);font-weight:700}
-  .no{color:var(--faint)}
-  .pop-tag{display:inline-block;background:var(--gold);color:#241a08;font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-top:4px}
-  .note{font-size:13px;color:var(--dim);margin-top:12px;line-height:1.6}
-  .note b{color:var(--goldink)}
-  .extra{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
-  .extra .e{background:var(--surface);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-size:14px}
-  .extra .e b{color:var(--goldink)}
-  @media(max-width:560px){.extra{grid-template-columns:1fr}}
-  .foot{text-align:center;color:var(--faint);font-size:12px;margin-top:30px}
-</style></head>
+  /* Vetrina prezzi: 4 piani in colonne che si impilano su telefono, accento oro su fondo caldo */
+  :root{
+    --bg:#f6f3ec; --surface:#ffffff; --fg:#24262c; --dim:#6f7480;
+    --line:#e4e0d6; --gold:#9c6f27; --gold-ink:#7c571c; --gold-soft:#f3ead6;
+    --stop:#b4472c;
+    --display:"Playfair Display", Georgia, serif;
+    --body:"Source Sans 3", system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a; --stop:#e0735a; color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --bg:#15161a; --surface:#1e2026; --fg:#ece7db; --dim:#9aa0ac;
+    --line:#2d3038; --gold:#d8aa52; --gold-ink:#e7bf72; --gold-soft:#2a241a; --stop:#e0735a; color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-text-size-adjust:100%}
+  .wrap{max-width:1040px;margin:0 auto;padding-block:34px 60px;padding-left:18px;padding-right:18px}
+
+  header.top{text-align:center;max-width:640px;margin:0 auto 6px}
+  .eyebrow{font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--gold);font-weight:700}
+  h1{font-family:var(--display);font-weight:700;font-size:clamp(32px,7vw,48px);line-height:1.05;margin:6px 0 6px;text-wrap:balance}
+  .lede{color:var(--dim);font-size:17px;margin:0}
+
+  .access{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:center;
+          background:var(--gold-soft);border:1px solid var(--line);border-radius:14px;
+          padding:12px 18px;margin:20px auto 0;max-width:580px;text-align:center}
+  .access b{font-family:var(--display);font-size:20px;color:var(--gold-ink)}
+  .access .old{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--stop);font-weight:700;margin-right:4px}
+  .access .promo{background:var(--stop);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:4px}
+  .access span{color:var(--dim);font-size:14px}
+
+  /* interruttore Annuale / Mensile */
+  .toggle{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px;margin:20px auto 0;gap:4px}
+  .togwrap{text-align:center}
+  .toggle button{appearance:none;font:inherit;font-weight:700;font-size:14px;cursor:pointer;border:none;background:transparent;color:var(--dim);
+          padding:9px 20px;border-radius:999px;transition:all .15s;white-space:nowrap}
+  .toggle button.on{background:var(--gold);color:#fff}
+  :root[data-theme="dark"] .toggle button.on, :root:not([data-theme="light"]) .toggle button.on{color:#1b1206}
+  .toggle .tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;opacity:.85;margin-left:6px}
+  .saveline{color:var(--gold-ink);font-size:13px;font-weight:600;margin-top:8px;min-height:18px}
+
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:22px;align-items:stretch}
+  @media (max-width:880px){ .grid{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:520px){ .grid{grid-template-columns:1fr} }
+
+  .plan{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:22px 18px;display:flex;flex-direction:column;position:relative}
+  .plan.feat{border-color:var(--gold);box-shadow:0 10px 30px -18px var(--gold)}
+  .badge{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--gold);color:#fff;
+         font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 12px;border-radius:999px;white-space:nowrap}
+  :root[data-theme="dark"] .badge, :root:not([data-theme="light"]) .badge{color:#1b1206}
+  .pname{font-family:var(--display);font-weight:700;font-size:22px;margin:2px 0 2px}
+  .ptag{color:var(--dim);font-size:12.5px;min-height:18px;margin-bottom:12px}
+  .price{display:flex;align-items:baseline;gap:4px;font-variant-numeric:tabular-nums}
+  .price .amt{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;color:var(--fg)}
+  .price .per{color:var(--dim);font-size:14px}
+  .yr{color:var(--gold-ink);font-size:13px;font-weight:600;margin-top:5px;min-height:18px}
+  ul.feats{list-style:none;margin:16px 0 18px;padding:0;display:flex;flex-direction:column;gap:9px;flex:1}
+  ul.feats li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px}
+  ul.feats .tick{color:var(--gold);flex:0 0 auto;margin-top:2px}
+  ul.feats .muted{color:var(--dim)}
+  .cta{display:block;text-align:center;font:inherit;font-weight:700;cursor:pointer;border-radius:10px;
+       padding:11px 14px;border:1px solid var(--gold);background:transparent;color:var(--gold-ink);text-decoration:none}
+  .plan.feat .cta{background:var(--gold);color:#fff;border-color:var(--gold)}
+  :root[data-theme="dark"] .plan.feat .cta, :root:not([data-theme="light"]) .plan.feat .cta{color:#1b1206}
+
+  h2{font-family:var(--display);font-weight:600;font-size:24px;text-align:center;margin:44px 0 4px}
+  .sub{color:var(--dim);text-align:center;margin:0 0 18px;font-size:14.5px}
+  .extras{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  @media (max-width:760px){ .extras{grid-template-columns:repeat(2,1fr)} }
+  @media (max-width:460px){ .extras{grid-template-columns:1fr} }
+  .extra{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+  .extra .lbl{font-size:14.5px}
+  .extra .amt{font-family:var(--display);font-weight:700;color:var(--gold-ink);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+  .foot{margin-top:40px;text-align:center;color:var(--dim);font-size:13px;border-top:1px solid var(--line);padding-top:16px}
+</style>
+</head>
 <body>
 <div class="wrap">
-  <div class="brand">abraka</div>
-  <div class="rule"></div>
-  <div class="sub">Piani e prezzi · PREDIZIONE</div>
+
+  <header class="top">
+    <div class="eyebrow">Predizione</div>
+    <h1>Scegli il tuo piano</h1>
+    <p class="lede">L'effetto di mentalismo via email: lo spettatore riceve una foto che si trasforma nella tua rivelazione quando lo decidi tu.</p>
+  </header>
 
   <div class="access">
-    <div class="big"><span class="old">105 €</span>25 €<span class="promo">PROMO −76%</span></div>
-    <div class="s">Accesso valido <b>4 anni</b> · piano <b>Foyer</b> sempre incluso</div>
+    <b><span class="old">105 €</span>Accesso all'app · 25 €<span class="promo">PROMO −76%</span></b>
+    <span>una volta, valido <b style="font-size:14px">4 anni</b> — poi scegli il livello qui sotto.</span>
   </div>
 
-  <h2>Confronta i piani</h2>
-  <div class="tablewrap">
-    <table>
-      <thead>
-        <tr>
-          <th class="lbl"></th>
-          <th>Foyer</th>
-          <th>Quinte</th>
-          <th>Sipario</th>
-          <th class="col-pop">Palco</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>Prezzo / anno</th>
-          <td><div class="price">incluso</div></td>
-          <td><div class="price">66 €</div></td>
-          <td><div class="price">96 €</div></td>
-          <td class="col-pop"><div class="price">228 €</div><span class="pop-tag">top</span></td>
-        </tr>
-        <tr>
-          <th>oppure 1 mese</th>
-          <td class="no">—</td>
-          <td>15 €</td>
-          <td>30 €</td>
-          <td class="col-pop">58 €</td>
-        </tr>
-        <tr>
-          <th>Spettacoli (sessioni)</th>
-          <td>12 / mese</td>
-          <td>1 al giorno<br>+ 5 / mese</td>
-          <td>2 al giorno<br>+ 10 / mese</td>
-          <td class="col-pop">3 al giorno<br>+ 15 / mese</td>
-        </tr>
-        <tr>
-          <th>Mail (risposte)</th>
-          <td>85 / mese</td>
-          <td>500 / mese</td>
-          <td>1.500 / mese</td>
-          <td class="col-pop">3.500 / mese</td>
-        </tr>
-        <tr>
-          <th>Foto con IA incluse</th>
-          <td>10 (una volta)</td>
-          <td>15 / mese</td>
-          <td>30 / mese</td>
-          <td class="col-pop">100 / mese</td>
-        </tr>
-        <tr>
-          <th>Assistente di scena</th>
-          <td class="no">a pagamento</td>
-          <td class="yes">✓</td>
-          <td class="yes">✓</td>
-          <td class="col-pop yes">✓</td>
-        </tr>
-        <tr>
-          <th>Report sessione</th>
-          <td class="no">a pagamento</td>
-          <td class="yes">✓</td>
-          <td class="yes">✓</td>
-          <td class="col-pop yes">✓</td>
-        </tr>
-        <tr>
-          <th>Grandi invii (eventi)</th>
-          <td class="no">—</td>
-          <td class="no">—</td>
-          <td class="no">—</td>
-          <td class="col-pop yes">✓ incluso</td>
-        </tr>
-      </tbody>
-    </table>
+  <div class="togwrap">
+    <div class="toggle" id="toggle">
+      <button class="on" data-mode="anno" onclick="setMode('anno')">Annuale<span class="tag">conviene</span></button>
+      <button data-mode="mese" onclick="setMode('mese')">Mensile</button>
+    </div>
+    <div class="saveline" id="saveline">Prezzo annuale: paghi una volta e risparmi rispetto al mese singolo.</div>
   </div>
-  <p class="note">Cliccando un piano si acquista l'<b>annuale</b> (conviene). Chi vuole provare un <b>solo mese</b>
-    paga il prezzo mensile indicato (più alto). Le <b>foto con IA</b> sono già incluse in ogni piano.</p>
 
-  <h2>Estensioni (à la carte)</h2>
-  <div class="extra">
-    <div class="e"><span>+200 mail</span><b>1 €</b></div>
-    <div class="e"><span>10 foto con IA</span><b>2,5 €</b></div>
-    <div class="e"><span>5 spettacoli in più</span><b>2 €</b></div>
-    <div class="e"><span>5.000 invii (Palco)</span><b>7 €</b></div>
-    <div class="e"><span>Assistente di scena (Foyer)</span><b>2 € / 30 gg</b></div>
-    <div class="e"><span>Report sessione (Foyer)</span><b>1 € / 30 gg</b></div>
+  <div class="grid">
+
+    <!-- Foyer -->
+    <div class="plan">
+      <div class="pname">Foyer</div>
+      <div class="ptag">Per iniziare</div>
+      <div class="price"><span class="amt">0</span><span class="per">€ / mese</span></div>
+      <div class="yr">incluso con l'accesso</div>
+      <ul class="feats">
+        <li><span class="tick">◆</span> 12 sessioni al mese</li>
+        <li><span class="tick">◆</span> 85 mail al mese</li>
+        <li><span class="tick">◆</span> 10 foto con IA in omaggio</li>
+        <li><span class="muted">○ Assistente e Report a pagamento</span></li>
+      </ul>
+      <a class="cta" href="#">Inizia gratis</a>
+    </div>
+
+    <!-- Quinte -->
+    <div class="plan" data-perm="5,5" data-month="15" data-year="66" data-save="114">
+      <div class="pname">Quinte</div>
+      <div class="ptag">Eventi piccoli</div>
+      <div class="price"><span class="amt">5,5</span><span class="per">€ / mese</span></div>
+      <div class="yr">66 € / anno · fatturato una volta</div>
+      <ul class="feats">
+        <li><span class="tick">◆</span> 1 sessione al giorno + 5 al mese</li>
+        <li><span class="tick">◆</span> 500 mail al mese (100 al giorno)</li>
+        <li><span class="tick">◆</span> 15 foto con IA al mese</li>
+        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
+      </ul>
+      <a class="cta" href="#">Abbonati</a>
+    </div>
+
+    <!-- Sipario (in evidenza) -->
+    <div class="plan feat" data-perm="8" data-month="30" data-year="96" data-save="264">
+      <div class="badge">Più scelto</div>
+      <div class="pname">Sipario</div>
+      <div class="ptag">Eventi medi</div>
+      <div class="price"><span class="amt">8</span><span class="per">€ / mese</span></div>
+      <div class="yr">96 € / anno · fatturato una volta</div>
+      <ul class="feats">
+        <li><span class="tick">◆</span> 2 sessioni al giorno + 10 al mese</li>
+        <li><span class="tick">◆</span> 1.500 mail al mese (150 al giorno)</li>
+        <li><span class="tick">◆</span> 30 foto con IA al mese</li>
+        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
+      </ul>
+      <a class="cta" href="#">Abbonati</a>
+    </div>
+
+    <!-- Palco -->
+    <div class="plan" data-perm="19" data-month="58" data-year="228" data-save="468">
+      <div class="pname">Palco</div>
+      <div class="ptag">Grandi eventi</div>
+      <div class="price"><span class="amt">19</span><span class="per">€ / mese</span></div>
+      <div class="yr">228 € / anno · fatturato una volta</div>
+      <ul class="feats">
+        <li><span class="tick">◆</span> 3 sessioni al giorno + 15 al mese</li>
+        <li><span class="tick">◆</span> 3.500 mail al mese + invii grandi</li>
+        <li><span class="tick">◆</span> 100 foto con IA al mese</li>
+        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
+      </ul>
+      <a class="cta" href="#">Abbonati</a>
+    </div>
+
   </div>
-  <p class="note">Gli extra piccoli (sotto 10 €) si pagano con <b>Satispay o bonifico</b>. Tutto quello che compri è
-    un'<b>estensione della licenza d'uso</b> dell'opera PREDIZIONE.</p>
 
-  <div class="foot">I prezzi possono variare; chi ha già acquistato mantiene le proprie condizioni. · abraka.it</div>
+  <h2>Aggiungi quando ti serve</h2>
+  <p class="sub">Crediti e extra acquistabili dentro l'app, senza cambiare piano.</p>
+  <div class="extras">
+    <div class="extra"><span class="lbl">+200 mail</span><span class="amt">1 €</span></div>
+    <div class="extra"><span class="lbl">10 foto con IA</span><span class="amt">2,50 €</span></div>
+    <div class="extra"><span class="lbl">5 sessioni</span><span class="amt">2 €</span></div>
+    <div class="extra"><span class="lbl">Assistente Duo</span><span class="amt">2 € / 30 gg</span></div>
+    <div class="extra"><span class="lbl">Report sessione</span><span class="amt">1 € / 30 gg</span></div>
+    <div class="extra"><span class="lbl">5.000 mail (Palco)</span><span class="amt">7 €</span></div>
+  </div>
+
+  <div class="foot">
+    Predizione · listino di anteprima — Versione 2, 11 ottobre 2026. Accesso all'app 25 € valido 4 anni.
+    <br>I prezzi possono variare; chi ha già acquistato mantiene le proprie condizioni.
+  </div>
+
 </div>
-</body></html>
+
+<script>
+  function setMode(mode){
+    document.querySelectorAll('#toggle button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-mode')===mode); });
+    document.querySelectorAll('.plan[data-year]').forEach(function(p){
+      var perm=p.getAttribute('data-perm'), month=p.getAttribute('data-month'), year=p.getAttribute('data-year'), save=p.getAttribute('data-save');
+      var amt=p.querySelector('.amt'), per=p.querySelector('.per'), yr=p.querySelector('.yr');
+      if(mode==='anno'){
+        amt.textContent=perm; per.textContent='€ / mese';
+        yr.innerHTML=year+' € / anno · fatturato una volta';
+      }else{
+        amt.textContent=month; per.textContent='€ / mese';
+        yr.innerHTML='oppure <b>'+year+' €/anno</b> · risparmi '+save+' €';
+      }
+    });
+    document.getElementById('saveline').textContent = (mode==='anno')
+      ? 'Prezzo annuale: il mese mostrato è la quota dell’anno (paghi una volta).'
+      : 'Mese singolo: comodo per provare. Con l’annuale risparmi molto.';
+  }
+  setMode('anno');
+</script>
+</body>
+</html>

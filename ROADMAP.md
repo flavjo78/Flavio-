@@ -214,7 +214,7 @@
   - **Foto A / neutre d'attesa:** cancellabili dopo **60 giorni** e sostituite da una **"Foto A per tutti"** standard condivisa (da scegliere). Sicuro, perché dopo lo show image.php mostra comunque la B.
 
 ## 6-quater. Idea di ricavo futura — "Conserva foto"
-- [ ] Dopo i **5 anni** (o alla scadenza), per i **non più abbonati**: offrire a pagamento la
+- [ ] Dopo i **4 anni** (o alla scadenza), per i **non più abbonati**: offrire a pagamento la
   **conservazione delle Foto B** (il "ricordo" resta online). Esempio: piccola quota annua per
   tenere vive le rivelazioni. Sostiene la promessa "foto per sempre" e diventa un ricavo.
 
@@ -364,7 +364,7 @@ Note:
 - **Strumento foto manuale ELIMINATO**: esistono solo le **foto IA** (a crediti).
 - **"Grandi invii" (Mailgun) INCLUSO nel Palco** (niente setup separato).
 - Sessioni: si consumano **prima quelle del giorno**, poi il bonus del mese.
-- Foyer "0 €/mese" ma richiede l'accesso 25 €/5 anni; prezzo modificabile, chi compra mantiene le sue condizioni.
+- Foyer "0 €/mese" ma richiede l'accesso 25 €/4 anni; prezzo modificabile, chi compra mantiene le sue condizioni.
 
 ### Acquisti extra (à la carte)
 | Opzione | Prezzo | Costo per te |
