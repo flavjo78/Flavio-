@@ -21,6 +21,7 @@ Carica in **`/predizione/`** TUTTI questi file (stanno nel repo in `server/` e `
 - `image.php`, `stato.php`, `carica.php`, `genera_ia.php`, `report.php`
 - `piani.php`  (NUOVO — prezzi e limiti)
 - `ordine.php` (NUOVO — ordini e attivazione)
+- `pdf.php`    (NUOVO — genera la ricevuta PDF)
 - `migra_001.php` (NUOVO — spostamento 001, da usare dopo, vedi §5)
 - `neutro.png`, `scrittura.ttf`
 

@@ -63,6 +63,22 @@ function ord_manda_mail(string $to, string $oggetto, string $corpo, string $da =
     return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $corpo, $headers);
 }
 
+/* Mailer con allegato PDF (per la ricevuta). */
+function ord_manda_mail_pdf(string $to, string $oggetto, string $corpo, ?string $pdf, string $da = 'supporto@abraka.it'): bool {
+    if (!filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    if (!$pdf || !is_file($pdf)) return ord_manda_mail($to, $oggetto, $corpo, $da);
+    $bound = 'abk' . bin2hex(random_bytes(8));
+    $alleg = chunk_split(base64_encode((string)file_get_contents($pdf)));
+    $nome  = basename($pdf);
+    $headers = "From: abraka <$da>\r\nReply-To: $da\r\nMIME-Version: 1.0\r\n"
+             . "Content-Type: multipart/mixed; boundary=\"$bound\"\r\n";
+    $msg  = "--$bound\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n$corpo\r\n"
+          . "--$bound\r\nContent-Type: application/pdf; name=\"$nome\"\r\n"
+          . "Content-Transfer-Encoding: base64\r\nContent-Disposition: attachment; filename=\"$nome\"\r\n\r\n$alleg\r\n"
+          . "--$bound--";
+    return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $msg, $headers);
+}
+
 /* ---------- dispatch ---------------------------------------------------- */
 $azione = ord_p('azione') ?: 'crea';
 
@@ -104,9 +120,9 @@ if (strpos($azione, 'admin_') === 0) {
                    . "Password: " . $res['password'] . "\n\n"
                    . "Entra dall'app e, al primo accesso, puoi cambiare la password\n"
                    . "(almeno 10 caratteri, 1 maiuscola e 1 simbolo).\n\n"
-                   . "Ricevuta: " . $res['ricevuta'] . "\n\n"
+                   . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
                    . "Un saluto,\nabraka — supporto@abraka.it";
-            ord_manda_mail($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo);
+            ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);
         }
         predizione_json(['ok' => true, 'utente' => $res['utente'], 'password' => $res['password'],
                          'ricevuta' => $res['ricevuta'], 'nuovo' => $res['nuovo']]);

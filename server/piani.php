@@ -14,6 +14,7 @@
    ========================================================================= */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/pdf.php';   // generatore PDF per la ricevuta
 
 const PRED_ACCESSO_PREZZO = 25;     // euro, una tantum
 const PRED_ACCESSO_ANNI   = 4;      // durata accesso
@@ -196,25 +197,51 @@ function predizione_ricevuta_numero(): string {
     return 'RIC-' . $anno . '-' . str_pad((string)$n, 4, '0', STR_PAD_LEFT);
 }
 function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): string {
-    $imp = (float)($o['importo'] ?? 0);
-    $bollo = $imp > 77.47 ? "\nMarca da bollo 2,00 € assolta." : '';
-    $txt = "RICEVUTA  $numero\n"
-         . "Data: " . date('d/m/Y') . "\n"
-         . "-------------------------------------------\n"
-         . "Licenza d'uso dell'opera PREDIZIONE (L. 633/1941).\n"
-         . "Cliente: " . ($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '') . "\n"
-         . "Email:   " . ($o['mail'] ?? '') . "\n"
-         . "Utente:  $utente\n"
-         . "-------------------------------------------\n"
-         . "Accesso all'app (4 anni) ............ 25,00 €\n"
-         . "Livello " . ($o['piano'] ?? 'Foyer') . " (" . ($o['durata'] ?? 'anno') . ") ... "
-         . number_format((float)predizione_prezzo_piano($o['piano'] ?? 'Foyer', $o['durata'] ?? 'anno'), 2, ',', '.') . " €\n"
-         . "-------------------------------------------\n"
-         . "TOTALE: " . number_format($imp, 2, ',', '.') . " €$bollo\n\n"
-         . "Ricevuta per diritti d'autore (non soggetta a IVA).\n"
-         . "abraka.it — supporto@abraka.it\n";
-    $path = predizione_ricevute_dir() . "/$numero.txt";
-    @file_put_contents($path, $txt, LOCK_EX);
+    $imp   = (float)($o['importo'] ?? 0);
+    $piano = $o['piano'] ?? 'Foyer';
+    $dur   = $o['durata'] ?? 'anno';
+    $prezzoPiano = (float)predizione_prezzo_piano($piano, $dur);
+
+    // dati autore (solo-server, non nel repo): _dati/autore.json
+    $autore = json_decode((string)@file_get_contents(DATA_DIR . '/autore.json'), true);
+    $autore = is_array($autore) ? $autore : [];
+
+    $pdf = new PredPDF();
+    $y = 70;
+    $pdf->text(60, $y, 22, 'abraka', true); $y += 10;
+    $pdf->text(60, $y, 10, 'Licenza d\'uso dell\'opera PREDIZIONE'); $y += 34;
+
+    $pdf->text(60, $y, 15, 'Ricevuta ' . $numero, true);
+    $pdf->text(430, $y, 11, 'Data: ' . date('d/m/Y')); $y += 26;
+
+    if (!empty($autore['nome']))  { $pdf->text(60, $y, 10, 'Emessa da: ' . $autore['nome']); $y += 14; }
+    if (!empty($autore['citta'])) { $pdf->text(60, $y, 10, $autore['citta']); $y += 14; }
+    if (!empty($autore['cf']))    { $pdf->text(60, $y, 10, 'C.F. ' . $autore['cf']); $y += 14; }
+    $y += 8;
+
+    $pdf->text(60, $y, 11, 'Cliente: ' . trim(($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '')), true); $y += 15;
+    $pdf->text(60, $y, 10, 'Email: ' . ($o['mail'] ?? '')); $y += 14;
+    $pdf->text(60, $y, 10, 'Utente: ' . $utente . '   Ordine: ' . ($o['id'] ?? '')); $y += 24;
+
+    // righe
+    $pdf->text(60, $y, 10, 'Descrizione', true); $pdf->text(470, $y, 10, 'Importo', true); $y += 6;
+    $pdf->text(60, $y, 10, '______________________________________________________________'); $y += 18;
+    $pdf->text(60, $y, 11, 'Accesso all\'app PREDIZIONE (4 anni)');
+    $pdf->text(470, $y, 11, number_format((float)PRED_ACCESSO_PREZZO, 2, ',', '.') . ' EUR'); $y += 16;
+    if ($prezzoPiano > 0) {
+        $pdf->text(60, $y, 11, 'Estensione ' . $piano . ' (' . ($dur === 'mese' ? '1 mese' : '1 anno') . ')');
+        $pdf->text(470, $y, 11, number_format($prezzoPiano, 2, ',', '.') . ' EUR'); $y += 16;
+    }
+    $pdf->text(60, $y, 10, '______________________________________________________________'); $y += 20;
+    $pdf->text(60, $y, 13, 'TOTALE', true);
+    $pdf->text(470, $y, 13, number_format($imp, 2, ',', '.') . ' EUR', true); $y += 26;
+
+    if ($imp > 77.47) { $pdf->text(60, $y, 9, 'Marca da bollo 2,00 EUR assolta sull\'originale.'); $y += 16; }
+    $pdf->text(60, $y, 9, 'Ricevuta per diritti d\'autore (art. 2 n.8 e 64-bis L. 633/1941). Non soggetta a IVA.'); $y += 30;
+    $pdf->text(60, $y, 10, 'abraka.it  -  supporto@abraka.it');
+
+    $path = predizione_ricevute_dir() . "/$numero.pdf";
+    $pdf->save($path);
     return $path;
 }
 
@@ -254,18 +281,19 @@ function predizione_attiva_ordine(array &$ordine): array {
     predizione_utenti_scrivi($utenti);
 
     // ricevuta + vendita
-    $ricNum = predizione_ricevuta_numero();
-    predizione_ricevuta_scrivi($ordine, $u, $ricNum);
+    $ricNum  = predizione_ricevuta_numero();
+    $ricFile = predizione_ricevuta_scrivi($ordine, $u, $ricNum);
     predizione_vendite_aggiungi([
         'ordine' => $ordine['id'] ?? '', 'utente' => $u, 'nome' => $rec['nome'],
         'mail' => $ordine['mail'] ?? '', 'piano' => $piano, 'durata' => $ordine['durata'] ?? 'anno',
         'importo' => $ordine['importo'] ?? '', 'canale' => $ordine['canale'] ?? '',
     ]);
 
-    $ordine['utente']   = $u;
-    $ordine['ricevuta'] = $ricNum;
-    $ordine['stato']    = 'attivato';
-    $ordine['attivato'] = date('c');
+    $ordine['utente']       = $u;
+    $ordine['ricevuta']     = $ricNum;
+    $ordine['ricevuta_file']= $ricFile;
+    $ordine['stato']        = 'attivato';
+    $ordine['attivato']     = date('c');
 
-    return ['utente' => $u, 'password' => $pass, 'ricevuta' => $ricNum, 'nuovo' => true];
+    return ['utente' => $u, 'password' => $pass, 'ricevuta' => $ricNum, 'ricevuta_file' => $ricFile, 'nuovo' => true];
 }
