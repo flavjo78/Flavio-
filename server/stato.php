@@ -112,6 +112,7 @@ function predizione_stato_pubblico(array $s): array {
         'mail_inviate'   => (int)($s['mail_inviate'] ?? 0),
         'assistente_attivo' => !empty($s['assistente_token']),  // c'e' un link assistente attivo?
         'account'        => predizione_account_pubblico(predizione_utente()),  // piano e limiti (Mio account)
+        'uso'            => predizione_uso_mese($s),  // consumi del mese (pagina Limiti con le barre)
     ];
 }
 
@@ -394,6 +395,7 @@ switch ($azione) {
         // azzera i conteggi mail della nuova sessione
         $stato['mail_ricevute'] = 0;
         $stato['mail_inviate']  = 0;
+        predizione_uso_incr($stato, 'sessioni', 1);   // consumo mensile: una sessione in piu'
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -542,6 +544,7 @@ switch ($azione) {
         $inv = max(0, (int)p('inviate'));
         $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + $ric;
         $stato['mail_inviate']  = (int)($stato['mail_inviate']  ?? 0) + $inv;
+        if ($inv > 0) predizione_uso_incr($stato, 'mail', $inv);   // consumo mensile mail
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 

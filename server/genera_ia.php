@@ -191,6 +191,7 @@ if (!$salvata) {
 
 $stato = predizione_leggi_stato();
 $stato['rivelazione_pronta'] = $dest;
+predizione_uso_incr($stato, 'foto_ia', 1);   // consumo mensile: una foto IA generata
 predizione_scrivi_stato($stato);
 
 $preview = '';

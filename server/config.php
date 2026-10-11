@@ -192,6 +192,22 @@ function predizione_scrivi_stato(array $stato): bool {
     return @file_put_contents(predizione_stato_file(), $json, LOCK_EX) !== false;
 }
 
+/* ---- Uso del mese (per la pagina "I miei limiti" con le barre) --------- */
+/* Tiene i consumi del mese in corso nello stato; si azzera da solo al cambio mese. */
+function predizione_uso_mese(array &$stato): array {
+    $m = date('Y-m');
+    if (!isset($stato['uso']) || !is_array($stato['uso']) || (($stato['uso']['mese'] ?? '') !== $m)) {
+        $stato['uso'] = ['mese' => $m, 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0];
+    }
+    return $stato['uso'];
+}
+function predizione_uso_incr(array &$stato, string $tipo, int $n = 1): void {
+    predizione_uso_mese($stato);
+    if (array_key_exists($tipo, $stato['uso'])) {
+        $stato['uso'][$tipo] = (int)$stato['uso'][$tipo] + $n;
+    }
+}
+
 function predizione_sessione_corrente(array $stato): ?array {
     $id = (int)($stato['sessione_corrente'] ?? 0);
     if ($id <= 0) return null;

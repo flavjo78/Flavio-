@@ -240,6 +240,14 @@
   .box2{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:12px 8px;text-align:center}
   .box2 b{display:block;font-family:"Cormorant Garamond",serif;font-size:26px;color:var(--ink)}
   .box2 span{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-faint)}
+  /* barre dei limiti (semaforo) */
+  .lim{margin:16px 0}
+  .lim .top{display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px}
+  .lim .top b{color:var(--ink);font-variant-numeric:tabular-nums}
+  .bar{height:14px;background:var(--surface-3);border:1px solid var(--line-2);border-radius:999px;overflow:hidden}
+  .bar > i{display:block;height:100%;border-radius:999px;background:var(--good);transition:width .4s ease}
+  .bar.warn > i{background:var(--gold)}
+  .bar.stop > i{background:var(--stop)}
 </style>
 </head>
 <body>
@@ -350,6 +358,7 @@
         <div class="tile" data-go="invio"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
         <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></svg></div><div class="tx"><div class="tl">Rivelazione IA</div><div class="ts">genera la Foto B</div></div></div>
         <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div><div class="tx"><div class="tl">La tua casella</div><div class="ts" id="tsCasella">—</div></div></div>
+        <div class="tile" data-go="limiti"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div class="tx"><div class="tl">Limiti</div><div class="ts" id="tsLimiti">—</div></div></div>
         <div class="tile" data-go="report"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">chi apre e scrive</div></div></div>
         <div class="tile" data-go="assist"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5"/><circle cx="17" cy="9" r="2.6"/><path d="M13.6 19c.4-2.3 1.8-3.4 3.6-3.4s3.2 1.1 3.6 3.4"/></svg></div><div class="tx"><div class="tl">Assistente</div><div class="ts" id="tsAssist">—</div></div></div>
         <div class="tile wide" data-go="account"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/></svg></div><div class="tx"><div class="tl">Il mio account</div><div class="ts" id="tsAccount">piano e limiti</div></div></div>
@@ -369,6 +378,15 @@
         <div class="box2"><b id="accCred">—</b><span>Crediti extra</span></div>
       </div>
       <p class="hint">Vedi <b>solo le tue cose</b>. Per cambiare piano o comprare un'estensione, scrivi a <b>supporto@abraka.it</b>.</p>
+    </section>
+
+    <!-- ===== I MIEI LIMITI (barre a semaforo) ===== -->
+    <section class="sp" data-sp="limiti" aria-label="I miei limiti">
+      <div class="sec-head"><h2 class="sec-title">I miei limiti</h2><span class="sec-num" id="limPiano">—</span></div>
+      <div class="lim"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
+      <div class="lim"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
+      <div class="lim"><div class="top"><span>Sessioni</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
+      <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite.</p>
     </section>
 
     <section class="sp" data-sp="invio" aria-label="Modo di invio">
@@ -549,6 +567,18 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       set('accSess', ac.sessioni_mese||0);
       var cr=ac.crediti||{}; set('accCred', (cr.mail||0)+'·'+(cr.foto_ia||0)+'·'+(cr.sessioni||0));
       set('tsAccount', 'piano '+(ac.piano||'Foyer'));
+      // --- barre dei limiti ---
+      var uso=st.uso||{}, crd=ac.crediti||{};
+      function setBar(tid,bid,used,lim){var t=$(tid),b=$(bid);if(!t||!b)return;used=used||0;lim=lim||0;
+        var pct=lim>0?Math.min(100,Math.round(used/lim*100)):0;
+        t.textContent=used+' / '+(lim||'—');
+        b.className='bar'+(pct>=100?' stop':(pct>=75?' warn':''));
+        var i=b.querySelector('i'); if(i) i.style.width=pct+'%';}
+      set('limPiano', ac.piano||'Foyer');
+      setBar('limMailTxt','limMailBar', uso.mail,     (ac.mail_mese||0)+(crd.mail||0));
+      setBar('limFotoTxt','limFotoBar', uso.foto_ia,  (ac.foto_ia_mese||0)+(crd.foto_ia||0));
+      setBar('limSessTxt','limSessBar', uso.sessioni, (ac.sessioni_mese||0)+(crd.sessioni||0));
+      set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');
     }
   }
   function getPw(){ return PW; }
