@@ -104,6 +104,7 @@ function predizione_stato_pubblico(array $s): array {
         'utente'         => predizione_utente(),
         'flags'          => predizione_flags(predizione_utente()),  // il pannello sa cosa mostrare
         'mail_impostata' => predizione_mail_impostata(predizione_utente()),
+        'mail_cfg'       => predizione_mail_cfg(predizione_utente()),  // casella salvata (per riempire le Impostazioni)
         'ha_zona'        => (!empty($s['foto_quad']) && is_array($s['foto_quad']) && count($s['foto_quad']) === 4),
         'ha_foto_base'   => (!empty($s['foto_base']) && is_file($s['foto_base'])),
         'foto_quad'      => (!empty($s['foto_quad'])  && is_array($s['foto_quad']))  ? $s['foto_quad']  : null,
@@ -132,6 +133,14 @@ function predizione_mail_impostata(string $u): bool {
     $rec = predizione_utente_record($u);
     $m = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];
     return !empty($m['user']) && !empty($m['pass']);
+}
+
+/* Configurazione casella dell'utente (email, password per app 16 cifre, mittente),
+   per RIMOSTRARLA precompilata nella Regia e nel pannello 000 (dati propri/dell'admin). */
+function predizione_mail_cfg(string $u): array {
+    $rec = predizione_utente_record($u);
+    $m = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];
+    return ['user' => (string)($m['user'] ?? ''), 'pass' => (string)($m['pass'] ?? ''), 'from' => (string)($m['from'] ?? '')];
 }
 
 /* ---- AZIONI AMMINISTRATORE (comandate dal pannello Admin, utente 000) --- */
@@ -209,6 +218,7 @@ function predizione_admin(string $azione): void {
                 'piano_scad'   => (int)($rec['piano_scadenza'] ?? 0),
                 'limiti'   => $lim,
                 'sessioni' => $sessOut,
+                'mail'     => predizione_mail_cfg($num),
             ]]);
 
         case 'admin_piano':   // upgrade/cambio piano (per X mesi o X anni)

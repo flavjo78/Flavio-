@@ -580,6 +580,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       setBar('limSessTxt','limSessBar', uso.sessioni, (ac.sessioni_mese||0)+(crd.sessioni||0));
       set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');
     }
+    // ripristina la casella salvata (email + password per app 16 cifre + mittente)
+    var mc=st.mail_cfg;
+    if(mc){ [['mailEmail','user'],['mailApp','pass'],['mailFrom','from']].forEach(function(p){
+      var el=$(p[0]); if(el && document.activeElement!==el && !el.value){ el.value=mc[p[1]]||''; }
+    }); }
   }
   function getPw(){ return PW; }
   function getUser(){ return USER; }

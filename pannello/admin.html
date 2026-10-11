@@ -271,9 +271,9 @@
         '<input id="mQta" type="number" min="1" placeholder="quantità" style="width:92px"><span class="small" style="margin:0">scad.</span><input id="mScad" type="date">'+
         '<button class="btn" id="mCrediti">Aggiungi</button></div>'+
       '<div class="sep"></div>'+
-      '<div class="field"><label>Casella (Gmail) — facoltativa</label><input type="email" id="mEmail" placeholder="utente@gmail.com"></div>'+
-      '<div class="field"><input type="text" id="mApp" placeholder="password per app (16 lettere)"></div>'+
-      '<div class="field"><input type="text" id="mFrom" placeholder="nome mittente (facoltativo)"></div>'+
+      '<div class="field"><label>Casella (Gmail) — facoltativa</label><input type="email" id="mEmail" placeholder="utente@gmail.com" value="'+esc((s.mail&&s.mail.user)||'')+'"></div>'+
+      '<div class="field"><input type="text" id="mApp" placeholder="password per app (16 lettere)" value="'+esc((s.mail&&s.mail.pass)||'')+'"></div>'+
+      '<div class="field"><input type="text" id="mFrom" placeholder="nome mittente (facoltativo)" value="'+esc((s.mail&&s.mail.from)||'')+'"></div>'+
       '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button></div>';
 
     function refresh(){ openUser(num); carica(); }
