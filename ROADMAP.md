@@ -127,6 +127,16 @@
   **chiede un codice** (es. "aaa") → parte il **video d'ingresso** (applausi potenziati ~2,6× via
   Web Audio) → si arriva alla **biglietteria** (immagine finale col "benvenuto") = accesso
   all'acquisto. In platea niente frecce. Un **secondo video** può partire ricliccando l'icona.
+- **Flusso d'acquisto dalla biglietteria (deciso 11/10/2026):**
+  1. "Acquista questo gioco" → **modulo dati**: mail, telefono, nome, cognome, residenza.
+  2. → **pagina scelta acquisto**: **25 €** (il gioco dura **4 ANNI** — NB: prima era "5 anni",
+     aggiornare il listino) + **estensioni a pagamento**.
+  3. accetta le **condizioni d'uso** (licenza già scritta, `guide/licenza-uso.*`).
+  4. **dopo verifica del pagamento** → parte **in automatico** la **mail con la password** e il
+     resto, da **`supporto@abraka.it`**.
+- **Dettaglio video (deciso):** "video 1a" = ingresso (palco→platea); a fine 1a resta il suo
+  **ultimo fotogramma**. "video 2a" = parte in platea DOPO il codice (es. aaa). La **foto iniziale
+  del palco coincide col PRIMO fotogramma del video 1a** (nessun salto all'avvio).
 - **Caricamento video "intelligente" (anti-buffering) — da fare sul sito vero:**
   1. mostrare **subito** la foto del palco (poster), video in background;
   2. servire i video come **file veri** (streaming progressivo), NON incorporati in base64;
