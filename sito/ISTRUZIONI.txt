@@ -1,0 +1,25 @@
+SITO abraka — come caricarlo su Tophost (dopo lo spettacolo)
+============================================================
+
+Cartella da caricare (tutta): sito/
+Contiene:
+  index.html      -> la vetrina (home del sito)
+  prezzi.html     -> il listino (tasto "Confronta i piani")
+  assets/         -> i 2 video e le 2 immagini (NON rinominare)
+
+DOVE caricarla su abraka.it:
+  - Caricala nella cartella pubblica del sito (es. la radice del dominio),
+    mantenendo la sottocartella assets/ accanto a index.html.
+  - Apri: https://www.abraka.it/index.html  (usa sempre www).
+
+PASSWORD dei giochi (anteprima di prova):
+  - Predizione = aaa
+  - Eclisse / Sfioro = DDNFLV85T08F839J
+  (Nel sito vero le password le decidi tu per ogni gioco.)
+
+NOTE:
+  - I video sono alleggeriti e si caricano "in modo intelligente"
+    (il 2° parte mentre inserisci la password), per non rallentare.
+  - Richiesta accesso -> accesso@abraka.it ; acquisti/bonifico -> supporto@abraka.it.
+  - Questa e' la VETRINA. Il flusso d'acquisto vero (ordine.php, pagamento,
+    mail automatica) verra' collegato quando carichiamo il backend.

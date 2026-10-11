@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="it"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>abraka — esperienza completa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+  :root{--bg:#0e0b0a;--surface:#1b1712;--surface2:#2a251d;--line:rgba(236,224,201,.1);--line2:rgba(236,224,201,.18);
+    --fg:#f0e6d4;--dim:#b39b84;--faint:#7c6f5c;--gold:#d8aa52;--goldink:#f0d79a;--good:#86b26f;--stop:#e0735a;
+    --display:"Playfair Display",Georgia,serif;--body:"Source Sans 3",system-ui,sans-serif}
+  *{box-sizing:border-box;margin:0;padding:0}html,body{height:100%}
+  body{font-family:var(--body);color:var(--fg);overflow:hidden;background:#000}
+  .bg{position:fixed;inset:0;z-index:0}.bg img{width:100%;height:100%;object-fit:cover}
+  .shade{position:fixed;inset:0;z-index:1;background:linear-gradient(to bottom,rgba(0,0,0,.42),rgba(0,0,0,.08) 44%,rgba(0,0,0,.6))}
+  .page{position:relative;z-index:3;height:100%;display:flex;flex-direction:column}
+  .demo{background:rgba(58,42,14,.8);color:#f0d79a;text-align:center;font-size:12px;font-weight:700;padding:6px;letter-spacing:.04em}
+  header{display:flex;align-items:center;justify-content:space-between;padding:14px clamp(18px,5vw,54px)}
+  .brand{font-family:var(--display);font-weight:700;font-size:clamp(28px,3.6vw,44px);color:var(--goldink);text-shadow:0 2px 14px rgba(0,0,0,.6)}
+  .enter{font:inherit;font-weight:700;color:#241a08;background:var(--gold);border-radius:999px;padding:11px clamp(22px,2.6vw,34px);text-decoration:none}
+  .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 20px clamp(20px,6vh,70px)}
+  .stageRow{display:flex;align-items:center;justify-content:center;gap:clamp(20px,5vw,70px)}
+  .medal{width:clamp(150px,22vw,280px);aspect-ratio:1;border-radius:50%;cursor:pointer;background:radial-gradient(circle at 50% 36%,rgba(40,29,19,.9),rgba(8,6,3,.95));
+    border:4px solid var(--goldink);box-shadow:0 18px 44px rgba(0,0,0,.6),0 0 0 9px rgba(231,201,131,.12),0 0 60px rgba(231,201,131,.3);display:flex;align-items:center;justify-content:center}
+  .medal .g{font-family:var(--display);font-weight:700;font-size:clamp(70px,11vw,140px);color:var(--goldink)}
+  .arrow{width:clamp(52px,5.5vw,76px);aspect-ratio:1;border-radius:50%;cursor:pointer;background:rgba(16,11,10,.55);border:2px solid var(--goldink);color:var(--goldink);display:flex;align-items:center;justify-content:center;font-size:clamp(28px,3.4vw,40px);backdrop-filter:blur(3px)}
+  .appname{font-family:var(--display);font-weight:700;font-size:clamp(30px,4.6vw,52px);margin-top:clamp(18px,3vh,34px);text-shadow:0 2px 16px rgba(0,0,0,.7)}
+  .dots{display:flex;justify-content:center;gap:8px;margin-top:14px}.dots i{width:8px;height:8px;border-radius:50%;background:rgba(244,236,218,.35)}.dots i.on{background:var(--gold)}
+  .hint{color:var(--dim);margin-top:10px}
+  .layer{position:fixed;inset:0;background:#000;opacity:0;pointer-events:none;transition:opacity .45s}
+  .layer.on{opacity:1;pointer-events:auto}.layer video{width:100%;height:100%;object-fit:cover}
+  #L1,#L2{z-index:6}
+  .skip{position:absolute;bottom:20px;right:20px;z-index:12;font:inherit;font-weight:700;color:#fff;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.3);border-radius:999px;padding:8px 16px;cursor:pointer}
+  #plateaOv{z-index:7;background:transparent}
+  #plateaOv .inner{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 20px;transform:translateY(46vh);opacity:0;transition:transform 1s cubic-bezier(.18,.7,.2,1),opacity .7s}
+  #plateaOv.on .inner{transform:translateY(0);opacity:1}
+  #plateaOv .veil{position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(0,0,0,.2),rgba(0,0,0,.6))}
+  .backbtn{margin-top:22px;font:inherit;font-weight:700;color:var(--goldink);background:rgba(16,11,10,.55);border:1.5px solid var(--goldink);border-radius:999px;padding:11px 24px;cursor:pointer}
+  .modal{position:fixed;inset:0;z-index:14;background:rgba(6,5,5,.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:22px}
+  .modal.on{display:flex}
+  .modal .card{width:100%;max-width:380px;background:#1b1712;border:1px solid rgba(231,201,131,.3);border-radius:22px;padding:26px 22px;text-align:center}
+  .modal h3{font-family:var(--display);font-weight:700;font-size:26px;color:var(--goldink);margin-bottom:4px}
+  .modal p{color:var(--dim);font-size:14px;margin-bottom:16px}
+  .modal input{width:100%;text-align:center;font-size:20px;letter-spacing:.3em;font-family:var(--display);color:var(--fg);background:#2a251d;border:1px solid rgba(231,201,131,.3);border-radius:12px;padding:14px}
+  .modal .go{width:100%;margin-top:14px;font:inherit;font-weight:700;color:#241a08;background:var(--gold);border:none;border-radius:999px;padding:13px;cursor:pointer}
+  .modal .err{color:var(--stop);font-size:13px;margin-top:10px;min-height:18px}
+  .modal .cancel{margin-top:8px;background:none;border:none;color:var(--dim);font:inherit;cursor:pointer;text-decoration:underline}
+  @keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}.shake{animation:shake .35s}
+  #bigOv{z-index:8}#bigOv img{width:100%;height:100%;object-fit:cover}
+  #bigOv .veil{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.62),rgba(0,0,0,0) 45%)}
+  #bigOv .ui{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;text-align:center;padding:0 20px clamp(26px,8vh,80px)}
+  #bigOv .ui .goB{font:inherit;font-weight:700;font-size:17px;color:#241a08;background:var(--gold);border:none;border-radius:999px;padding:14px 34px;cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.5)}
+  /* ACQUISTO overlay */
+  #acqOv{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;display:none}
+  #acqOv.on{display:block}
+  .aw{max-width:460px;margin:0 auto;padding:18px 16px 60px}
+  .asteps{display:flex;justify-content:center;gap:6px;margin:12px 0 18px}.asteps i{width:22px;height:4px;border-radius:999px;background:var(--surface2)}.asteps i.on{background:var(--gold)}
+  .acard{background:var(--surface);border:1px solid var(--line2);border-radius:18px;padding:18px;margin-bottom:12px}
+  h2{font-family:var(--display);font-weight:700;font-size:24px;text-align:center;margin-bottom:4px}.sub{color:var(--dim);text-align:center;font-size:14px;margin-bottom:16px}
+  label.lb{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin:12px 0 5px}
+  input,select{width:100%;background:var(--surface2);border:1px solid var(--line2);color:var(--fg);border-radius:12px;padding:12px 13px;font-size:15px;font-family:inherit}
+  input:focus,select:focus{outline:none;border-color:var(--gold)}input.bad,select.bad{border-color:var(--stop)}
+  .err{color:var(--stop);font-size:12px;margin-top:4px}
+  .row2{display:flex;gap:10px}
+  .abtn{width:100%;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;padding:14px;border-radius:12px;border:1px solid var(--line2);background:var(--surface2);color:var(--fg);margin-top:16px}
+  .abtn.gold{background:linear-gradient(180deg,#e7c074,#c9992f);color:#241a08;border-color:transparent}
+  .abtn.ghost{background:transparent;color:var(--dim)}
+  .lang{display:flex;align-items:center;justify-content:center;gap:14px}.lang .fl{width:48px;height:32px;border-radius:7px;overflow:hidden;border:1px solid var(--line);filter:grayscale(1) contrast(.9) brightness(1.05);opacity:.82}.lang .fl svg{width:100%;height:100%;display:block}.lang .nm{min-width:110px;text-align:center;font-weight:700;font-size:18px}.lang button{width:44px;height:44px;border-radius:50%;background:var(--surface2);border:1px solid var(--line2);color:var(--goldink);font-size:22px;cursor:pointer}
+  .acc{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--gold);border-radius:14px;padding:14px}
+  .acc .big{font-family:var(--display);font-weight:700;font-size:22px;color:var(--goldink)}.acc .s{font-size:12px;color:var(--dim)}
+  .promo{display:inline-block;background:var(--stop);color:#fff;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:middle}
+  .old{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--stop);text-decoration-thickness:2px;font-size:30px;font-weight:700;margin-right:8px}
+  .plan{display:flex;align-items:center;gap:12px;background:var(--surface2);border:1px solid var(--line2);border-radius:14px;padding:13px;cursor:pointer;margin-top:8px}
+  .plan.sel{border-color:var(--gold);background:rgba(216,170,82,.1)}.plan .rad{width:16px;height:16px;border-radius:50%;border:2px solid var(--gold);flex:0 0 auto}.plan.sel .rad{background:var(--gold)}
+  .plan .nm{font-weight:700}.plan .d{font-size:12px;color:var(--faint)}.plan .pr{margin-left:auto;text-align:right}.plan .pr b{font-family:var(--display);color:var(--goldink);white-space:nowrap}.plan .pr small{display:block;font-size:11px;color:var(--faint)}
+  .tot{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);margin-top:12px;padding-top:12px}.tot b{font-family:var(--display);font-size:24px;color:var(--goldink)}
+  .pay{display:flex;gap:8px;margin-top:8px}.pay .m{flex:1;text-align:center;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px 6px;cursor:pointer;font-size:13px;font-weight:700}.pay .m.sel{border-color:var(--gold);background:rgba(216,170,82,.1);color:var(--goldink)}
+  .chk{display:flex;gap:10px;align-items:flex-start;font-size:13px;color:var(--dim);margin-top:4px}.chk a{color:var(--goldink)}
+  .code-in{text-align:center;font-size:26px;letter-spacing:.5em;font-family:var(--display)}
+  .mailbox{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:12px;margin-top:12px;text-align:left;font-size:13px}.mailbox b{color:var(--goldink)}
+  .ascreen{display:none}.ascreen.on{display:block}
+  .aback{background:none;border:none;color:var(--dim);font:inherit;cursor:pointer;text-decoration:underline;display:block;margin:10px auto 0}
+  .qbtn{position:absolute;top:clamp(16px,3vh,28px);right:clamp(16px,4vw,32px);z-index:6;width:46px;height:46px;border-radius:50%;border:1.5px solid var(--goldink);background:rgba(16,11,10,.5);color:var(--goldink);font-family:var(--display);font-weight:700;font-size:24px;line-height:1;cursor:pointer;backdrop-filter:blur(3px)}
+  .spiega{display:none;max-width:520px;padding:0 6px}
+  .spiega.on{display:block}
+  .spiega .st{font-family:var(--display);color:var(--goldink);font-size:clamp(19px,2.9vw,27px);line-height:1.55;text-shadow:0 2px 16px rgba(0,0,0,.75)}
+  #plateaOv.spiegando .medal,#plateaOv.spiegando #appname2,#plateaOv.spiegando .hint,#plateaOv.spiegando #back1,#plateaOv.spiegando #qBtn{display:none}
+</style></head>
+<body>
+  <div class="bg"><img src="assets/asset_0.jpg" alt="palco"></div><div class="shade"></div>
+  <div class="page">
+    
+    <header><div class="brand">abraka</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <button id="siteLang" style="display:inline-flex;align-items:center;gap:7px;background:transparent;border:1px solid var(--line2);color:var(--dim);border-radius:999px;padding:7px 12px;font:inherit;font-size:13px;font-weight:700;letter-spacing:.1em;cursor:pointer"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15.4 0 18M12 3c-2.5 2.6-2.5 15.4 0 18"/></svg>IT</button>
+        <a class="enter" href="#">Accedi</a>
+      </div>
+    </header>
+    <div id="langNote" style="display:none;position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:30;background:#1b1712;border:1px solid var(--line2);border-radius:12px;padding:10px 16px;font-size:13px;color:var(--dim);box-shadow:0 8px 24px rgba(0,0,0,.5)">Per ora il sito è in <b style="color:var(--goldink)">Italiano</b>. Presto: EN · FR · ES · DE.</div>
+    <div class="center">
+      <div class="stageRow"><div class="arrow" id="prev">&#8249;</div><div class="medal" id="medal"><span class="g" id="glyph">P</span></div><div class="arrow" id="next">&#8250;</div></div>
+      <div class="appname" id="appname">Predizione</div>
+      <div class="dots" id="dots"></div>
+      <div class="hint">Scegli il gioco con le frecce, poi tocca per entrare</div>
+    </div>
+  </div>
+
+  <div class="layer" id="L1"><video id="v1a" playsinline preload="metadata" src="assets/asset_1.mp4"></video><button class="skip" data-v="1">Salta &raquo;</button></div>
+  <div class="layer" id="L2"><video id="v2a" playsinline preload="none" src="assets/asset_2.mp4"></video><button class="skip" data-v="2">Salta &raquo;</button></div>
+
+  <div class="layer" id="plateaOv"><div class="veil"></div>
+    <button class="qbtn" id="qBtn" title="Spiega l'effetto">?</button>
+    <div class="inner">
+    <div class="medal" id="medal2"><span class="g" id="glyph2">P</span></div>
+    <div class="appname" id="appname2">Predizione</div>
+    <div class="hint">Tocca l'icona e inserisci la password del gioco</div>
+    <button class="backbtn" id="back1">&#8617; ritorna al palco</button>
+    <div class="spiega" id="spiegaBox"><div class="st" id="spiegaTxt"></div><button class="backbtn" id="spiegaClose">&#8617; torna indietro</button></div>
+  </div></div>
+
+  <!-- PASSWORD -->
+  <div class="modal" id="codeOv"><div class="card" id="codeCard">
+    <h3>Password del gioco</h3><p>Inserisci la password che hai ricevuto</p>
+    <input id="codeInp" maxlength="24" placeholder="········" autocomplete="off">
+    <button class="go" id="codeGo">Entra</button>
+    <div class="err" id="codeErr"></div>
+    <button class="go" id="toAsk" style="background:none;border:1px solid var(--gold);color:var(--goldink);margin-top:10px">Non hai la password? Richiedi l'accesso</button>
+    <button class="cancel" id="codeCancel">annulla</button>
+  </div></div>
+
+  <!-- RICHIEDI ACCESSO (password errata) -->
+  <div class="modal" id="askOv"><div class="card">
+    <h3>Richiedi l'accesso</h3>
+    <p style="margin-bottom:14px">Ci fa piacere tenere i giochi alla portata di <b>veri appassionati o professionisti</b>: dicci chi sei?!</p>
+    <input id="askMail" type="email" placeholder="La tua email (per ricontattarti)" style="width:100%;text-align:left;font-size:15px;letter-spacing:normal;font-family:var(--body);color:var(--fg);background:#2a251d;border:1px solid rgba(231,201,131,.3);border-radius:12px;padding:12px;margin-bottom:10px">
+    <textarea id="chiSei" rows="3" placeholder="Es. Sono un mentalista, mi esibisco nei teatri…" style="width:100%;text-align:left;font-size:15px;letter-spacing:normal;font-family:var(--body);color:var(--fg);background:#2a251d;border:1px solid rgba(231,201,131,.3);border-radius:12px;padding:12px;resize:vertical"></textarea>
+    <button class="go" id="askSend">✉️ Invia la richiesta</button>
+    <div class="err"></div>
+    <button class="cancel" id="askCancel">riprova la password</button>
+  </div></div>
+
+  <!-- BIGLIETTERIA -->
+  <div class="layer" id="bigOv"><img src="assets/asset_3.jpg" alt="biglietteria"><div class="veil"></div>
+    <div class="ui" style="justify-content:space-between;padding-top:clamp(120px,30vh,260px)"><button class="goB" id="toAcq">🎟️ Acquista questo gioco</button><button class="backbtn" id="back2">&#8617; ritorna al palco</button></div>
+  </div>
+
+  <!-- ===== ACQUISTO ===== -->
+  <div id="acqOv"><div class="aw">
+    <div class="brand" style="text-align:center">abraka</div>
+    <div class="asteps"><i class="on" id="p1"></i><i id="p2"></i><i id="p3"></i><i id="p4"></i><i id="p5"></i><i id="p6"></i></div>
+
+    <div class="ascreen on" id="a_lingua"><h2>Lingua</h2><p class="sub">Scegli la lingua del sito</p>
+      <div class="acard"><div class="lang"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox"></span><span class="nm" id="langnm">Italiano</span><button onclick="lang(1)">&#8250;</button></div>
+      <button class="abtn gold" onclick="ago(2)">Continua</button></div></div>
+
+    <div class="ascreen" id="a_dati"><h2>I tuoi dati</h2><p class="sub">Per intestarti il gioco <span id="dataGame" style="color:var(--goldink)">Predizione</span></p>
+      <div class="acard">
+        <div class="row2"><div style="flex:1"><label class="lb">Nome</label><input id="nome" placeholder="Mario"></div><div style="flex:1"><label class="lb">Cognome</label><input id="cognome" placeholder="Rossi"></div></div><div class="err" id="eNome"></div>
+        <label class="lb">Email</label><input id="email" type="email" placeholder="mario.rossi@email.it"><div class="err" id="eEmail"></div>
+        <label class="lb">Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input id="tel" placeholder="333 1234567"></div><div class="err" id="eTel"></div>
+        <label class="lb">Nazione</label><select id="naz"><option>Italia</option></select>
+        <label class="lb">Provincia</label><select id="prov" onchange="riempiCitta()"><option value="">— scegli —</option></select>
+        <label class="lb">Città</label><select id="citta"><option value="">— scegli prima la provincia —</option></select>
+        <label class="lb">Via e numero</label><input id="via" placeholder="Via Roma 1"><div class="err" id="eVia"></div>
+        <button class="abtn gold" onclick="valDati()">Continua</button><button class="aback" onclick="ago(1)">‹ indietro</button>
+      </div></div>
+
+    <div class="ascreen" id="a_conf"><h2>Conferma la mail</h2><p class="sub" id="confSub">Abbiamo inviato un codice a …</p>
+      <div class="acard"><label class="lb">Codice ricevuto via email</label><input id="codeMail" class="code-in" maxlength="6" placeholder="······" inputmode="numeric"><div class="err" id="eCode"></div>
+        <button class="abtn gold" onclick="valCode()">Verifica e continua</button>
+        <p class="hint" style="color:var(--faint)">Non arriva? Controlla lo spam o <a href="#" style="color:var(--goldink)" onclick="return reinvia();">reinvia</a>. <span id="demoCode" style="color:var(--gold)"></span></p>
+        <button class="aback" onclick="ago(2)">‹ correggi la mail</button></div></div>
+
+    <div class="ascreen" id="a_scelta"><h2>Il tuo acquisto</h2><p class="sub" id="buyGame">Predizione</p>
+      <div class="acard">
+        <div class="acc"><span style="font-size:26px">🎟️</span><div><div class="big"><span class="old">105 €</span>25 €<span class="promo">PROMO −76%</span></div><div class="s">Accesso valido 4 anni · piano Foyer sempre incluso!</div></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 2px"><span style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)">Estensioni (facoltative)</span><a href="prezzi.html" target="_blank" style="color:var(--goldink);font-size:12px;text-decoration:underline">Confronta i piani ›</a></div>
+        <div class="plan sel" onclick="plan(0)"><span class="rad"></span><div><div class="nm">Foyer</div><div class="d">incluso</div></div><div class="pr"><b>0 €</b></div></div>
+        <div class="plan" onclick="plan(1)"><span class="rad"></span><div><div class="nm">Quinte</div><div class="d">eventi piccoli</div></div><div class="pr"><b>66 €/anno</b><small>o 15 €/mese</small></div></div>
+        <div class="plan" onclick="plan(2)"><span class="rad"></span><div><div class="nm">Sipario</div><div class="d">eventi medi</div></div><div class="pr"><b>96 €/anno</b><small>o 30 €/mese</small></div></div>
+        <div class="plan" onclick="plan(3)"><span class="rad"></span><div><div class="nm">Palco</div><div class="d">grandi eventi</div></div><div class="pr"><b>228 €/anno</b><small>o 58 €/mese</small></div></div>
+        <div id="durataRow" style="display:none;margin-top:14px">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:6px">Durata</div>
+          <div class="pay"><div class="m sel" onclick="durata('anno',this)">Annuale (consigliato)</div><div class="m" onclick="durata('mese',this)">Un mese</div></div>
+        </div>
+        <div class="tot"><span>Da pagare oggi</span><b id="tot">25 €</b></div>
+        <div class="hint" id="totnote" style="color:var(--faint)">Solo l'accesso 25 €. L'estensione puoi comprarla ora (quota annuale) o attivarla dall'app.</div>
+        <button class="abtn gold" onclick="ago(5)">Vai al pagamento</button><button class="aback" onclick="ago(3)">‹ indietro</button>
+      </div></div>
+
+    <div class="ascreen" id="a_pag"><h2>Pagamento</h2><p class="sub">Scegli come pagare e accetta le condizioni</p>
+      <div class="acard"><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)">Metodo</div>
+        <div class="pay"><div class="m sel" onclick="pay(this)">Bonifico</div><div class="m" onclick="pay(this)">Satispay</div><div class="m" onclick="pay(this)">PayPal</div></div>
+        <div id="causaleBox" style="margin-top:10px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:13px;color:var(--dim)">
+          <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Fai il bonifico con questi dati</div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Importo</span><b style="color:var(--goldink);font-size:15px" id="bonImporto">25 €</b></div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Intestato a</span><b style="color:var(--fg)">ABRAKA di …</b></div>
+          <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>IBAN</span><b style="color:var(--fg);text-align:right">IT00 X000 0000 0000 0000 0000 000</b></div>
+          <div style="padding:4px 0"><span>Causale</span><div style="margin-top:4px;font-family:var(--display);color:var(--goldink);font-size:16px" id="causaleTxt">PRD-0042 · Predizione · Mario Rossi</div></div>
+          <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Questi stessi dati ti arrivano anche via mail da <b style="color:var(--goldink)">supporto@abraka.it</b> — se non la vedi, <b>controlla lo spam</b>.</div>
+        </div>
+        <label class="chk" style="margin-top:16px"><input type="checkbox" id="acc1"> <span>Ho preso visione della <a href="#">Licenza d'uso (v1.0)</a>, compresa l'attivazione immediata, e la accetto.</span></label><div class="err" id="eAcc"></div>
+        <button class="abtn gold" id="pagaBtn" onclick="paga()"><span id="pagaTxt">Paga 25 € e conferma</span></button>
+        <div class="hint" style="color:var(--faint)">La password arriva <b>solo dopo la verifica del pagamento</b>, da <b>supporto@abraka.it</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma del pagamento.</div>
+        <button class="aback" onclick="ago(4)">‹ indietro</button></div></div>
+
+    <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2>Ordine ricevuto!</h2><p class="sub">Codice ordine <b>PRD-0042</b></p>
+      <p style="color:var(--dim);font-size:14px">Stiamo <b>verificando il pagamento</b>. Appena risulta ricevuto, parte in automatico la mail con la tua <b>password</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma.</p>
+      <div class="mailbox">📧 Da: <b>supporto@abraka.it</b><br>A: <b id="mailTo">…</b><br>Oggetto: <b>Benvenuto — i tuoi accessi</b></div>
+      <p style="color:var(--faint);font-size:13px;margin-top:10px">Non vedi la mail? <b>Controlla anche lo spam</b>.</p>
+      <button class="abtn ghost" onclick="chiudiAcq()">Torna al palco</button></div></div>
+  </div></div>
+
+<script>
+  var GAMES=[['P','Predizione','aaa'],['E','Eclisse','ddnflv85t08f839j'],['S','Sfioro','ddnflv85t08f839j']];
+  var i=0;
+  var glyph=document.getElementById('glyph'),an=document.getElementById('appname'),dots=document.getElementById('dots');
+  function paint(){glyph.textContent=GAMES[i][0];an.textContent=GAMES[i][1];document.getElementById('glyph2').textContent=GAMES[i][0];document.getElementById('appname2').textContent=GAMES[i][1];var s='';for(var k=0;k<GAMES.length;k++)s+='<i class="'+(k===i?'on':'')+'"></i>';dots.innerHTML=s;}
+  document.getElementById('next').onclick=function(){i=(i+1)%GAMES.length;paint();};
+  document.getElementById('prev').onclick=function(){i=(i-1+GAMES.length)%GAMES.length;paint();};
+  var L1=document.getElementById('L1'),L2=document.getElementById('L2'),plateaOv=document.getElementById('plateaOv'),codeOv=document.getElementById('codeOv'),askOv=document.getElementById('askOv'),bigOv=document.getElementById('bigOv');
+  var v1a=document.getElementById('v1a'),v2a=document.getElementById('v2a');
+  var actx,s1,s2,g1,g2;function ctx(){actx=actx||new (window.AudioContext||window.webkitAudioContext)();if(actx.state==='suspended')actx.resume();return actx;}
+  function boost(v){try{var a=ctx();if(v===v1a&&!s1){s1=a.createMediaElementSource(v1a);g1=a.createGain();g1.gain.value=2.6;s1.connect(g1);g1.connect(a.destination);}if(v===v2a&&!s2){s2=a.createMediaElementSource(v2a);g2=a.createGain();g2.gain.value=2.6;s2.connect(g2);g2.connect(a.destination);}}catch(e){}}
+  function hideLayers(){[L2,bigOv].forEach(function(e){e.classList.remove('on');});}
+  document.getElementById('medal').onclick=function(){[L2,plateaOv,bigOv].forEach(function(e){e.classList.remove('on');});codeOv.classList.remove('on');askOv.classList.remove('on');L1.classList.add('on');boost(v1a);try{v1a.currentTime=0;}catch(e){}v1a.play().catch(function(){});};
+  v1a.addEventListener('ended',function(){L2.classList.remove('on');codeOv.classList.remove('on');bigOv.classList.remove('on');plateaOv.classList.add('on');try{v2a.load();}catch(e){}});
+  // platea -> password
+  document.getElementById('medal2').onclick=function(){codeOv.classList.add('on');document.getElementById('codeErr').textContent='';document.getElementById('codeInp').value='';setTimeout(function(){document.getElementById('codeInp').focus();},100);};
+  // "?" -> spiega l'effetto (testo dorato)
+  var SPIEGA=[
+    'Uno spettatore immagina qualcosa di impossibile da sapere in anticipo. La predizione del mentalista — scritta a mano e in vista fin dall\'inizio — viene mostrata a tutti: corrisponde, parola per parola.',
+    'ECLISSE — (scrivi qui l\'effetto che vuoi mostrare al pubblico: solo l\'emozione, mai il metodo).',
+    'SFIORO — (scrivi qui l\'effetto che vuoi mostrare al pubblico: solo l\'emozione, mai il metodo).'
+  ];
+  document.getElementById('qBtn').onclick=function(){document.getElementById('spiegaTxt').textContent=SPIEGA[i]||SPIEGA[0];plateaOv.classList.add('spiegando');document.getElementById('spiegaBox').classList.add('on');};
+  document.getElementById('spiegaClose').onclick=function(){plateaOv.classList.remove('spiegando');document.getElementById('spiegaBox').classList.remove('on');};
+  document.getElementById('codeCancel').onclick=function(){codeOv.classList.remove('on');};
+  document.getElementById('askCancel').onclick=function(){askOv.classList.remove('on');codeOv.classList.add('on');};
+  document.getElementById('toAsk').onclick=function(){codeOv.classList.remove('on');askOv.classList.add('on');};
+  document.getElementById('askSend').onclick=function(){var chi=(document.getElementById('chiSei').value||'').trim();var em=(document.getElementById('askMail').value||'').trim();var body='Vorrei richiedere l\'accesso al gioco '+GAMES[i][1]+'.%0D%0A%0D%0ALa mia email: '+encodeURIComponent(em||'(scrivi la tua email)')+'%0D%0AChi sono: '+encodeURIComponent(chi||'(scrivi qui chi sei)');window.location.href='mailto:accesso@abraka.it?subject='+encodeURIComponent('Richiesta accesso — '+GAMES[i][1])+'&body='+body;};
+  var _sl=document.getElementById('siteLang'),_sln=document.getElementById('langNote');
+  if(_sl)_sl.onclick=function(){_sln.style.display='block';setTimeout(function(){_sln.style.display='none';},2600);};
+  function provaCodice(){var v=(document.getElementById('codeInp').value||'').trim().toLowerCase();
+    if(v===GAMES[i][2]){codeOv.classList.remove('on');plateaOv.classList.remove('on');L1.classList.remove('on');L2.classList.add('on');boost(v2a);try{v2a.currentTime=0;}catch(e){}v2a.play().catch(function(){});}
+    else{codeOv.classList.remove('on');askOv.classList.add('on');}}
+  document.getElementById('codeGo').onclick=provaCodice;
+  document.getElementById('codeInp').addEventListener('keydown',function(e){if(e.key==='Enter')provaCodice();});
+  v2a.addEventListener('ended',function(){L2.classList.remove('on');bigOv.classList.add('on');});
+  document.querySelectorAll('.skip').forEach(function(b){b.onclick=function(){var w=b.getAttribute('data-v');if(w==='1'){v1a.pause();L2.classList.remove('on');plateaOv.classList.add('on');}else{v2a.pause();L2.classList.remove('on');bigOv.classList.add('on');}};});
+  function reset(){try{v1a.pause();v2a.pause();v1a.currentTime=0;v2a.currentTime=0;}catch(e){}[L1,L2,plateaOv,bigOv].forEach(function(e){e.classList.remove('on');});codeOv.classList.remove('on');askOv.classList.remove('on');plateaOv.classList.remove('spiegando');document.getElementById('spiegaBox').classList.remove('on');}
+  document.getElementById('back1').onclick=reset;document.getElementById('back2').onclick=reset;
+  // -> acquisto
+  document.getElementById('toAcq').onclick=function(){document.getElementById('dataGame').textContent=GAMES[i][1];document.getElementById('buyGame').textContent=GAMES[i][1];document.getElementById('acqOv').classList.add('on');ago(1);};
+  function chiudiAcq(){document.getElementById('acqOv').classList.remove('on');reset();}
+  // ===== logica acquisto =====
+  var FLAGS={it:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#009246"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#ce2b37"/></svg>',gb:'<svg viewBox="0 0 60 30"><clipPath id="cg"><rect width="60" height="30"/></clipPath><g clip-path="url(#cg)"><rect width="60" height="30" fill="#012169"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#fff" stroke-width="6"/><path d="M0,0 L60,30 M60,0 L0,30" stroke="#C8102E" stroke-width="4"/><path d="M30,0 V30 M0,15 H60" stroke="#fff" stroke-width="10"/><path d="M30,0 V30 M0,15 H60" stroke="#C8102E" stroke-width="6"/></g></svg>',fr:'<svg viewBox="0 0 3 2"><rect width="1" height="2" fill="#0055A4"/><rect x="1" width="1" height="2" fill="#fff"/><rect x="2" width="1" height="2" fill="#EF4135"/></svg>',es:'<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#AA151B"/><rect y="0.5" width="3" height="1" fill="#F1BF00"/></svg>',de:'<svg viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>'};
+  var LANGS=[['it','Italiano'],['gb','English'],['fr','Français'],['es','Español'],['de','Deutsch']];var li=0;
+  function paintLang(){document.getElementById('flagbox').innerHTML=FLAGS[LANGS[li][0]];document.getElementById('langnm').textContent=LANGS[li][1];}
+  function lang(d){li=(li+d+LANGS.length)%LANGS.length;paintLang();}
+  var ASCR=['a_lingua','a_dati','a_conf','a_scelta','a_pag','a_fatto'];
+  function ago(n){ASCR.forEach(function(id,k){document.getElementById(id).classList.toggle('on',k===n-1);});for(var j=1;j<=6;j++)document.getElementById('p'+j).classList.toggle('on',j<=n);document.getElementById('acqOv').scrollTop=0;}
+  var CITTA={'Lecce':['Lecce','Gallipoli','Nardò','Casarano','Otranto'],'Roma':['Roma','Fiumicino','Tivoli','Pomezia'],'Milano':['Milano','Sesto San Giovanni','Legnano','Rho'],'Napoli':['Napoli','Pozzuoli','Portici','Giugliano']};
+  (function(){var p=document.getElementById('prov');Object.keys(CITTA).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;p.appendChild(o);});})();
+  function riempiCitta(){var p=document.getElementById('prov').value,c=document.getElementById('citta');c.innerHTML='';if(!p){c.innerHTML='<option value="">— scegli prima la provincia —</option>';return;}(CITTA[p]||[]).forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;c.appendChild(o);});}
+  function setErr(id,eid,msg){var el=document.getElementById(id);el.classList.toggle('bad',!!msg);document.getElementById(eid).textContent=msg||'';return !msg;}
+  function valDati(){var ok=true;var nome=document.getElementById('nome').value.trim(),cog=document.getElementById('cognome').value.trim();ok&=setErr('nome','eNome',(nome&&cog)?'':'Scrivi nome e cognome');document.getElementById('cognome').classList.toggle('bad',!(nome&&cog));
+    var em=document.getElementById('email').value.trim();ok&=setErr('email','eEmail',/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)?'':'Email non valida');
+    var tel=document.getElementById('tel').value.replace(/\D/g,'');ok&=setErr('tel','eTel',tel.length>=6?'':'Telefono non valido');
+    var prov=document.getElementById('prov').value,citta=document.getElementById('citta').value;if(!prov||!citta){document.getElementById('prov').classList.add('bad');document.getElementById('citta').classList.add('bad');document.getElementById('eVia').textContent='Scegli provincia e città';ok=false;}else{document.getElementById('prov').classList.remove('bad');document.getElementById('citta').classList.remove('bad');document.getElementById('eVia').textContent='';}
+    var via=document.getElementById('via').value.trim();if(ok){ok&=setErr('via','eVia',via?'':'Scrivi la via');}
+    if(ok){window._mail=em;window._code=String(Math.floor(100000+Math.random()*900000));document.getElementById('confSub').textContent='Abbiamo inviato un codice a '+em;document.getElementById('demoCode').textContent='(codice demo: '+window._code+')';document.getElementById('codeMail').value='';document.getElementById('eCode').textContent='';document.getElementById('mailTo').textContent=em;ago(3);}}
+  function reinvia(){window._code=String(Math.floor(100000+Math.random()*900000));document.getElementById('demoCode').textContent='(codice demo: '+window._code+')';return false;}
+  function valCode(){if(document.getElementById('codeMail').value.trim()===window._code){ago(4);}else{document.getElementById('eCode').textContent='Codice errato. Controlla la mail.';}}
+  var planNames=['Foyer','Quinte','Sipario','Palco'],planAnnual=[0,66,96,228],planMonthly=[0,15,30,58];
+  var curPlan=0,curDur='anno';
+  function plan(k){curPlan=k;document.querySelectorAll('#a_scelta .plan').forEach(function(e,x){e.classList.toggle('sel',x===k);});
+    document.getElementById('durataRow').style.display=(k>0)?'block':'none';recalcScelta();}
+  function durata(d,el){curDur=d;document.querySelectorAll('#durataRow .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');recalcScelta();}
+  function recalcScelta(){var k=curPlan;var price=(k===0)?0:(curDur==='anno'?planAnnual[k]:planMonthly[k]);var tot=25+price;
+    document.getElementById('tot').textContent=tot+' €';document.getElementById('pagaTxt').textContent='Paga '+tot+' € e conferma';var bi=document.getElementById('bonImporto');if(bi)bi.textContent=tot+' €';
+    document.getElementById('totnote').textContent=k>0?('Oggi: accesso 25 € + '+planNames[k]+(curDur==='anno'?(' per 1 anno ('+planAnnual[k]+' €)'):(' per 1 mese ('+planMonthly[k]+' €)'))+'. Totale '+tot+' €.'):'Solo l’accesso 25 €. L’estensione puoi comprarla ora o attivarla dall’app.';}
+  function pay(el){document.querySelectorAll('#a_pag .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');document.getElementById('causaleBox').style.display=(el.textContent.trim()==='Bonifico')?'block':'none';}
+  function paga(){if(!document.getElementById('acc1').checked){document.getElementById('eAcc').textContent='Per continuare accetta la Licenza d’uso.';return;}document.getElementById('eAcc').textContent='';ago(6);}
+  paint();paintLang();
+</script>
+</body></html>
