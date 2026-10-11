@@ -140,6 +140,31 @@ if (strpos($azione, 'admin_') === 0) {
     predizione_json(['ok' => false, 'errore' => 'Azione admin sconosciuta'], 400);
 }
 
+/* ===== CONFERMA EMAIL (pubblico): invia e verifica un codice ============ */
+function ord_codici_dir(): string { $d = DATA_DIR . '/codici'; if (!is_dir($d)) @mkdir($d, 0775, true); return $d; }
+
+if ($azione === 'invia_codice') {
+    $mail = ord_p('mail');
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) predizione_json(['ok' => false, 'errore' => 'Email non valida'], 400);
+    $code = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $f = ord_codici_dir() . '/' . sha1(strtolower($mail)) . '.json';
+    @file_put_contents($f, json_encode(['code' => $code, 'ts' => time()]), LOCK_EX);
+    ord_manda_mail($mail, 'Il tuo codice abraka', "Il tuo codice di conferma e':\n\n    $code\n\nScade tra 20 minuti. Se non hai richiesto nulla, ignora questa mail.\n\nabraka");
+    predizione_json(['ok' => true]);
+}
+
+if ($azione === 'verifica_codice') {
+    $mail = ord_p('mail');
+    $code = preg_replace('/\D/', '', ord_p('code'));
+    $f = ord_codici_dir() . '/' . sha1(strtolower($mail)) . '.json';
+    $d = json_decode((string)@file_get_contents($f), true);
+    if (is_array($d) && $code !== '' && (time() - (int)($d['ts'] ?? 0) <= 1200) && hash_equals((string)($d['code'] ?? ''), $code)) {
+        @unlink($f);
+        predizione_json(['ok' => true]);
+    }
+    predizione_json(['ok' => false, 'errore' => 'Codice errato o scaduto']);
+}
+
 /* ===== STATO di un ordine (pubblico, serve al sito) ===================== */
 if ($azione === 'stato') {
     $ordini = ord_leggi();

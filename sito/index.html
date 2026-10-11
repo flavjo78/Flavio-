@@ -259,8 +259,15 @@
   function lang(d){li=(li+d+LANGS.length)%LANGS.length;paintLang();}
   var ASCR=['a_lingua','a_dati','a_conf','a_scelta','a_pag','a_fatto'];
   function ago(n){ASCR.forEach(function(id,k){document.getElementById(id).classList.toggle('on',k===n-1);});for(var j=1;j<=6;j++)document.getElementById('p'+j).classList.toggle('on',j<=n);document.getElementById('acqOv').scrollTop=0;}
-  var CITTA={'Lecce':['Lecce','Gallipoli','Nardò','Casarano','Otranto'],'Roma':['Roma','Fiumicino','Tivoli','Pomezia'],'Milano':['Milano','Sesto San Giovanni','Legnano','Rho'],'Napoli':['Napoli','Pozzuoli','Portici','Giugliano']};
-  (function(){var p=document.getElementById('prov');Object.keys(CITTA).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;p.appendChild(o);});})();
+  var CITTA={};
+  fetch('comuni.json').then(function(r){return r.json();}).then(function(d){
+    CITTA=d; var p=document.getElementById('prov');
+    Object.keys(d).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;p.appendChild(o);});
+  }).catch(function(){
+    // ripiego minimo se il file non si carica
+    CITTA={'Lecce':['Lecce','Gallipoli','Nardò','Casarano'],'Roma':['Roma','Fiumicino','Tivoli'],'Milano':['Milano','Legnano','Rho'],'Napoli':['Napoli','Pozzuoli','Portici']};
+    var p=document.getElementById('prov');Object.keys(CITTA).forEach(function(k){var o=document.createElement('option');o.value=k;o.textContent=k;p.appendChild(o);});
+  });
   function riempiCitta(){var p=document.getElementById('prov').value,c=document.getElementById('citta');c.innerHTML='';if(!p){c.innerHTML='<option value="">— scegli prima la provincia —</option>';return;}(CITTA[p]||[]).forEach(function(n){var o=document.createElement('option');o.value=n;o.textContent=n;c.appendChild(o);});}
   function setErr(id,eid,msg){var el=document.getElementById(id);el.classList.toggle('bad',!!msg);document.getElementById(eid).textContent=msg||'';return !msg;}
   function valDati(){var ok=true;var nome=document.getElementById('nome').value.trim(),cog=document.getElementById('cognome').value.trim();ok&=setErr('nome','eNome',(nome&&cog)?'':'Scrivi nome e cognome');document.getElementById('cognome').classList.toggle('bad',!(nome&&cog));
@@ -268,9 +275,18 @@
     var tel=document.getElementById('tel').value.replace(/\D/g,'');ok&=setErr('tel','eTel',tel.length>=6?'':'Telefono non valido');
     var prov=document.getElementById('prov').value,citta=document.getElementById('citta').value;if(!prov||!citta){document.getElementById('prov').classList.add('bad');document.getElementById('citta').classList.add('bad');document.getElementById('eVia').textContent='Scegli provincia e città';ok=false;}else{document.getElementById('prov').classList.remove('bad');document.getElementById('citta').classList.remove('bad');document.getElementById('eVia').textContent='';}
     var via=document.getElementById('via').value.trim();if(ok){ok&=setErr('via','eVia',via?'':'Scrivi la via');}
-    if(ok){window._mail=em;window._code=String(Math.floor(100000+Math.random()*900000));document.getElementById('confSub').textContent='Abbiamo inviato un codice a '+em;document.getElementById('demoCode').textContent='(codice demo: '+window._code+')';document.getElementById('codeMail').value='';document.getElementById('eCode').textContent='';document.getElementById('mailTo').textContent=em;ago(3);}}
-  function reinvia(){window._code=String(Math.floor(100000+Math.random()*900000));document.getElementById('demoCode').textContent='(codice demo: '+window._code+')';return false;}
-  function valCode(){if(document.getElementById('codeMail').value.trim()===window._code){ago(4);}else{document.getElementById('eCode').textContent='Codice errato. Controlla la mail.';}}
+    if(ok){window._mail=em;document.getElementById('confSub').textContent='Ti abbiamo inviato un codice a '+em;document.getElementById('codeMail').value='';document.getElementById('eCode').textContent='';document.getElementById('mailTo').textContent=em;ago(3);inviaCodice(em);}}
+  function inviaCodice(em){var fd=new FormData();fd.append('azione','invia_codice');fd.append('mail',em);
+    fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      if(!(d&&d.ok)){document.getElementById('eCode').textContent='Non riesco a inviare il codice ora. Riprova tra poco.';}
+    }).catch(function(){document.getElementById('eCode').textContent='';});}
+  function reinvia(){if(window._mail){inviaCodice(window._mail);document.getElementById('eCode').textContent='Nuovo codice inviato.';}return false;}
+  function valCode(){var code=document.getElementById('codeMail').value.trim();if(!code){document.getElementById('eCode').textContent='Scrivi il codice';return;}
+    var fd=new FormData();fd.append('azione','verifica_codice');fd.append('mail',window._mail||'');fd.append('code',code);
+    fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok){document.getElementById('eCode').textContent='';ago(4);}
+      else{document.getElementById('eCode').textContent=(d&&d.errore)||'Codice errato. Controlla la mail.';}
+    }).catch(function(){ /* anteprima/offline: prosegui */ ago(4); });}
   var planNames=['Foyer','Quinte','Sipario','Palco'],planAnnual=[0,66,96,228],planMonthly=[0,15,30,58];
   var curPlan=0,curDur='anno';
   function plan(k){curPlan=k;document.querySelectorAll('#a_scelta .plan').forEach(function(e,x){e.classList.toggle('sel',x===k);});
