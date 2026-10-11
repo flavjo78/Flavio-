@@ -193,10 +193,9 @@
         <div id="causaleBox" style="margin-top:10px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:13px;color:var(--dim)">
           <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Fai il bonifico con questi dati</div>
           <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Importo</span><b style="color:var(--goldink);font-size:15px" id="bonImporto">25 €</b></div>
-          <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Intestato a</span><b style="color:var(--fg)">ABRAKA di …</b></div>
-          <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>IBAN</span><b style="color:var(--fg);text-align:right">IT00 X000 0000 0000 0000 0000 000</b></div>
-          <div style="padding:4px 0"><span>Causale</span><div style="margin-top:4px;font-family:var(--display);color:var(--goldink);font-size:16px" id="causaleTxt">PRD-0042 · Predizione · Mario Rossi</div></div>
-          <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Questi stessi dati ti arrivano anche via mail da <b style="color:var(--goldink)">supporto@abraka.it</b> — se non la vedi, <b>controlla lo spam</b>.</div>
+          <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Intestato a</span><b style="color:var(--fg)" id="bonIntest">—</b></div>
+          <div style="display:flex;justify-content:space-between;gap:10px;padding:4px 0"><span>IBAN</span><b style="color:var(--fg);text-align:right" id="bonIban">—</b></div>
+          <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">La <b>causale</b> (col codice ordine) compare nella <b>conferma</b> qui sotto e nella <b>mail</b> da <b style="color:var(--goldink)">supporto@abraka.it</b> — se non la vedi, <b>controlla lo spam</b>.</div>
         </div>
         <label class="chk" style="margin-top:16px"><input type="checkbox" id="acc1"> <span>Ho preso visione della <a href="licenza.html" target="_blank" style="color:var(--goldink)">Licenza d'uso (v1.0)</a>, compresa l'attivazione immediata, e la accetto.</span></label><div class="err" id="eAcc"></div>
         <button class="abtn gold" id="pagaBtn" onclick="paga()"><span id="pagaTxt">Paga 25 € e conferma</span></button>
@@ -205,6 +204,14 @@
 
     <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2>Ordine ricevuto!</h2><p class="sub">Codice ordine <b id="ordId">PRD-0042</b></p>
       <p style="color:var(--dim);font-size:14px">Stiamo <b>verificando il pagamento</b>. Appena risulta ricevuto, parte in automatico la mail con la tua <b>password</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma.</p>
+      <div id="bonFatto" style="display:none;text-align:left;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;margin-bottom:12px;font-size:13px;color:var(--dim)">
+        <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Completa il bonifico</div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Importo</span><b style="color:var(--goldink)" id="fImporto">—</b></div>
+        <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Intestato a</span><b style="color:var(--fg)" id="fIntest">—</b></div>
+        <div style="display:flex;justify-content:space-between;gap:10px;padding:3px 0"><span>IBAN</span><b style="color:var(--fg);text-align:right" id="fIban">—</b></div>
+        <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Causale (scrivila <b>esatta</b>):</div>
+        <div style="margin-top:4px;font-family:var(--display);color:var(--goldink);font-size:18px" id="fCausale">—</div>
+      </div>
       <div class="mailbox">📧 Da: <b>supporto@abraka.it</b><br>A: <b id="mailTo">…</b><br>Oggetto: <b>Benvenuto — i tuoi accessi</b></div>
       <p style="color:var(--faint);font-size:13px;margin-top:10px">Non vedi la mail? <b>Controlla anche lo spam</b>.</p>
       <button class="abtn ghost" onclick="chiudiAcq()">Torna al palco</button></div></div>
@@ -297,6 +304,11 @@
     document.getElementById('totnote').textContent=k>0?('Oggi: accesso 25 € + '+planNames[k]+(curDur==='anno'?(' per 1 anno ('+planAnnual[k]+' €)'):(' per 1 mese ('+planMonthly[k]+' €)'))+'. Totale '+tot+' €.'):'Solo l’accesso 25 €. L’estensione puoi comprarla ora o attivarla dall’app.';}
   function pay(el){document.querySelectorAll('#a_pag .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');document.getElementById('causaleBox').style.display=(el.textContent.trim()==='Bonifico')?'block':'none';}
   var ORDINE_URL='/predizione/ordine.php';
+  var PAG={intestatario:'—',iban:'—'};
+  fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','pagamenti');return f;})()})
+    .then(function(r){return r.json();}).then(function(d){ if(d&&d.ok){ PAG=d;
+      var bi=document.getElementById('bonIntest'); if(bi)bi.textContent=d.intestatario||'—';
+      var ib=document.getElementById('bonIban'); if(ib)ib.textContent=d.iban||'—'; } }).catch(function(){});
   function paga(){
     if(!document.getElementById('acc1').checked){document.getElementById('eAcc').textContent='Per continuare accetta la Licenza d’uso.';return;}
     document.getElementById('eAcc').textContent='';
@@ -320,7 +332,17 @@
     var btn=document.getElementById('pagaBtn'); if(btn)btn.disabled=true;
     fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
       if(btn)btn.disabled=false;
-      if(d&&d.ok){var oi=document.getElementById('ordId'); if(oi)oi.textContent=d.ordine; ago(6);}
+      if(d&&d.ok){var oi=document.getElementById('ordId'); if(oi)oi.textContent=d.ordine;
+        var bf=document.getElementById('bonFatto');
+        if(bf){ if(canale==='bonifico'){
+            var nm=((document.getElementById('nome').value||'')+' '+(document.getElementById('cognome').value||'')).trim();
+            document.getElementById('fImporto').textContent=(d.importo||'')+' €';
+            document.getElementById('fIntest').textContent=PAG.intestatario||'—';
+            document.getElementById('fIban').textContent=PAG.iban||'—';
+            document.getElementById('fCausale').textContent=d.ordine+' '+nm;
+            bf.style.display='block';
+          } else { bf.style.display='none'; } }
+        ago(6);}
       else{document.getElementById('eAcc').textContent=(d&&d.errore)||'Errore, riprova.';}
     }).catch(function(){ if(btn)btn.disabled=false; ago(6); /* anteprima/offline: mostra conferma demo */ });
   }

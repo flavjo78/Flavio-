@@ -165,6 +165,16 @@ if ($azione === 'verifica_codice') {
     predizione_json(['ok' => false, 'errore' => 'Codice errato o scaduto']);
 }
 
+/* ===== COORDINATE DI PAGAMENTO (pubblico: servono al sito per il bonifico) */
+if ($azione === 'pagamenti') {
+    $pg = ord_pagamenti();
+    predizione_json(['ok' => true,
+        'intestatario' => (string)($pg['intestatario'] ?? ''),
+        'iban'         => (string)($pg['iban'] ?? ''),
+        'paypal'       => (string)($pg['paypal'] ?? ''),
+        'satispay'     => (string)($pg['satispay'] ?? '')]);
+}
+
 /* ===== STATO di un ordine (pubblico, serve al sito) ===================== */
 if ($azione === 'stato') {
     $ordini = ord_leggi();
@@ -210,15 +220,19 @@ if ($azione === 'crea') {
     ];
     ord_scrivi($ordini);
 
-    // istruzioni di pagamento per canale
+    // istruzioni di pagamento per canale. La CAUSALE è breve e chiara: codice + nome.
     $pg = ord_pagamenti();
-    $causale = "$id · $gioco · $nome $cognome";
+    $causale = "$id $nome $cognome";
     if ($canale === 'bonifico') {
-        $istr = "Bonifico di $importo € a:\nIntestatario: {$pg['intestatario']}\nIBAN: {$pg['iban']}\nCausale: $causale";
+        $istr = "Bonifico di $importo € a:\n"
+              . "Intestatario: {$pg['intestatario']}\n"
+              . "IBAN: {$pg['iban']}\n\n"
+              . "CAUSALE (scrivila ESATTA, tutta su una riga):\n"
+              . "    $causale";
     } elseif ($canale === 'paypal') {
-        $istr = "PayPal: {$pg['paypal']} — importo $importo € — scrivi nella nota: $id";
+        $istr = "PayPal: paga $importo € qui: {$pg['paypal']}\n\nNella NOTA del pagamento scrivi:  $id";
     } else {
-        $istr = "Satispay: riceverai la richiesta di $importo € al tuo numero. Causale: $id";
+        $istr = "Satispay: riceverai la richiesta di $importo € al tuo numero.\nCausale/nota:  $id";
     }
 
     // mail al cliente (come pagare) e a supporto (nuovo ordine)
