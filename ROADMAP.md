@@ -123,6 +123,16 @@
     Serve il video (generabile con IA "foto→video", ~qualche €, oppure girato). Più "wow".
 - Da definire: nome/brand (abraka), dove porta "Accedi" (pannello performer), testi, e per la (B)
   comprimere il video per il web + immagine sicura/libera da diritti per il pubblico.
+- **Flusso deciso (11/10/2026):** sul palco **frecce** per scegliere il gioco; clic sull'icona →
+  **chiede un codice** (es. "aaa") → parte il **video d'ingresso** (applausi potenziati ~2,6× via
+  Web Audio) → si arriva alla **biglietteria** (immagine finale col "benvenuto") = accesso
+  all'acquisto. In platea niente frecce. Un **secondo video** può partire ricliccando l'icona.
+- **Caricamento video "intelligente" (anti-buffering) — da fare sul sito vero:**
+  1. mostrare **subito** la foto del palco (poster), video in background;
+  2. servire i video come **file veri** (streaming progressivo), NON incorporati in base64;
+  3. **comprimere** i video (da ~5 MB a ~1-2 MB) con `-movflags +faststart`;
+  4. **due qualità** (telefono/desktop) per connessioni lente;
+  5. **preload** del 1° video (ingresso) all'apertura; gli altri **lazy** solo se servono.
 
 ## 6. Vendita e pagamenti (automazione)
 - [ ] **Pagina di acquisto** su abraka.it.
