@@ -21,6 +21,10 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/piani.php';
 
+/* Indirizzo dell'autore a cui notificare ogni acquisto a buon fine.
+   Cambialo qui se vuoi riceverlo su un'altra casella. */
+const PRED_NOTIFY_EMAIL = 'appisolata@gmail.com';
+
 /* ---------- utilita' ---------------------------------------------------- */
 function ord_file(): string { return DATA_DIR . '/ordini.json'; }
 function ord_leggi(): array {
@@ -123,6 +127,23 @@ if (strpos($azione, 'admin_') === 0) {
                    . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
                    . "Un saluto,\nabraka — supporto@abraka.it";
             ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);
+        }
+        // notifica all'autore ogni acquisto a buon fine
+        if ($res['nuovo']) {
+            $o = $ordini[$id];
+            $dett = "Nuovo acquisto ATTIVATO.\n\n"
+                  . "Ordine: " . ($o['id'] ?? '') . "\n"
+                  . "Cliente: " . ($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '') . "\n"
+                  . "Email: " . ($o['mail'] ?? '') . "\n"
+                  . "Telefono: " . ($o['tel'] ?? '') . "\n"
+                  . "Residenza: " . ($o['via'] ?? '') . ", " . ($o['citta'] ?? '') . " (" . ($o['prov'] ?? '') . ")\n"
+                  . "Gioco: " . ($o['gioco'] ?? '') . "\n"
+                  . "Piano: " . ($o['piano'] ?? '') . " (" . ($o['durata'] ?? '') . ")\n"
+                  . "Importo: " . ($o['importo'] ?? '') . " EUR  ·  Canale: " . ($o['canale'] ?? '') . "\n"
+                  . "Utente creato: " . $res['utente'] . "\n"
+                  . "Ricevuta: " . $res['ricevuta'] . "\n"
+                  . "Data: " . date('d/m/Y H:i') . "\n";
+            ord_manda_mail(PRED_NOTIFY_EMAIL, 'Acquisto effettuato — ' . ($o['id'] ?? ''), $dett);
         }
         predizione_json(['ok' => true, 'utente' => $res['utente'], 'password' => $res['password'],
                          'ricevuta' => $res['ricevuta'], 'nuovo' => $res['nuovo']]);
