@@ -79,8 +79,13 @@
   .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
   .tile{background:var(--gold-soft);border:1px solid var(--gold);border-radius:16px;padding:16px 8px;text-align:center;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:100px;box-shadow:0 0 0 2px rgba(201,164,101,.08)}
   .tile:active{transform:scale(.98)}
-  .tile .ic{font-size:26px;line-height:1}
-  .tile .lb{font-size:13px;font-weight:700;color:var(--ink)}
+  .tile .ic{font-size:26px;line-height:1;color:var(--gold)}
+  .tile .ic svg{width:28px;height:28px;stroke:var(--gold);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;display:block}
+  .tile.wide .ic svg{width:22px;height:22px}
+  .tile .tx{display:flex;flex-direction:column;gap:2px;align-items:center}
+  .tile.wide .tx{align-items:flex-start}
+  .tile .tl{font-size:13px;font-weight:700;color:var(--ink);line-height:1.2}
+  .tile .ts{font-size:10.5px;font-weight:600;color:var(--gold);line-height:1.2;letter-spacing:.01em}
   .tile.wide{grid-column:1 / -1;flex-direction:row;justify-content:center;gap:12px;min-height:0;padding:16px;background:var(--surface-2);border-color:var(--line-2)}
   .tile.wide .ic{font-size:20px}
   /* opzioni autorisp */
@@ -96,6 +101,18 @@
   .lb.open{display:flex}
   .lb .big{width:min(90vw,520px);aspect-ratio:3/4;border-radius:14px;display:grid;place-items:center;font-family:"Cormorant Garamond",serif;font-size:120px;color:#231a0c;background:linear-gradient(180deg,#d8b877,#c39a52);box-shadow:0 10px 60px rgba(0,0,0,.6)}
   .lb .x{position:absolute;top:16px;left:16px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:9px 15px;font-weight:700;cursor:pointer}
+  /* lingua sobria (login) — piccola, quasi in bianco e nero */
+  .langmini{display:inline-flex;align-items:center;gap:9px;background:transparent;border:1px solid var(--line);border-radius:999px;padding:4px 9px;margin:0 auto 10px}
+  .langmini .fl{width:24px;height:16px;border-radius:3px;overflow:hidden;display:block}
+  .langmini .fl svg{width:100%;height:100%;display:block}
+  .langmini .nm{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);min-width:26px;text-align:center}
+  .langmini button{width:22px;height:22px;border-radius:50%;background:none;border:none;color:var(--ink-faint);font-size:16px;line-height:1;cursor:pointer}
+  .langmini button:hover{color:var(--gold)}
+  /* pannello personale */
+  .kv{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .kv:last-child{border:none}.kv span{color:var(--ink-dim)}.kv b{color:var(--ink)}
+  .acq{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px solid var(--line)}
+  .acq:last-child{border:none}.acq .d{color:var(--ink-dim)}
 </style></head>
 <body>
 <div class="demo">ANTEPRIMA FINTA · app ridisegnata · tutto cliccabile</div>
@@ -103,16 +120,71 @@
 
   <!-- ===== LOGIN ===== -->
   <div class="screen on" id="login">
-    <header><p class="kicker">abraka</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Accesso</p></header>
+    <header>
+      <div class="langmini"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox"></span><span class="nm" id="langcode">IT</span><button onclick="lang(1)">&#8250;</button></div>
+      <p class="kicker">abraka</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Accesso</p>
+    </header>
     <section>
-      <div class="field"><label>Lingua</label>
-        <div class="lang"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox"></span><span class="nm" id="langnm">Italiano</span><button onclick="lang(1)">&#8250;</button></div>
-      </div>
       <div class="field"><label>Numero utente</label><input value="003" inputmode="numeric"></div>
       <div class="field"><label>Password</label><input type="password" value="aaa"></div>
-      <div class="game-btns"><button class="btn primary" onclick="go('first')">Accedi</button></div>
-      <p class="hint">Lingua e password restano impostate per la prossima volta.</p>
-      <div class="game-btns"><button class="btn ghost" onclick="go('regia')">(salta → vai alla Regia)</button></div>
+      <div class="game-btns"><button class="btn primary" onclick="go('regia')">Accedi ed entra in Regia</button></div>
+      <p class="hint">Chi è registrato entra <b>subito in Regia</b> per giocare veloce. Il <b>Mio account</b> è un tasto dentro le Impostazioni. Lingua e password restano impostate per la prossima volta.</p>
+      <div class="game-btns"><button class="btn ghost" onclick="go('first')">(prima volta → configura la casella)</button></div>
+    </section>
+  </div>
+
+  <!-- ===== PANNELLO PERSONALE (dopo Accedi) ===== -->
+  <div class="screen" id="mioaccount">
+    <header><p class="kicker">Il mio account</p><h1 class="wordmark">Predizione</h1><p class="subwordmark">Utente 003 · Mario Rossi</p></header>
+    <section class="status">
+      <div class="sec-head"><p class="sec-title">Il mio piano</p><span class="pill live"><span class="dot"></span>Attivo</span></div>
+      <div class="kv"><span>Accesso</span><b>valido fino al 01/09/2030 (4 anni)</b></div>
+      <div class="kv"><span>Estensione attiva</span><b>Quinte · rinnovo 01/09/2027</b></div>
+      <div class="kv"><span>Foto con IA</span><b>inclusa nel piano ✔</b></div>
+    </section>
+    <section>
+      <div class="sec-head"><p class="sec-title">I miei crediti</p></div>
+      <div class="boxes">
+        <div class="box"><b>4.200</b><span>Mail rimaste</span></div>
+        <div class="box"><b>17</b><span>Foto IA rimaste</span></div>
+        <div class="box"><b>∞</b><span>Sessioni</span></div>
+        <div class="box"><b>30/11</b><span>Scad. foto IA</span></div>
+      </div>
+      <p class="hint">Vedi <b>solo le tue cose</b>: piano, crediti, report. (L'amministratore 000 vede tutti.)</p>
+    </section>
+    <section>
+      <div class="sec-head"><p class="sec-title">I miei acquisti</p></div>
+      <div class="acq"><span>Accesso 4 anni</span><span class="d">01/09/2026 · 25 €</span></div>
+      <div class="acq"><span>Quinte (annuale)</span><span class="d">01/09/2026 · 60 €</span></div>
+      <div class="acq"><span>+20 foto IA</span><span class="d">10/10/2026 · 10 €</span></div>
+    </section>
+    <section>
+      <div class="game-btns">
+        <button class="btn primary" onclick="go('regia')">▶ Entra nella Regia (fai lo spettacolo)</button>
+        <button class="btn reveal" onclick="go('upgrade')">⬆ Acquista un upgrade</button>
+        <button class="btn ghost" onclick="go('settings')">⚙ Impostazioni</button>
+        <button class="btn ghost" onclick="go('login')">Esci</button>
+      </div>
+    </section>
+  </div>
+
+  <!-- ===== ACQUISTA UPGRADE (dal pannello personale) ===== -->
+  <div class="screen" id="upgrade">
+    <div class="set-top"><div class="back" onclick="go('mioaccount')">‹</div><h2>Acquista un upgrade</h2></div>
+    <section>
+      <p class="hint" style="margin-top:0">Potenzia il tuo piano. L'upgrade si attiva sul tuo stesso account <b>003</b>.</p>
+      <div class="opt" onclick="upick(1)"><span class="rad"></span><div><b>Quinte</b><div class="s">eventi piccoli · 6 €/mese · 72 €/anno</div></div></div>
+      <div class="opt sel" onclick="upick(2)"><span class="rad"></span><div><b>Sipario</b><div class="s">eventi medi · 9 €/mese · 108 €/anno</div></div></div>
+      <div class="opt" onclick="upick(3)"><span class="rad"></span><div><b>Palco</b><div class="s">grandi eventi · 19 €/mese · 228 €/anno</div></div></div>
+    </section>
+    <section>
+      <div class="sec-head"><p class="sec-title">Oppure solo crediti extra</p></div>
+      <div class="row2"><button class="btn">＋ Pacchetto mail</button><button class="btn">＋ Foto IA</button></div>
+    </section>
+    <section>
+      <div class="kv"><span>Da pagare oggi</span><b style="color:var(--gold)" id="upTot">108 €</b></div>
+      <div class="game-btns"><button class="btn primary">Vai al pagamento</button></div>
+      <p class="hint">Dopo il pagamento l'upgrade è <b>subito sul tuo account</b>.</p>
     </section>
   </div>
 
@@ -120,10 +192,11 @@
   <div class="screen" id="first">
     <header><p class="kicker">Prima configurazione</p><h1 class="wordmark" style="font-size:34px">Quasi pronto</h1><p class="subwordmark">Si imposta una volta sola</p></header>
     <section>
-      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input placeholder="333 1234567"></div></div>
+      <p class="hint" style="margin-top:0">Telefono e mail sono <b>già compilati</b> dalla registrazione. Ti serve solo la <b>tua Gmail del gioco</b> e il suo <b>codice a 16 caratteri</b>.</p>
+      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input value="333 1234567"></div></div>
+      <div class="field"><label>Mail per le comunicazioni</label><input value="mario.rossi@email.it" disabled></div>
       <div class="field"><label>La tua Gmail (casella del gioco)</label><input placeholder="tuonome@gmail.com"></div>
       <div class="field"><label>Codice Gmail · password per app (16 caratteri)</label><input placeholder="xxxx xxxx xxxx xxxx"></div>
-      <div class="field"><label>Mail per le comunicazioni</label><input placeholder="dove ricevere gli avvisi"></div>
       <div class="game-btns"><button class="btn primary" onclick="go('regia')">Salva e continua</button></div>
       <p class="hint">Finiscono nelle <b>Impostazioni avanzate</b> e non te le chiederà più.</p>
     </section>
@@ -138,6 +211,10 @@
       <div class="boxes"><div class="box"><b>0</b><span>Viste Foto A</span></div><div class="box"><b>0</b><span>Viste rivelazione</span></div><div class="box"><b>0</b><span>Mail ricevute</span></div><div class="box"><b>0</b><span>Mail inviate</span></div></div>
       <div class="chips"><span class="chip ok"><span class="st"></span>Foto A</span><span class="chip"><span class="st"></span>Rivelazione</span><span class="chip ok"><span class="st"></span>Collegato</span></div>
       <div class="game-btns"><button class="btn primary">▶ Avvia gioco</button><button class="btn" disabled>✦ Cambia (rivela)</button><button class="btn ghost" disabled>■ Finisci gioco</button></div>
+      <div class="hint" style="text-align:center;border-top:1px solid var(--line);margin-top:14px;padding-top:12px;line-height:1.7">
+        <b>Pronto:</b> Foto A <b style="color:var(--good)">✔ caricata</b> · Foto B <b style="color:var(--good)">✔ caricata</b><br>
+        Autorisponditore <b style="color:var(--gold)">ON · modo Palco</b> · Orari <b>spenti</b> · Casella <b style="color:var(--good)">collegata</b>
+      </div>
     </section>
   </div>
 
@@ -147,13 +224,14 @@
     <section class="status">
       <div class="sec-head"><div class="gear" onclick="go('regia')" title="torna al gioco"><span style="font-size:22px">✕</span></div><span class="pill"><span class="dot"></span>Menu</span></div>
       <div class="tiles">
-        <div class="tile" onclick="go('foto')"><div class="ic">🖼️</div><div class="lb">Imposta foto</div></div>
-        <div class="tile" onclick="go('testomail')"><div class="ic">✍️</div><div class="lb">Testo mail</div></div>
-        <div class="tile" onclick="go('autorisp')"><div class="ic">🤖</div><div class="lb">Autorisponditore</div></div>
-        <div class="tile" onclick="go('assist')"><div class="ic">🎭</div><div class="lb">Assistente di scena</div></div>
-        <div class="tile" onclick="go('limiti')"><div class="ic">📊</div><div class="lb">Limiti</div></div>
-        <div class="tile" onclick="go('report')"><div class="ic">📄</div><div class="lb">Report</div></div>
-        <div class="tile wide" onclick="go('avanzate')"><div class="ic">⚙️</div><div class="lb">Impostazioni avanzate</div></div>
+        <div class="tile" onclick="go('foto')"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg></div><div class="tx"><div class="tl">Imposta foto</div><div class="ts">A ✔ · B ✔</div></div></div>
+        <div class="tile" onclick="go('testomail')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h8"/><path d="M15 19l5-5 1.6 1.6-5 5H15z"/></svg></div><div class="tx"><div class="tl">Testo mail</div><div class="ts">impostato</div></div></div>
+        <div class="tile" onclick="go('autorisp')"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts">ON · modo Palco</div></div></div>
+        <div class="tile" onclick="go('assist')"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5"/><circle cx="17" cy="9" r="2.6"/><path d="M13.6 19c.4-2.3 1.8-3.4 3.6-3.4s3.2 1.1 3.6 3.4"/></svg></div><div class="tx"><div class="tl">Assistente di scena</div><div class="ts">non collegato</div></div></div>
+        <div class="tile" onclick="go('limiti')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 19a8 8 0 1116 0"/><path d="M12 19l3.5-4"/><path d="M4 19h16"/></svg></div><div class="tx"><div class="tl">Limiti</div><div class="ts">4.200 mail · 17 IA</div></div></div>
+        <div class="tile" onclick="go('report')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">ultima: #24</div></div></div>
+        <div class="tile wide" onclick="go('mioaccount')"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/></svg></div><div class="tx"><div class="tl">Il mio account</div><div class="ts">piano Quinte</div></div></div>
+        <div class="tile wide" onclick="go('avanzate')"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 7h9M18 7h2M4 17h2M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="8" cy="17" r="2.2"/></svg></div><div class="tx"><div class="tl">Impostazioni avanzate</div><div class="ts">casella e dati impostati</div></div></div>
       </div>
       <p class="hint" style="text-align:center">Premi <b>✕</b> (dov'era la rotella) per tornare al gioco.</p>
     </section>
@@ -244,16 +322,19 @@
   <div class="screen" id="avanzate">
     <div class="set-top"><div class="back" onclick="go('settings')">‹</div><h2>Impostazioni avanzate</h2></div>
     <section>
-      <p class="hint" style="margin-top:0">Cose che si impostano <b>una volta sola</b>.</p>
+      <p class="hint" style="margin-top:0">Quasi tutto è <b>già compilato</b>: lingua, telefono e mail sono stati presi alla <b>registrazione</b>.</p>
+      <div class="field"><label>Nome utente (fisso)</label><input value="mario.rossi@email.it" disabled></div>
+      <p class="hint" style="margin-top:-4px">Il nome utente è la tua <b>mail di comunicazione</b>, scelto alla registrazione. Se poi cambi la mail, il <b>nome utente resta lo stesso</b>.</p>
       <div class="field"><label>Lingua</label>
         <div class="lang"><button onclick="lang(-1)">&#8249;</button><span class="fl" id="flagbox2"></span><span class="nm" id="langnm2">Italiano</span><button onclick="lang(1)">&#8250;</button></div>
       </div>
-      <div class="field"><label>La tua casella (Gmail)</label><input placeholder="tuonome@gmail.com"></div>
+      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input value="333 1234567"></div></div>
+      <div class="field"><label>Mail per le comunicazioni</label><input value="mario.rossi@email.it"></div>
+      <div class="field"><label>La tua casella (Gmail del gioco)</label><input value="mariomagic@gmail.com"></div>
       <div class="field"><label>Codice Gmail · password per app (16 caratteri)</label><input placeholder="xxxx xxxx xxxx xxxx"></div>
-      <div class="field"><label>Nome mittente (facoltativo)</label><input placeholder="Il Mentalista"></div>
-      <div class="field"><label>Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input placeholder="333 1234567"></div></div>
-      <div class="field"><label>Mail per le comunicazioni</label><input placeholder="avvisi@…"></div>
+      <div class="field"><label>Nome mittente (facoltativo)</label><input value="Il Mentalista"></div>
       <div class="field"><label>Cambia password di accesso</label><input type="password" placeholder="nuova password"></div>
+      <p class="hint" style="margin-top:-4px">La prima password te la diamo noi <b>a caso</b> via mail. Se la cambi: almeno <b>10 caratteri</b>, <b>1 maiuscola</b> e <b>1 simbolo</b>.</p>
       <div class="game-btns"><button class="btn primary">Salva</button></div>
     </section>
   </div>
@@ -272,11 +353,13 @@
     es:'<svg viewBox="0 0 3 2"><rect width="3" height="2" fill="#AA151B"/><rect y="0.5" width="3" height="1" fill="#F1BF00"/></svg>',
     de:'<svg viewBox="0 0 5 3"><rect width="5" height="1" fill="#000"/><rect y="1" width="5" height="1" fill="#D00"/><rect y="2" width="5" height="1" fill="#FFCE00"/></svg>'
   };
-  var LANGS=[['it','Italiano'],['gb','English'],['fr','Français'],['es','Español'],['de','Deutsch']];
+  var LANGS=[['it','Italiano','IT'],['gb','English','EN'],['fr','Français','FR'],['es','Español','ES'],['de','Deutsch','DE']];
   var li=0;
-  function paintLang(){ var f=FLAGS[LANGS[li][0]], n=LANGS[li][1];
+  function paintLang(){ var f=FLAGS[LANGS[li][0]], n=LANGS[li][1], c=LANGS[li][2];
     ['flagbox','flagbox2'].forEach(function(id){var e=document.getElementById(id); if(e)e.innerHTML=f;});
-    ['langnm','langnm2'].forEach(function(id){var e=document.getElementById(id); if(e)e.textContent=n;}); }
+    ['langnm','langnm2'].forEach(function(id){var e=document.getElementById(id); if(e)e.textContent=n;});
+    var lc=document.getElementById('langcode'); if(lc)lc.textContent=c; }
+  function upick(i){ document.querySelectorAll('#upgrade .opt').forEach(function(o,k){o.classList.toggle('sel',k===(i-1));}); document.getElementById('upTot').textContent=[72,108,228][i-1]+' €'; }
   function lang(d){ li=(li+d+LANGS.length)%LANGS.length; paintLang(); }
   function go(id){ document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('on');}); document.getElementById(id).classList.add('on'); window.scrollTo(0,0); }
   function pick(i){ document.querySelectorAll('#autorisp .opt').forEach(function(o,k){o.classList.toggle('sel',k===i);}); document.getElementById('maillist').style.display=(i===2)?'block':'none'; }

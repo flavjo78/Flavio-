@@ -73,7 +73,7 @@
     <h2>Riepilogo acquisti (ad oggi)</h2>
     <div class="card">
       <div class="buy">
-        <span class="tag"><b>7</b> Accessi 5 anni</span>
+        <span class="tag"><b>7</b> Accessi 4 anni</span>
         <span class="tag"><b>3</b> Quinte</span>
         <span class="tag"><b>2</b> Sipario</span>
         <span class="tag"><b>1</b> Palco</span>
@@ -108,16 +108,23 @@
     <h2>Report delle sessioni</h2>
     <div class="card" id="dReports"></div>
 
-    <h2>Modifiche</h2>
+    <h2>Modifiche &amp; upgrade</h2>
     <div class="card">
+      <p class="small" style="margin:0 0 8px">Scegliendo l'utente qui sopra fai l'upgrade <b>direttamente per quel nome</b>: è <b>collegato al sito</b> e si attiva sul suo account.</p>
       <div class="btns">
-        <button class="btn" onclick="tog('addAbb')">＋ Aggiungi/Cambia abbonamento</button>
+        <button class="btn gold" onclick="tog('addAbb')">⬆ Fai un upgrade (per questo utente)</button>
         <button class="btn" onclick="tog('addCred')">＋ Aggiungi crediti</button>
       </div>
       <div class="addbox" id="addAbb">
-        <select><option>Foyer (0 €)</option><option>Quinte (6 €/mese)</option><option>Sipario (9 €/mese)</option><option>Palco (19 €/mese)</option></select>
-        <select style="margin-left:6px"><option>mensile</option><option>annuale</option></select>
-        <div class="btns"><button class="btn gold">Applica piano</button><button class="btn" onclick="tog('addAbb')">Annulla</button></div>
+        <div class="small" style="margin:0 0 6px">Upgrade per <b id="upName">003 · Mario Rossi</b></div>
+        <select id="upPlan" onchange="upRecalc()"><option>Foyer (0 €)</option><option>Quinte (6 €/mese · 72 €/anno)</option><option>Sipario (9 €/mese · 108 €/anno)</option><option selected>Palco (19 €/mese · 228 €/anno)</option></select>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px">
+          <span class="small">per</span>
+          <input class="mini" id="upQty" type="number" min="1" value="3" style="width:64px" oninput="upRecalc()">
+          <select id="upUnit" onchange="upRecalc()"><option value="mese">mesi</option><option value="anno">anni</option></select>
+          <span class="small">= <b id="upCost" style="color:var(--gold)">57 €</b></span>
+        </div>
+        <div class="btns"><button class="btn gold">Applica upgrade</button><button class="btn" onclick="tog('addAbb')">Annulla</button></div>
       </div>
       <div class="addbox" id="addCred">
         <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
@@ -142,19 +149,19 @@
 <script>
   var UTENTI=[
     {n:'001', piano:'Palco', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:31, speso:'215 €',
-     acq:[['Accesso 5 anni','12/03/2026'],['Palco annuale','attivo · rinnovo 12/03/2027'],['+5000 mail','10/10 · scad. 10/11']],
+     acq:[['Accesso 4 anni','12/03/2026'],['Palco annuale','attivo · rinnovo 12/03/2027'],['+5000 mail','10/10 · scad. 10/11']],
      reports:[[31,'oggi 21:03','5 mitt · 9 aperture'],[30,'08/10','12 mitt · 20 aperture'],[29,'05/10','3 mitt · 4 aperture']]},
     {n:'002', piano:'Sipario', stato:'cambiato', mail:'io2@gmail.com', pass:'aaa', foto:false, sess:12, speso:'90 €',
-     acq:[['Accesso 5 anni','20/04/2026'],['Sipario annuale','attivo · rinnovo 20/04/2027']],
+     acq:[['Accesso 4 anni','20/04/2026'],['Sipario annuale','attivo · rinnovo 20/04/2027']],
      reports:[[12,'oggi 20:40','8 mitt · 15 aperture'],[11,'02/10','6 mitt · 9 aperture']]},
     {n:'003', piano:'Quinte', stato:'avviato', mail:'—', pass:'aaa', foto:true, sess:24, speso:'60 €',
-     acq:[['Accesso 5 anni','01/09/2026'],['Quinte annuale','attivo · rinnovo 01/09/2027'],['+20 foto IA','10/10 · scad. 30/11']],
+     acq:[['Accesso 4 anni','01/09/2026'],['Quinte annuale','attivo · rinnovo 01/09/2027'],['+20 foto IA','10/10 · scad. 30/11']],
      reports:[[24,'oggi 21:05','5 mitt · 9 aperture'],[23,'06/10','4 mitt · 6 aperture']]},
     {n:'004', piano:'Foyer', stato:'spento', mail:'—', pass:'sole12', foto:true, sess:2, speso:'25 €',
-     acq:[['Accesso 5 anni','28/09/2026'],['Foyer','gratis']],
+     acq:[['Accesso 4 anni','28/09/2026'],['Foyer','gratis']],
      reports:[[2,'29/09','1 mitt · 1 apertura']]},
     {n:'005', piano:'Foyer', stato:'sospeso', mail:'—', pass:'nuvola7', foto:false, sess:0, speso:'25 €',
-     acq:[['Accesso 5 anni','15/09/2026']], reports:[]}
+     acq:[['Accesso 4 anni','15/09/2026']], reports:[]}
   ];
   var $=function(id){return document.getElementById(id);};
   function pill(st){
@@ -189,10 +196,19 @@
     $('dReports').innerHTML = u.reports.length? u.reports.map(function(r){
       return '<div class="rep"><b>Sessione #'+r[0]+'</b><span class="d">'+r[1]+' · '+r[2]+'</span><button class="btn">📄 Apri</button></div>';
     }).join('') : '<div style="color:var(--faint)">Nessuna sessione registrata.</div>';
+    var un=$('upName'); if(un) un.textContent=u.n+(u.mail!=='—'?' · '+u.mail:'');
     $('home').classList.add('hidden'); $('detail').classList.remove('hidden'); window.scrollTo(0,0);
   }
   function showHome(){ $('detail').classList.add('hidden'); $('home').classList.remove('hidden'); window.scrollTo(0,0); }
   function tog(id){ var b=$(id); b.style.display=(b.style.display==='block')?'none':'block'; }
+  function upRecalc(){
+    var mon=[0,6,9,19], ann=[0,72,108,228];
+    var p=document.getElementById('upPlan').selectedIndex;
+    var q=Math.max(1, parseInt(document.getElementById('upQty').value||'1',10));
+    var unit=document.getElementById('upUnit').value;
+    var cost=q*(unit==='anno'?ann[p]:mon[p]);
+    document.getElementById('upCost').textContent=cost+' €';
+  }
   renderLive(); renderAll();
 </script>
 </body></html>
