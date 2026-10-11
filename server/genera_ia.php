@@ -189,6 +189,10 @@ if (!$salvata) {
     }
 }
 
+/* riduci anche la foto generata a una misura "giusta" (lato lungo max 1280px):
+   resta nitida a schermo ma leggera da inviare e veloce da aprire nella mail. */
+$dest = predizione_ridimensiona($dest);
+
 $stato = predizione_leggi_stato();
 $stato['rivelazione_pronta'] = $dest;
 predizione_uso_incr($stato, 'foto_ia', 1);   // consumo mensile: una foto IA generata

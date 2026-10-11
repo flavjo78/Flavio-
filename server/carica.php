@@ -29,6 +29,20 @@ if (!$pwOk && !$assistOk) {
 if ($slot !== 'A' && $slot !== 'B' && $slot !== 'BASE') {
     predizione_json(['ok' => false, 'errore' => 'Slot non valido (usa A, B o BASE)'], 400);
 }
+
+/* --- ELIMINA la foto dello slot (senza caricare nulla) ------------------ */
+if (($_POST['azione'] ?? '') === 'elimina') {
+    $nomeBase = ($slot === 'A') ? 'foto_a' : (($slot === 'BASE') ? 'foto_base' : 'rivelazione_pronta');
+    $base = predizione_data_dir() . '/' . $nomeBase;
+    foreach (array_values(TIPI_IMG) as $e) { if (is_file($base . '.' . $e)) @unlink($base . '.' . $e); }
+    $stato = predizione_leggi_stato();
+    if      ($slot === 'A')    { $stato['foto_a'] = null; }
+    elseif  ($slot === 'BASE') { $stato['foto_base'] = null; $stato['foto_quad'] = null; $stato['foto_gomma'] = null; }
+    else                       { $stato['rivelazione_pronta'] = null; }
+    predizione_scrivi_stato($stato);
+    predizione_json(['ok' => true, 'eliminata' => true, 'slot' => $slot]);
+}
+
 /* l'assistente (link temporaneo) puo' preparare le foto del gioco: A, BASE e B. */
 if (!isset($_FILES['foto']) || !is_array($_FILES['foto']) || ($_FILES['foto']['error'] ?? 1) !== UPLOAD_ERR_OK) {
     predizione_json(['ok' => false, 'errore' => 'Nessun file ricevuto o errore di upload'], 400);
@@ -60,6 +74,12 @@ $dest = $base . '.' . $ext;
 if (!move_uploaded_file($tmp, $dest)) {
     predizione_json(['ok' => false, 'errore' => 'Impossibile salvare il file'], 500);
 }
+
+/* riduci automaticamente le foto troppo grandi a una misura "giusta"
+   (lato lungo max 1280px, JPEG): leggere da inviare e veloci da aprire.
+   Se GD non c'e' o la foto e' gia' piccola, resta com'e'. */
+$dest = predizione_ridimensiona($dest);
+$ext  = strtolower(pathinfo($dest, PATHINFO_EXTENSION));
 
 /* aggiorna lo stato */
 $stato = predizione_leggi_stato();

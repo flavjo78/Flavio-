@@ -170,6 +170,11 @@
   .slot-txt .s{font-size:12px;color:var(--ink-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .slot .tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--gold);flex:0 0 auto}
   .slot.filled .tag{color:var(--good)}
+  .thumb{cursor:zoom-in}
+  .slotbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold);border-radius:999px;padding:7px 12px;cursor:pointer}
+  .slotbtn:active{transform:scale(.96)}
+  .slotx{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface-2);color:var(--stop);font-weight:800;font-size:15px;cursor:pointer;line-height:1}
+  .slotx:active{transform:scale(.94)}
 
   .field{margin-top:14px}
   .field > label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin-bottom:7px}
@@ -406,19 +411,21 @@
     <section class="sp" data-sp="foto" aria-label="Le foto">
       <div class="sec-head"><h2 class="sec-title">Le foto</h2><span class="sec-num">A / rivelazione</span></div>
 
-      <label class="slot" id="slotA">
+      <div class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb"><span class="ph">A</span></span>
+        <span class="thumb" id="thumbA" title="Vedi la foto"><span class="ph">A</span></span>
         <span class="slot-txt"><span class="t">Foto A · neutra</span><span class="s">di attesa · resta in memoria</span></span>
-        <span class="tag">Carica</span>
-      </label>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
 
-      <label class="slot" id="slotB">
+      <div class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb"><span class="ph">R</span></span>
+        <span class="thumb" id="thumbB" title="Vedi la foto"><span class="ph">R</span></span>
         <span class="slot-txt"><span class="t">Rivelazione</span><span class="s">diversa ogni sessione · da caricare</span></span>
-        <span class="tag">Carica</span>
-      </label>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
       <p class="hint">La <b>Foto A</b> neutra si carica una volta e resta. La <b>rivelazione</b> va caricata <b>prima di ogni "Avvia"</b>: viene usata per quella sessione e chi la riceve la vedrà sempre.</p>
 
       <div class="field">
@@ -453,12 +460,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
     <section class="sp" data-sp="ia" aria-label="Rivelazione con IA" id="secFoto">
       <div class="sec-head"><h2 class="sec-title">Rivelazione con IA</h2><span class="sec-num">Foto B</span></div>
-      <label class="slot" id="slotBase">
+      <div class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb"><span class="ph">F</span></span>
+        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph">F</span></span>
         <span class="slot-txt"><span class="t">Foto base</span><span class="s">tu col foglio bianco in mano</span></span>
-        <span class="tag">Carica</span>
-      </label>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
 
       <!-- anteprima della foto base (i comandi di marcatura sono nascosti: con l'IA non servono) -->
       <div id="markArea" style="display:none;margin-top:10px">
@@ -773,6 +781,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     chipTime.textContent = st.orario_scambio ? tsToHHMM(st.orario_scambio) : '—';
     chipA.classList.toggle('ok', !!st.ha_foto_a);
     chipB.classList.toggle('ok', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
+    // miniature degli slot foto (mostrano la foto salvata, cliccabili per vederla)
+    updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
+    updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
+    updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
 
     var elA=$('cntA'); if(elA){ elA.textContent = st.aperture_a||0; }
     var elB=$('cntB'); if(elB){ elB.textContent = st.aperture_b||0; }
@@ -985,32 +997,57 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
 
   // ---- upload foto reali ----
-  function wireSlot(id,key){
+  function slotPreviewUrl(key){ return API_BASE+'anteprima.php?u='+encodeURIComponent(getUser())+'&slot='+key+'&password='+encodeURIComponent(getPw())+'&_='+Date.now(); }
+  function apiElimina(slot){ var b=new URLSearchParams(); b.set('utente',getUser()); b.set('password',getPw()); b.set('slot',slot); b.set('azione','elimina');
+    return fetch(API_BASE+'carica.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});}); }
+  // aggiorna la miniatura di uno slot in base allo stato (foto salvata o no)
+  function updateSlot(id,thumbId,key,loaded,ph){
+    var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
+    var was=thumb.getAttribute('data-loaded')==='1';
+    if(loaded){ slot.classList.add('filled');
+      if(!was){ thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=slotPreviewUrl(key); thumb.setAttribute('data-loaded','1'); } }
+    else { slot.classList.remove('filled');
+      if(was){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); } }
+  }
+
+  function wireSlot(id,key,ph){
     var slot=$(id), input=slot.querySelector('input'), thumb=slot.querySelector('.thumb'),
-        sub=slot.querySelector('.s'), tag=slot.querySelector('.tag');
+        sub=slot.querySelector('.s'), camBtn=slot.querySelector('[data-cambia]'), delBtn=slot.querySelector('[data-del]');
+    function apri(){ if(!getPw()){ toast('Inserisci prima la password','err'); return; } input.click(); }
+    if(camBtn) camBtn.addEventListener('click', apri);
+    // clic sulla miniatura: se c'e' una foto la mostra a tutto schermo, altrimenti apre il caricamento
+    thumb.addEventListener('click', function(){
+      if(thumb.getAttribute('data-loaded')==='1'){ openLightbox(slotPreviewUrl(key)); } else { apri(); }
+    });
+    // elimina
+    if(delBtn) delBtn.addEventListener('click', function(){
+      if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+      if(!confirm('Eliminare questa foto?')) return;
+      apiElimina(key).then(function(res){
+        if(res.data && res.data.ok){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); slot.classList.remove('filled'); if(sub)sub.textContent=''; toast('Foto eliminata','ok'); poll(); }
+        else toast((res.data&&res.data.errore)||'Non eliminata','err');
+      }).catch(function(){ toast('Server non raggiungibile','err'); });
+    });
+    // caricamento vero
     input.addEventListener('change', function(){
       var f=input.files&&input.files[0]; if(!f) return;
       if(!getPw()){ toast('Inserisci prima la password','err'); input.value=''; return; }
       var url=URL.createObjectURL(f);
-      thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url;
-      sub.textContent='caricamento…'; tag.textContent='…';
+      thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
+      if(sub)sub.textContent='caricamento…';
       apiCarica(key, f).then(function(res){
         if(res.data && res.data.ok){
-          sub.textContent='caricata · '+f.name; tag.textContent='Cambia'; slot.classList.add('filled');
+          if(sub)sub.textContent='caricata · '+f.name; slot.classList.add('filled');
           toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
-          // se stavamo rivelando (Foto B caricata al volo da "Cambia"), rivela ora
           if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
           if(key==='BASE' && res.data.preview){ try{ localStorage.setItem('pred_base_'+getUser(), res.data.preview); }catch(e){} showMarker(res.data.preview); }
-        } else {
-          sub.textContent='errore'; tag.textContent='Riprova'; pendingReveal=false;
-          toast((res.data&&res.data.errore)||'Upload fallito','err');
-        }
-      }).catch(function(){ sub.textContent='errore'; tag.textContent='Riprova'; pendingReveal=false; toast('Server non raggiungibile','err'); });
+        } else { if(sub)sub.textContent='errore'; pendingReveal=false; toast((res.data&&res.data.errore)||'Upload fallito','err'); }
+      }).catch(function(){ if(sub)sub.textContent='errore'; pendingReveal=false; toast('Server non raggiungibile','err'); });
     });
   }
-  wireSlot('slotA','A');
-  wireSlot('slotB','B');
-  if($('slotBase')) wireSlot('slotBase','BASE');   // foto base (strumento foto, utente 003)
+  wireSlot('slotA','A','A');
+  wireSlot('slotB','B','R');
+  if($('slotBase')) wireSlot('slotBase','BASE','F');   // foto base (strumento foto, utente 003)
 
   // ---- salva la casella mail dell'utente (sezione mail) ----
   var smBtn=$('saveMail');

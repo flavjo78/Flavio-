@@ -36,13 +36,23 @@
   .btn:disabled{opacity:.4;cursor:default}
   .btn:active:not(:disabled){transform:scale(.99)}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .slot{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;cursor:pointer;margin-bottom:10px}
+  .slot{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;margin-bottom:10px}
   .slot .t{font-weight:700;font-size:14px}
   .slot .s{display:block;font-size:12px;color:var(--faint)}
-  .slot .tag{margin-left:auto;color:var(--gold);font-weight:700;font-size:12px}
+  .slot-txt{min-width:0;flex:1 1 auto}
+  .thumb{width:56px;height:56px;flex:0 0 56px;border-radius:12px;overflow:hidden;background:var(--bg-deep);display:grid;place-items:center;border:1px solid var(--line);cursor:zoom-in}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .ph{font-family:Georgia,serif;font-size:24px;color:var(--faint);font-weight:600}
+  .slotbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold);border-radius:999px;padding:7px 12px;cursor:pointer}
+  .slotbtn:active{transform:scale(.96)}
+  .slotx{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--stop);font-weight:800;font-size:15px;cursor:pointer;line-height:1}
+  .slotx:active{transform:scale(.94)}
   .mt{margin-top:8px}
   .hint{font-size:12px;color:var(--faint);margin-top:8px}
-  .prev{width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);display:none}
+  .prev{width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);display:none;cursor:zoom-in}
+  .lightbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px}
+  .lightbox.open{display:flex}
+  .lightbox img{max-width:100%;max-height:86vh;border-radius:10px;box-shadow:0 10px 60px rgba(0,0,0,.6)}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
   .toast.show{opacity:1}
   .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
@@ -81,18 +91,20 @@
     <!-- preparazione rivelazione (solo utenti foto) -->
     <div class="card hidden" id="secPrep">
       <div class="sec-title">Prepara la rivelazione</div>
-      <label class="slot" id="slotA">
+      <div class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
-        <span><span class="t">Foto A (attesa)</span><span class="s">la foto neutra di partenza</span></span>
-        <span class="tag">Carica</span>
-      </label>
-      <img class="prev" id="aPrev" alt="foto A">
-      <label class="slot" id="slotBase">
+        <span class="thumb" id="thumbA" title="Vedi la foto"><span class="ph">A</span></span>
+        <span class="slot-txt"><span class="t">Foto A (attesa)</span><span class="s">la foto neutra di partenza</span></span>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
+      <div class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
-        <span><span class="t">Foto base</span><span class="s">il performer col foglio bianco</span></span>
-        <span class="tag">Carica</span>
-      </label>
-      <img class="prev" id="basePrev" alt="foto base">
+        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph">F</span></span>
+        <span class="slot-txt"><span class="t">Foto base</span><span class="s">il performer col foglio bianco</span></span>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
       <label class="sec-title mt" for="txt">Cosa scrivere sul foglio</label>
       <textarea id="txt" rows="2" placeholder="Es. Asso di cuori"></textarea>
       <button class="btn ghost mt" id="bNL">↵ Vai a capo</button>
@@ -104,17 +116,20 @@
     <!-- carica rivelazione pronta (per chi non usa l'IA) -->
     <div class="card hidden" id="secCarica">
       <div class="sec-title">Carica la rivelazione (Foto B)</div>
-      <label class="slot" id="slotB">
+      <div class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
-        <span><span class="t">Rivelazione</span><span class="s">la foto da svelare</span></span>
-        <span class="tag">Carica</span>
-      </label>
-      <img class="prev" id="bPrev" alt="rivelazione">
+        <span class="thumb" id="thumbB" title="Vedi la foto"><span class="ph">R</span></span>
+        <span class="slot-txt"><span class="t">Rivelazione</span><span class="s">la foto da svelare</span></span>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
     </div>
   </div>
 
   <div id="err" class="errbox hidden"></div>
 </div>
+
+<div class="lightbox" id="lightbox"><img id="lbImg" alt=""></div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -134,7 +149,8 @@
   function mostraErr(msg){ $('main').classList.add('hidden'); var e=$('err'); e.textContent=msg; e.classList.remove('hidden'); }
 
   function statoGet(){
-    return fetch(API+'stato.php?azione=stato&u='+encodeURIComponent(U),{cache:'no-store'}).then(function(r){return r.json();});
+    // mandiamo anche il lasciapassare: cosi' il server ci dice se e' ANCORA valido
+    return fetch(API+'stato.php?azione=stato&u='+encodeURIComponent(U)+'&assistente='+encodeURIComponent(T),{cache:'no-store'}).then(function(r){return r.json();});
   }
   function cmd(azione){
     var b=new URLSearchParams(); b.set('azione',azione); b.set('utente',U); b.set('assistente',T);
@@ -174,9 +190,27 @@
     var foto = st.flags && st.flags.foto;
     $('secPrep').classList.toggle('hidden', !foto);
     $('secCarica').classList.toggle('hidden', !!foto);
+
+    // miniature delle foto salvate (come nella Regia)
+    updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
+    updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
+    updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
   }
 
-  function poll(){ statoGet().then(function(j){ if(j&&j.stato){ render(j.stato); } }).catch(function(){}); }
+  var scaduto=false;
+  function poll(){
+    if(scaduto) return;
+    statoGet().then(function(j){
+      if(!j || !j.stato) return;
+      // link assistente non piu' valido (revocato dal performer o sessione finita)
+      if(j.stato.assistente_valido===false){
+        scaduto=true;
+        mostraErr('Il link non è più valido (sessione finita o revocato dal prestigiatore). Chiedi un nuovo link.');
+        return;
+      }
+      render(j.stato);
+    }).catch(function(){});
+  }
 
   function dopoComando(res, ok){
     if(res.code===401){ mostraErr('Il link non è più valido (sessione finita o revocato). Chiedi un nuovo link.'); return; }
@@ -211,27 +245,66 @@
     }).catch(function(){ b.disabled=false; b.textContent=old; toast('Server non raggiungibile','err'); });
   });
 
-  // caricamento foto (base e B)
-  function wireSlot(slotId, slotName, prevId){
+  // --- anteprima / elimina delle foto salvate -----------------------------
+  function slotPreviewUrl(key){ return API+'anteprima.php?u='+encodeURIComponent(U)+'&slot='+key+'&assistente='+encodeURIComponent(T)+'&_='+Date.now(); }
+  function apiElimina(slot){
+    var b=new URLSearchParams(); b.set('utente',U); b.set('assistente',T); b.set('slot',slot); b.set('azione','elimina');
+    return fetch(API+'carica.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});});
+  }
+  var lightbox=$('lightbox'), lbImg=$('lbImg');
+  function openLightbox(src){ if(!src||!lightbox) return; lbImg.src=src; lightbox.classList.add('open'); }
+  function closeLightbox(){ if(lightbox) lightbox.classList.remove('open'); }
+  if(lightbox) lightbox.addEventListener('click', function(e){ if(e.target===lightbox) closeLightbox(); });
+
+  // aggiorna la miniatura di uno slot in base allo stato (foto salvata o no)
+  function updateSlot(id,thumbId,key,loaded,ph){
+    var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
+    var was=thumb.getAttribute('data-loaded')==='1';
+    if(loaded){ if(!was){ thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=slotPreviewUrl(key); thumb.setAttribute('data-loaded','1'); } }
+    else { if(was){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); } }
+  }
+
+  // caricamento foto (A, base e B) con anteprima, Cambia (ricarica) e X (elimina)
+  function wireSlot(slotId, slotName, ph){
     var lab=$(slotId); if(!lab) return;
-    var inp=lab.querySelector('input[type=file]');
+    var inp=lab.querySelector('input[type=file]'),
+        thumb=lab.querySelector('.thumb'),
+        camBtn=lab.querySelector('[data-cambia]'),
+        delBtn=lab.querySelector('[data-del]');
+    function apri(){ inp.click(); }
+    if(camBtn) camBtn.addEventListener('click', apri);
+    // clic sulla miniatura: se c'e' una foto la mostra a tutto schermo, altrimenti carica
+    thumb.addEventListener('click', function(){
+      if(thumb.getAttribute('data-loaded')==='1'){ openLightbox(slotPreviewUrl(slotName)); } else { apri(); }
+    });
+    if(delBtn) delBtn.addEventListener('click', function(){
+      if(!confirm('Eliminare questa foto?')) return;
+      apiElimina(slotName).then(function(res){
+        if(res.code===401){ mostraErr('Il link non è più valido. Chiedi un nuovo link.'); return; }
+        if(res.data && res.data.ok){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); toast('Foto eliminata','ok'); poll(); }
+        else toast((res.data&&res.data.errore)||'Non eliminata','err');
+      }).catch(function(){ toast('Server non raggiungibile','err'); });
+    });
     inp.addEventListener('change', function(){
       var f=inp.files && inp.files[0]; if(!f) return;
-      lab.querySelector('.tag').textContent='Carico…';
+      if(camBtn) camBtn.textContent='Carico…';
+      var url=URL.createObjectURL(f);
+      thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
       carica(slotName, f).then(function(r){
+        if(camBtn) camBtn.textContent='Cambia';
         if(r.code===401){ mostraErr('Il link non è più valido. Chiedi un nuovo link.'); return; }
-        if(r.data && r.data.ok){
-          lab.querySelector('.tag').textContent='Caricata ✓';
-          if(prevId && r.data.preview){ var p=$(prevId); p.src=r.data.preview; p.style.display='block'; }
-          poll();
-        } else { lab.querySelector('.tag').textContent='Carica'; toast((r.data&&r.data.errore)||'Caricamento fallito','err'); }
-      }).catch(function(){ lab.querySelector('.tag').textContent='Carica'; toast('Server non raggiungibile','err'); });
+        if(r.data && r.data.ok){ toast('Foto caricata ✓','ok'); poll(); }
+        else { toast((r.data&&r.data.errore)||'Caricamento fallito','err'); }
+      }).catch(function(){ if(camBtn) camBtn.textContent='Cambia'; toast('Server non raggiungibile','err'); });
       inp.value='';
     });
   }
-  wireSlot('slotA','A','aPrev');
-  wireSlot('slotBase','BASE','basePrev');
-  wireSlot('slotB','B','bPrev');
+  wireSlot('slotA','A','A');
+  wireSlot('slotBase','BASE','F');
+  wireSlot('slotB','B','R');
+
+  // la rivelazione creata con IA si puo' vedere a tutto schermo
+  var gpEl=$('genPrev'); if(gpEl){ gpEl.addEventListener('click', function(){ if(gpEl.src) openLightbox(gpEl.src); }); }
 
   // avvio
   $('main').classList.remove('hidden');

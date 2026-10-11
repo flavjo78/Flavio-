@@ -94,6 +94,53 @@ function predizione_prepara_cartella(): void {
     }
 }
 
+/* -------------------- RIDIMENSIONA LE FOTO ------------------------------ */
+/* Riduce automaticamente una foto troppo grande a una misura "giusta":
+   lato lungo massimo $maxLato px, salvata in JPEG di qualita' $q. Cosi' le
+   foto scattate col telefono (anche 10-12 MP, vari MB) diventano leggere e
+   si aprono in fretta nella mail, senza che il performer debba fare nulla.
+   Se GD non c'e' o l'immagine e' gia' piccola, lascia il file com'e'.
+   Ritorna il percorso del file risultante (puo' cambiare estensione in .jpg). */
+function predizione_ridimensiona(string $path, int $maxLato = 1280, int $q = 85): string {
+    if (!is_file($path)) return $path;
+    if (!function_exists('imagecreatefromstring') || !function_exists('imagejpeg')) return $path;
+    $info = @getimagesize($path);
+    if ($info === false) return $path;
+    [$w, $h] = $info;
+    if ($w <= 0 || $h <= 0) return $path;
+
+    $lato = max($w, $h);
+    // gia' piccola E gia' JPEG: non serve rifare nulla
+    $estCorr = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    if ($lato <= $maxLato && ($estCorr === 'jpg' || $estCorr === 'jpeg')) return $path;
+
+    $raw = @file_get_contents($path);
+    if ($raw === false || $raw === '') return $path;
+    $im = @imagecreatefromstring($raw);
+    if (!$im) return $path;
+
+    if ($lato > $maxLato) {
+        $scala = $maxLato / $lato;
+        $nw = max(1, (int)round($w * $scala));
+        $nh = max(1, (int)round($h * $scala));
+        $dst = imagecreatetruecolor($nw, $nh);
+        // sfondo bianco (per eventuali PNG/GIF con trasparenza)
+        $bianco = imagecolorallocate($dst, 255, 255, 255);
+        imagefilledrectangle($dst, 0, 0, $nw, $nh, $bianco);
+        imagecopyresampled($dst, $im, 0, 0, 0, 0, $nw, $nh, $w, $h);
+        imagedestroy($im);
+        $im = $dst;
+    }
+
+    $destJpg = preg_replace('/\.[^.]+$/', '', $path) . '.jpg';
+    $ok = @imagejpeg($im, $destJpg, $q);
+    imagedestroy($im);
+    if (!$ok) return $path;
+    // se l'originale aveva un'altra estensione, togli il vecchio file
+    if ($destJpg !== $path && is_file($path)) @unlink($path);
+    return $destJpg;
+}
+
 /* -------------------- REGISTRO UTENTI ----------------------------------- */
 function predizione_utenti_default(): array {
     return [

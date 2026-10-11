@@ -383,7 +383,14 @@ $stato = predizione_leggi_stato();
 
 /* ---- lettura stato (senza password) ------------------------------------ */
 if ($azione === 'stato') {
-    predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+    $pub = predizione_stato_pubblico($stato);
+    // se arriva un lasciapassare assistente, diciamo se e' ANCORA valido
+    // (serve al link assistente per accorgersi di revoca o fine sessione)
+    $tokLett = p('assistente');
+    if (is_string($tokLett) && $tokLett !== '') {
+        $pub['assistente_valido'] = predizione_assistente_valido($stato, $tokLett);
+    }
+    predizione_json(['ok' => true, 'stato' => $pub]);
 }
 
 /* ---- da qui serve l'accesso: password dell'utente OPPURE, per i soli
