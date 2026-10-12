@@ -128,6 +128,7 @@ function predizione_account_pubblico(string $u): ?array {
     $lim = predizione_limiti_utente($rec);
     $lim['nome']  = (string)($rec['nome'] ?? '');
     $lim['email'] = (string)($rec['email_comunicazione'] ?? '');
+    $lim['tel']   = (string)($rec['telefono'] ?? '');
     return $lim;
 }
 
@@ -219,6 +220,9 @@ function predizione_admin(string $azione): void {
                 'piano'    => (string)($rec['piano'] ?? 'Foyer'),
                 'accesso_scad' => (int)($rec['accesso_scadenza'] ?? 0),
                 'piano_scad'   => (int)($rec['piano_scadenza'] ?? 0),
+                'fonte'    => (string)($rec['fonte'] ?? ''),                 // provenienza (etichetta)
+                'report_extra' => array_key_exists('report_extra', $rec) ? (bool)$rec['report_extra'] : null,
+                'report'   => (bool)$lim['report'],
                 'limiti'   => $lim,
                 'sessioni' => $sessOut,
                 'mail'     => predizione_mail_cfg($num),
@@ -277,6 +281,41 @@ function predizione_admin(string $azione): void {
             if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
             $utenti[$num]['flags'] = ['mail' => (p('mail') === '1'), 'foto' => (p('foto') === '1')];
             predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_report':
+            // attiva/disattiva la funzione REPORT per questo utente (vince sul piano)
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $v = strtoupper((string)p('valore'));
+            $utenti[$num]['report_extra'] = ($v === '1' || $v === 'ON' || $v === 'TRUE');
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true]);
+
+        case 'admin_accessi':   // elenco password d'accesso (provenienza)
+            $acc = predizione_accessi_leggi();
+            $out = [];
+            foreach ($acc as $pw => $info) {
+                $out[] = ['password' => (string)$pw, 'etichetta' => (string)($info['etichetta'] ?? ''), 'creato' => (int)($info['creato'] ?? 0)];
+            }
+            predizione_json(['ok' => true, 'accessi' => $out, 'base' => PRED_ACCESSO_BASE]);
+
+        case 'admin_accesso_crea':
+            // NB: il campo si chiama 'pw_accesso' (non 'password', che è la password admin)
+            $pw  = substr(trim((string)(p('pw_accesso') ?? '')), 0, 60);
+            $et  = substr(trim((string)(p('etichetta') ?? '')), 0, 60);
+            if ($pw === '' || $et === '') predizione_json(['ok' => false, 'errore' => 'Password ed etichetta obbligatorie'], 400);
+            if ($pw === PRED_ACCESSO_BASE) predizione_json(['ok' => false, 'errore' => 'Questa password è già la base'], 400);
+            $acc = predizione_accessi_leggi();
+            $acc[$pw] = ['etichetta' => $et, 'creato' => time()];
+            predizione_accessi_scrivi($acc);
+            predizione_json(['ok' => true]);
+
+        case 'admin_accesso_elimina':
+            $pw  = (string)(p('pw_accesso') ?? '');
+            $acc = predizione_accessi_leggi();
+            unset($acc[$pw]);
+            predizione_accessi_scrivi($acc);
             predizione_json(['ok' => true]);
 
         case 'admin_password':
@@ -481,6 +520,7 @@ switch ($azione) {
         // azzera i conteggi mail della nuova sessione
         $stato['mail_ricevute'] = 0;
         $stato['mail_inviate']  = 0;
+        predizione_pulisci_foto_base($stato);   // la sezione IA riparte pulita
         predizione_uso_incr($stato, 'sessioni', 1);   // consumo mensile: una sessione in piu'
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
@@ -530,6 +570,7 @@ switch ($azione) {
         $stato['autorisponditore'] = false;
         // il link "Assistente di scena" scade con la fine della sessione
         $stato['assistente_token'] = null;
+        predizione_pulisci_foto_base($stato);   // la sezione IA riparte pulita al prossimo show
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

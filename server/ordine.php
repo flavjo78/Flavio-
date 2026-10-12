@@ -230,6 +230,28 @@ if ($azione === 'verifica_codice') {
     predizione_json(['ok' => false, 'errore' => 'Codice errato o scaduto']);
 }
 
+/* ===== LISTINO (pubblico): piani + extra con prezzi, per la pagina carrello */
+if ($azione === 'listino') {
+    $piani = [];
+    foreach (predizione_piani() as $nome => $p) {
+        $piani[] = ['nome' => $nome, 'prezzo_anno' => (int)$p['prezzo_anno'], 'prezzo_mese' => (int)$p['prezzo_mese'],
+                    'mail_mese' => (int)$p['mail_mese'], 'foto_ia_mese' => (int)$p['foto_ia_mese'], 'sessioni_mese' => (int)$p['sessioni_mese'],
+                    'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report']];
+    }
+    $extra = [];
+    foreach (predizione_extra() as $code => $e) {
+        $extra[] = ['code' => $code, 'label' => (string)$e['label'], 'prezzo' => (float)$e['prezzo']];
+    }
+    predizione_json(['ok' => true, 'accesso' => PRED_ACCESSO_PREZZO, 'piani' => $piani, 'extra' => $extra]);
+}
+
+/* ===== PASSWORD D'ACCESSO del gioco (pubblico): valida e ritorna l'etichetta */
+if ($azione === 'verifica_accesso') {
+    $et = predizione_accesso_etichetta(ord_p('password'));
+    if ($et === null) predizione_json(['ok' => false, 'errore' => 'Password del gioco non valida']);
+    predizione_json(['ok' => true, 'etichetta' => $et]);
+}
+
 /* ===== COORDINATE DI PAGAMENTO (pubblico: servono al sito per il bonifico) */
 if ($azione === 'pagamenti') {
     $pg = ord_pagamenti();
@@ -261,16 +283,41 @@ if ($azione === 'crea') {
     $canale  = in_array(ord_p('canale'), ['bonifico', 'satispay', 'paypal'], true) ? ord_p('canale') : 'bonifico';
     $licenza = ord_p('licenza');
 
+    // provenienza (etichetta della password d'accesso usata sul sito)
+    $fonte = predizione_accesso_etichetta(ord_p('accesso_pw')) ?? '';
+
+    // EXTRA (carrello): mappa {codice: quantita'} in JSON
+    $extra = []; $extraRaw = ord_p('extra');
+    if ($extraRaw !== '') { $tmp = json_decode($extraRaw, true); if (is_array($tmp)) foreach ($tmp as $k => $v) { $q = max(0, (int)$v); if ($q > 0) $extra[(string)$k] = $q; } }
+    $cat = predizione_extra(); $extraCost = 0.0;
+    foreach ($extra as $code => $q) { if (isset($cat[$code])) $extraCost += (float)$cat[$code]['prezzo'] * $q; }
+
+    // CLIENTE GIA' ATTIVO (upgrade/extra dal pannello): niente accesso 25 €
+    $esistente = preg_replace('/[^a-z0-9._-]/', '', strtolower((string)ord_p('utente_esistente')));
+    $utentiAll = predizione_utenti_leggi();
+    $esistenteOk = ($esistente !== '' && $esistente !== '000' && isset($utentiAll[$esistente]));
+    if ($esistenteOk) {   // usa i dati del cliente gia' in archivio se mancano
+        if ($nome === '')    { $nome = (string)($utentiAll[$esistente]['nome'] ?? ''); }
+        if ($mail === '')    { $mail = (string)($utentiAll[$esistente]['email_comunicazione'] ?? ''); }
+    }
+
     // validazioni (il sito le fa gia', ma ricontrolliamo qui)
     $err = [];
-    if ($nome === '' || $cognome === '') $err[] = 'Nome e cognome';
-    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) $err[] = 'Email non valida';
-    if (preg_replace('/\D/', '', $tel) === '') $err[] = 'Telefono';
-    if ($prov === '' || $citta === '' || $via === '') $err[] = 'Residenza';
-    if ($licenza !== '1' && strtolower($licenza) !== 'true' && $licenza !== 'on') $err[] = 'Accettazione licenza';
+    if (!$esistenteOk) {
+        if ($nome === '' || $cognome === '') $err[] = 'Nome e cognome';
+        if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) $err[] = 'Email non valida';
+        if (preg_replace('/\D/', '', $tel) === '') $err[] = 'Telefono';
+        if ($prov === '' || $citta === '' || $via === '') $err[] = 'Residenza';
+        if ($licenza !== '1' && strtolower($licenza) !== 'true' && $licenza !== 'on') $err[] = 'Accettazione licenza';
+    }
     if ($err) predizione_json(['ok' => false, 'errore' => 'Dati mancanti: ' . implode(', ', $err)], 400);
 
-    $importo = PRED_ACCESSO_PREZZO + predizione_prezzo_piano($piano, $durata);
+    $vuolePiano = (ord_p('piano') !== '');
+    if ($esistenteOk) {
+        $importo = ($vuolePiano ? predizione_prezzo_piano($piano, $durata) : 0) + $extraCost;
+    } else {
+        $importo = PRED_ACCESSO_PREZZO + predizione_prezzo_piano($piano, $durata) + $extraCost;
+    }
 
     $ordini = ord_leggi();
     $id = ord_prossimo_id($ordini);
@@ -280,6 +327,7 @@ if ($azione === 'crea') {
         'naz' => $naz, 'prov' => $prov, 'citta' => $citta, 'via' => $via, 'lingua' => $lingua,
         'gioco' => $gioco, 'piano' => $piano, 'durata' => $durata, 'quante' => 1,
         'canale' => $canale, 'importo' => $importo,
+        'extra' => $extra, 'fonte' => $fonte, 'utente_esistente' => ($esistenteOk ? $esistente : ''),
         'licenza_accettata' => date('c'), 'ip' => $_SERVER['REMOTE_ADDR'] ?? '',
         'utente' => '', 'ricevuta' => '',
     ];

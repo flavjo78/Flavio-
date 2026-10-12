@@ -53,6 +53,25 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
 >   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
 
+> ### Aggiunte 12 ottobre 2026 (AGG 17 — lotto grande)
+> - **Password d'accesso con provenienza:** l'admin crea password etichettate (`_dati/accessi.json`,
+>   azioni `admin_accesso_*`, campo `pw_accesso` NON `password`); sul sito la verifica è `verifica_accesso`
+>   in ordine.php; `crea` salva `fonte` (etichetta) nell'anagrafica. Base `aaa` = "diretto".
+> - **Ricarica limiti nel giorno dell'abbonamento:** `stato['giorno_rinnovo']` (impostato all'attivazione),
+>   `predizione_periodo_uso()`; `uso.reset_ts` mostrato nei Limiti.
+> - **Carrello acquisto:** `sito/acquista.html` (nuovo) + endpoint `listino`; `crea` accetta `extra` (JSON) e
+>   `utente_esistente` (upgrade/extra senza accesso 25€); `attiva_ordine` applica piano+extra. Il tasto
+>   "Acquista crediti" della Regia apre `acquista.html?u=<utente>`.
+> - **Report attivabile a parte:** `report_extra` nel record (admin_report); vince sul piano. Voce Report in
+>   Regia grigia se non abilitata.
+> - **Regia riorganizzata:** "La tua casella" (config) spostata dentro **Il mio account** (con i dati utente);
+>   la tile ex-casella è ora **Invia mail** (invio a mano): premere Invia = come Avvia + interruttore
+>   "continua a rispondere dopo l'invio". Tasto **Rispondi mail** sempre visibile con la logica oro.
+>   Sottotitolo "Il tuo piano è …". Via la parola "robottino" dai testi visibili.
+> - **Bug risolti:** testo slot a blocco (niente sovrapposizioni); anteprima a tutto schermo riusa
+>   l'immagine della miniatura; Foto base IA azzerata a Avvia/Finisci. Invio SMTP con ripiego SSL 465.
+> - **Admin:** scheda con provenienza + interruttore Report; sezione "Password d'accesso".
+
 ---
 
 ## 1. Cos'è

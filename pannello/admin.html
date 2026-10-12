@@ -100,6 +100,13 @@
 
       <div class="row" style="justify-content:space-between"><h2 style="margin:22px 0 8px">Archivio operazioni</h2><button class="btn" id="opRefresh" style="align-self:center">Aggiorna</button></div>
       <div id="opBox"><div class="small">—</div></div>
+
+      <h2>Password d'accesso (provenienza)</h2>
+      <div class="card">
+        <div class="small" style="margin-bottom:8px">Crea password da dare sul sito dopo il video: chi si iscrive con quella password riceve l'<b>etichetta</b> nella sua anagrafica (così sai da dove arriva). La password base <b id="accBase">aaa</b> è sempre valida (provenienza "diretto").</div>
+        <div class="row"><input type="text" id="apPw" placeholder="password (es. QQQ)" style="flex:1"><input type="text" id="apEt" placeholder="etichetta (es. gruppo1)" style="flex:1"><button class="btn gold" id="apCrea">Crea</button></div>
+        <div id="apList" style="margin-top:10px"></div>
+      </div>
     </div>
 
     <!-- ===== SCHEDA UTENTE ===== -->
@@ -185,7 +192,7 @@
     call('admin_utenti').then(function(r){
       if(r.code===403 || !(r.data&&r.data.ok)){ mostraLogin(); return; }
       $('adminLogin').classList.add('hidden'); $('adminBody').classList.remove('hidden');
-      UT=r.data.utenti||[]; renderHome(); caricaOrdini(); caricaOperazioni();
+      UT=r.data.utenti||[]; renderHome(); caricaOrdini(); caricaOperazioni(); caricaAccessi();
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   }
   function mostraLogin(){ $('adminBody').classList.add('hidden'); $('adminLogin').classList.remove('hidden'); }
@@ -227,6 +234,21 @@
   }
   function caricaOperazioni(){ call('admin_operazioni').then(function(r){ if(r.data&&r.data.ok) renderOperazioni(r.data.operazioni||[]); }).catch(function(){}); }
 
+  /* ---------- PASSWORD D'ACCESSO (provenienza) ---------- */
+  function renderAccessi(acc, base){
+    if($('accBase') && base) $('accBase').textContent=base;
+    if(!acc || !acc.length){ $('apList').innerHTML='<div class="small">Nessuna password creata (c\'è solo la base).</div>'; return; }
+    $('apList').innerHTML=acc.map(function(a){
+      return '<div class="srow"><b>'+esc(a.password)+'</b><span class="d">→ '+esc(a.etichetta)+'</span>'+
+        '<button class="btn danger" data-del="'+esc(a.password)+'">Elimina</button></div>';
+    }).join('');
+    document.querySelectorAll('#apList [data-del]').forEach(function(b){
+      b.onclick=function(){ if(!confirm('Eliminare la password '+b.getAttribute('data-del')+'?'))return;
+        call('admin_accesso_elimina',{pw_accesso:b.getAttribute('data-del')}).then(function(){ toast('Eliminata','ok'); caricaAccessi(); }); };
+    });
+  }
+  function caricaAccessi(){ call('admin_accessi').then(function(r){ if(r.data&&r.data.ok) renderAccessi(r.data.accessi||[], r.data.base||'aaa'); }).catch(function(){}); }
+
   /* ---------- SCHEDA UTENTE ---------- */
   function openUser(num){
     call('admin_scheda',{numero:num}).then(function(r){
@@ -247,7 +269,8 @@
       '<div class="kv"><span>Nome</span><b>'+(s.nome?esc(s.nome):'—')+'</b></div>'+
       '<div class="kv"><span>Email</span><b>'+(s.email?esc(s.email):'—')+'</b></div>'+
       '<div class="kv"><span>Telefono</span><b>'+(s.tel?esc(s.tel):'—')+'</b></div>'+
-      '<div class="kv"><span>Funzioni</span><b>'+(s.flags.mail?'mail ':'')+(s.flags.foto?'foto IA':'')+((!s.flags.mail&&!s.flags.foto)?'—':'')+'</b></div>';
+      '<div class="kv"><span>Provenienza</span><b>'+(s.fonte?esc(s.fonte):'—')+'</b></div>'+
+      '<div class="kv"><span>Funzioni</span><b>'+(s.flags.mail?'mail ':'')+(s.flags.foto?'foto IA ':'')+(s.report?'report':'')+((!s.flags.mail&&!s.flags.foto&&!s.report)?'—':'')+'</b></div>';
     // piano
     var cr=(s.limiti&&s.limiti.crediti)||{};
     $('dPiano').innerHTML=
@@ -273,6 +296,7 @@
     $('dManage').innerHTML=
       '<div class="row"><label class="chk"><input type="checkbox" id="mFlagMail" '+(s.flags.mail?'checked':'')+'> mail</label>'+
         '<label class="chk"><input type="checkbox" id="mFlagFoto" '+(s.flags.foto?'checked':'')+'> foto IA</label>'+
+        '<label class="chk"><input type="checkbox" id="mReport" '+(s.report?'checked':'')+'> report</label>'+
         '<button class="btn" id="mSalvaFlags">Salva funzioni</button></div>'+
       '<div class="sep"></div>'+
       '<div class="field"><label>Cambia password</label><input type="text" id="mPw" placeholder="nuova password"></div>'+
@@ -296,7 +320,11 @@
 
     function refresh(){ openUser(num); carica(); }
     function done(r,ok){ if(r.data&&r.data.ok){toast(ok,'ok');refresh();caricaOperazioni();}else toast((r.data&&r.data.errore)||'Errore','err'); }
-    $('mSalvaFlags').onclick=function(){ call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0'}).then(function(r){done(r,'Funzioni salvate');}); };
+    $('mSalvaFlags').onclick=function(){
+      call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0'}).then(function(r){
+        call('admin_report',{numero:num,valore:$('mReport').checked?'1':'0'}).then(function(){ done(r,'Funzioni salvate'); });
+      });
+    };
     $('mSalvaPw').onclick=function(){ var v=$('mPw').value.trim(); if(!v){toast('Scrivi la password','err');return;} call('admin_password',{numero:num,pw:v}).then(function(r){done(r,'Password aggiornata');}); };
     $('mAttiva').onclick=function(){ call('admin_attiva',{numero:num,valore:(s.attivo?'0':'1')}).then(function(r){done(r,'Stato aggiornato');}); };
     $('mDel').onclick=function(){ if(!confirm('Eliminare l\'utente '+num+'? I dati restano sul server ma l\'accesso viene rimosso.'))return; call('admin_elimina',{numero:num}).then(function(r){ if(r.data&&r.data.ok){toast('Eliminato','ok');showHome();carica();}else toast('Errore','err'); }); };
@@ -316,6 +344,14 @@
   $('aPass').addEventListener('keydown',function(e){ if(e.key==='Enter') $('aEnter').click(); });
   $('ordRefresh').addEventListener('click', caricaOrdini);
   if($('opRefresh')) $('opRefresh').addEventListener('click', caricaOperazioni);
+  if($('apCrea')) $('apCrea').addEventListener('click', function(){
+    var pw=($('apPw').value||'').trim(), et=($('apEt').value||'').trim();
+    if(!pw||!et){ toast('Scrivi password ed etichetta','err'); return; }
+    call('admin_accesso_crea',{pw_accesso:pw,etichetta:et}).then(function(r){
+      if(r.data&&r.data.ok){ toast('Creata','ok'); $('apPw').value='';$('apEt').value=''; caricaAccessi(); }
+      else toast((r.data&&r.data.errore)||'Errore','err');
+    });
+  });
   $('dBack').addEventListener('click', showHome);
   $('nCrea').addEventListener('click', function(){
     var num=($('nNum').value||'').replace(/[^0-9]/g,'');

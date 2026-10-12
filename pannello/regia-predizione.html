@@ -166,8 +166,8 @@
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
   .thumb .ph{font-family:"Cormorant Garamond",serif;font-size:26px;color:var(--ink-faint);font-weight:600}
   .slot-txt{min-width:0;flex:1}
-  .slot-txt .t{font-weight:700;font-size:14.5px}
-  .slot-txt .s{font-size:12px;color:var(--ink-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .slot-txt .t{display:block;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .slot-txt .s{display:block;font-size:12px;color:var(--ink-dim);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .slot .tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--gold);flex:0 0 auto}
   .slot.filled .tag{color:var(--good)}
   .thumb{cursor:zoom-in}
@@ -331,7 +331,7 @@
       <canvas id="wave" aria-hidden="true"></canvas>
       <p class="kicker">Regia dello spettacolo</p>
       <h1 class="wordmark">Predizione</h1>
-      <p class="subwordmark">Pannello del mentalista</p>
+      <p class="subwordmark" id="planLine">Pannello del mentalista</p>
     </header>
 
     <section class="status" aria-label="Stato del gioco">
@@ -412,9 +412,9 @@
         <div class="tile" data-go="testomail"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h8"/><path d="M15 19l5-5 1.6 1.6-5 5H15z"/></svg></div><div class="tx"><div class="tl">Testo mail</div><div class="ts">oggetto e testo</div></div></div>
         <div class="tile" data-go="invio"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
         <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></svg></div><div class="tx"><div class="tl">Rivelazione IA</div><div class="ts">genera la Foto B</div></div></div>
-        <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg></div><div class="tx"><div class="tl">La tua casella</div><div class="ts" id="tsCasella">—</div></div></div>
+        <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M5 9l7 5 7-5"/></svg></div><div class="tx"><div class="tl">Invia mail</div><div class="ts" id="tsCasella">a pochi indirizzi</div></div></div>
         <div class="tile" data-go="limiti"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div class="tx"><div class="tl">Limiti</div><div class="ts" id="tsLimiti">—</div></div></div>
-        <div class="tile" data-go="report"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">chi apre e scrive</div></div></div>
+        <div class="tile" data-go="report" id="tileReport"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">chi apre e scrive</div></div></div>
         <div class="tile" data-go="assist"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5"/><circle cx="17" cy="9" r="2.6"/><path d="M13.6 19c.4-2.3 1.8-3.4 3.6-3.4s3.2 1.1 3.6 3.4"/></svg></div><div class="tx"><div class="tl">Assistente</div><div class="ts" id="tsAssist">—</div></div></div>
         <div class="tile wide" data-go="account"><div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.6"/><path d="M5 20c0-3.6 3.1-5.6 7-5.6s7 2 7 5.6"/></svg></div><div class="tx"><div class="tl">Il mio account</div><div class="ts" id="tsAccount">piano e limiti</div></div></div>
       </div>
@@ -423,6 +423,13 @@
     <!-- ===== MIO ACCOUNT ===== -->
     <section class="sp" data-sp="account" aria-label="Il mio account">
       <div class="sec-head"><h2 class="sec-title">Il mio account</h2><span class="sec-num" id="accNum">—</span></div>
+
+      <div class="sec-title" style="font-size:11px;margin:4px 0 6px">I tuoi dati</div>
+      <div class="kv"><span>Nome</span><b id="accNome">—</b></div>
+      <div class="kv"><span>Email</span><b id="accEmail">—</b></div>
+      <div class="kv"><span>Telefono</span><b id="accTel">—</b></div>
+
+      <div class="sec-title" style="font-size:11px;margin:14px 0 6px">Piano e limiti</div>
       <div class="kv"><span>Piano</span><b id="accPiano">—</b></div>
       <div class="kv"><span>Accesso valido fino a</span><b id="accAccesso">—</b></div>
       <div class="kv"><span>Abbonamento</span><b id="accScad">—</b></div>
@@ -432,7 +439,17 @@
         <div class="box2 tap" data-hist="sessioni"><b id="accSess">—</b><span>Sessioni / mese</span></div>
         <div class="box2 tap" data-hist="mail"><b id="accCred">—</b><span>Crediti extra</span></div>
       </div>
-      <p class="hint">Tocca una voce per vedere lo <b>storico</b> (quando hai consumato o ricevuto crediti). Per cambiare piano o comprare un'estensione, scrivi a <b>supporto@abraka.it</b>.</p>
+      <p class="hint">Tocca una voce per vedere lo <b>storico</b>.</p>
+
+      <!-- La tua casella (spostata qui dentro) -->
+      <div class="sec-title" style="font-size:11px;margin:16px 0 6px" id="accCasellaHead">La tua casella (per inviare)</div>
+      <div id="accCasellaBox">
+        <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
+        <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
+        <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
+        <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
+        <p class="hint">Collega la <b>tua</b> Gmail: le mail partiranno dal tuo indirizzo. Serve la <b>verifica in due passaggi</b> e una <b>password per app</b> creata su Google (così non dai la password vera).</p>
+      </div>
     </section>
 
     <!-- ===== I MIEI LIMITI (barre a semaforo) ===== -->
@@ -441,6 +458,7 @@
       <div class="lim tap" data-hist="mail"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
+      <p class="hint" id="limReset" style="color:var(--gold);font-weight:700"></p>
       <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
       <button class="btn primary" id="buyBtn" type="button" style="width:100%;margin-top:8px">Acquista crediti / Cambia piano</button>
     </section>
@@ -457,12 +475,7 @@
         <div><div class="t">Tasto "Rispondi mail"</div><div class="s">Dopo Avvia le risposte aspettano: partono quando premi tu</div></div>
         <label class="switch"><input type="checkbox" id="rispManuale"><span class="track"></span><span class="knob"></span></label>
       </div>
-      <p class="hint">Se attivo, dopo <b>Avvia gioco</b> il robottino <b>raccoglie</b> le mail ma <b>non risponde</b>: in Regia compare il tasto <b>“Rispondi mail”</b> (tra Avvia e Cambia). Appena lo premi, risponde a tutte quelle raccolte e poi continua da solo.</p>
-
-      <div class="sec-head" style="margin-top:20px"><h2 class="sec-title">Invia a mano</h2><span class="sec-num">max 10</span></div>
-      <div class="field"><label for="inviaList">Indirizzi (uno per riga)</label><textarea id="inviaList" rows="4" placeholder="mario@gmail.com&#10;giulia@libero.it"></textarea></div>
-      <button class="btn" id="inviaBtn" type="button" style="width:100%">✉️ Invia a tutti</button>
-      <p class="hint" id="inviaMsg">Manda la mail con la <b>foto del gioco</b> a pochi indirizzi, direttamente dalla <b>tua casella</b>. Serve il gioco <b>avviato</b> e la casella impostata.</p>
+      <p class="hint">Se attivo, dopo <b>Avvia gioco</b> il sistema <b>raccoglie</b> le mail ma <b>non risponde</b>: in Regia compare il tasto <b>“Rispondi mail”</b> (tra Avvia e Cambia). Appena lo premi, risponde a tutte quelle raccolte e poi continua da solo.</p>
     </section>
 
     <section class="sp" data-sp="foto" aria-label="Le foto">
@@ -504,14 +517,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       </div>
     </section>
 
-    <!-- Sezione MAIL (visibile solo se l'utente ha la funzione 'mail') -->
-    <section class="sp" data-sp="casella" aria-label="La tua casella" id="secMail">
-      <div class="sec-head"><h2 class="sec-title">La tua casella</h2><span class="sec-num">Gmail</span></div>
-      <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
-      <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
-      <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
-      <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
-      <p class="hint">Collega la <b>tua</b> Gmail: le risposte partiranno dal tuo indirizzo. Serve la <b>verifica in due passaggi</b> attiva e una <b>password per app</b> creata su Google (così non dai la password vera). Adatta ai <b>piccoli eventi</b>.</p>
+    <!-- Sezione INVIA MAIL (ex "La tua casella"): invio a mano con la foto del gioco -->
+    <section class="sp" data-sp="casella" aria-label="Invia mail" id="secMail">
+      <div class="sec-head"><h2 class="sec-title">Invia mail</h2><span class="sec-num">max 10</span></div>
+      <div class="field"><label for="inviaList">Indirizzi (uno per riga)</label><textarea id="inviaList" rows="4" placeholder="mario@gmail.com&#10;giulia@libero.it"></textarea></div>
+      <div class="toggle-row" style="margin:4px 0 10px">
+        <div><div class="t">Continua a rispondere dopo l'invio</div><div class="s">Il sistema resta acceso e risponde a chi scrive dopo</div></div>
+        <label class="switch"><input type="checkbox" id="inviaCont" checked><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <button class="btn gold" id="inviaBtn" type="button" style="width:100%">✉️ Invia mail</button>
+      <p class="hint" id="inviaMsg">Scrivi gli indirizzi e premi <b>Invia mail</b>: è come premere <b>Avvia gioco</b> — se il gioco è spento parte da solo e manda la foto a questi indirizzi dalla <b>tua casella</b>. Serve la casella impostata (in <b>Il mio account</b>).</p>
     </section>
 
     <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
@@ -663,7 +678,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     set('tsAssist', st.assistente_attivo?'collegato':'non collegato');
     var ac=st.account;
     if(ac){
+      // #8 sottotitolo: "Il tuo piano è ..."
+      var pl=$('planLine'); if(pl) pl.textContent='Il tuo piano è '+(ac.piano||'Foyer');
+      // #9 Report: attivo solo se incluso nel piano o attivato dall'admin
+      var trp=$('tileReport'); if(trp) trp.classList.toggle('locked', !ac.report);
       set('accNum', st.utente||'—');
+      set('accNome', ac.nome||'—'); set('accEmail', ac.email||'—'); set('accTel', ac.tel||'—');
       set('accPiano', ac.piano||'Foyer');
       set('accAccesso', fmtData(ac.accesso_scadenza));
       set('accScad', ac.piano_scadenza? ('rinnovo '+fmtData(ac.piano_scadenza)) : 'incluso (Foyer)');
@@ -684,6 +704,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       setBar('limFotoTxt','limFotoBar', uso.foto_ia,  (ac.foto_ia_mese||0)+(crd.foto_ia||0));
       setBar('limSessTxt','limSessBar', uso.sessioni, (ac.sessioni_mese||0)+(crd.sessioni||0));
       set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');
+      // #5 data di ricarica (giorno dell'abbonamento)
+      var lr=$('limReset'); if(lr){ lr.textContent = uso.reset_ts ? ('Si ripristina il '+fmtData(uso.reset_ts)) : ''; }
     }
     // ripristina la casella salvata (email + password per app 16 cifre + mittente)
     var mc=st.mail_cfg;
@@ -706,6 +728,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     // le sezioni interne restano comunque presenti; se la voce e' bloccata non si apre
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
+    // la configurazione casella (ora dentro "Il mio account") solo se hai la funzione mail
+    var cb=$('accCasellaBox'), ch=$('accCasellaHead');
+    if(cb) cb.style.display = FLAGS.mail ? '' : 'none';
+    if(ch) ch.style.display = FLAGS.mail ? '' : 'none';
     if(FLAGS.foto){
       // NB: NON mostriamo più una Foto base "fantasma" salvata sul telefono:
       // la Foto base compare solo se la carichi davvero (lo decide lo stato del server).
@@ -848,12 +874,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
 
-    // #6 tasto "Rispondi mail": compare tra Avvia e Cambia SOLO se l'opzione è
-    // attiva, il gioco è attivo e non si è ancora dato il via libera.
+    // #10 tasto "Rispondi mail": SEMPRE visibile quando l'opzione è attiva (anche a
+    // gioco spento, ma disattivato); si accende a gioco avviato finché non lo premi.
     if(replyBtn){
-      var showReply = !!st.rispondi_manuale && attivo && !st.rispondi_ok;
-      replyBtn.style.display = showReply ? '' : 'none';
-      replyBtn.disabled = !showReply;
+      replyBtn.style.display = st.rispondi_manuale ? '' : 'none';
+      replyBtn.disabled = !(attivo && !st.rispondi_ok);
     }
     // allinea l'interruttore "tasto Rispondi" (se non lo stai toccando)
     var rm=$('rispManuale'); if(rm && document.activeElement!==rm){ rm.checked = !!st.rispondi_manuale; }
@@ -874,10 +899,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     //  - RIEMPITO oro che lampeggia (.blinkgold) = il tasto PREMUTO/attivo in questa fase
     //  - BORDO oro (.nextstep)                    = la prossima azione da premere
     //  - grigio                                   = tutto il resto
-    [startBtn,swapBtn,stopBtn].forEach(function(b){ b.classList.remove('nextstep','curgold','blinkgold'); });
+    [startBtn,replyBtn,swapBtn,stopBtn].forEach(function(b){ if(b) b.classList.remove('nextstep','curgold','blinkgold'); });
+    var manuale = !!st.rispondi_manuale;
     if(fase==='avviato'){
       startBtn.classList.add('blinkgold');          // Avvia (premuto) pieno oro, lampeggia
-      swapBtn.classList.add('nextstep');            // Cambia bordo oro (prossima azione)
+      if(manuale && !st.rispondi_ok && replyBtn){
+        replyBtn.classList.add('nextstep');         // #10 ora tocca "Rispondi mail" (bordo oro)
+      } else {
+        if(manuale && st.rispondi_ok && replyBtn) replyBtn.classList.add('blinkgold'); // premuto
+        swapBtn.classList.add('nextstep');          // poi Cambia (bordo oro)
+      }
     } else if(fase==='cambiato'){
       swapBtn.classList.add('blinkgold');           // Cambia resta pieno oro e lampeggia
       stopBtn.classList.add('nextstep');            // Finisci bordo oro (prossima azione)
@@ -1083,10 +1114,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Inserisci prima la password','err'); rispManuale.checked=!rispManuale.checked; return; }
     comando('rispondi_manuale', {valore: rispManuale.checked?'ON':'OFF'}, rispManuale.checked?'Tasto "Rispondi mail" attivo':'Tasto "Rispondi mail" tolto');
   });
-  // #8 acquista crediti / cambia piano -> mail a supporto
+  // #6 acquista crediti / cambia piano -> pagina carrello, collegata all'utente
   var buyBtn=$('buyBtn');
   if(buyBtn) buyBtn.addEventListener('click', function(){
-    location.href='mailto:supporto@abraka.it?subject='+encodeURIComponent('Crediti / cambio piano - utente '+getUser())+'&body='+encodeURIComponent('Vorrei acquistare crediti o cambiare piano.\n\nUtente: '+getUser()+'\nPiano attuale: '+((cur&&cur.account&&cur.account.piano)||'')+'\n\nDettagli:');
+    // la pagina d'acquisto sta sul sito (radice), il pannello in /predizione/
+    var dir = location.href.split('?')[0].replace(/[^/]*$/, '');       // .../predizione/
+    var root = dir.replace(/predizione\/$/, '');                       // .../ (radice)
+    window.open(root+'acquista.html?u='+encodeURIComponent(getUser()), '_blank');
   });
   // #7 cronologia report (apre la lista delle sessioni)
   var reportHistBtn=$('reportHistBtn');
@@ -1126,17 +1160,33 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if($('histClose')) $('histClose').addEventListener('click', function(){ histBox.classList.remove('open'); });
   if(histBox) histBox.addEventListener('click', function(e){ if(e.target===histBox) histBox.classList.remove('open'); });
   // invio manuale a pochi indirizzi (dalla propria casella)
+  // esegue l'invio vero e proprio (via invia.php)
+  function inviaMailOra(txt){
+    var fd=new FormData(); fd.append('azione','invia'); fd.append('utente',USER); fd.append('password',PW); fd.append('indirizzi',txt);
+    return fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();});
+  }
   var inviaBtn=$('inviaBtn');
   if(inviaBtn) inviaBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
     var txt=($('inviaList').value||'').trim();
     if(!txt){ $('inviaMsg').textContent='Scrivi almeno un indirizzo.'; return; }
+    var continua = $('inviaCont') ? $('inviaCont').checked : true;
     inviaBtn.disabled=true; $('inviaMsg').textContent='Invio in corso…';
-    var fd=new FormData(); fd.append('azione','invia'); fd.append('utente',USER); fd.append('password',PW); fd.append('indirizzi',txt);
-    fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-      inviaBtn.disabled=false;
-      if(d && d.ok){ $('inviaMsg').innerHTML='Inviate <b>'+d.inviate+'</b> / '+d.totali+'.'+(d.errori&&d.errori.length?(' Non riuscite: '+d.errori.length):''); toast('Inviate '+d.inviate+' mail','ok'); }
-      else { $('inviaMsg').textContent=(d&&d.errore)||((d&&d.errori&&d.errori[0])?('Errore: '+d.errori[0].err):'Invio non riuscito'); toast('Invio non riuscito','err'); }
-    }).catch(function(){ inviaBtn.disabled=false; $('inviaMsg').textContent='Server non raggiungibile.'; });
+    // #11 "Invia mail" è come "Avvia gioco": se il gioco è spento, lo avvia prima.
+    var attivoOra = (cur.fase==='avviato' || cur.fase==='cambiato');
+    var prep = attivoOra ? Promise.resolve({data:{ok:true}}) : apiAzione('avvia');
+    prep.then(function(res){
+      if(!attivoOra && !(res.data && res.data.ok)){
+        inviaBtn.disabled=false; $('inviaMsg').textContent=(res.data&&res.data.errore)||'Non riesco ad avviare il gioco (carica Foto A e rivelazione).'; toast('Avvio non riuscito','err'); return;
+      }
+      inviaMailOra(txt).then(function(d){
+        inviaBtn.disabled=false;
+        // dopo l'invio: decido se far continuare la risposta automatica
+        apiAzione('autorisponditore',{valore: continua?'ON':'OFF'});
+        if(d && d.ok){ $('inviaMsg').innerHTML='Inviate <b>'+d.inviate+'</b> / '+d.totali+'.'+(d.errori&&d.errori.length?(' Non riuscite: '+d.errori.length):''); toast('Inviate '+d.inviate+' mail','ok'); poll(); }
+        else { $('inviaMsg').textContent=(d&&d.errore)||((d&&d.errori&&d.errori[0])?('Errore: '+d.errori[0].err):'Invio non riuscito'); toast('Invio non riuscito','err'); }
+      }).catch(function(){ inviaBtn.disabled=false; $('inviaMsg').textContent='Server non raggiungibile.'; });
+    });
   });
 
   // ---- forza (test) ----
@@ -1228,7 +1278,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     });
     // clic sulla miniatura: se c'e' una foto la mostra a tutto schermo, altrimenti apre il caricamento
     thumb.addEventListener('click', function(){
-      if(thumb.getAttribute('data-loaded')==='1'){ openLightbox(slotPreviewUrl(key)); } else { apri(); }
+      if(thumb.getAttribute('data-loaded')==='1'){
+        // riusa l'immagine GIA' caricata nella miniatura (niente nuovo scaricamento)
+        var im=thumb.querySelector('img');
+        openLightbox(im && im.src ? im.src : slotPreviewUrl(key));
+      } else { apri(); }
     });
     // elimina
     if(delBtn) delBtn.addEventListener('click', function(){

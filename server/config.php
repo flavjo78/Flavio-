@@ -247,11 +247,24 @@ function predizione_scrivi_stato(array $stato): bool {
 }
 
 /* ---- Uso del mese (per la pagina "I miei limiti" con le barre) --------- */
-/* Tiene i consumi del mese in corso nello stato; si azzera da solo al cambio mese. */
+/* I limiti si ripristinano nel GIORNO dell'abbonamento (es. attivato il 23 ->
+   si azzerano ogni 23). Il giorno sta in $stato['giorno_rinnovo'] (1..28);
+   se manca, si usa il 1° del mese (vecchio comportamento). */
+function predizione_periodo_uso(int $giorno): array {
+    $giorno = max(1, min(28, $giorno));
+    $y = (int)date('Y'); $m = (int)date('n'); $d = (int)date('j');
+    if ($d >= $giorno) { $sm = $m; $sy = $y; } else { $sm = $m - 1; $sy = $y; if ($sm < 1) { $sm = 12; $sy--; } }
+    $inizio = mktime(0, 0, 0, $sm, $giorno, $sy);
+    $fine   = mktime(0, 0, 0, $sm + 1, $giorno, $sy);   // mktime normalizza il mese 13
+    return ['chiave' => date('Y-m-d', $inizio), 'inizio' => $inizio, 'fine' => $fine];
+}
 function predizione_uso_mese(array &$stato): array {
-    $m = date('Y-m');
-    if (!isset($stato['uso']) || !is_array($stato['uso']) || (($stato['uso']['mese'] ?? '') !== $m)) {
-        $stato['uso'] = ['mese' => $m, 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0];
+    $g = (int)($stato['giorno_rinnovo'] ?? 1);
+    $per = predizione_periodo_uso($g);
+    if (!isset($stato['uso']) || !is_array($stato['uso']) || (($stato['uso']['mese'] ?? '') !== $per['chiave'])) {
+        $stato['uso'] = ['mese' => $per['chiave'], 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0, 'reset_ts' => $per['fine']];
+    } else {
+        $stato['uso']['reset_ts'] = $per['fine'];   // prossima ricarica (per mostrarla nel pannello)
     }
     return $stato['uso'];
 }
@@ -294,6 +307,48 @@ function predizione_operazioni_leggi(int $max = 300): array {
     foreach ($righe as $r) { $d = json_decode($r, true); if (is_array($d)) $out[] = $d; }
     $out = array_reverse($out);                 // dal piu' recente
     return array_slice($out, 0, $max);
+}
+
+/* Azzera la "Foto base" dello strumento IA (file + stato), cosi' la sezione IA
+   riparte pulita a ogni Avvia/Finisci (non resta una foto base "appesa"). */
+function predizione_pulisci_foto_base(array &$stato): void {
+    $base = predizione_data_dir() . '/foto_base';
+    foreach (['jpg', 'jpeg', 'png', 'gif', 'webp'] as $e) {
+        if (is_file($base . '.' . $e)) @unlink($base . '.' . $e);
+    }
+    $stato['foto_base'] = null;
+    $stato['foto_quad'] = null;
+    $stato['foto_gomma'] = null;
+}
+
+/* ---- PASSWORD D'ACCESSO con ETICHETTA di provenienza (marketing) -------- */
+/* Sul sito, dopo aver scelto il gioco, si inserisce una password. Oltre alla
+   base "aaa", l'autore puo' crearne altre, ognuna con un'ETICHETTA (es. gruppo1):
+   chi si iscrive con quella password si porta l'etichetta nell'anagrafica.
+   Archivio in _dati/accessi.json: { "QQQ": {"etichetta":"gruppo1","creato":...}, ... } */
+const PRED_ACCESSO_BASE = 'aaa';   // password base, sempre valida (provenienza "diretto")
+function predizione_accessi_file(): string { return DATA_DIR . '/accessi.json'; }
+function predizione_accessi_leggi(): array {
+    $f = predizione_accessi_file();
+    if (!is_file($f)) return [];
+    $d = json_decode((string)@file_get_contents($f), true);
+    return is_array($d) ? $d : [];
+}
+function predizione_accessi_scrivi(array $a): bool {
+    if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0775, true); }
+    return @file_put_contents(predizione_accessi_file(), json_encode($a, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+}
+/* Verifica una password d'accesso e ritorna l'ETICHETTA (provenienza).
+   Ritorna null se la password non e' valida. "aaa" -> "diretto". */
+function predizione_accesso_etichetta(?string $password): ?string {
+    $p = trim((string)$password);
+    if ($p === '') return null;
+    if (hash_equals(PRED_ACCESSO_BASE, $p)) return 'diretto';
+    $a = predizione_accessi_leggi();
+    foreach ($a as $pw => $info) {
+        if (hash_equals((string)$pw, $p)) return (string)($info['etichetta'] ?? $pw);
+    }
+    return null;
 }
 
 /* Riconosce le mail AUTOMATICHE (no-reply, newsletter, notifiche, bounce):

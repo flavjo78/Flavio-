@@ -130,7 +130,9 @@ function predizione_limiti_utente(array $rec): array {
         'foto_ia_mese'     => (int)$p['foto_ia_mese'],
         'sessioni_mese'    => (int)$p['sessioni_mese'],
         'assistente'       => (bool)$p['assistente'],
-        'report'           => (bool)$p['report'],
+        // Report: incluso nel piano OPPURE attivato a parte dall'admin (report_extra).
+        // Se report_extra e' impostato (true/false), VINCE sul piano (si puo' anche togliere).
+        'report'           => array_key_exists('report_extra', $rec) ? (bool)$rec['report_extra'] : (bool)$p['report'],
         'grandi_invii'     => (bool)$p['grandi_invii'],
         'crediti' => [
             'mail'     => predizione_crediti_disponibili($rec, 'mail'),
@@ -276,18 +278,58 @@ function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): s
    vendita, prepara la mail di benvenuto. Ritorna [utente, password, ricevuta].
    Idempotente: se l'ordine ha gia' un utente, non ne crea un altro.
    ========================================================================= */
+/* Applica gli EXTRA di un ordine (pacchetti mail/foto/sessioni) a un utente. */
+function predizione_applica_extra_ordine(array &$rec, array $extra): void {
+    $cat = predizione_extra();
+    foreach ($extra as $code => $qta) {
+        $qta = max(0, (int)$qta);
+        if ($qta <= 0 || !isset($cat[$code])) continue;
+        $e = $cat[$code];
+        predizione_aggiungi_crediti($rec, $e['tipo'], (int)$e['qta'] * $qta, 0);
+    }
+}
+
+/* Imposta il GIORNO di ricarica (giorno dell'abbonamento) nello stato dell'utente. */
+function predizione_imposta_giorno_rinnovo(string $utente, int $giorno): void {
+    $prev = predizione_utente();
+    predizione_set_utente($utente);
+    $st = predizione_leggi_stato();
+    $st['giorno_rinnovo'] = max(1, min(28, $giorno));
+    predizione_scrivi_stato($st);
+    predizione_set_utente($prev);
+}
+
 function predizione_attiva_ordine(array &$ordine): array {
     $utenti = predizione_utenti_leggi();
+    $piano  = predizione_piano_valido($ordine['piano'] ?? 'Foyer') ?? 'Foyer';
+    $extra  = (isset($ordine['extra']) && is_array($ordine['extra'])) ? $ordine['extra'] : [];
+    $fonte  = (string)($ordine['fonte'] ?? '');
 
-    // gia' attivato?
+    // gia' attivato? (idempotente)
     $u = (string)($ordine['utente'] ?? '');
-    if ($u !== '' && isset($utenti[$u])) {
+    if ($u !== '' && isset($utenti[$u]) && !empty($ordine['attivato'])) {
         return ['utente' => $u, 'password' => null, 'ricevuta' => $ordine['ricevuta'] ?? null, 'nuovo' => false];
     }
 
+    // --- CLIENTE GIA' ESISTENTE (upgrade/extra che si aggiungono al suo account) ---
+    $esistente = (string)($ordine['utente_esistente'] ?? '');
+    if ($esistente !== '' && isset($utenti[$esistente])) {
+        if (($ordine['piano'] ?? '') !== '') predizione_applica_piano($utenti[$esistente], $piano, $ordine['durata'] ?? 'anno', (int)($ordine['quante'] ?? 1));
+        predizione_applica_extra_ordine($utenti[$esistente], $extra);
+        predizione_utenti_scrivi($utenti);
+        $ricNum  = predizione_ricevuta_numero();
+        $ricFile = predizione_ricevuta_scrivi($ordine, $esistente, $ricNum);
+        predizione_vendite_aggiungi(['ordine' => $ordine['id'] ?? '', 'utente' => $esistente, 'nome' => (string)($utenti[$esistente]['nome'] ?? ''),
+            'mail' => $ordine['mail'] ?? '', 'piano' => $piano, 'durata' => $ordine['durata'] ?? 'anno',
+            'importo' => $ordine['importo'] ?? '', 'canale' => $ordine['canale'] ?? '']);
+        $ordine['utente'] = $esistente; $ordine['ricevuta'] = $ricNum; $ordine['ricevuta_file'] = $ricFile;
+        $ordine['stato'] = 'attivato'; $ordine['attivato'] = date('c');
+        return ['utente' => $esistente, 'password' => null, 'ricevuta' => $ricNum, 'ricevuta_file' => $ricFile, 'nuovo' => false, 'upgrade' => true];
+    }
+
+    // --- NUOVO CLIENTE ---
     $u    = predizione_utente_libero_da_email($utenti, (string)($ordine['mail'] ?? ''));
     $pass = predizione_password_casuale();
-    $piano = predizione_piano_valido($ordine['piano'] ?? 'Foyer') ?? 'Foyer';
 
     $rec = [
         'pass'   => $pass,
@@ -298,12 +340,15 @@ function predizione_attiva_ordine(array &$ordine): array {
         'nome'   => trim(($ordine['nome'] ?? '') . ' ' . ($ordine['cognome'] ?? '')),
         'email_comunicazione' => $ordine['mail'] ?? '',
         'telefono' => $ordine['tel'] ?? '',
+        'fonte'  => $fonte,                 // provenienza (etichetta della password usata)
         'creato' => date('c'),
     ];
     predizione_applica_piano($rec, $piano, $ordine['durata'] ?? 'anno', (int)($ordine['quante'] ?? 1));
+    predizione_applica_extra_ordine($rec, $extra);
 
     $utenti[$u] = $rec;
     predizione_utenti_scrivi($utenti);
+    predizione_imposta_giorno_rinnovo($u, (int)date('j'));   // ricarica nel giorno di oggi (attivazione)
 
     // ricevuta + vendita
     $ricNum  = predizione_ricevuta_numero();
