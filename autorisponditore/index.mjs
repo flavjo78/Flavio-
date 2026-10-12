@@ -88,6 +88,22 @@ function testoSicuro(s) {
     .replace(/\r?\n/g, '<br>');
 }
 
+/* riconosce le mail AUTOMATICHE (no-reply, newsletter, notifiche, bounce):
+   NON sono spettatori -> niente conteggio, niente risposta. */
+function mittenteAutomatico(email) {
+  const e = String(email || '').toLowerCase().trim();
+  if (!e) return false;
+  const at = e.indexOf('@');
+  const local = at >= 0 ? e.slice(0, at) : e;
+  const dom = at >= 0 ? e.slice(at + 1) : '';
+  if (/(^|[._+-])(no-?reply|no_reply|do-?not-?reply|donotreply|noreply|mailer-daemon|postmaster|bounce|bounces|notification|notifications|notify|newsletter|news|updates?|mailer|automated|auto-confirm)([._+-]|$)/.test(local)) {
+    return true;
+  }
+  const domini = ['mailgun.com','mailgun.org','sendgrid.net','mailchimp.com','mcsv.net','sparkpostmail.com','amazonses.com','customer.io','sendinblue.com','brevo.com'];
+  for (const d of domini) { if (dom === d || dom.endsWith('.' + d)) return true; }
+  return false;
+}
+
 /* id "pulito" per il destinatario (anti-cache + log lato image.php) */
 function idPulito(email) {
   const base = (email || 'x').replace(/[^A-Za-z0-9_\-]/g, '');
@@ -157,6 +173,11 @@ async function processaCasella(cfg) {
   if (!stato.autorisponditore) {
     return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase };
   }
+  // "TASTO RISPONDI" attivo ma non ancora premuto: le mail restano in casella,
+  // NON le leggiamo (cosi' restano non lette) finche' non arriva il via libera.
+  if (stato.rispondiManuale && !stato.rispondiOk) {
+    return { utente, inAttesaRispondi: true, sessione: stato.sessione, fase: stato.fase };
+  }
   // risponde solo a gioco ATTIVO (avviato = mostra A, cambiato = mostra B)
   const gioco_attivo = stato.sessione > 0 && (stato.fase === 'avviato' || stato.fase === 'cambiato');
 
@@ -200,6 +221,13 @@ async function processaCasella(cfg) {
         // quindi non verra' riletta: niente conteggio, niente risposta.
         if (mittente && selfEmails.includes(mittente.toLowerCase())) {
           console.log('salto auto-mail', utente, '<-', mittente);
+          continue;
+        }
+
+        // SALTA LE MAIL AUTOMATICHE (no-reply, newsletter, notifiche): non sono
+        // spettatori -> niente conteggio, niente risposta (e' gia' \Seen sopra).
+        if (mittente && mittenteAutomatico(mittente)) {
+          console.log('salto mail automatica', utente, '<-', mittente);
           continue;
         }
 
@@ -297,6 +325,8 @@ export const handler = async () => {
           sessione: Number(stato.sessione || 0),
           fase: String(stato.fase || 'spento'),
           autorisponditore: stato.autorisponditore === true,
+          rispondiManuale: stato.rispondi_manuale === true,
+          rispondiOk:      stato.rispondi_ok === true,
           oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
           intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
           avvioMs: Number(stato.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
@@ -322,6 +352,8 @@ export const handler = async () => {
           sessione: Number(c.sessione || 0),
           fase: String(c.fase || 'spento'),
           autorisponditore: c.autorisponditore === true,
+          rispondiManuale: c.rispondi_manuale === true,
+          rispondiOk:      c.rispondi_ok === true,
           oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
           intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
           avvioMs: Number(c.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente

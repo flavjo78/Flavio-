@@ -253,6 +253,37 @@ function predizione_uso_incr(array &$stato, string $tipo, int $n = 1): void {
     if (array_key_exists($tipo, $stato['uso'])) {
         $stato['uso'][$tipo] = (int)$stato['uso'][$tipo] + $n;
     }
+    // registra il movimento nello storico (consumo = segno meno)
+    predizione_movimento($stato, $tipo, -abs($n), 'uso');
+}
+
+/* ---- Storico movimenti (per "Mio account": estratto conto per voce) ----- */
+/* Ogni riga: {ts, tipo (mail|foto_ia|sessioni), delta (+/-), nota}.
+   delta negativo = consumo; positivo = crediti aggiunti o rinnovo piano. */
+function predizione_movimento(array &$stato, string $tipo, int $delta, string $nota = ''): void {
+    if ($delta === 0) return;
+    if (!isset($stato['movimenti']) || !is_array($stato['movimenti'])) $stato['movimenti'] = [];
+    $stato['movimenti'][] = ['ts' => time(), 'tipo' => $tipo, 'delta' => $delta, 'nota' => $nota];
+    if (count($stato['movimenti']) > 400) {
+        $stato['movimenti'] = array_slice($stato['movimenti'], -400);
+    }
+}
+
+/* Riconosce le mail AUTOMATICHE (no-reply, newsletter, notifiche, bounce):
+   NON sono spettatori, quindi non vanno contate ne' ricevono risposta. */
+function predizione_mitt_automatico(string $email): bool {
+    $email = strtolower(trim($email));
+    if ($email === '') return false;
+    $at = strpos($email, '@');
+    $local = $at !== false ? substr($email, 0, $at) : $email;
+    $dom   = $at !== false ? substr($email, $at + 1) : '';
+    if (preg_match('/(^|[._+-])(no-?reply|no_reply|do-?not-?reply|donotreply|noreply|mailer-daemon|postmaster|bounce|bounces|notification|notifications|notify|newsletter|news|updates?|mailer|automated|auto-confirm)([._+-]|$)/', $local)) {
+        return true;
+    }
+    foreach (['mailgun.com','mailgun.org','sendgrid.net','mailchimp.com','mcsv.net','sparkpostmail.com','amazonses.com','customer.io','sendinblue.com','brevo.com'] as $d) {
+        if ($dom === $d || substr($dom, -(strlen($d) + 1)) === '.' . $d) return true;
+    }
+    return false;
 }
 
 function predizione_sessione_corrente(array $stato): ?array {

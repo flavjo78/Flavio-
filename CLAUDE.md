@@ -23,6 +23,24 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 12 ottobre 2026 (AGG 12)
+> - **Mail automatiche ignorate.** La Lambda e il report scartano i mittenti automatici
+>   (`no-reply@`, `updates@`, newsletter, notifiche, domini ESP): non contano né ricevono
+>   risposta (helper `predizione_mitt_automatico` in config.php e `mittenteAutomatico` nella Lambda).
+> - **Palco bloccato per chi non ce l'ha.** Il tasto Palco è selezionabile solo se il piano ha
+>   `grandi_invii` (`stato_pubblico.palco_abilitato`); l'azione `invio` lo rifiuta lato server.
+>   In Impostazioni le voci non attive restano VISIBILI ma in grigio (classe `.locked`), non nascoste.
+> - **Tasto "Rispondi mail" (invio manuale).** Interruttore `rispondi_manuale` (azione stato.php):
+>   se ON, dopo "Avvia" la Lambda NON risponde finché non si preme "Rispondi mail" in Regia
+>   (azione `rispondi` → `rispondi_ok`, azzerato a ogni avvio). Vale anche nell'assistente.
+> - **Mio account: storico movimenti.** Ogni consumo/accredito va in `stato['movimenti']`
+>   (`predizione_movimento`); toccando una voce in Regia si apre l'estratto conto (azione `movimenti`).
+> - **Report:** mostra TUTTI gli orari di apertura (non solo il primo) e ha la **cronologia**
+>   (report.php?lista=1) con l'elenco delle sessioni passate; i link sono assoluti (aperto da blob).
+> - **Foto:** miniatura VUOTA = X rossa; la foto IA generata diventa subito Foto B anche nella sua
+>   miniatura; "Carica" su Foto B offre "da file" o "con IA"; occhio accanto a Cambia → Impostazioni/Foto;
+>   orologio conto alla rovescia 30s (antiorario) durante la generazione IA; pop-up orario in oro/scuro.
+
 ---
 
 ## 1. Cos'è

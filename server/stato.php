@@ -114,6 +114,9 @@ function predizione_stato_pubblico(array $s): array {
         'assistente_attivo' => !empty($s['assistente_token']),  // c'e' un link assistente attivo?
         'account'        => predizione_account_pubblico(predizione_utente()),  // piano e limiti (Mio account)
         'uso'            => predizione_uso_mese($s),  // consumi del mese (pagina Limiti con le barre)
+        'palco_abilitato'  => !empty(predizione_limiti_utente(predizione_utente_record(predizione_utente()) ?: [])['grandi_invii']),
+        'rispondi_manuale' => !empty($s['rispondi_manuale']),   // "tasto Rispondi" attivo?
+        'rispondi_ok'      => !empty($s['rispondi_ok']),        // via libera gia' dato in questa sessione?
     ];
 }
 
@@ -244,6 +247,13 @@ function predizione_admin(string $azione): void {
             }
             predizione_aggiungi_crediti($utenti[$num], $tipo, $qta, $scad);
             predizione_utenti_scrivi($utenti);
+            // registra l'accredito nello storico dell'utente (per "Mio account")
+            $prevU = predizione_utente();
+            predizione_set_utente($num);
+            $stMov = predizione_leggi_stato();
+            predizione_movimento($stMov, $tipo, +abs($qta), 'crediti');
+            predizione_scrivi_stato($stMov);
+            predizione_set_utente($prevU);
             predizione_json(['ok' => true]);
 
         case 'admin_crea':
@@ -330,6 +340,8 @@ function predizione_admin(string $azione): void {
                     'fase'             => $sess['fase'] ?? 'spento',
                     'avvio_ts'         => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : 0,
                     'autorisponditore' => !empty($st['autorisponditore']),
+                    'rispondi_manuale' => !empty($st['rispondi_manuale']),
+                    'rispondi_ok'      => !empty($st['rispondi_ok']),
                     'mail_oggetto'     => (string)($st['mail_oggetto'] ?? ''),
                     'mail_testo'       => (string)($st['mail_testo'] ?? ''),
                 ];
@@ -395,7 +407,7 @@ if ($azione === 'stato') {
 
 /* ---- da qui serve l'accesso: password dell'utente OPPURE, per i soli
        comandi del gioco, un valido lasciapassare "Assistente di scena" ---- */
-$AZIONI_ASSISTENTE = ['avvia', 'cambia', 'finisci'];
+$AZIONI_ASSISTENTE = ['avvia', 'cambia', 'finisci', 'rispondi'];
 $assistTok = p('assistente');
 $accessoOk = predizione_auth($utente, $password)
     || (in_array($azione, $AZIONI_ASSISTENTE, true) && predizione_assistente_valido($stato, $assistTok));
@@ -454,6 +466,9 @@ switch ($azione) {
         }
         // l'autorisponditore si ACCENDE da solo all'avvio (non c'e' piu' un tasto nel pannello)
         $stato['autorisponditore'] = true;
+        // se e' attivo il "tasto Rispondi" (invio manuale), le risposte restano IN ATTESA
+        // finche' il performer non preme "Rispondi mail": azzero il via-libera a ogni avvio.
+        $stato['rispondi_ok'] = false;
         // azzera i conteggi mail della nuova sessione
         $stato['mail_ricevute'] = 0;
         $stato['mail_inviate']  = 0;
@@ -540,10 +555,44 @@ switch ($azione) {
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     case 'invio':
-        // modo di invio: 'casella' (SMTP Tophost) | 'brevo' (SMTP Brevo) | 'ses' (Amazon)
-        $stato['invio_modo'] = predizione_invio_modo(p('valore'));
+        // modo di invio: 'casella' (SMTP Tophost) | 'brevo'/'grande' (Palco) | 'ses' (Amazon)
+        $modoRichiesto = predizione_invio_modo(p('valore'));
+        // "Palco" (canale grande) e' permesso solo a chi ha l'estensione nel piano
+        if ($modoRichiesto !== 'casella') {
+            $limU = predizione_limiti_utente(predizione_utente_record($utente) ?: []);
+            if (empty($limU['grandi_invii'])) {
+                predizione_json(['ok' => false, 'errore' => 'Palco non attivo per il tuo piano'], 403);
+            }
+        }
+        $stato['invio_modo'] = $modoRichiesto;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'rispondi_manuale':
+        // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte
+        // restano in attesa finche' non si preme "Rispondi mail". Solo il performer.
+        $valore = strtoupper((string)p('valore'));
+        $stato['rispondi_manuale'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'rispondi':
+        // VIA LIBERA alle risposte: da ora il robottino risponde alle mail raccolte
+        // (serve solo quando "rispondi_manuale" e' attivo). Password o assistente.
+        $stato['rispondi_ok'] = true;
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'movimenti':
+        // storico dei consumi/accrediti (per "Mio account"): elenco {ts,tipo,delta,nota}
+        $tipoF = strtolower((string)(p('tipo') ?? ''));
+        $mv = is_array($stato['movimenti'] ?? null) ? $stato['movimenti'] : [];
+        if ($tipoF !== '' && in_array($tipoF, ['mail','foto_ia','sessioni'], true)) {
+            $mv = array_values(array_filter($mv, function ($r) use ($tipoF) { return ($r['tipo'] ?? '') === $tipoF; }));
+        }
+        // dal piu' recente al piu' vecchio, massimo 200 righe
+        $mv = array_slice(array_reverse($mv), 0, 200);
+        predizione_json(['ok' => true, 'movimenti' => $mv]);
 
     case 'messaggio':
         // oggetto e testo personalizzati della mail automatica (usati dalla Lambda)

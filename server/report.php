@@ -32,6 +32,58 @@ if (!$okAdmin && !predizione_auth($utente, is_string($password) ? $password : nu
 }
 
 $stato = predizione_leggi_stato();
+
+/* query di accesso da riusare nei link (cronologia -> singolo report) */
+if ($okAdmin) {
+    $authQ = 'au=' . rawurlencode($adminU) . '&ap=' . rawurlencode((string)$adminPw) . '&u=' . rawurlencode($utente);
+} else {
+    $authQ = 'u=' . rawurlencode($utente) . '&password=' . rawurlencode((string)$password);
+}
+/* URL assoluto a questo stesso script: i link devono funzionare anche quando la
+   pagina e' aperta da un blob (il pannello la mostra cosi'), non solo da GET. */
+$scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+$selfHost = $_SERVER['HTTP_HOST'] ?? 'www.abraka.it';
+$selfPath = $_SERVER['SCRIPT_NAME'] ?? '/predizione/report.php';
+$base = $scheme . '://' . $selfHost . $selfPath;
+
+/* --- CRONOLOGIA: elenco di tutte le sessioni con link al loro report ------ */
+if (p('lista') !== null) {
+    $sess = is_array($stato['sessioni'] ?? null) ? $stato['sessioni'] : [];
+    krsort($sess, SORT_NUMERIC);   // dalla piu' recente
+    $faseLbl = ['spento'=>'spento','avviato'=>'in corso','cambiato'=>'rivelato','terminato'=>'terminata'];
+    header('Content-Type: text/html; charset=utf-8');
+    header('Cache-Control: no-store');
+    ?><!doctype html><html lang="it"><head><meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Cronologia report — Predizione</title>
+    <style>
+      :root{--gold:#b8863b;--ink:#20242e;--dim:#6b7280;--line:#e5e7eb;--soft:#faf8f4}
+      *{box-sizing:border-box} body{margin:0;background:#fff;color:var(--ink);font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif;font-size:15px;line-height:1.5}
+      .wrap{max-width:720px;margin:0 auto;padding:26px 18px 60px}
+      h1{font-family:Georgia,serif;font-weight:600;font-size:24px;margin:0 0 2px}
+      .sub{color:var(--dim);margin:0 0 18px}
+      a.row{display:flex;justify-content:space-between;align-items:center;gap:12px;text-decoration:none;color:inherit;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+      a.row:active{transform:scale(.99)}
+      .n{font-weight:700;font-size:16px}
+      .meta{color:var(--dim);font-size:13px}
+      .go{color:var(--gold);font-weight:700}
+      .empty{color:var(--dim);font-style:italic;padding:14px 0}
+    </style></head><body><div class="wrap">
+      <h1>Cronologia report</h1>
+      <div class="sub">Utente <?= h($utente) ?> · tocca una sessione per aprirne il report</div>
+      <?php if (!$sess): ?><div class="empty">Nessuna sessione ancora registrata.</div>
+      <?php else: foreach ($sess as $sn => $sv):
+          $ts = !empty($sv['avvio_ts']) ? date('d/m/Y H:i', (int)$sv['avvio_ts']) : '—';
+          $fl = $faseLbl[$sv['fase'] ?? ''] ?? ($sv['fase'] ?? ''); ?>
+        <a class="row" href="<?= h($base) ?>?<?= $authQ ?>&s=<?= (int)$sn ?>">
+          <span><span class="n">Sessione #<?= (int)$sn ?></span><br><span class="meta"><?= h($ts) ?> · <?= h($fl) ?></span></span>
+          <span class="go">Apri ›</span>
+        </a>
+      <?php endforeach; endif; ?>
+    </div></body></html><?php
+    exit;
+}
+
 $sid = ctype_digit((string)p('s')) ? (int)p('s') : (int)($stato['sessione_corrente'] ?? 0);
 
 /* --- mittenti (dal log delle mail in arrivo) ----------------------------- */
@@ -41,6 +93,8 @@ if (is_file($mfile)) {
     foreach (file($mfile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
         $r = json_decode($line, true);
         if (!is_array($r)) continue;
+        // salta le mail AUTOMATICHE (no-reply, newsletter, notifiche): non sono spettatori
+        if (predizione_mitt_automatico((string)($r['mittente'] ?? ''))) continue;
         $id = (string)($r['id'] ?? '');
         $key = $id !== '' ? $id : ('m' . count($mitt));
         $mitt[$key] = $r;
@@ -60,8 +114,9 @@ if (is_file($lf)) {
             $id = (string)($c[2] ?? '');
             $lbl = strtoupper(substr((string)($c[3] ?? ''), 0, 1));
             $key = $id !== '' ? $id : ('a' . count($ap));
-            if (!isset($ap[$key])) $ap[$key] = ['first' => $c[0] ?? '', 'labels' => [], 'ua' => $c[5] ?? '', 'ip' => $c[4] ?? '', 'n' => 0];
+            if (!isset($ap[$key])) $ap[$key] = ['first' => $c[0] ?? '', 'labels' => [], 'ua' => $c[5] ?? '', 'ip' => $c[4] ?? '', 'n' => 0, 'times' => []];
             $ap[$key]['n']++;
+            $ap[$key]['times'][] = (string)($c[0] ?? '');   // TUTTI gli orari di apertura, non solo il primo
             if ($lbl === 'A' || $lbl === 'B') $ap[$key]['labels'][$lbl] = true;
             // prima apertura = la più antica (le righe sono in ordine cronologico, tengo la prima)
         }
@@ -134,19 +189,21 @@ header('Cache-Control: no-store');
 
   <div class="btns">
     <button onclick="window.print()">Stampa / Salva PDF</button>
+    <button onclick="location.href='<?= h($base) ?>?<?= $authQ ?>&lista=1'">Cronologia report</button>
   </div>
 
   <h2>Riepilogo per destinatario</h2>
   <?php if (!$ids): ?><div class="empty">Nessun dato per questa sessione.</div><?php else: ?>
   <table>
-    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>1ª apertura</th><th>Foto vista</th><th>Dispositivo</th><th>Aperture</th></tr></thead>
+    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>Aperture (tutti gli orari)</th><th>Foto vista</th><th>Dispositivo</th><th>N.</th></tr></thead>
     <tbody>
     <?php foreach ($ids as $id):
-        $m = $mitt[$id] ?? null; $a = $ap[$id] ?? null; ?>
+        $m = $mitt[$id] ?? null; $a = $ap[$id] ?? null;
+        $orari = ($a && !empty($a['times'])) ? $a['times'] : []; ?>
       <tr>
         <td><?= h($m['mittente'] ?? '—') ?></td>
         <td class="mono"><?= h($m['ora'] ?? '—') ?></td>
-        <td class="mono"><?= h($a['first'] ?? '—') ?></td>
+        <td class="mono"><?php if ($orari): foreach ($orari as $i => $t): ?><?= ($i === 0 ? '' : '<br>') . h($t) ?><?php endforeach; else: ?>—<?php endif; ?></td>
         <td><?= $a ? h(fotoVista($a['labels'])) : '—' ?></td>
         <td><?= $a ? h(dispositivo($a['ua'])) : '—' ?></td>
         <td><?= $a ? (int)$a['n'] : 0 ?></td>

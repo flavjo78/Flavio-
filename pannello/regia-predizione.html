@@ -214,6 +214,52 @@
 
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.settings{transition:none!important}}
 
+  /* ---- elementi BLOCCATI (funzione non attiva nel piano): grigio chiaro, non oro ---- */
+  .locked{opacity:.55;filter:grayscale(1)}
+  .tile.locked{background:var(--surface-2);border-color:var(--line);box-shadow:none}
+  .tile.locked .ic svg{stroke:var(--ink-faint)}
+  .tile.locked .tl{color:var(--ink-dim)}
+  .tile.locked .ts{color:var(--ink-faint)}
+  .btn.locked{background:var(--surface-2)!important;border-color:var(--line)!important;color:var(--ink-faint)!important}
+  .lock-badge{font-size:9.5px;font-weight:700;color:var(--ink-faint);letter-spacing:.05em;text-transform:uppercase;display:block;margin-top:2px}
+
+  /* ---- miniatura foto VUOTA: X rossa ---- */
+  .thumb .ph.none{color:var(--stop);font-weight:800}
+
+  /* ---- voci toccabili (storico) ---- */
+  .box2.tap,.lim.tap{cursor:pointer}
+  .box2.tap:active,.lim.tap:active{transform:scale(.98)}
+
+  /* ---- storico movimenti (modale) ---- */
+  .hist{position:fixed;inset:0;z-index:90;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+  .hist.open{display:flex}
+  .hist-card{width:100%;max-width:460px;background:var(--surface);border:1px solid var(--line-2);border-radius:18px 18px 0 0;max-height:80vh;display:flex;flex-direction:column}
+  .hist-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .hist-head b{font-family:"Cormorant Garamond",Georgia,serif;font-size:20px}
+  .hist-head button{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer;line-height:1}
+  .hist-list{overflow:auto;padding:8px 18px 22px}
+  .hist-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+  .hist-row .d{font-size:13px;color:var(--ink-dim)}
+  .hist-row .q{font-size:15px;font-weight:800}
+  .hist-row .q.plus{color:var(--good)} .hist-row .q.minus{color:var(--stop)}
+  .hist-empty{color:var(--ink-faint);font-style:italic;padding:20px 0;text-align:center}
+
+  /* ---- orologio conto alla rovescia IA (30s) ---- */
+  .iaclock{position:fixed;inset:0;z-index:95;background:rgba(6,5,5,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center}
+  .iaclock.open{display:flex}
+  .iac-card{position:relative;width:200px;height:200px;display:grid;place-items:center;opacity:.92}
+  .iac-face{position:absolute;inset:0;width:100%;height:100%}
+  .iac-ring{fill:rgba(27,23,18,.5);stroke:var(--line-2);stroke-width:2}
+  .iac-prog{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:0;transform:rotate(-90deg);transform-origin:50% 50%}
+  .iac-hand{stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;transform-origin:50px 50px}
+  .iac-pin{fill:var(--gold)}
+  .iac-num{position:relative;font-family:"Cormorant Garamond",Georgia,serif;font-size:56px;font-weight:600;color:var(--ink);line-height:1}
+  .iac-lbl{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  @keyframes iacSpin{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+  @keyframes iacWipe{from{stroke-dashoffset:0}to{stroke-dashoffset:283}}
+  .iaclock.open .iac-hand{animation:iacSpin 30s linear forwards}
+  .iaclock.open .iac-prog{animation:iacWipe 30s linear forwards}
+
   /* ---- Menu impostazioni a quadrati oro (come la home) ---- */
   .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
   .tile{background:var(--gold-soft);border:1px solid var(--gold);border-radius:16px;padding:16px 10px;text-align:center;cursor:pointer;
@@ -337,7 +383,11 @@
 
       <div class="game-btns">
         <button class="btn ghost" id="startBtn">Avvia gioco</button>
-        <button class="btn ghost" id="swapBtn" disabled>Cambia (rivela)</button>
+        <button class="btn ghost" id="replyBtn" style="display:none">✉️ Rispondi mail</button>
+        <div style="display:flex;gap:10px">
+          <button class="btn ghost" id="swapBtn" disabled style="flex:1">Cambia (rivela)</button>
+          <button class="btn ghost" id="eyeBtn" type="button" title="Vedi Foto A e B" style="flex:0 0 54px;font-size:20px;padding:0">👁</button>
+        </div>
         <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
       </div>
     </section>
@@ -377,21 +427,22 @@
       <div class="kv"><span>Accesso valido fino a</span><b id="accAccesso">—</b></div>
       <div class="kv"><span>Abbonamento</span><b id="accScad">—</b></div>
       <div class="boxes2">
-        <div class="box2"><b id="accMail">—</b><span>Mail / mese</span></div>
-        <div class="box2"><b id="accFoto">—</b><span>Foto IA / mese</span></div>
-        <div class="box2"><b id="accSess">—</b><span>Sessioni / mese</span></div>
-        <div class="box2"><b id="accCred">—</b><span>Crediti extra</span></div>
+        <div class="box2 tap" data-hist="mail"><b id="accMail">—</b><span>Mail / mese</span></div>
+        <div class="box2 tap" data-hist="foto_ia"><b id="accFoto">—</b><span>Foto IA / mese</span></div>
+        <div class="box2 tap" data-hist="sessioni"><b id="accSess">—</b><span>Sessioni / mese</span></div>
+        <div class="box2 tap" data-hist="mail"><b id="accCred">—</b><span>Crediti extra</span></div>
       </div>
-      <p class="hint">Vedi <b>solo le tue cose</b>. Per cambiare piano o comprare un'estensione, scrivi a <b>supporto@abraka.it</b>.</p>
+      <p class="hint">Tocca una voce per vedere lo <b>storico</b> (quando hai consumato o ricevuto crediti). Per cambiare piano o comprare un'estensione, scrivi a <b>supporto@abraka.it</b>.</p>
     </section>
 
     <!-- ===== I MIEI LIMITI (barre a semaforo) ===== -->
     <section class="sp" data-sp="limiti" aria-label="I miei limiti">
       <div class="sec-head"><h2 class="sec-title">I miei limiti</h2><span class="sec-num" id="limPiano">—</span></div>
-      <div class="lim"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
-      <div class="lim"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
-      <div class="lim"><div class="top"><span>Sessioni</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
-      <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite.</p>
+      <div class="lim tap" data-hist="mail"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
+      <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
+      <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
+      <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
+      <button class="btn primary" id="buyBtn" type="button" style="width:100%;margin-top:8px">Acquista crediti / Cambia piano</button>
     </section>
 
     <section class="sp" data-sp="invio" aria-label="Modo di invio">
@@ -400,7 +451,13 @@
         <button class="btn ghost" id="modoCasella" type="button">Casella</button>
         <button class="btn ghost" id="modoBig" type="button">Palco</button>
       </div>
-      <p class="hint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato per <b>eventi grandi</b> (centinaia).</p>
+      <p class="hint" id="modoHint"><b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato per <b>eventi grandi</b> (centinaia).</p>
+
+      <div class="toggle-row" style="margin-top:16px">
+        <div><div class="t">Tasto "Rispondi mail"</div><div class="s">Dopo Avvia le risposte aspettano: partono quando premi tu</div></div>
+        <label class="switch"><input type="checkbox" id="rispManuale"><span class="track"></span><span class="knob"></span></label>
+      </div>
+      <p class="hint">Se attivo, dopo <b>Avvia gioco</b> il robottino <b>raccoglie</b> le mail ma <b>non risponde</b>: in Regia compare il tasto <b>“Rispondi mail”</b> (tra Avvia e Cambia). Appena lo premi, risponde a tutte quelle raccolte e poi continua da solo.</p>
 
       <div class="sec-head" style="margin-top:20px"><h2 class="sec-title">Invia a mano</h2><span class="sec-num">max 10</span></div>
       <div class="field"><label for="inviaList">Indirizzi (uno per riga)</label><textarea id="inviaList" rows="4" placeholder="mario@gmail.com&#10;giulia@libero.it"></textarea></div>
@@ -413,7 +470,7 @@
 
       <div class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb" id="thumbA" title="Vedi la foto"><span class="ph">A</span></span>
+        <span class="thumb" id="thumbA" title="Vedi la foto"><span class="ph none">✕</span></span>
         <span class="slot-txt"><span class="t">Foto A · neutra</span><span class="s">di attesa · resta in memoria</span></span>
         <button class="slotbtn" type="button" data-cambia>Carica</button>
         <button class="slotx" type="button" data-del title="Elimina">&times;</button>
@@ -421,7 +478,7 @@
 
       <div class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb" id="thumbB" title="Vedi la foto"><span class="ph">R</span></span>
+        <span class="thumb" id="thumbB" title="Vedi la foto"><span class="ph none">✕</span></span>
         <span class="slot-txt"><span class="t">Rivelazione</span><span class="s">diversa ogni sessione · da caricare</span></span>
         <button class="slotbtn" type="button" data-cambia>Carica</button>
         <button class="slotx" type="button" data-del title="Elimina">&times;</button>
@@ -430,7 +487,7 @@
 
       <div class="field">
         <label for="swtime">Orario di sicurezza (facoltativo)</label>
-        <input type="time" id="swtime">
+        <input type="time" id="swtime" style="color-scheme:dark;accent-color:var(--gold)">
       </div>
       <p class="hint">Rete di sicurezza: se a quest'ora <b>non</b> hai ancora premuto "Finisci gioco", lo scambio A→B scatta da solo. Di solito coincide con la fine dello spettacolo. Lascia vuoto per comandare solo a mano.</p>
     </section>
@@ -462,7 +519,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <div class="sec-head"><h2 class="sec-title">Rivelazione con IA</h2><span class="sec-num">Foto B</span></div>
       <div class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
-        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph">F</span></span>
+        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph none">✕</span></span>
         <span class="slot-txt"><span class="t">Foto base</span><span class="s">tu col foglio bianco in mano</span></span>
         <button class="slotbtn" type="button" data-cambia>Carica</button>
         <button class="slotx" type="button" data-del title="Elimina">&times;</button>
@@ -499,7 +556,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     <section class="sp" data-sp="report" aria-label="Report della sessione">
       <div class="sec-head"><h2 class="sec-title">Report</h2><span class="sec-num">Sessione</span></div>
       <button class="btn" id="reportBtn" type="button" style="width:100%">📄 Apri il report della sessione</button>
-      <p class="hint">Chi ti ha scritto (<b>indirizzo</b>, oggetto, testo) e chi ha <b>aperto per primo</b>. Si apre in una nuova pagina da stampare o salvare in PDF.</p>
+      <button class="btn ghost" id="reportHistBtn" type="button" style="width:100%;margin-top:8px">🕑 Cronologia report</button>
+      <p class="hint">Chi ti ha scritto (<b>indirizzo</b>, oggetto, testo) e <b>tutti</b> gli orari di apertura. La <b>cronologia</b> elenca le sessioni passate. Si apre in una nuova pagina da stampare o salvare in PDF.</p>
       <button class="btn ghost" id="wipeBtn" type="button" style="width:100%;margin-top:10px">Cancella i dati del report</button>
       <p class="hint">Cancella gli <b>indirizzi</b> e i <b>messaggi</b> salvati. Fallo quando non ti serve più, per rispetto della privacy degli spettatori.</p>
     </section>
@@ -526,6 +584,40 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   <div class="lightbox" id="lightbox">
     <button class="lb-back" id="lbBack" type="button">← Indietro</button>
     <img id="lbImg" alt="anteprima a tutto schermo">
+  </div>
+
+  <!-- orologio del conto alla rovescia IA (30s, lancetta antioraria) -->
+  <div class="iaclock" id="iaClock" aria-hidden="true">
+    <div class="iac-card">
+      <svg viewBox="0 0 100 100" class="iac-face">
+        <circle cx="50" cy="50" r="45" class="iac-ring"/>
+        <circle cx="50" cy="50" r="45" class="iac-prog" id="iacProg"/>
+        <line x1="50" y1="50" x2="50" y2="12" class="iac-hand" id="iacHand"/>
+        <circle cx="50" cy="50" r="3.2" class="iac-pin"/>
+      </svg>
+      <div class="iac-num" id="iacNum">30</div>
+      <div class="iac-lbl">creo la rivelazione…</div>
+    </div>
+  </div>
+
+  <!-- scelta come caricare la Foto B: da file oppure con l'IA -->
+  <div class="hist" id="bChoose" role="dialog" aria-label="Carica Foto B">
+    <div class="hist-card">
+      <div class="hist-head"><b>Rivelazione (Foto B)</b><button id="bChooseClose" type="button" aria-label="Chiudi">&times;</button></div>
+      <div style="padding:16px 18px 22px">
+        <button class="btn primary" id="bFromFile" type="button" style="width:100%">📁 Carica da file</button>
+        <button class="btn" id="bFromIa" type="button" style="width:100%;margin-top:10px">✨ Crea con IA</button>
+        <p class="hint" style="margin-top:10px">Scegli una foto dal telefono, oppure fai scrivere all'IA la frase a mano sul foglio.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- storico dei movimenti (estratto conto per voce) -->
+  <div class="hist" id="histBox" role="dialog" aria-label="Storico">
+    <div class="hist-card">
+      <div class="hist-head"><b id="histTitle">Storico</b><button id="histClose" type="button" aria-label="Chiudi">&times;</button></div>
+      <div id="histList" class="hist-list"></div>
+    </div>
   </div>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -608,8 +700,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(loginUser){ loginUser.value = USER; }
   if(loginPw){ loginPw.value = PW; }
   function applyFlags(){
-    var tc=$('tileCasella'); if(tc) tc.style.display = FLAGS.mail ? '' : 'none';
-    var ti=$('tileIa');      if(ti) ti.style.display = FLAGS.foto ? '' : 'none';
+    // le voci NON attive restano VISIBILI ma in grigio (locked), non nascoste
+    var tc=$('tileCasella'); if(tc){ tc.style.display=''; tc.classList.toggle('locked', !FLAGS.mail); }
+    var ti=$('tileIa');      if(ti){ ti.style.display=''; ti.classList.toggle('locked', !FLAGS.foto); }
+    // le sezioni interne restano comunque presenti; se la voce e' bloccata non si apre
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
     if(FLAGS.foto){
@@ -690,7 +784,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // ---- elementi UI ----
   var elCount=$('count'), elWrap=$('counterWrap'), elPill=$('statePill'), elLbl=$('stateLbl'),
-      startBtn=$('startBtn'), swapBtn=$('swapBtn'), stopBtn=$('stopBtn'),
+      startBtn=$('startBtn'), swapBtn=$('swapBtn'), stopBtn=$('stopBtn'), replyBtn=$('replyBtn'),
       phaseLine=$('phaseLine'), sessNum=$('sessNum'), chipTime=$('chipTime'),
       chipA=$('chipA'), chipB=$('chipB'), chipConn=$('chipConn'), connLbl=$('connLbl'),
       footHost=$('footHost');
@@ -752,6 +846,28 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     startBtn.disabled = attivo;                 // si avvia solo se non c'è già un gioco attivo
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
+
+    // #6 tasto "Rispondi mail": compare tra Avvia e Cambia SOLO se l'opzione è
+    // attiva, il gioco è attivo e non si è ancora dato il via libera.
+    if(replyBtn){
+      var showReply = !!st.rispondi_manuale && attivo && !st.rispondi_ok;
+      replyBtn.style.display = showReply ? '' : 'none';
+      replyBtn.disabled = !showReply;
+    }
+    // allinea l'interruttore "tasto Rispondi" (se non lo stai toccando)
+    var rm=$('rispManuale'); if(rm && document.activeElement!==rm){ rm.checked = !!st.rispondi_manuale; }
+
+    // #2 Palco attivabile solo se il piano lo include
+    var modoBig=$('modoBig');
+    if(modoBig){
+      var pOk = !!st.palco_abilitato;
+      modoBig.classList.toggle('locked', !pOk);
+      modoBig.setAttribute('data-locked', pOk?'0':'1');
+    }
+    var mh=$('modoHint');
+    if(mh){ mh.innerHTML = st.palco_abilitato
+      ? '<b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> = canale dedicato per <b>eventi grandi</b> (centinaia).'
+      : '<b>Casella</b> = invio dalla tua posta, per <b>eventi piccoli</b> (~20-30). <b>Palco</b> non è attivo nel tuo piano: per attivarlo scrivi a <b>supporto@abraka.it</b>.'; }
 
     // colori dei tasti, fase per fase:
     //  - RIEMPITO oro che lampeggia (.blinkgold) = il tasto PREMUTO/attivo in questa fase
@@ -948,7 +1064,63 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     comando('invio', {valore:m}, 'Invio: ' + (m==='casella'?'Casella':'Palco'));
   }
   $('modoCasella').addEventListener('click', function(){ setModo('casella'); });
-  $('modoBig').addEventListener('click', function(){ setModo('grande'); });
+  $('modoBig').addEventListener('click', function(){
+    if($('modoBig').getAttribute('data-locked')==='1'){ toast('Palco non attivo nel tuo piano · scrivi a supporto@abraka.it','err'); return; }
+    setModo('grande');
+  });
+  // #6 tasto "Rispondi mail": da' il via libera alle risposte raccolte
+  if(replyBtn) replyBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    comando('rispondi', null, 'Risposte avviate ✓');
+  });
+  // #6 interruttore "tasto Rispondi" (aggiunge/toglie il tasto)
+  var rispManuale=$('rispManuale');
+  if(rispManuale) rispManuale.addEventListener('change', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); rispManuale.checked=!rispManuale.checked; return; }
+    comando('rispondi_manuale', {valore: rispManuale.checked?'ON':'OFF'}, rispManuale.checked?'Tasto "Rispondi mail" attivo':'Tasto "Rispondi mail" tolto');
+  });
+  // #8 acquista crediti / cambia piano -> mail a supporto
+  var buyBtn=$('buyBtn');
+  if(buyBtn) buyBtn.addEventListener('click', function(){
+    location.href='mailto:supporto@abraka.it?subject='+encodeURIComponent('Crediti / cambio piano - utente '+getUser())+'&body='+encodeURIComponent('Vorrei acquistare crediti o cambiare piano.\n\nUtente: '+getUser()+'\nPiano attuale: '+((cur&&cur.account&&cur.account.piano)||'')+'\n\nDettagli:');
+  });
+  // #7 cronologia report (apre la lista delle sessioni)
+  var reportHistBtn=$('reportHistBtn');
+  if(reportHistBtn) reportHistBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    toast('Apro la cronologia…');
+    var body=new URLSearchParams(); body.set('utente',getUser()); body.set('password',getPw()); body.set('lista','1');
+    fetch(API_BASE+'report.php',{method:'POST',body:body})
+      .then(function(r){ if(!r.ok && r.status===401){ throw new Error('Password errata'); } return r.text(); })
+      .then(function(html){ var b=new Blob([html],{type:'text/html'}); var u=URL.createObjectURL(b); var w=window.open(u,'_blank'); if(!w){ toast('Consenti i pop-up per vedere la cronologia','err'); } setTimeout(function(){URL.revokeObjectURL(u);},60000); })
+      .catch(function(e){ toast(e.message||'Non riuscito','err'); });
+  });
+  // #4 storico movimenti: tocca una voce (account/limiti) -> modale
+  var histBox=$('histBox');
+  function histLabel(t){ return t==='foto_ia'?'Foto IA':(t==='sessioni'?'Sessioni':'Mail'); }
+  function openHist(tipo){
+    if(!getPw()){ toast('Inserisci prima la password','err'); return; }
+    $('histTitle').textContent='Storico · '+histLabel(tipo);
+    $('histList').innerHTML='<div class="hist-empty">Carico…</div>';
+    histBox.classList.add('open');
+    var body=new URLSearchParams(); body.set('azione','movimenti'); body.set('utente',getUser()); body.set('password',getPw()); body.set('tipo',tipo);
+    fetch(API_BASE+'stato.php',{method:'POST',body:body}).then(function(r){return r.json();}).then(function(j){
+      var mv=(j&&j.movimenti)||[];
+      if(!mv.length){ $('histList').innerHTML='<div class="hist-empty">Ancora nessun movimento.</div>'; return; }
+      $('histList').innerHTML = mv.map(function(r){
+        var d=new Date((r.ts||0)*1000);
+        var data=two(d.getDate())+'/'+two(d.getMonth()+1)+'/'+d.getFullYear()+' '+two(d.getHours())+':'+two(d.getMinutes());
+        var q=(r.delta>0?'+':'')+r.delta; var cls=r.delta>0?'plus':'minus';
+        var nota=r.nota==='crediti'?'crediti aggiunti':(r.nota==='uso'?'usati':(r.nota||''));
+        return '<div class="hist-row"><span class="d">'+data+'<br><span style="font-size:11px;opacity:.7">'+nota+'</span></span><span class="q '+cls+'">'+q+'</span></div>';
+      }).join('');
+    }).catch(function(){ $('histList').innerHTML='<div class="hist-empty">Server non raggiungibile.</div>'; });
+  }
+  document.querySelectorAll('[data-hist]').forEach(function(el){
+    el.addEventListener('click', function(){ openHist(el.getAttribute('data-hist')); });
+  });
+  if($('histClose')) $('histClose').addEventListener('click', function(){ histBox.classList.remove('open'); });
+  if(histBox) histBox.addEventListener('click', function(e){ if(e.target===histBox) histBox.classList.remove('open'); });
   // invio manuale a pochi indirizzi (dalla propria casella)
   var inviaBtn=$('inviaBtn');
   if(inviaBtn) inviaBtn.addEventListener('click', function(){
@@ -978,7 +1150,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     setView.scrollTop=0;
   }
   document.querySelectorAll('#setMenu .tile').forEach(function(t){
-    t.addEventListener('click', function(){ goSP(t.getAttribute('data-go')); });
+    t.addEventListener('click', function(){
+      if(t.classList.contains('locked')){ toast('Funzione non attiva nel tuo piano · scrivi a supporto@abraka.it','err'); return; }
+      goSP(t.getAttribute('data-go'));
+    });
   });
   var spb=$('spBack'); if(spb) spb.addEventListener('click', backMenu);
   $('openSet').addEventListener('click', function(){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; });
@@ -996,25 +1171,57 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     setView.classList.remove('open'); poll();
   });
 
+  // apre le Impostazioni direttamente su una sotto-pagina (foto, ia, ...)
+  function openSettingsTo(name){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; goSP(name); }
+  // #11 occhio accanto a "Cambia": porta alle foto A e B (Impostazioni → Foto)
+  if($('eyeBtn')) $('eyeBtn').addEventListener('click', function(){ openSettingsTo('foto'); });
+  // #12 scelta per la Foto B: da file oppure con IA
+  var bChoose=$('bChoose');
+  if($('bChooseClose')) $('bChooseClose').addEventListener('click', function(){ bChoose.classList.remove('open'); });
+  if(bChoose) bChoose.addEventListener('click', function(e){ if(e.target===bChoose) bChoose.classList.remove('open'); });
+  if($('bFromFile')) $('bFromFile').addEventListener('click', function(){ bChoose.classList.remove('open'); var inp=$('slotB')&&$('slotB').querySelector('input'); if(inp) inp.click(); });
+  if($('bFromIa')) $('bFromIa').addEventListener('click', function(){ bChoose.classList.remove('open'); openSettingsTo('ia'); });
+
+  // #13 orologio conto alla rovescia IA (30s, lancetta antioraria)
+  var iaTimer=null;
+  function startIaClock(){ var c=$('iaClock'); if(!c) return; var n=$('iacNum'); var left=30; if(n)n.textContent=left;
+    c.classList.remove('open'); void c.offsetWidth; c.classList.add('open');   // riavvia l'animazione
+    clearInterval(iaTimer); iaTimer=setInterval(function(){ left--; if(left<0)left=0; if(n)n.textContent=left; if(left<=0) clearInterval(iaTimer); },1000);
+  }
+  function stopIaClock(){ var c=$('iaClock'); if(c) c.classList.remove('open'); clearInterval(iaTimer); }
+
   // ---- upload foto reali ----
   function slotPreviewUrl(key){ return API_BASE+'anteprima.php?u='+encodeURIComponent(getUser())+'&slot='+key+'&password='+encodeURIComponent(getPw())+'&_='+Date.now(); }
   function apiElimina(slot){ var b=new URLSearchParams(); b.set('utente',getUser()); b.set('password',getPw()); b.set('slot',slot); b.set('azione','elimina');
     return fetch(API_BASE+'carica.php',{method:'POST',body:b}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});}); }
+  // miniatura VUOTA = X rossa (quando non c'e' nessuna foto)
+  var PH_EMPTY='<span class="ph none">✕</span>';
+  // mette la foto nel quadratino; se l'immagine e' rotta, torna alla X rossa
+  function setThumbImg(thumb,src){
+    thumb.innerHTML='<img alt="">';
+    var im=thumb.querySelector('img');
+    im.onerror=function(){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); };
+    im.src=src; thumb.setAttribute('data-loaded','1');
+  }
   // aggiorna la miniatura di uno slot in base allo stato (foto salvata o no)
   function updateSlot(id,thumbId,key,loaded,ph){
     var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
     var was=thumb.getAttribute('data-loaded')==='1';
     if(loaded){ slot.classList.add('filled');
-      if(!was){ thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=slotPreviewUrl(key); thumb.setAttribute('data-loaded','1'); } }
+      if(!was){ setThumbImg(thumb, slotPreviewUrl(key)); } }
     else { slot.classList.remove('filled');
-      if(was){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); } }
+      if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); } }
   }
 
   function wireSlot(id,key,ph){
     var slot=$(id), input=slot.querySelector('input'), thumb=slot.querySelector('.thumb'),
         sub=slot.querySelector('.s'), camBtn=slot.querySelector('[data-cambia]'), delBtn=slot.querySelector('[data-del]');
     function apri(){ if(!getPw()){ toast('Inserisci prima la password','err'); return; } input.click(); }
-    if(camBtn) camBtn.addEventListener('click', apri);
+    // #12 per la Foto B, se l'IA è disponibile, chiedi "da file" o "con IA"
+    if(camBtn) camBtn.addEventListener('click', function(){
+      if(key==='B' && FLAGS.foto){ if(!getPw()){ toast('Inserisci prima la password','err'); return; } bChoose.classList.add('open'); }
+      else { apri(); }
+    });
     // clic sulla miniatura: se c'e' una foto la mostra a tutto schermo, altrimenti apre il caricamento
     thumb.addEventListener('click', function(){
       if(thumb.getAttribute('data-loaded')==='1'){ openLightbox(slotPreviewUrl(key)); } else { apri(); }
@@ -1024,7 +1231,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(!getPw()){ toast('Inserisci prima la password','err'); return; }
       if(!confirm('Eliminare questa foto?')) return;
       apiElimina(key).then(function(res){
-        if(res.data && res.data.ok){ thumb.innerHTML='<span class="ph">'+ph+'</span>'; thumb.setAttribute('data-loaded','0'); slot.classList.remove('filled'); if(sub)sub.textContent=''; toast('Foto eliminata','ok'); poll(); }
+        if(res.data && res.data.ok){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); slot.classList.remove('filled'); if(sub)sub.textContent=''; toast('Foto eliminata','ok'); poll(); }
         else toast((res.data&&res.data.errore)||'Non eliminata','err');
       }).catch(function(){ toast('Server non raggiungibile','err'); });
     });
@@ -1074,15 +1281,21 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var t=(($('predText').value)||'').trim();
     if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
     gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero con IA… (~30s)';
+    startIaClock();   // #13 orologio conto alla rovescia (30s)
     apiGeneraIa(t).then(function(res){
-      gBtn.disabled=false; gBtn.textContent=old;
+      gBtn.disabled=false; gBtn.textContent=old; stopIaClock();
       if(res.data && res.data.ok){
         toast('Rivelazione creata ✓','ok');
         var gp=$('genPrev'); if(gp && res.data.preview){ gp.src=res.data.preview; gp.style.display='block'; }
+        // #10 la foto generata diventa SUBITO la Foto B anche nella sua miniatura
+        if(res.data.preview){
+          var tb=$('thumbB'); if(tb){ tb.innerHTML='<img alt="">'; tb.querySelector('img').src=res.data.preview; tb.setAttribute('data-loaded','1'); }
+          var sB=$('slotB'); if(sB) sB.classList.add('filled');
+        }
         poll();
       }
       else { toast((res.data&&res.data.errore)||'Generazione fallita','err'); }
-    }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; toast('Server non raggiungibile','err'); });
+    }).catch(function(){ gBtn.disabled=false; gBtn.textContent=old; stopIaClock(); toast('Server non raggiungibile','err'); });
   });
 
   // ---- marcatore foto: 4 angoli + gomma, con puntini TRASCINABILI ----
