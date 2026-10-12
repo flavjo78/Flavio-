@@ -203,6 +203,8 @@
     updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
     updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
     updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
+    // anteprima IA vuota se non c'è una rivelazione
+    if(!(st.ha_rivelazione || st.ha_rivelazione_sess)){ var gpx=$('genPrev'); if(gpx){ gpx.style.display='none'; gpx.removeAttribute('src'); } }
   }
 
   var scaduto=false;

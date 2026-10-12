@@ -46,6 +46,21 @@ $selfHost = $_SERVER['HTTP_HOST'] ?? 'www.abraka.it';
 $selfPath = $_SERVER['SCRIPT_NAME'] ?? '/predizione/report.php';
 $base = $scheme . '://' . $selfHost . $selfPath;
 
+/* conta gli spettatori VERI (mittenti non automatici, unici) di una sessione */
+function contaUtentiSessione(int $sid): int {
+    $f = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
+    if (!is_file($f)) return 0;
+    $visti = [];
+    foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $r = json_decode($line, true);
+        if (!is_array($r)) continue;
+        $m = strtolower(trim((string)($r['mittente'] ?? '')));
+        if ($m === '' || predizione_mitt_automatico($m)) continue;
+        $visti[$m] = true;
+    }
+    return count($visti);
+}
+
 /* --- CRONOLOGIA: elenco di tutte le sessioni con link al loro report ------ */
 if (p('lista') !== null) {
     $sess = is_array($stato['sessioni'] ?? null) ? $stato['sessioni'] : [];
@@ -74,9 +89,10 @@ if (p('lista') !== null) {
       <?php if (!$sess): ?><div class="empty">Nessuna sessione ancora registrata.</div>
       <?php else: foreach ($sess as $sn => $sv):
           $ts = !empty($sv['avvio_ts']) ? date('d/m/Y H:i', (int)$sv['avvio_ts']) : '—';
-          $fl = $faseLbl[$sv['fase'] ?? ''] ?? ($sv['fase'] ?? ''); ?>
+          $fl = $faseLbl[$sv['fase'] ?? ''] ?? ($sv['fase'] ?? '');
+          $nUt = contaUtentiSessione((int)$sn); ?>
         <a class="row" href="<?= h($base) ?>?<?= $authQ ?>&s=<?= (int)$sn ?>">
-          <span><span class="n">Sessione #<?= (int)$sn ?></span><br><span class="meta"><?= h($ts) ?> · <?= h($fl) ?></span></span>
+          <span><span class="n">Sessione #<?= (int)$sn ?></span><br><span class="meta"><?= $nUt ?> utent<?= $nUt === 1 ? 'e' : 'i' ?> · <?= h($ts) ?> · <?= h($fl) ?></span></span>
           <span class="go">Apri ›</span>
         </a>
       <?php endforeach; endif; ?>
@@ -143,6 +159,13 @@ function fotoVista($labels) {
     return '—';
 }
 
+/* --- orari chiave della sessione (intestazione del report) --------------- */
+function orarioBreve($ts){ return $ts ? date('d/m/Y H:i', (int)$ts) : '—'; }
+$sInfo   = is_array($stato['sessioni'][(string)$sid] ?? null) ? $stato['sessioni'][(string)$sid] : [];
+$tAvvia  = (int)($sInfo['avvio_ts']  ?? 0);
+$tCambia = (int)($sInfo['cambio_ts'] ?? 0);
+$tFine   = (int)($sInfo['fine_ts']   ?? 0);
+
 /* --- unione per destinatario (id) ---------------------------------------- */
 $ids = array_values(array_unique(array_merge(array_keys($mitt), array_keys($ap))));
 
@@ -176,10 +199,20 @@ header('Cache-Control: no-store');
   .btns button{font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 14px;margin-right:8px}
   @media print{.btns{display:none}}
   .empty{color:var(--dim);font-style:italic;padding:10px 0}
+  .times{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 2px}
+  .times .t{flex:1;min-width:140px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
+  .times .t span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
+  .times .t b{font-size:14px;font-family:ui-monospace,Menlo,Consolas,monospace}
 </style>
 </head><body><div class="wrap">
   <h1>Report sessione #<?= (int)$sid ?></h1>
   <div class="sub">Utente <?= h($utente) ?> · generato il <?= h(date('d/m/Y H:i')) ?></div>
+
+  <div class="times">
+    <div class="t"><span>Avvio gioco</span><b><?= h(orarioBreve($tAvvia)) ?></b></div>
+    <div class="t"><span>Cambio foto (rivela)</span><b><?= h(orarioBreve($tCambia)) ?></b></div>
+    <div class="t"><span>Fine gioco</span><b><?= h(orarioBreve($tFine)) ?></b></div>
+  </div>
 
   <div class="cards">
     <div class="card"><b><?= count($mitt) ?></b><span>Mittenti</span></div>

@@ -496,6 +496,7 @@ switch ($azione) {
             predizione_json(['ok' => false, 'errore' => 'Carica la rivelazione prima di rivelare (Cambia)'], 400);
         }
         $stato['sessioni'][(string)$id]['fase'] = 'cambiato';
+        $stato['sessioni'][(string)$id]['cambio_ts'] = time();   // orario del cambio foto (per il report)
         $stato['forza'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
@@ -514,6 +515,7 @@ switch ($azione) {
             predizione_congela_rivelazione($stato, $id, $riv);
         }
         $stato['sessioni'][(string)$id]['fase'] = 'terminato';
+        $stato['sessioni'][(string)$id]['fine_ts'] = time();   // orario di fine gioco (per il report)
         $stato['forza'] = null;
         // l'autorisponditore si SPEGNE da solo alla fine (la Lambda smette di leggere la posta)
         $stato['autorisponditore'] = false;

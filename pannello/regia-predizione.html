@@ -707,7 +707,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
     var f=$('secFoto'); if(f) f.style.display = FLAGS.foto ? '' : 'none';
     if(FLAGS.foto){
-      var b=''; try{ b=localStorage.getItem('pred_base_'+USER)||''; }catch(e){} if(b) showMarker(b);
+      // NB: NON mostriamo più una Foto base "fantasma" salvata sul telefono:
+      // la Foto base compare solo se la carichi davvero (lo decide lo stato del server).
       try{ var sz=localStorage.getItem('pred_size_'+USER); if(sz && $('predSize')) $('predSize').value=sz;
            var ps=localStorage.getItem('pred_pos_'+USER);  if(ps && $('predPos'))  $('predPos').value=ps; }catch(e){}
     }
@@ -901,6 +902,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
     updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
     updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
+    // nel menù IA: niente foto base "fantasma" e niente anteprima vecchia
+    if(!st.ha_foto_base){ var ma=$('markArea'); if(ma) ma.style.display='none'; }
+    if(!(st.ha_rivelazione || st.ha_rivelazione_sess)){ var gpx=$('genPrev'); if(gpx){ gpx.style.display='none'; gpx.removeAttribute('src'); } }
 
     var elA=$('cntA'); if(elA){ elA.textContent = st.aperture_a||0; }
     var elB=$('cntB'); if(elB){ elB.textContent = st.aperture_b||0; }
@@ -1231,7 +1235,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(!getPw()){ toast('Inserisci prima la password','err'); return; }
       if(!confirm('Eliminare questa foto?')) return;
       apiElimina(key).then(function(res){
-        if(res.data && res.data.ok){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); slot.classList.remove('filled'); if(sub)sub.textContent=''; toast('Foto eliminata','ok'); poll(); }
+        if(res.data && res.data.ok){
+          thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); slot.classList.remove('filled'); if(sub)sub.textContent='';
+          // pulizia anteprime del menù IA quando elimini base o rivelazione
+          if(key==='BASE'){ var ma=$('markArea'); if(ma) ma.style.display='none'; var mi=$('markImg'); if(mi) mi.removeAttribute('src'); try{ localStorage.removeItem('pred_base_'+getUser()); }catch(e){} }
+          if(key==='BASE' || key==='B'){ var gp=$('genPrev'); if(gp){ gp.style.display='none'; gp.removeAttribute('src'); } }
+          toast('Foto eliminata','ok'); poll();
+        }
         else toast((res.data&&res.data.errore)||'Non eliminata','err');
       }).catch(function(){ toast('Server non raggiungibile','err'); });
     });
