@@ -140,7 +140,7 @@
   var API='./';
   var $=function(id){return document.getElementById(id);};
   var qs=new URLSearchParams(location.search);
-  var U=(qs.get('u')||'').replace(/[^0-9]/g,'');
+  var U=(qs.get('u')||'').toLowerCase().replace(/[^a-z0-9._-]/g,'');
   var T=(qs.get('t')||qs.get('assistente')||'').trim();
 
   var toastEl=$('toast'), tT=null;

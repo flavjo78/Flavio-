@@ -50,9 +50,16 @@ const TIPI_IMG = [
    parametro ricevuto. Determina in quale cartella si leggono/scrivono i dati. */
 $GLOBALS['PRED_U'] = '001';
 
+/* Nome utente "pulito" e sicuro. Ora può essere NUMERICO (001, 002 — i vecchi) o
+   BASATO SUL NOME DELLA MAIL (es. mario.rossi). Teniamo solo lettere/cifre/._-,
+   tutto minuscolo, niente ".." o punti ai bordi (per non creare cartelle strane).
+   Vuoto -> '001' (così i vecchi indirizzi image.php senza ?u restano su 001). */
 function predizione_pulisci_utente($u): string {
-    $u = preg_replace('/[^0-9]/', '', (string)$u);
-    $u = substr($u, 0, 6);
+    $u = strtolower((string)$u);
+    $u = preg_replace('/[^a-z0-9._-]/', '', $u);     // solo caratteri sicuri
+    $u = preg_replace('/\.{2,}/', '.', $u);          // niente ".."
+    $u = trim($u, '._-');                            // niente punti/trattini ai bordi
+    $u = substr($u, 0, 32);
     return ($u === '') ? '001' : $u;
 }
 function predizione_set_utente($u): string {

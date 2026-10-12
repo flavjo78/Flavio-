@@ -41,6 +41,18 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 >   miniatura; "Carica" su Foto B offre "da file" o "con IA"; occhio accanto a Cambia → Impostazioni/Foto;
 >   orologio conto alla rovescia 30s (antiorario) durante la generazione IA; pop-up orario in oro/scuro.
 
+> ### Aggiunte 12 ottobre 2026 (AGG 14)
+> - **Nome utente dal NOME della mail.** I nuovi utenti non hanno più un numero: l'username è la
+>   parte della mail prima della @ (es. `mario.rossi@gmail.com` → `mario.rossi`). Se è già preso,
+>   progressivo DAVANTI: `1mario.rossi`, `2mario.rossi`… Helper in piani.php
+>   (`predizione_utente_da_email`, `predizione_utente_libero_da_email`), usato in `attiva_ordine`.
+>   **`predizione_pulisci_utente` ora accetta `[a-z0-9._-]`** (prima solo cifre): gli username
+>   stringa funzionano ovunque (cartelle `_dati/u<nome>`, `image.php?u=`, login pannello/assistente).
+>   I vecchi id numerici (000 admin, 001 autore) restano validi. Il login del pannello e il parse
+>   del link assistente accettano lettere.
+> - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
+>   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
+
 ---
 
 ## 1. Cos'è

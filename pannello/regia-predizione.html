@@ -714,7 +714,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }
   }
   function doLogin(){
-    var u=((loginUser&&loginUser.value)||'001').replace(/[^0-9]/g,'') || '001';
+    var u=(((loginUser&&loginUser.value)||'001').toLowerCase().replace(/[^a-z0-9._-]/g,'')) || '001';
     var p=(loginPw.value||'').trim();
     if(!p){ toast('Inserisci la password','err'); return; }
     var body=new URLSearchParams();

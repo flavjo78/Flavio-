@@ -278,7 +278,10 @@ if ($azione === 'crea') {
                   . "La password ti arrivera' da supporto@abraka.it (controlla anche lo spam).\n\n"
                   . "abraka — supporto@abraka.it";
     ord_manda_mail($mail, "Ordine $id — come pagare", $corpoCliente);
-    ord_manda_mail('supporto@abraka.it', "Nuovo ordine $id", "Ordine $id\n$nome $cognome\n$mail\n$gioco · $piano ($durata)\nImporto $importo €\nCanale: $canale");
+    // AVVISO all'autore: 1) appena arriva l'ordine (QUI), 2) quando viene processato (in admin_attiva)
+    $avviso = "Ordine $id\n$nome $cognome\n$mail\n$gioco · $piano ($durata)\nImporto $importo €\nCanale: $canale";
+    ord_manda_mail('supporto@abraka.it', "Nuovo ordine $id", $avviso);
+    ord_manda_mail(PRED_NOTIFY_EMAIL, "Nuovo ordine ricevuto — $id", "È arrivato un nuovo ordine (in attesa di pagamento):\n\n$avviso");
 
     predizione_json(['ok' => true, 'ordine' => $id, 'importo' => $importo,
                      'canale' => $canale, 'causale' => $causale, 'istruzioni' => $istr]);

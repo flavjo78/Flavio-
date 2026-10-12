@@ -140,6 +140,31 @@ function predizione_limiti_utente(array $rec): array {
     ];
 }
 
+/* ---- Nome utente dal NOME della mail (prima della @) ------------------- */
+/* es. "Mario.Rossi@gmail.com" -> "mario.rossi". Solo caratteri sicuri. */
+function predizione_utente_da_email(string $email): string {
+    $local = strtolower(trim($email));
+    $at = strpos($local, '@');
+    if ($at !== false) $local = substr($local, 0, $at);
+    $local = preg_replace('/[^a-z0-9._-]/', '', $local);
+    $local = preg_replace('/\.{2,}/', '.', $local);
+    $local = trim($local, '._-');
+    return substr($local, 0, 28);
+}
+
+/* Nome utente LIBERO a partire dalla mail. Se è già preso (o è un numero
+   riservato), mette un progressivo DAVANTI: mario -> 1mario -> 2mario ...
+   Se dalla mail non si ricava nulla, ripiega sul vecchio numero progressivo. */
+function predizione_utente_libero_da_email(array $utenti, string $email): string {
+    $base = predizione_utente_da_email($email);
+    if ($base === '') return predizione_prossimo_numero();
+    $riservati = function ($u) use ($utenti) { return isset($utenti[$u]) || $u === '000' || $u === '001'; };
+    if (!$riservati($base)) return $base;
+    $n = 1;
+    do { $cand = $n . $base; $n++; } while ($riservati($cand));
+    return $cand;
+}
+
 /* ---- Prossimo numero utente libero (001..999, salta 000 admin) -------- */
 function predizione_prossimo_numero(): string {
     $utenti = predizione_utenti_leggi();
@@ -260,7 +285,7 @@ function predizione_attiva_ordine(array &$ordine): array {
         return ['utente' => $u, 'password' => null, 'ricevuta' => $ordine['ricevuta'] ?? null, 'nuovo' => false];
     }
 
-    $u    = predizione_prossimo_numero();
+    $u    = predizione_utente_libero_da_email($utenti, (string)($ordine['mail'] ?? ''));
     $pass = predizione_password_casuale();
     $piano = predizione_piano_valido($ordine['piano'] ?? 'Foyer') ?? 'Foyer';
 
