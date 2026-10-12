@@ -97,6 +97,9 @@
 
       <h2>Tutti gli utenti</h2>
       <div id="allList"></div>
+
+      <div class="row" style="justify-content:space-between"><h2 style="margin:22px 0 8px">Archivio operazioni</h2><button class="btn" id="opRefresh" style="align-self:center">Aggiorna</button></div>
+      <div id="opBox"><div class="small">—</div></div>
     </div>
 
     <!-- ===== SCHEDA UTENTE ===== -->
@@ -182,7 +185,7 @@
     call('admin_utenti').then(function(r){
       if(r.code===403 || !(r.data&&r.data.ok)){ mostraLogin(); return; }
       $('adminLogin').classList.add('hidden'); $('adminBody').classList.remove('hidden');
-      UT=r.data.utenti||[]; renderHome(); caricaOrdini();
+      UT=r.data.utenti||[]; renderHome(); caricaOrdini(); caricaOperazioni();
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   }
   function mostraLogin(){ $('adminBody').classList.add('hidden'); $('adminLogin').classList.remove('hidden'); }
@@ -208,6 +211,21 @@
     });
   }
   function caricaOrdini(){ callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok) renderOrdini(r.data.ordini||[]); }).catch(function(){}); }
+
+  /* ---------- ARCHIVIO OPERAZIONI (attiva/sospendi/elimina/crea) ---------- */
+  function renderOperazioni(ops){
+    if(!ops || !ops.length){ $('opBox').innerHTML='<div class="small">Nessuna operazione registrata.</div>'; return; }
+    var lab={attiva:'Attivato',sospendi:'Sospeso',elimina:'Eliminato',crea:'Creato'};
+    var cls={attiva:'on',sospendi:'rev',elimina:'off',crea:'on'};
+    $('opBox').innerHTML = ops.map(function(o){
+      var d=new Date((o.ts||0)*1000), z=function(n){return ('0'+n).slice(-2);};
+      var data=z(d.getDate())+'/'+z(d.getMonth()+1)+'/'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes());
+      return '<div class="srow"><span class="pill '+(cls[o.azione]||'')+'">'+(lab[o.azione]||esc(o.azione))+'</span>'+
+        '<span class="d"><b>'+esc(o.utente||'')+'</b>'+(o.dettaglio?' · '+esc(o.dettaglio):'')+'</span>'+
+        '<span style="color:var(--faint);font-size:12px;white-space:nowrap">'+data+'</span></div>';
+    }).join('');
+  }
+  function caricaOperazioni(){ call('admin_operazioni').then(function(r){ if(r.data&&r.data.ok) renderOperazioni(r.data.operazioni||[]); }).catch(function(){}); }
 
   /* ---------- SCHEDA UTENTE ---------- */
   function openUser(num){
@@ -277,7 +295,7 @@
       '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button></div>';
 
     function refresh(){ openUser(num); carica(); }
-    function done(r,ok){ if(r.data&&r.data.ok){toast(ok,'ok');refresh();}else toast((r.data&&r.data.errore)||'Errore','err'); }
+    function done(r,ok){ if(r.data&&r.data.ok){toast(ok,'ok');refresh();caricaOperazioni();}else toast((r.data&&r.data.errore)||'Errore','err'); }
     $('mSalvaFlags').onclick=function(){ call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0'}).then(function(r){done(r,'Funzioni salvate');}); };
     $('mSalvaPw').onclick=function(){ var v=$('mPw').value.trim(); if(!v){toast('Scrivi la password','err');return;} call('admin_password',{numero:num,pw:v}).then(function(r){done(r,'Password aggiornata');}); };
     $('mAttiva').onclick=function(){ call('admin_attiva',{numero:num,valore:(s.attivo?'0':'1')}).then(function(r){done(r,'Stato aggiornato');}); };
@@ -297,6 +315,7 @@
   });
   $('aPass').addEventListener('keydown',function(e){ if(e.key==='Enter') $('aEnter').click(); });
   $('ordRefresh').addEventListener('click', caricaOrdini);
+  if($('opRefresh')) $('opRefresh').addEventListener('click', caricaOperazioni);
   $('dBack').addEventListener('click', showHome);
   $('nCrea').addEventListener('click', function(){
     var num=($('nNum').value||'').replace(/[^0-9]/g,'');

@@ -116,30 +116,49 @@ if (strpos($azione, 'admin_') === 0) {
         if (!isset($ordini[$id])) predizione_json(['ok' => false, 'errore' => 'Ordine non trovato'], 404);
         $res = predizione_attiva_ordine($ordini[$id]);
         ord_scrivi($ordini);
+        // archivio operazioni: ordine attivato
+        if (function_exists('predizione_log_operazione')) {
+            predizione_log_operazione('attiva', (string)$res['utente'],
+                'ordine ' . $id . ' · ' . trim(($ordini[$id]['nome'] ?? '') . ' ' . ($ordini[$id]['cognome'] ?? '')));
+        }
         // mail di benvenuto col (solo se nuovo: altrimenti la password non si rimanda)
         if ($res['nuovo'] && !empty($ordini[$id]['mail'])) {
             $corpo = "Benvenuto in PREDIZIONE!\n\n"
                    . "Il tuo accesso e' attivo.\n"
-                   . "Numero utente: " . $res['utente'] . "\n"
+                   . "Nome utente: " . $res['utente'] . "\n"
                    . "Password: " . $res['password'] . "\n\n"
-                   . "Entra dall'app e, al primo accesso, puoi cambiare la password\n"
-                   . "(almeno 10 caratteri, 1 maiuscola e 1 simbolo).\n\n"
-                   . "----------------------------------------------\n"
-                   . "COLLEGARE LA TUA GMAIL (per inviare le foto a mano)\n"
-                   . "----------------------------------------------\n"
-                   . "Per spedire le mail con la foto dalla tua casella Gmail serve una\n"
-                   . "\"password per le app\" (una password speciale di 16 lettere). E' gratis\n"
-                   . "e si fa una volta sola:\n"
-                   . "1) Vai su https://myaccount.google.com/security\n"
-                   . "2) Attiva la \"Verifica in due passaggi\" (se non ce l'hai gia').\n"
-                   . "3) Sempre li', apri \"Password per le app\", dai un nome (es. PREDIZIONE)\n"
-                   . "   e crea la password: Google ti mostra 16 lettere.\n"
-                   . "4) Nell'app PREDIZIONE -> Impostazioni -> Casella: scrivi la tua email\n"
-                   . "   Gmail e incolla quelle 16 lettere nel campo password. Salva.\n"
-                   . "Da quel momento il tasto \"Invia a mano\" spedisce dalla tua Gmail.\n"
-                   . "(Per i grandi invii c'e' il livello \"Palco\": non serve configurare nulla,\n"
-                   . "le mail partono dal nostro sistema. Scrivici a supporto@abraka.it.)\n\n"
-                   . "----------------------------------------------\n\n"
+                   . "Entra dall'app con questi dati e, al primo accesso, puoi cambiare la\n"
+                   . "password (almeno 10 caratteri, 1 maiuscola e 1 simbolo).\n"
+                   . "App: https://www.abraka.it/predizione/regia-predizione.html\n\n"
+                   . "==============================================\n"
+                   . "COME PREPARARE LA MAIL DELLO SPETTACOLO (passo-passo)\n"
+                   . "==============================================\n"
+                   . "Ti conviene usare una mail NUOVA, dedicata solo allo spettacolo\n"
+                   . "(cosi' resta separata dalla tua mail personale). E' tutto gratis.\n\n"
+                   . "PARTE 1 - CREARE LA NUOVA MAIL GMAIL\n"
+                   . "1) Dal telefono o dal computer vai su:  https://accounts.google.com/signup\n"
+                   . "2) Scrivi un nome (puo' essere il tuo nome d'arte) e scegli un indirizzo,\n"
+                   . "   es. ilmiomagoshow@gmail.com . Scegli una password e segnatela.\n"
+                   . "3) Segui i passaggi fino alla fine: la casella Gmail e' pronta.\n\n"
+                   . "PARTE 2 - ATTIVARE LA \"VERIFICA IN DUE PASSAGGI\"\n"
+                   . "4) Entrato nella nuova Gmail, vai su:  https://myaccount.google.com/security\n"
+                   . "5) Cerca \"Verifica in due passaggi\" e ATTIVALA (ti chiede il numero di\n"
+                   . "   telefono e un codice che ricevi via SMS). Serve per il passo dopo.\n\n"
+                   . "PARTE 3 - CREARE LA \"PASSWORD PER LE APP\" (16 lettere)\n"
+                   . "6) Sempre nella pagina Sicurezza, apri \"Password per le app\"\n"
+                   . "   (oppure vai su:  https://myaccount.google.com/apppasswords ).\n"
+                   . "7) Dai un nome qualsiasi (es. PREDIZIONE) e premi Crea.\n"
+                   . "8) Google ti mostra un codice di 16 LETTERE (es. abcd efgh ijkl mnop):\n"
+                   . "   e' una password speciale. COPIALA (si usa una volta sola, nel passo 10).\n\n"
+                   . "PARTE 4 - COLLEGARE LA MAIL ALL'APP PREDIZIONE\n"
+                   . "9) Apri l'app PREDIZIONE -> ingranaggio Impostazioni -> \"La tua casella\".\n"
+                   . "10) Scrivi l'indirizzo Gmail nuovo e INCOLLA le 16 lettere nel campo\n"
+                   . "    password. (Facoltativo: un nome mittente.) Premi \"Salva casella\".\n\n"
+                   . "Fatto! Da ora, a gioco avviato, il tasto \"Invia a mano\" spedisce le mail\n"
+                   . "con la foto dalla tua Gmail. (Per gli eventi GRANDI c'e' il livello \"Palco\":\n"
+                   . "non devi configurare nulla, scrivici a supporto@abraka.it.)\n\n"
+                   . "Se qualcosa non ti torna, rispondi a questa mail: ti aiutiamo noi.\n"
+                   . "==============================================\n\n"
                    . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
                    . "Un saluto,\nabraka — supporto@abraka.it";
             ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);

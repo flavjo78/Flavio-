@@ -269,6 +269,7 @@ function predizione_admin(string $azione): void {
                 'mail'   => new stdClass(),
             ];
             predizione_utenti_scrivi($utenti);
+            predizione_log_operazione('crea', $num, 'utente creato a mano');
             predizione_json(['ok' => true]);
 
         case 'admin_flags':
@@ -291,8 +292,10 @@ function predizione_admin(string $azione): void {
             $num = predizione_pulisci_utente(p('numero'));
             if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
             $v = strtoupper((string)p('valore'));
-            $utenti[$num]['attivo'] = ($v === '1' || $v === 'ON' || $v === 'TRUE');
+            $attivo = ($v === '1' || $v === 'ON' || $v === 'TRUE');
+            $utenti[$num]['attivo'] = $attivo;
             predizione_utenti_scrivi($utenti);
+            predizione_log_operazione($attivo ? 'attiva' : 'sospendi', $num, (string)($utenti[$num]['nome'] ?? ''));
             predizione_json(['ok' => true]);
 
         case 'admin_mail':
@@ -305,9 +308,15 @@ function predizione_admin(string $azione): void {
         case 'admin_elimina':
             $num = predizione_pulisci_utente(p('numero'));
             if ($num === '000') predizione_json(['ok' => false, 'errore' => 'L\'amministratore non si elimina'], 400);
+            $nomeEl = (string)($utenti[$num]['nome'] ?? '');
             unset($utenti[$num]);
             predizione_utenti_scrivi($utenti);
+            predizione_log_operazione('elimina', $num, $nomeEl);
             predizione_json(['ok' => true]);
+
+        case 'admin_operazioni':
+            // archivio delle operazioni admin (attiva/sospendi/elimina/crea), con data
+            predizione_json(['ok' => true, 'operazioni' => predizione_operazioni_leggi(300)]);
 
         case 'admin_caselle':
             // Elenco delle caselle configurate, per l'autorisponditore MULTI-CASELLA.

@@ -276,6 +276,26 @@ function predizione_movimento(array &$stato, string $tipo, int $delta, string $n
     }
 }
 
+/* ---- Archivio OPERAZIONI admin (attiva / sospendi / elimina / crea) ----- */
+/* Registro globale in _dati/operazioni.jsonl: serve all'admin per ricordare
+   cosa ha fatto e quando (le righe non si cancellano quando elimini un utente). */
+function predizione_operazioni_file(): string { return DATA_DIR . '/operazioni.jsonl'; }
+function predizione_log_operazione(string $azione, string $utente, string $dettaglio = ''): void {
+    if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0775, true); }
+    $riga = json_encode(['ts' => time(), 'azione' => $azione, 'utente' => $utente, 'dettaglio' => $dettaglio],
+                        JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    @file_put_contents(predizione_operazioni_file(), $riga . "\n", FILE_APPEND | LOCK_EX);
+}
+function predizione_operazioni_leggi(int $max = 300): array {
+    $f = predizione_operazioni_file();
+    if (!is_file($f)) return [];
+    $righe = file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    $out = [];
+    foreach ($righe as $r) { $d = json_decode($r, true); if (is_array($d)) $out[] = $d; }
+    $out = array_reverse($out);                 // dal piu' recente
+    return array_slice($out, 0, $max);
+}
+
 /* Riconosce le mail AUTOMATICHE (no-reply, newsletter, notifiche, bounce):
    NON sono spettatori, quindi non vanno contate ne' ricevono risposta. */
 function predizione_mitt_automatico(string $email): bool {
