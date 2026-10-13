@@ -44,6 +44,14 @@
   .pay{background:var(--surface);border:1px solid var(--line2);border-radius:12px;padding:14px;text-align:left;margin-top:12px;font-size:14px}
   .pay b{color:var(--gold)}
   .hidden{display:none}
+  .collapse{color:var(--gold);font-size:13px;cursor:pointer;margin:2px 0 14px;user-select:none}
+  .cmp{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:14px}
+  .cmp th,.cmp td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:center}
+  .cmp th{color:var(--gold);font-size:13px}
+  .cmp td:first-child,.cmp th:first-child{text-align:left;color:var(--dim)}
+  .cmp .pz{font-weight:800;color:var(--gold)}
+  .opt .t{display:block}
+  .opt .d{display:block;font-size:11.5px;color:var(--dim);margin-top:3px;line-height:1.35}
   a.home{display:block;text-align:center;color:var(--dim);font-size:13px;margin-top:18px}
 </style>
 </head>
@@ -57,6 +65,8 @@
     <h2>Piano</h2>
     <div class="seg" id="durSeg"><button data-dur="anno" class="on">Annuale</button><button data-dur="mese">Mensile</button></div>
     <div id="piani"></div>
+    <div class="collapse" id="confrontoToggle">▸ Vedi dettagli e confronto dei piani</div>
+    <div id="confronto" class="hidden"></div>
 
     <h2>Extra (facoltativi)</h2>
     <div id="extra"></div>
@@ -110,8 +120,19 @@
     .then(function(r){return r.json();}).then(function(d){
       if(!d||!d.ok) return;
       piani=d.piani||[]; extra=d.extra||[]; accesso=d.accesso||25;
-      renderPiani(); renderExtra(); calc();
+      renderPiani(); renderExtra(); renderConfronto(); calc();
     });
+  document.getElementById('confrontoToggle').onclick=function(){
+    var c=document.getElementById('confronto'); var open=!c.classList.contains('hidden');
+    c.classList.toggle('hidden'); this.textContent=(open?'▸':'▾')+' '+(open?'Vedi dettagli e confronto dei piani':'Nascondi il confronto');
+  };
+
+  function nf(n){ return (n||0).toLocaleString('it-IT'); }
+  function ses(n){ return n+(n===1?' sessione':' sessioni'); }
+  function dSess(p){ return (p.sessioni_giorno>0) ? (ses(p.sessioni_giorno)+' al giorno + '+nf(p.sessioni_mese)+' al mese') : (ses(p.sessioni_mese)+' al mese'); }
+  function dMail(p){ return (p.mail_giorno>0) ? (nf(p.mail_mese)+' mail al mese ('+nf(p.mail_giorno)+' al giorno)') : (nf(p.mail_mese)+' mail al mese'); }
+  function dFoto(p){ return (p.foto_ia_mese>0) ? (nf(p.foto_ia_mese)+' foto con IA al mese') : 'niente foto con IA'; }
+  function descr(p){ return dSess(p)+'<br>'+dMail(p)+'<br>'+dFoto(p)+(p.grandi_invii?'<br>invii grandi (Palco)':'')+(p.report?'<br>Report incluso':''); }
 
   function renderPiani(){
     var box=document.getElementById('piani'); var h='';
@@ -120,8 +141,7 @@
     piani.forEach(function(p){
       if(p.nome==='Foyer' && esistente) return; // Foyer è il base, non lo "ricompra"
       var pz = (dur==='mese')? p.prezzo_mese : p.prezzo_anno;
-      var sub = p.mail_mese+' mail · '+p.foto_ia_mese+' foto IA · '+p.sessioni_mese+' sessioni'+(p.grandi_invii?' · Palco':'');
-      h+=rowPlan(p.nome, p.nome, sub, pz);
+      h+=rowPlan(p.nome, p.nome, descr(p), pz);
     });
     box.innerHTML=h;
     box.querySelectorAll('.opt').forEach(function(o){ o.onclick=function(){ curPlan=o.getAttribute('data-p'); renderPiani(); calc(); }; });
@@ -131,7 +151,25 @@
   function rowPlan(val,titolo,sub,pz){
     var sel = (val===curPlan)?' sel':'';
     var prezzo = pz>0 ? money(pz) : (val===''?'—':'incluso');
-    return '<div class="opt'+sel+'" data-p="'+val+'"><span><span class="t">'+titolo+'</span><br><span class="s">'+sub+'</span></span><span class="pz">'+prezzo+'</span></div>';
+    return '<div class="opt'+sel+'" data-p="'+val+'" style="align-items:flex-start"><span><span class="t">'+titolo+'</span><span class="d">'+sub+'</span></span><span class="pz">'+prezzo+'</span></div>';
+  }
+  function renderConfronto(){
+    var box=document.getElementById('confronto');
+    var cols=piani.slice();
+    function rowT(label, fn){ return '<tr><td>'+label+'</td>'+cols.map(function(p){return '<td>'+fn(p)+'</td>';}).join('')+'</tr>'; }
+    var h='<table class="cmp"><tr><th>Piano</th>'+cols.map(function(p){return '<th>'+p.nome+'</th>';}).join('')+'</tr>';
+    h+=rowT('Prezzo / anno', function(p){return '<span class="pz">'+(p.prezzo_anno>0?money(p.prezzo_anno):'incluso')+'</span>';});
+    h+=rowT('Prezzo / mese', function(p){return p.prezzo_mese>0?money(p.prezzo_mese):'—';});
+    h+=rowT('Sessioni al giorno', function(p){return p.sessioni_giorno>0?nf(p.sessioni_giorno):'—';});
+    h+=rowT('Sessioni al mese', function(p){return nf(p.sessioni_mese);});
+    h+=rowT('Mail al mese', function(p){return nf(p.mail_mese);});
+    h+=rowT('Mail al giorno', function(p){return p.mail_giorno>0?nf(p.mail_giorno):'—';});
+    h+=rowT('Foto IA al mese', function(p){return nf(p.foto_ia_mese);});
+    h+=rowT('Assistente di scena', function(p){return p.assistente?'✓':'—';});
+    h+=rowT('Report', function(p){return p.report?'✓':'—';});
+    h+=rowT('Invii grandi (Palco)', function(p){return p.grandi_invii?'✓':'—';});
+    h+='</table><p class="hint">I numeri sono <b>al mese</b> (si ricaricano nel giorno dell\'abbonamento). Dove indicato c\'è anche un limite <b>al giorno</b>.</p>';
+    box.innerHTML=h;
   }
   function renderExtra(){
     var box=document.getElementById('extra');

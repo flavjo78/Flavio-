@@ -172,12 +172,14 @@ function predizione_admin(string $azione): void {
                     'sessione'       => (int)($st['sessione_corrente'] ?? 0),
                     'aperture'       => $ab['tot'],
                     'piano'          => (string)($rec['piano'] ?? 'Foyer'),
+                    'piano_versione' => isset($rec['piano_versione']) ? (int)$rec['piano_versione'] : null,
                     'accesso_scad'   => (int)($rec['accesso_scadenza'] ?? 0),
                     'piano_scad'     => (int)($rec['piano_scadenza'] ?? 0),
                     'crediti'        => predizione_limiti_utente(is_array($rec) ? $rec : [])['crediti'],
                     'nome'           => (string)($rec['nome'] ?? ''),
                     'email'          => (string)($rec['email_comunicazione'] ?? ''),
                     'tel'            => (string)($rec['telefono'] ?? ''),
+                    'fonte'          => (string)($rec['fonte'] ?? ''),   // provenienza (etichetta)
                 ];
             }
             predizione_json(['ok' => true, 'utenti' => $out]);
@@ -218,6 +220,7 @@ function predizione_admin(string $azione): void {
                 'attivo'   => !empty($rec['attivo']),
                 'flags'    => predizione_flags($num),
                 'piano'    => (string)($rec['piano'] ?? 'Foyer'),
+                'piano_versione' => isset($rec['piano_versione']) ? (int)$rec['piano_versione'] : null,
                 'accesso_scad' => (int)($rec['accesso_scadenza'] ?? 0),
                 'piano_scad'   => (int)($rec['piano_scadenza'] ?? 0),
                 'fonte'    => (string)($rec['fonte'] ?? ''),                 // provenienza (etichetta)
@@ -356,6 +359,102 @@ function predizione_admin(string $azione): void {
         case 'admin_operazioni':
             // archivio delle operazioni admin (attiva/sospendi/elimina/crea), con data
             predizione_json(['ok' => true, 'operazioni' => predizione_operazioni_leggi(300)]);
+
+        case 'admin_listino':
+            // legge il LISTINO effettivo (piani + extra + prezzo accesso) per l'editor.
+            $piani = [];
+            foreach (predizione_piani() as $nome => $p) {
+                $piani[] = array_merge(['nome' => (string)$nome, 'versione' => predizione_piano_versione((string)$nome)],
+                                       predizione_piano_normalizza($p));
+            }
+            $extra = [];
+            foreach (predizione_extra() as $code => $e) {
+                $extra[] = ['code' => (string)$code, 'label' => (string)$e['label'],
+                            'prezzo' => (float)$e['prezzo'], 'tipo' => (string)$e['tipo'], 'qta' => (int)$e['qta']];
+            }
+            predizione_json(['ok' => true, 'listino' => [
+                'piani' => $piani, 'extra' => $extra,
+                'accesso' => predizione_accesso_prezzo(),
+                'nomi_base' => predizione_piani_nomi_base(),
+            ]]);
+
+        case 'admin_piani_storico':
+            // storico delle VERSIONI vecchie dei piani (per il pannello 000)
+            $st = predizione_piani_storico();
+            usort($st, fn($a, $b) => (int)($b['archiviato'] ?? 0) - (int)($a['archiviato'] ?? 0));
+            // versioni correnti
+            $corr = [];
+            foreach (predizione_piani_nomi_base() as $nm) { $corr[$nm] = predizione_piano_versione($nm); }
+            predizione_json(['ok' => true, 'storico' => $st, 'versioni' => $corr]);
+
+        case 'admin_listino_salva':
+            // salva il listino modificato dall'editor. Riceve 'dati' = JSON
+            // {piani:{Nome:{...}}, extra:{code:{...}}, accesso:N}. I 4 nomi base
+            // restano; si puo' aggiungere UN piano extra. Chi e' gia' abbonato
+            // tiene il piano vecchio (snapshot) fino al rinnovo.
+            $raw = (string)(p('dati') ?? '');
+            $in  = json_decode($raw, true);
+            if (!is_array($in)) predizione_json(['ok' => false, 'errore' => 'Dati listino non validi'], 400);
+            // parto dal listino ATTUALE, cosi' conservo versioni e storico
+            $old      = predizione_listino_leggi();
+            $versioni = is_array($old['versioni'] ?? null) ? $old['versioni'] : [];
+            $storico  = is_array($old['storico'] ?? null)  ? $old['storico']  : [];
+            $correnti = predizione_piani();   // definizioni attualmente in vigore (per confronto)
+            $nuovo = ['piani' => [], 'extra' => [], 'accesso' => max(0, (int)($in['accesso'] ?? predizione_accesso_prezzo())),
+                      'versioni' => $versioni, 'storico' => $storico];
+            // piani
+            $pin = is_array($in['piani'] ?? null) ? $in['piani'] : [];
+            $def = predizione_piani_default();
+            // sempre i 4 ufficiali
+            foreach (predizione_piani_nomi_base() as $nome) {
+                $src   = is_array($pin[$nome] ?? null) ? $pin[$nome] : [];
+                $nuovoP = predizione_piano_normalizza($src, $def[$nome] ?? []);
+                $vecchioP = predizione_piano_normalizza($correnti[$nome] ?? ($def[$nome] ?? []));
+                $verCorr = (int)($nuovo['versioni'][$nome] ?? 1); if ($verCorr < 1) $verCorr = 1;
+                // se e' CAMBIATO qualcosa: archivia la versione vecchia e alza la versione
+                if (json_encode($nuovoP) !== json_encode($vecchioP)) {
+                    $nuovo['storico'][] = ['nome' => $nome, 'versione' => $verCorr,
+                        'etichetta' => $nome . ' ' . str_pad((string)$verCorr, 2, '0', STR_PAD_LEFT),
+                        'dati' => $vecchioP, 'archiviato' => time()];
+                    $verCorr++;
+                }
+                $nuovo['versioni'][$nome] = $verCorr;
+                $nuovo['piani'][$nome] = $nuovoP;
+            }
+            // extra
+            $ein = is_array($in['extra'] ?? null) ? $in['extra'] : [];
+            foreach ($ein as $code => $e) {
+                $code = preg_replace('/[^a-z0-9_]/', '', strtolower((string)$code));
+                if ($code === '' || !is_array($e)) continue;
+                $tipo = (string)($e['tipo'] ?? 'mail');
+                if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true)) $tipo = 'mail';
+                $nuovo['extra'][$code] = ['prezzo' => max(0, (float)($e['prezzo'] ?? 0)), 'tipo' => $tipo,
+                                          'qta' => max(1, (int)($e['qta'] ?? 1)), 'label' => substr((string)($e['label'] ?? $code), 0, 60)];
+            }
+            if (!predizione_listino_scrivi($nuovo)) predizione_json(['ok' => false, 'errore' => 'Salvataggio non riuscito (permessi _dati?)'], 500);
+            predizione_log_operazione('listino', '000', 'listino aggiornato');
+            predizione_json(['ok' => true]);
+
+        case 'admin_acquisti':
+            // cronologia acquisti di UN utente (dal registro vendite.csv globale)
+            $num = predizione_pulisci_utente(p('numero'));
+            $file = predizione_vendite_file();
+            $out = [];
+            if (is_file($file)) {
+                $fh = @fopen($file, 'r');
+                if ($fh) {
+                    $head = fgetcsv($fh);  // intestazione
+                    while (($r = fgetcsv($fh)) !== false) {
+                        // colonne: data,ordine,utente,nome,mail,piano,durata,importo,canale
+                        if (($r[2] ?? '') !== $num) continue;
+                        $out[] = ['data' => $r[0] ?? '', 'ordine' => $r[1] ?? '', 'piano' => $r[5] ?? '',
+                                  'durata' => $r[6] ?? '', 'importo' => $r[7] ?? '', 'canale' => $r[8] ?? ''];
+                    }
+                    fclose($fh);
+                }
+            }
+            $out = array_reverse($out);  // dal piu' recente
+            predizione_json(['ok' => true, 'acquisti' => $out]);
 
         case 'admin_caselle':
             // Elenco delle caselle configurate, per l'autorisponditore MULTI-CASELLA.

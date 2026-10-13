@@ -261,10 +261,18 @@ function predizione_periodo_uso(int $giorno): array {
 function predizione_uso_mese(array &$stato): array {
     $g = (int)($stato['giorno_rinnovo'] ?? 1);
     $per = predizione_periodo_uso($g);
+    $oggi = date('Y-m-d');
     if (!isset($stato['uso']) || !is_array($stato['uso']) || (($stato['uso']['mese'] ?? '') !== $per['chiave'])) {
-        $stato['uso'] = ['mese' => $per['chiave'], 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0, 'reset_ts' => $per['fine']];
+        // nuovo periodo mensile: azzera tutto (compreso il contatore del giorno)
+        $stato['uso'] = ['mese' => $per['chiave'], 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0,
+                         'reset_ts' => $per['fine'], 'giorno' => $oggi, 'mail_oggi' => 0];
     } else {
         $stato['uso']['reset_ts'] = $per['fine'];   // prossima ricarica (per mostrarla nel pannello)
+    }
+    // contatore GIORNALIERO delle mail: si azzera al cambio di data
+    if (($stato['uso']['giorno'] ?? '') !== $oggi) {
+        $stato['uso']['giorno'] = $oggi;
+        $stato['uso']['mail_oggi'] = 0;
     }
     return $stato['uso'];
 }
@@ -272,6 +280,10 @@ function predizione_uso_incr(array &$stato, string $tipo, int $n = 1): void {
     predizione_uso_mese($stato);
     if (array_key_exists($tipo, $stato['uso'])) {
         $stato['uso'][$tipo] = (int)$stato['uso'][$tipo] + $n;
+    }
+    // le mail contano anche nel totale del GIORNO (ingressi giornalieri)
+    if ($tipo === 'mail') {
+        $stato['uso']['mail_oggi'] = (int)($stato['uso']['mail_oggi'] ?? 0) + $n;
     }
     // registra il movimento nello storico (consumo = segno meno)
     predizione_movimento($stato, $tipo, -abs($n), 'uso');

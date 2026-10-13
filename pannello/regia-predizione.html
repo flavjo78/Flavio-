@@ -457,8 +457,9 @@
       <div class="sec-head"><h2 class="sec-title">I miei limiti</h2><span class="sec-num" id="limPiano">—</span></div>
       <div class="lim tap" data-hist="mail"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
-      <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
+      <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni del mese</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
       <p class="hint" id="limReset" style="color:var(--gold);font-weight:700"></p>
+      <p class="hint" id="limGiorno"></p>
       <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
       <button class="btn primary" id="buyBtn" type="button" style="width:100%;margin-top:8px">Acquista crediti / Cambia piano</button>
     </section>
@@ -706,6 +707,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');
       // #5 data di ricarica (giorno dell'abbonamento)
       var lr=$('limReset'); if(lr){ lr.textContent = uso.reset_ts ? ('Si ripristina il '+fmtData(uso.reset_ts)) : ''; }
+      // riepilogo GIORNALIERO (alcuni piani hanno limiti al giorno)
+      var lg=$('limGiorno');
+      if(lg){
+        var parti=[];
+        parti.push('Oggi: '+(uso.mail_oggi||0)+' mail'+((ac.mail_giorno)?(' su '+ac.mail_giorno+' al giorno'):''));
+        if(ac.sessioni_giorno) parti.push((ac.sessioni_giorno)+' sessioni al giorno incluse');
+        lg.innerHTML='<b>Al giorno</b> — '+parti.join(' · ');
+      }
     }
     // ripristina la casella salvata (email + password per app 16 cifre + mittente)
     var mc=st.mail_cfg;

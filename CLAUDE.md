@@ -53,6 +53,34 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
 >   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
 
+> ### Aggiunte 13 ottobre 2026 (AGG 18 — listino modificabile + versioni piani + pannello 000)
+> - **Listino modificabile (editor nel pannello 000).** I piani NON sono più solo nel codice:
+>   `predizione_piani()`/`predizione_extra()`/`predizione_accesso_prezzo()` leggono i valori di
+>   fabbrica (`predizione_piani_default`) con sopra le modifiche salvate in `_dati/listino.json`.
+>   Endpoint `admin_listino` (lettura) e `admin_listino_salva` (scrittura) in stato.php. L'editor
+>   cambia **prezzi e numeri** dei 4 piani (nomi fissi) + prezzo accesso; il sito/carrello si
+>   aggiornano da soli (ordine.php `listino` usa i valori effettivi).
+> - **Nuovi campi piano:** `mail_giorno` e `sessioni_giorno` (limiti "al giorno"). I default
+>   ora rispecchiano il listino del sito (Quinte 1 sess/giorno+5/mese, 500 mail/mese(100/giorno), ecc.).
+>   `predizione_piano_normalizza()` forza i tipi.
+> - **Versioni dei piani + storico.** Ogni modifica a un piano **archivia la versione vecchia**
+>   (es. "Sipario 01") in `listino.json['storico']` e alza `listino.json['versioni'][nome]`.
+>   Endpoint `admin_piani_storico`. In Regia/pannello la versione è solo informativa; sul sito NON si vede.
+> - **Snapshot per-utente (chi è già abbonato tiene il piano vecchio).** `predizione_applica_piano`
+>   congela `rec['piano_dati']` (limiti) + `rec['piano_versione']`; `predizione_limiti_utente` usa lo
+>   snapshot se presente. Al **rinnovo/upgrade** (nuovo `applica_piano`) lo snapshot si aggiorna al piano
+>   corrente. Utenti vecchi senza snapshot leggono il piano corrente (retro-compatibile).
+> - **Pannello 000 riorganizzato (admin.html riscritto).** Menù laterale richiudibile (desktop-first,
+>   responsive): Nuovo utente · Ordini (in attesa default + processati richiudibili + ricerca per
+>   tipo/nome/id) · Utenti (filtri: fase/piano/provenienza + ordinamento; legenda spento vs terminato) ·
+>   Listino · Storico piani · Password d'accesso · Operazioni. Scheda utente: anagrafica CON dentro la
+>   casella Gmail e il cambio password; piano con **scadenza** e **3 righe crediti separate** (mail/foto/
+>   sessioni); **cronologia acquisti** (endpoint `admin_acquisti` da vendite.csv). admin_utenti/admin_scheda
+>   espongono `fonte` e `piano_versione`.
+> - **B2 (al mese + giorno):** acquista.html mostra dettagli piano e **tabella di confronto**; `config.php`
+>   `predizione_uso_mese/incr` tiene `uso['mail_oggi']` (contatore giornaliero); la Regia mostra
+>   "Sessioni del mese" e un riepilogo "Al giorno".
+
 > ### Aggiunte 12 ottobre 2026 (AGG 17 — lotto grande)
 > - **Password d'accesso con provenienza:** l'admin crea password etichettate (`_dati/accessi.json`,
 >   azioni `admin_accesso_*`, campo `pw_accesso` NON `password`); sul sito la verifica è `verifica_accesso`

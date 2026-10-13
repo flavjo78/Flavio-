@@ -235,14 +235,16 @@ if ($azione === 'listino') {
     $piani = [];
     foreach (predizione_piani() as $nome => $p) {
         $piani[] = ['nome' => $nome, 'prezzo_anno' => (int)$p['prezzo_anno'], 'prezzo_mese' => (int)$p['prezzo_mese'],
-                    'mail_mese' => (int)$p['mail_mese'], 'foto_ia_mese' => (int)$p['foto_ia_mese'], 'sessioni_mese' => (int)$p['sessioni_mese'],
-                    'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report']];
+                    'mail_mese' => (int)$p['mail_mese'], 'mail_giorno' => (int)($p['mail_giorno'] ?? 0),
+                    'foto_ia_mese' => (int)$p['foto_ia_mese'], 'sessioni_mese' => (int)$p['sessioni_mese'],
+                    'sessioni_giorno' => (int)($p['sessioni_giorno'] ?? 0),
+                    'assistente' => (bool)$p['assistente'], 'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report']];
     }
     $extra = [];
     foreach (predizione_extra() as $code => $e) {
         $extra[] = ['code' => $code, 'label' => (string)$e['label'], 'prezzo' => (float)$e['prezzo']];
     }
-    predizione_json(['ok' => true, 'accesso' => PRED_ACCESSO_PREZZO, 'piani' => $piani, 'extra' => $extra]);
+    predizione_json(['ok' => true, 'accesso' => predizione_accesso_prezzo(), 'piani' => $piani, 'extra' => $extra]);
 }
 
 /* ===== PASSWORD D'ACCESSO del gioco (pubblico): valida e ritorna l'etichetta */
@@ -316,7 +318,7 @@ if ($azione === 'crea') {
     if ($esistenteOk) {
         $importo = ($vuolePiano ? predizione_prezzo_piano($piano, $durata) : 0) + $extraCost;
     } else {
-        $importo = PRED_ACCESSO_PREZZO + predizione_prezzo_piano($piano, $durata) + $extraCost;
+        $importo = predizione_accesso_prezzo() + predizione_prezzo_piano($piano, $durata) + $extraCost;
     }
 
     $ordini = ord_leggi();

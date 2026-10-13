@@ -16,37 +16,125 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/pdf.php';   // generatore PDF per la ricevuta
 
-const PRED_ACCESSO_PREZZO = 25;     // euro, una tantum
+const PRED_ACCESSO_PREZZO = 25;     // euro, una tantum (DEFAULT; l'editor puo' cambiarlo)
 const PRED_ACCESSO_ANNI   = 4;      // durata accesso
 
-/* ---- Definizione dei piani (prezzi e limiti inclusi) ------------------- */
-function predizione_piani(): array {
+/* ---- Definizione PREDEFINITA dei piani (prezzi e limiti inclusi) -------
+   NB: questi sono i valori "di fabbrica". L'autore puo' modificarli dal
+   pannello 000 (editor del listino): le modifiche vengono salvate in
+   _dati/listino.json e lette da predizione_piani() qui sotto. */
+function predizione_piani_default(): array {
     return [
         'Foyer' => [
             'prezzo_anno' => 0,   'prezzo_mese' => 0,
-            'mail_mese' => 85,    'foto_ia_mese' => 0,   'sessioni_mese' => 12,
+            'mail_mese' => 85,    'mail_giorno' => 0,    'foto_ia_mese' => 0,
+            'sessioni_mese' => 12,'sessioni_giorno' => 0,
             'assistente' => false,'report' => false,     'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => false],
         ],
         'Quinte' => [
             'prezzo_anno' => 66,  'prezzo_mese' => 15,
-            'mail_mese' => 500,   'foto_ia_mese' => 15,  'sessioni_mese' => 35,
+            'mail_mese' => 500,   'mail_giorno' => 100,  'foto_ia_mese' => 15,
+            'sessioni_mese' => 5, 'sessioni_giorno' => 1,
             'assistente' => true, 'report' => true,      'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => true],
         ],
         'Sipario' => [
             'prezzo_anno' => 96,  'prezzo_mese' => 30,
-            'mail_mese' => 1500,  'foto_ia_mese' => 30,  'sessioni_mese' => 70,
+            'mail_mese' => 1500,  'mail_giorno' => 150,  'foto_ia_mese' => 30,
+            'sessioni_mese' => 10,'sessioni_giorno' => 2,
             'assistente' => true, 'report' => true,      'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => true],
         ],
         'Palco' => [
             'prezzo_anno' => 228, 'prezzo_mese' => 58,
-            'mail_mese' => 3500,  'foto_ia_mese' => 100, 'sessioni_mese' => 105,
+            'mail_mese' => 3500,  'mail_giorno' => 0,    'foto_ia_mese' => 100,
+            'sessioni_mese' => 15,'sessioni_giorno' => 3,
             'assistente' => true, 'report' => true,      'grandi_invii' => true,
             'flags' => ['mail' => true, 'foto' => true],
         ],
     ];
+}
+
+/* I 4 nomi "ufficiali" dei livelli (l'editor li tiene fissi; se ne puo'
+   aggiungere UN altro personalizzato, ma questi quattro restano). */
+function predizione_piani_nomi_base(): array { return ['Foyer', 'Quinte', 'Sipario', 'Palco']; }
+
+/* Normalizza un piano: forza i tipi giusti e riempie i campi mancanti. */
+function predizione_piano_normalizza(array $p, array $base = []): array {
+    $g = function ($k, $def) use ($p, $base) { return array_key_exists($k, $p) ? $p[$k] : ($base[$k] ?? $def); };
+    $flags = $g('flags', ['mail' => true, 'foto' => true]);
+    if (!is_array($flags)) $flags = ['mail' => true, 'foto' => true];
+    return [
+        'prezzo_anno'    => max(0, (int)$g('prezzo_anno', 0)),
+        'prezzo_mese'    => max(0, (int)$g('prezzo_mese', 0)),
+        'mail_mese'      => max(0, (int)$g('mail_mese', 0)),
+        'mail_giorno'    => max(0, (int)$g('mail_giorno', 0)),     // 0 = nessun limite giornaliero
+        'foto_ia_mese'   => max(0, (int)$g('foto_ia_mese', 0)),
+        'sessioni_mese'  => max(0, (int)$g('sessioni_mese', 0)),
+        'sessioni_giorno'=> max(0, (int)$g('sessioni_giorno', 0)), // 0 = nessun limite giornaliero
+        'assistente'     => (bool)$g('assistente', false),
+        'report'         => (bool)$g('report', false),
+        'grandi_invii'   => (bool)$g('grandi_invii', false),
+        'flags'          => ['mail' => !empty($flags['mail']), 'foto' => !empty($flags['foto'])],
+    ];
+}
+
+/* ---- LISTINO su file (modificabile dall'editor del pannello 000) ------- */
+function predizione_listino_file(): string { return DATA_DIR . '/listino.json'; }
+function predizione_listino_leggi(): array {
+    $d = json_decode((string)@file_get_contents(predizione_listino_file()), true);
+    return is_array($d) ? $d : [];
+}
+function predizione_listino_scrivi(array $data): bool {
+    if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0775, true); }
+    return @file_put_contents(predizione_listino_file(),
+        json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
+}
+
+/* Piani EFFETTIVI: i valori di fabbrica, con sopra le modifiche salvate. */
+function predizione_piani(): array {
+    $def = predizione_piani_default();
+    $lis = predizione_listino_leggi();
+    if (empty($lis['piani']) || !is_array($lis['piani'])) return $def;
+    $out = [];
+    // prima i 4 ufficiali nell'ordine giusto, poi eventuali piani extra
+    foreach (predizione_piani_nomi_base() as $nome) {
+        $src = $lis['piani'][$nome] ?? null;
+        $out[$nome] = is_array($src) ? predizione_piano_normalizza($src, $def[$nome] ?? []) : ($def[$nome] ?? predizione_piano_normalizza([]));
+    }
+    foreach ($lis['piani'] as $nome => $src) {
+        $nome = (string)$nome;
+        if (isset($out[$nome]) || !is_array($src)) continue;
+        if (!in_array($nome, predizione_piani_nomi_base(), true)) $out[$nome] = predizione_piano_normalizza($src);
+    }
+    return $out;
+}
+
+/* Prezzo accesso EFFETTIVO (editor puo' cambiarlo; altrimenti la costante). */
+function predizione_accesso_prezzo(): int {
+    $lis = predizione_listino_leggi();
+    return isset($lis['accesso']) ? max(0, (int)$lis['accesso']) : (int)PRED_ACCESSO_PREZZO;
+}
+
+/* ---- VERSIONI dei piani (storico) -------------------------------------
+   Ogni volta che l'autore cambia un piano, la versione AUMENTA e la vecchia
+   definizione finisce nello STORICO (es. "Sipario 01"): non si vede sul sito,
+   ma nel pannello si', cosi' si capisce a cosa rinnovano i gia' abbonati. */
+function predizione_piano_versione(string $nome): int {
+    $lis = predizione_listino_leggi();
+    $v = (int)($lis['versioni'][$nome] ?? 1);
+    return $v < 1 ? 1 : $v;
+}
+/* Etichetta di versione: "Sipario 01", "Sipario 02"... (2 cifre). */
+function predizione_piano_etichetta(string $nome, ?int $ver = null): string {
+    $ver = $ver ?? predizione_piano_versione($nome);
+    return $nome . ' ' . str_pad((string)max(1, $ver), 2, '0', STR_PAD_LEFT);
+}
+function predizione_piani_storico(): array {
+    $lis = predizione_listino_leggi();
+    $s = $lis['storico'] ?? [];
+    return is_array($s) ? $s : [];
 }
 
 /* Nome piano valido? (ritorna il nome "pulito" o null) */
@@ -63,14 +151,34 @@ function predizione_prezzo_piano(string $piano, string $durata): int {
     return (int)($durata === 'mese' ? $piani[$piano]['prezzo_mese'] : $piani[$piano]['prezzo_anno']);
 }
 
-/* ---- Extra a la carte (estensioni della licenza) ---------------------- */
-function predizione_extra(): array {
+/* ---- Extra a la carte (estensioni della licenza) — VALORI DI FABBRICA -- */
+function predizione_extra_default(): array {
     return [
         'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',     'qta' => 200,  'label' => '+200 mail'],
         'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',  'qta' => 10,   'label' => '10 foto con IA'],
         'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni', 'qta' => 5,    'label' => '5 sessioni'],
         'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',     'qta' => 5000, 'label' => '5.000 mail (Palco)'],
     ];
+}
+/* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
+function predizione_extra(): array {
+    $def = predizione_extra_default();
+    $lis = predizione_listino_leggi();
+    if (empty($lis['extra']) || !is_array($lis['extra'])) return $def;
+    $out = $def;
+    foreach ($lis['extra'] as $code => $e) {
+        $code = (string)$code;
+        if (!is_array($e)) continue;
+        $tipo = (string)($e['tipo'] ?? ($def[$code]['tipo'] ?? 'mail'));
+        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true)) $tipo = 'mail';
+        $out[$code] = [
+            'prezzo' => max(0, (float)($e['prezzo'] ?? ($def[$code]['prezzo'] ?? 0))),
+            'tipo'   => $tipo,
+            'qta'    => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
+            'label'  => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
+        ];
+    }
+    return $out;
 }
 
 /* ---- Applica un piano a un record utente (crea/estende abbonamento) ---- */
@@ -82,6 +190,12 @@ function predizione_applica_piano(array &$rec, string $piano, string $durata = '
 
     $rec['piano'] = $piano;
     $rec['flags'] = $piani[$piano]['flags'];
+    // SNAPSHOT del piano com'e' OGGI: congela limiti e funzioni al momento
+    // dell'acquisto. Se poi l'autore modifica il listino, questo utente tiene
+    // il piano vecchio FINO al rinnovo (quando questa funzione gira di nuovo).
+    $rec['piano_dati'] = predizione_piano_normalizza($piani[$piano]);
+    // VERSIONE del piano sottoscritta (per lo storico/pannello): es. Sipario v2.
+    $rec['piano_versione'] = predizione_piano_versione($piano);
 
     // scadenza abbonamento: estende a partire da oggi o dalla scadenza se ancora valida
     $base = max(time(), (int)($rec['piano_scadenza'] ?? 0));
@@ -121,14 +235,21 @@ function predizione_crediti_disponibili(array $rec, string $tipo): int {
 function predizione_limiti_utente(array $rec): array {
     $piani = predizione_piani();
     $piano = $rec['piano'] ?? 'Foyer';
-    $p = $piani[$piano] ?? $piani['Foyer'];
+    // Se l'utente ha uno SNAPSHOT (piano congelato all'acquisto), si usa quello:
+    // cosi' una modifica del listino non tocca chi e' gia' abbonato, fino al rinnovo.
+    // Altrimenti (utenti vecchi senza snapshot) si legge il piano corrente.
+    $p = (isset($rec['piano_dati']) && is_array($rec['piano_dati']))
+         ? predizione_piano_normalizza($rec['piano_dati'])
+         : ($piani[$piano] ?? ($piani['Foyer'] ?? predizione_piano_normalizza([])));
     return [
         'piano'            => $piano,
         'piano_scadenza'   => (int)($rec['piano_scadenza'] ?? 0),
         'accesso_scadenza' => (int)($rec['accesso_scadenza'] ?? 0),
         'mail_mese'        => (int)$p['mail_mese'],
+        'mail_giorno'      => (int)($p['mail_giorno'] ?? 0),
         'foto_ia_mese'     => (int)$p['foto_ia_mese'],
         'sessioni_mese'    => (int)$p['sessioni_mese'],
+        'sessioni_giorno'  => (int)($p['sessioni_giorno'] ?? 0),
         'assistente'       => (bool)$p['assistente'],
         // Report: incluso nel piano OPPURE attivato a parte dall'admin (report_extra).
         // Se report_extra e' impostato (true/false), VINCE sul piano (si puo' anche togliere).
@@ -254,7 +375,7 @@ function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): s
     $pdf->text(60, $y, 10, 'Descrizione', true); $pdf->text(470, $y, 10, 'Importo', true); $y += 6;
     $pdf->text(60, $y, 10, '______________________________________________________________'); $y += 18;
     $pdf->text(60, $y, 11, 'Accesso all\'app PREDIZIONE (4 anni)');
-    $pdf->text(470, $y, 11, number_format((float)PRED_ACCESSO_PREZZO, 2, ',', '.') . ' EUR'); $y += 16;
+    $pdf->text(470, $y, 11, number_format((float)predizione_accesso_prezzo(), 2, ',', '.') . ' EUR'); $y += 16;
     if ($prezzoPiano > 0) {
         $pdf->text(60, $y, 11, 'Estensione ' . $piano . ' (' . ($dur === 'mese' ? '1 mese' : '1 anno') . ')');
         $pdf->text(470, $y, 11, number_format($prezzoPiano, 2, ',', '.') . ' EUR'); $y += 16;
