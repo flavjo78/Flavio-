@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Predizione — Guida (ANTEPRIMA)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme: dark;
+    --bg:#0a0908; --bg-deep:#060505; --surface:#1b1712; --surface-2:#2a251d; --surface-3:#332d23;
+    --line:rgba(236,224,201,.09); --line-2:rgba(236,224,201,.16);
+    --ink:#ece0c9; --ink-dim:#9a8f7b; --ink-faint:#6c6455;
+    --gold:#c9a465; --gold-soft:rgba(201,164,101,.14);
+    --good:#86b26f; --good-soft:rgba(134,178,111,.14);
+    --stop:#cf8262; --stop-soft:rgba(207,130,98,.14);
+    --r:18px; --r-lg:22px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,sans-serif;line-height:1.5}
+
+  /* fascetta ANTEPRIMA + comandi di prova (non faranno parte dell'app vera) */
+  .demobar{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#1a140c;border-bottom:1px solid var(--line-2);padding:8px 14px;font-size:12px}
+  .demobar .tag{background:var(--gold);color:#201105;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.1em}
+  .demobar .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:999px;overflow:hidden}
+  .demobar .seg button{background:transparent;border:0;color:var(--ink-dim);font:inherit;font-weight:700;padding:5px 12px;cursor:pointer}
+  .demobar .seg button.on{background:var(--gold-soft);color:var(--gold)}
+  .demobar .mini{margin-left:auto;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);
+    border-radius:999px;padding:5px 12px;font:inherit;font-weight:700;cursor:pointer}
+  .demobar .note{color:var(--ink-faint)}
+
+  .app{max-width:460px;margin:0 auto;min-height:100vh;
+    background:radial-gradient(120% 55% at 50% 0%, #14110c 0%, var(--bg) 46%, var(--bg-deep) 100%);
+    padding:0 20px 48px;position:relative;overflow:hidden}
+  @media (min-width:520px){
+    body{padding:18px 0}
+    .app{border:1px solid var(--line-2);border-radius:34px;min-height:calc(100vh - 120px);
+      box-shadow:0 30px 80px -30px #000, inset 0 1px 0 rgba(236,224,201,.05)}
+  }
+
+  header{text-align:center;padding:26px 0 6px}
+  .kicker{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 2px}
+  .wordmark{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(34px,12vw,46px);line-height:1;text-shadow:0 2px 30px rgba(201,164,101,.18)}
+  .subwordmark{color:var(--ink-dim);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:7px}
+
+  /* barra dei passi */
+  .steps{display:flex;gap:6px;justify-content:center;margin:14px 0 2px}
+  .steps i{width:26px;height:5px;border-radius:999px;background:var(--surface-3);transition:background .2s}
+  .steps i.on{background:var(--gold)}
+
+  .card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-lg);padding:22px 18px;margin-top:14px}
+  h2.t{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:26px;margin:0 0 4px;text-align:center}
+  .lead{color:var(--ink-dim);font-size:14px;text-align:center;margin:0 auto 4px;max-width:34ch}
+
+  .pill-step{display:inline-block;font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold);border-radius:999px;padding:4px 12px;margin:0 auto 10px}
+  .center{text-align:center}
+
+  .big-choice{display:flex;align-items:center;gap:14px;width:100%;text-align:left;background:var(--surface-2);
+    border:1px solid var(--line-2);border-radius:var(--r);padding:16px;margin-top:12px;cursor:pointer;color:var(--ink);font:inherit;transition:border-color .15s,background .15s}
+  .big-choice:hover{border-color:var(--gold);background:var(--surface-3)}
+  .big-choice .ic{flex:0 0 46px;width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:var(--bg);border:1px solid var(--line)}
+  .big-choice .ic svg{width:26px;height:26px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  .big-choice .tx{flex:1;min-width:0}
+  .big-choice .tx b{display:block;font-size:16px}
+  .big-choice .tx span{display:block;font-size:12.5px;color:var(--ink-dim);margin-top:2px;line-height:1.35}
+  .big-choice .go{flex:0 0 auto;color:var(--ink-faint);font-size:22px}
+
+  /* illustrazione "schermata del telefono" */
+  .shot{margin:14px auto 6px;max-width:230px}
+  .phone{background:#0d0b08;border:2px solid var(--line-2);border-radius:26px;padding:12px 10px 16px;box-shadow:0 14px 40px -18px #000}
+  .phone .notch{width:46px;height:5px;background:var(--surface-3);border-radius:999px;margin:0 auto 10px}
+  .scr{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;min-height:150px}
+  .scr .bar{height:9px;border-radius:999px;background:var(--surface-3);margin:7px 0}
+  .scr .bar.sm{width:55%} .scr .bar.xs{width:35%}
+  .scr .row{display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px;margin-top:8px}
+  .scr .row .lab{font-size:11px;color:var(--ink);font-weight:700}
+  .scr .toggle{width:40px;height:22px;border-radius:999px;background:var(--good-soft);border:1px solid var(--good);position:relative}
+  .scr .toggle:after{content:"";position:absolute;top:2px;right:2px;width:16px;height:16px;border-radius:50%;background:var(--good)}
+  .code16{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+  .code16 span{background:var(--gold-soft);border:1px dashed var(--gold);border-radius:8px;text-align:center;
+    font-family:"Cormorant Garamond",serif;font-weight:600;font-size:18px;color:var(--gold);padding:6px 0;letter-spacing:.08em}
+  .shot-cap{text-align:center;font-size:11.5px;color:var(--ink-faint);margin-top:8px}
+  .glyph{font-size:40px;text-align:center;margin:6px 0}
+
+  .say{background:var(--surface-2);border:1px solid var(--line);border-radius:14px;padding:13px 14px;margin-top:14px;font-size:14px;line-height:1.5}
+  .say b{color:var(--gold)}
+  .say .n{display:inline-block;min-width:22px;height:22px;line-height:22px;text-align:center;border-radius:50%;
+    background:var(--gold);color:#201105;font-weight:800;font-size:12px;margin-right:7px;vertical-align:1px}
+
+  .btn{-webkit-appearance:none;appearance:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;
+    padding:15px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);width:100%;margin-top:10px;transition:transform .08s}
+  .btn:active{transform:scale(.985)}
+  .btn.primary{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  .btn.ghost{background:transparent;color:var(--ink-dim)}
+  .btn.link{background:transparent;border-color:var(--gold);color:var(--gold)}
+  .btn .sub{display:block;font-weight:600;font-size:11.5px;opacity:.8;margin-top:2px}
+  .row2{display:flex;gap:10px}
+  .row2 .btn{margin-top:14px}
+
+  .field{margin-top:14px}
+  .field label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin-bottom:6px}
+  .field input{width:100%;font-family:inherit;font-size:16px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:13px 14px}
+  .field input:focus{outline:none;border-color:var(--gold)}
+  .field .help{font-size:12px;color:var(--ink-faint);margin-top:6px}
+  .code-in{letter-spacing:.18em;font-variant-numeric:tabular-nums}
+
+  .support{background:var(--gold-soft);border:1px solid var(--gold);border-radius:14px;padding:16px;text-align:center;margin-top:14px}
+  .support b{color:var(--gold);font-size:17px}
+  .support a{color:var(--ink);font-weight:800;text-decoration:none;border-bottom:1px solid var(--gold)}
+
+  .skip{display:block;text-align:center;margin:16px auto 0;color:var(--ink-faint);font-size:12.5px;background:none;border:0;cursor:pointer;text-decoration:underline}
+  .done .glyph{font-size:62px;text-align:center}
+  .foot{text-align:center;color:var(--ink-faint);font-size:11px;margin-top:18px}
+  .hide{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="demobar">
+  <span class="tag">ANTEPRIMA</span>
+  <span class="note">Stai guardando la guida. Qui niente viene salvato davvero.</span>
+  <span class="seg"><button id="segPhone" class="on">📱 Telefono</button><button id="segPc">💻 Computer</button></span>
+  <button class="mini" id="restart">↺ Ricomincia</button>
+</div>
+
+<div class="app">
+  <header>
+    <p class="kicker">Benvenuto</p>
+    <h1 class="wordmark">Predizione</h1>
+    <p class="subwordmark">Prepariamo insieme il gioco</p>
+  </header>
+
+  <div class="steps" id="steps"><i></i><i></i><i></i><i></i></div>
+
+  <div id="view"></div>
+
+  <p class="foot">Guida in anteprima · abraka — supporto@abraka.it</p>
+</div>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s);};
+  var view=$('#view'), stepsEl=$('#steps');
+  var DEV='phone';          // 'phone' | 'pc'
+  var screen='intro';       // schermata corrente
+  var gmail='';             // valori provvisori del percorso Gmail
+
+  function tocca(){ return DEV==='phone' ? 'tocca' : 'clicca'; }
+  function Tocca(){ return DEV==='phone' ? 'Tocca' : 'Clicca'; }
+  function apriDove(){ return DEV==='phone' ? 'dal telefono' : 'dal computer'; }
+
+  // barra dei 4 passi (attiva solo nel percorso Gmail)
+  function setSteps(n){
+    var on = {g1:1,g2:2,g3:3,g4:4}[n] || 0;
+    stepsEl.style.visibility = on ? 'visible' : 'hidden';
+    [].forEach.call(stepsEl.children,function(i,ix){ i.classList.toggle('on', ix<on); });
+  }
+
+  function go(s){ screen=s; render(); window.scrollTo(0,0); }
+
+  // ---- illustrazioni (disegni nell'app) ----
+  function phone(inner, cap){
+    return '<div class="shot"><div class="phone"><div class="notch"></div><div class="scr">'+inner+'</div></div></div>'
+         + (cap?('<div class="shot-cap">'+cap+'</div>'):'');
+  }
+
+  function render(){
+    var h='';
+    if(screen==='intro'){
+      setSteps(0);
+      h = '<div class="card center">'
+        + '<h2 class="t">Ciao! Ci vogliono 5 minuti</h2>'
+        + '<p class="lead">Per far partire le foto agli spettatori serve una <b>mail del gioco</b>. Ti accompagno passo passo.</p>'
+        + '<div class="say" style="text-align:left">'
+          + '<div><span class="n">1</span><b>Mail di comunicazione</b> — quella con cui ti sei iscritto. Qui ti scriviamo noi (ricevute, avvisi).</div>'
+          + '<div style="margin-top:10px"><span class="n">2</span><b>Mail del gioco</b> — quella da cui partono le foto. Può essere la stessa, ma è meglio una dedicata solo allo spettacolo.</div>'
+        + '</div>'
+        + '<button class="btn primary" data-go="choose">Cominciamo →</button>'
+        + '<button class="skip" data-go="done">Ho già fatto tutto, salta la guida</button>'
+        + '</div>';
+    }
+    else if(screen==='choose'){
+      setSteps(0);
+      h = '<div class="card">'
+        + '<p class="center"><span class="pill-step">Primo passo</span></p>'
+        + '<h2 class="t">Che mail userai per il gioco?</h2>'
+        + '<p class="lead">Scegli la tua situazione.</p>'
+        + choice('g1','Una Gmail','La più comune (es. nome@gmail.com). Richiede un piccolo codice di 16 lettere: te lo faccio creare io.', svgMail())
+        + choice('domain','Un dominio mio','Hai un sito/dominio tuo (es. mioshow.it). È la via per i grandi invii "Palco".', svgGlobe())
+        + choice('other','Un altro tipo','Un indirizzo che non è Gmail né un dominio tuo (Outlook, Libero, aziendale…).', svgDots())
+        + '</div>';
+    }
+    else if(screen==='g1'){
+      setSteps('g1');
+      h = '<div class="card">'
+        + '<p class="center"><span class="pill-step">Passo 1 di 4</span></p>'
+        + '<h2 class="t">La Gmail del gioco</h2>'
+        + '<p class="lead">Puoi usarne una che hai già, oppure crearne una nuova dedicata allo show.</p>'
+        + phone('<div class="glyph">✉️</div><div class="bar sm" style="margin:0 auto"></div><div class="bar xs" style="margin:6px auto"></div>'
+                +'<div class="row"><span class="lab">ilmiomagoshow@gmail.com</span></div>', 'Esempio: un indirizzo col tuo nome d\'arte')
+        + '<div class="say"><span class="n">!</span>Se ne crei una nuova, <b>segnati la password</b> che scegli: ti servirà.</div>'
+        + '<a class="btn link" href="https://accounts.google.com/signup" target="_blank" rel="noopener">Apri Google per creare la Gmail<span class="sub">si apre '+(DEV==='phone'?'una nuova scheda':'in un\'altra finestra')+'</span></a>'
+        + nav('choose','g2','Ho la Gmail, avanti →');
+    }
+    else if(screen==='g2'){
+      setSteps('g2');
+      h = '<div class="card">'
+        + '<p class="center"><span class="pill-step">Passo 2 di 4</span></p>'
+        + '<h2 class="t">Attiva la "Verifica in due passaggi"</h2>'
+        + '<p class="lead">Serve per sbloccare il codice del passo dopo. Google chiede il tuo numero e ti manda un SMS.</p>'
+        + phone('<div class="bar sm"></div><div class="row"><span class="lab">Verifica in due passaggi</span><span class="toggle"></span></div>'
+                +'<div class="bar" style="margin-top:12px"></div><div class="bar xs"></div>', 'Cerca questa voce e mettila su ACCESO')
+        + '<a class="btn link" href="https://myaccount.google.com/security" target="_blank" rel="noopener">Apri la pagina Sicurezza di Google<span class="sub">voce "Verifica in due passaggi"</span></a>'
+        + nav('g1','g3','Fatto, avanti →');
+    }
+    else if(screen==='g3'){
+      setSteps('g3');
+      h = '<div class="card">'
+        + '<p class="center"><span class="pill-step">Passo 3 di 4</span></p>'
+        + '<h2 class="t">Crea la "Password per le app"</h2>'
+        + '<p class="lead">Google ti dà un codice di <b>16 lettere</b>. È una password speciale solo per Predizione.</p>'
+        + phone('<div class="bar sm"></div><div class="bar xs"></div>'
+                +'<div class="code16"><span>abcd</span><span>efgh</span><span>ijkl</span><span>mnop</span></div>'
+                +'<div class="bar" style="margin-top:12px;width:70%"></div>', 'Un codice così (4 gruppi da 4 lettere)')
+        + '<div class="say"><span class="n">i</span>Dai un nome qualsiasi (es. <b>PREDIZIONE</b>) e '+tocca()+' <b>Crea</b>. Poi <b>copia</b> le 16 lettere.</div>'
+        + '<a class="btn link" href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener">Apri "Password per le app"<span class="sub">crea il codice a 16 lettere</span></a>'
+        + nav('g2','g4','Ho il codice, avanti →');
+    }
+    else if(screen==='g4'){
+      setSteps('g4');
+      h = '<div class="card">'
+        + '<p class="center"><span class="pill-step">Passo 4 di 4</span></p>'
+        + '<h2 class="t">Incolla qui e salva</h2>'
+        + '<p class="lead">Ultimo passo: scrivi la Gmail del gioco e incolla le 16 lettere.</p>'
+        + '<div class="field"><label>Indirizzo Gmail del gioco</label><input id="fMail" type="email" placeholder="ilmiomagoshow@gmail.com" autocomplete="off"></div>'
+        + '<div class="field"><label>Le 16 lettere (password per le app)</label><input id="fPass" class="code-in" type="text" placeholder="abcd efgh ijkl mnop" autocomplete="off"><div class="help">Puoi incollarle con o senza spazi.</div></div>'
+        + '<div class="field"><label>Nome mittente (facoltativo)</label><input id="fFrom" type="text" placeholder="Il Mio Show"></div>'
+        + '<button class="btn primary" data-save="1">Salva la casella</button>'
+        + '<button class="skip" data-go="g3">← torna indietro</button>'
+        + '</div>';
+    }
+    else if(screen==='domain'){
+      setSteps(0);
+      h = '<div class="card">'
+        + '<h2 class="t">Hai un dominio tuo: ottimo</h2>'
+        + '<p class="lead">Con un dominio tuo puoi usare il livello <b>"Palco"</b> per i grandi invii (centinaia di mail).</p>'
+        + phone('<div class="glyph">🌐</div><div class="row"><span class="lab">posta@mioshow.it</span></div>'
+                +'<div class="bar sm" style="margin:10px auto 0"></div>', 'La tua mail finisce col TUO dominio')
+        + '<div class="say"><span class="n">i</span>La parte tecnica la prepariamo <b>noi</b> per te (poche righe da incollare una volta sola). Non devi fare account né pagare servizi esterni.</div>'
+        + supportBox('Scrivici e ti attiviamo il "Palco"')
+        + nav('choose', null, null)
+        + '<button class="skip" data-go="g1">In realtà uso una Gmail →</button>'
+        + '</div>';
+    }
+    else if(screen==='other'){
+      setSteps(0);
+      h = '<div class="card">'
+        + '<h2 class="t">Nessun problema</h2>'
+        + '<p class="lead">Per questo tipo di mail ti diamo una mano noi: ci vuole un attimo e ti diciamo esattamente cosa fare.</p>'
+        + phone('<div class="glyph">💬</div><div class="bar sm" style="margin:0 auto"></div><div class="bar xs" style="margin:6px auto"></div>','Ti seguiamo noi, passo per passo')
+        + supportBox('Scrivici: ti guidiamo noi')
+        + nav('choose', null, null)
+        + '<button class="skip" data-go="g1">In realtà uso una Gmail →</button>'
+        + '</div>';
+    }
+    else if(screen==='done'){
+      setSteps(0);
+      h = '<div class="card done center">'
+        + '<div class="glyph">✨</div>'
+        + '<h2 class="t">Tutto pronto!</h2>'
+        + '<p class="lead">La mail del gioco è impostata. Ora puoi <b>avviare il gioco</b> e rispondere agli spettatori con la foto.</p>'
+        + (gmail?('<div class="say center"><b>'+esc(gmail)+'</b><br>casella del gioco collegata ✓</div>'):'')
+        + '<button class="btn primary" data-go="intro">Entra nella Regia →</button>'
+        + '<p class="foot">(Nell\'app vera questo tasto porta al pannello.)</p>'
+        + '</div>';
+    }
+    view.innerHTML=h;
+  }
+
+  function choice(to,title,sub,ic){
+    return '<button class="big-choice" data-go="'+to+'"><span class="ic">'+ic+'</span>'
+      +'<span class="tx"><b>'+title+'</b><span>'+sub+'</span></span><span class="go">›</span></button>';
+  }
+  function nav(back,next,nextLabel){
+    var s='<div class="row2">';
+    s+='<button class="btn ghost" data-go="'+back+'" style="flex:1">← Indietro</button>';
+    if(next) s+='<button class="btn primary" data-go="'+next+'" style="flex:2">'+nextLabel+'</button>';
+    s+='</div>';
+    if(next===undefined) s=''; // (non usato)
+    return s + '</div>';
+  }
+  function supportBox(t){
+    return '<div class="support"><b>'+t+'</b><br><br><a href="mailto:supporto@abraka.it">supporto@abraka.it</a></div>';
+  }
+  function esc(s){ return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  // icone
+  function svgMail(){ return '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>'; }
+  function svgGlobe(){ return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'; }
+  function svgDots(){ return '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>'; }
+
+  // click globale
+  document.addEventListener('click', function(e){
+    var g=e.target.closest('[data-go]'); if(g){ go(g.getAttribute('data-go')); return; }
+    var s=e.target.closest('[data-save]'); if(s){ salvaFinto(); return; }
+  });
+
+  function salvaFinto(){
+    var m=($('#fMail').value||'').trim();
+    var p=($('#fPass').value||'').replace(/\s+/g,'');
+    if(!m || m.indexOf('@')<0){ alert('Scrivi l\'indirizzo Gmail del gioco'); return; }
+    if(p.length<12){ alert('Incolla le 16 lettere del codice (le trovi nel passo 3)'); return; }
+    gmail=m;
+    // ANTEPRIMA: qui non salva davvero. Nell'app vera chiamerebbe il server.
+    go('done');
+  }
+
+  // comandi della fascetta anteprima
+  $('#segPhone').addEventListener('click', function(){ DEV='phone'; this.classList.add('on'); $('#segPc').classList.remove('on'); render(); });
+  $('#segPc').addEventListener('click', function(){ DEV='pc'; this.classList.add('on'); $('#segPhone').classList.remove('on'); render(); });
+  $('#restart').addEventListener('click', function(){ gmail=''; go('intro'); });
+
+  render();
+})();
+</script>
+</body>
+</html>
