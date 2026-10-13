@@ -53,6 +53,16 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
 >   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
 
+> ### Aggiunte 13 ottobre 2026 (AGG 20 — funzione "Aiuto" nella Regia)
+> - **Guida ai tasti (Regia).** Tasto **"Aiuto"** in Impostazioni sotto "Salva e torna" (bordo rosso).
+>   Primo tocco → pop-up (`#helpIntro`, stile `.hist`) che elenca le funzioni **grigie bloccate dal piano**
+>   (rileva la classe `.locked` su tileCasella/tileIa/tileReport/modoBig) con breve spiegazione. OK → **modalità
+>   aiuto** ON. Un intercettatore click in **cattura** (`document.addEventListener('click',…,true)`): 1° tocco su un
+>   tasto mostra una **nuvoletta** (`#helpTip`, bordo rosso, freccia) e blocca l'azione; 2° tocco sullo stesso
+>   tasto la esegue. Badge **"✕ aiuto"** (`#helpBadge`) in alto a destra per spegnere. Mappa testi `HELP` per
+>   tasti gioco (Avvia/Rispondi/Cambia/Finisci), tile (data-go) e tasti Impostazioni. Tutto client-side in
+>   regia-predizione.html, nessun endpoint nuovo.
+
 > ### Aggiunte 13 ottobre 2026 (AGG 19 — ritocchi)
 > - **Assistente di scena = NUMERO** nel modello piano (0 = non disponibile, -1 = illimitato, N = quota).
 >   `predizione_piano_normalizza` accetta int (o bool vecchio: true→-1, false→0); `predizione_limiti_utente`

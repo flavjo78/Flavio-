@@ -244,6 +244,25 @@
   .hist-row .q.plus{color:var(--good)} .hist-row .q.minus{color:var(--stop)}
   .hist-empty{color:var(--ink-faint);font-style:italic;padding:20px 0;text-align:center}
 
+  /* ---- AIUTO (guida ai tasti) ---- */
+  .btn.aiuto{border:1.5px solid var(--stop);color:var(--stop);background:transparent}
+  .btn.aiuto:hover{background:var(--stop-soft)}
+  #helpBadge{position:fixed;top:14px;right:14px;z-index:101;background:var(--stop);color:#20110b;border:none;
+    border-radius:999px;padding:9px 15px;font-size:13px;font-weight:800;cursor:pointer;display:none;box-shadow:0 4px 16px rgba(0,0,0,.45)}
+  #helpBadge.on{display:block}
+  #helpTip{position:fixed;z-index:100;max-width:260px;background:var(--surface);border:2px solid var(--stop);
+    border-radius:14px;padding:12px 14px;font-size:13px;color:var(--ink);line-height:1.4;display:none;
+    box-shadow:0 12px 34px rgba(0,0,0,.55)}
+  #helpTip b{display:block;color:var(--gold);margin-bottom:3px;font-size:14px}
+  #helpTip .again{margin-top:9px;font-size:11px;color:var(--stop);font-weight:800;text-transform:uppercase;letter-spacing:.08em}
+  #helpTip:after{content:"";position:absolute;left:var(--ax,20px);top:-9px;border:8px solid transparent;border-bottom-color:var(--stop)}
+  #helpTip.up:after{top:auto;bottom:-9px;border-bottom-color:transparent;border-top-color:var(--stop)}
+  .help-lock{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+  .help-lock:last-child{border:none}
+  .help-lock .hl-t{font-weight:700;font-size:14px}
+  .help-lock .hl-s{font-size:12.5px;color:var(--ink-dim)}
+  .help-lock .dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:var(--ink-faint);margin-top:5px}
+
   /* ---- orologio conto alla rovescia IA (30s) ---- */
   .iaclock{position:fixed;inset:0;z-index:95;background:rgba(6,5,5,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center}
   .iaclock.open{display:flex}
@@ -593,7 +612,25 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </section>
 
     <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
+    <button class="btn aiuto" id="helpBtn" type="button" style="margin-top:10px;width:100%">Aiuto — come funzionano i tasti</button>
     <p class="foot">Le impostazioni si preparano prima dello show.</p>
+  </div>
+
+  <!-- AIUTO: badge per spegnere, nuvoletta di spiegazione, pop-up iniziale -->
+  <button id="helpBadge" type="button">✕ aiuto</button>
+  <div id="helpTip" role="status" aria-live="polite"></div>
+  <div class="hist" id="helpIntro" role="dialog" aria-label="Aiuto">
+    <div class="hist-card">
+      <div class="hist-head"><b>Guida ai tasti</b><button id="helpIntroClose" type="button" aria-label="Chiudi">&times;</button></div>
+      <div class="hist-list">
+        <div id="helpLockedWrap">
+          <p class="hint" style="margin-top:0">Queste funzioni sono <b>in grigio</b> perché <b>non incluse nel tuo piano</b>:</p>
+          <div id="helpLockedList"></div>
+        </div>
+        <p class="hint" id="helpHowto">Premi <b>OK</b>: poi, toccando un tasto, ti <b>spiego</b> cosa fa. La <b>prima volta</b> lo spiega, la <b>seconda volta</b> lo usa davvero. Per spegnere l'aiuto premi <b>✕ aiuto</b> in alto a destra.</p>
+        <button class="btn primary" id="helpStart" type="button" style="width:100%">OK, attiva l'aiuto</button>
+      </div>
+    </div>
   </div>
 
   <!-- visore a tutto schermo -->
@@ -1462,6 +1499,95 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function loop(t){draw(t); if(!reduce) requestAnimationFrame(loop);}
   window.addEventListener('resize',function(){size(); if(reduce) draw(1200);});
   size(); if(reduce){draw(1200);} else {requestAnimationFrame(loop);}
+})();
+
+// ====== AIUTO — guida ai tasti della Regia (1° tocco spiega, 2° esegue) ======
+(function(){
+  var $=function(id){return document.getElementById(id);};
+  var HELP={
+    startBtn:['Avvia gioco','Apre una NUOVA sessione: mostra la Foto A e inizia a rispondere alle mail degli spettatori.'],
+    replyBtn:['Rispondi mail','Fa partire le risposte alle mail raccolte (quando hai scelto di rispondere a mano).'],
+    swapBtn:['Cambia (rivela)','La foto passa da A alla RIVELAZIONE (B). Il gioco resta attivo e continua a rispondere.'],
+    stopBtn:['Finisci gioco','Chiude la sessione e smette di rispondere. La foto B resta per sempre a chi l\'ha ricevuta.'],
+    'go:foto':['Imposta foto','Carichi la Foto A di attesa e la rivelazione (Foto B) da usare nel gioco.'],
+    'go:testomail':['Testo mail','Scrivi l\'oggetto e il testo della mail di risposta (sopra la foto).'],
+    'go:invio':['Autorisponditore','Accendi o spegni la risposta automatica e scegli come inviare.'],
+    'go:ia':['Rivelazione IA','Generi la Foto B con l\'intelligenza artificiale.'],
+    'go:casella':['Invia mail','Mandi le mail a pochi indirizzi dalla tua casella.'],
+    'go:limiti':['Limiti','Vedi quanto hai usato e quanto ti resta: mail, foto, sessioni.'],
+    'go:report':['Report','Vedi chi apre la mail e chi scrive durante lo show.'],
+    'go:assist':['Assistente','Crei un link per chi ti aiuta: può preparare la rivelazione e comandare il gioco (non vede password o dati).'],
+    'go:account':['Il mio account','I tuoi dati, il piano, la casella per inviare e i crediti.'],
+    modoCasella:['Casella','Invio dalla tua posta, per eventi piccoli (una ventina di mail).'],
+    modoBig:['Palco','Canale dedicato per eventi grandi (centinaia di mail). Serve un piano con Palco.'],
+    buyBtn:['Acquista crediti / Cambia piano','Apri la pagina per comprare crediti o cambiare piano.'],
+    saveMail:['Salva casella','Salvi l\'indirizzo e la password per app della tua casella.'],
+    inviaBtn:['Invia mail','Manda la foto agli indirizzi scritti: è come premere Avvia gioco.'],
+    saveSet:['Salva e torna','Salva le impostazioni e torna al menu.']
+  };
+  // voci che POSSONO essere grigie (bloccate dal piano)
+  var LOCKS=[
+    {id:'tileCasella',t:'Invia mail',s:'Mandare le mail dalla tua casella (serve la funzione mail del piano).'},
+    {id:'tileIa',t:'Rivelazione IA',s:'Generare la Foto B con l\'intelligenza artificiale (serve lo strumento foto).'},
+    {id:'tileReport',t:'Report',s:'Vedere chi apre e chi scrive (incluso in alcuni piani o attivabile a parte).'},
+    {id:'modoBig',t:'Palco',s:'Inviare a centinaia di persone (serve un piano con Palco).'}
+  ];
+  var helpMode=false, armed=null;
+
+  function keyOf(target){
+    if(!target||!target.closest) return null;
+    var el=target.closest('[data-go]');
+    if(el) return {el:el,key:'go:'+el.getAttribute('data-go')};
+    var b=target.closest('button[id]');
+    if(b&&HELP[b.id]) return {el:b,key:b.id};
+    return null;
+  }
+  function hideTip(){ var t=$('helpTip'); if(t) t.style.display='none'; }
+  function showTip(el,info){
+    var t=$('helpTip'); if(!t) return;
+    t.classList.remove('up');
+    t.innerHTML='<b>'+info[0]+'</b>'+info[1]+'<div class="again">Tocca ancora per usarlo</div>';
+    t.style.display='block'; t.style.left='0px'; t.style.top='0px';
+    var tw=t.offsetWidth, th=t.offsetHeight, r=el.getBoundingClientRect();
+    var left=Math.min(Math.max(8,r.left), window.innerWidth-tw-8);
+    var top=r.bottom+10, up=false;
+    if(top+th>window.innerHeight-8){ top=r.top-th-10; up=true; }
+    t.style.left=left+'px'; t.style.top=Math.max(8,top)+'px';
+    if(up) t.classList.add('up');
+    var cx=r.left+r.width/2-left;
+    t.style.setProperty('--ax', Math.max(14, Math.min(tw-26, cx))+'px');
+  }
+  // CATTURA: prima del vero handler. 1ª volta spiega e blocca; 2ª volta lascia eseguire.
+  document.addEventListener('click', function(e){
+    if(!helpMode) return;
+    if(e.target.closest && e.target.closest('#helpBadge,#helpIntro,#helpBtn,#helpTip')) return;
+    var h=keyOf(e.target);
+    if(!h||!HELP[h.key]) return;
+    if(armed===h.key){ armed=null; hideTip(); return; }
+    e.preventDefault(); e.stopPropagation();
+    armed=h.key; showTip(h.el, HELP[h.key]);
+  }, true);
+
+  function buildLocked(){
+    var wrap=$('helpLockedWrap'), box=$('helpLockedList'); if(!wrap||!box) return;
+    var found=LOCKS.filter(function(d){ var el=$(d.id); return el && el.classList.contains('locked'); });
+    if(!found.length){ wrap.innerHTML='<p class="hint" style="margin-top:0">Tutte le funzioni del tuo piano sono <b>attive</b>.</p>'; return; }
+    box.innerHTML=found.map(function(d){
+      return '<div class="help-lock"><span class="dot"></span><span><span class="hl-t">'+d.t+'</span><br><span class="hl-s">'+d.s+'</span></span></div>';
+    }).join('');
+  }
+  function openIntro(){ buildLocked(); var m=$('helpIntro'); if(m) m.classList.add('open'); }
+  function closeIntro(){ var m=$('helpIntro'); if(m) m.classList.remove('open'); }
+  function activate(){ helpMode=true; armed=null; var b=$('helpBadge'); if(b) b.classList.add('on'); closeIntro(); }
+  function deactivate(){ helpMode=false; armed=null; hideTip(); var b=$('helpBadge'); if(b) b.classList.remove('on'); }
+
+  var e1=$('helpBtn'); if(e1) e1.addEventListener('click', openIntro);
+  var e2=$('helpStart'); if(e2) e2.addEventListener('click', activate);
+  var e3=$('helpIntroClose'); if(e3) e3.addEventListener('click', closeIntro);
+  var e4=$('helpIntro'); if(e4) e4.addEventListener('click', function(ev){ if(ev.target===e4) closeIntro(); });
+  var e5=$('helpBadge'); if(e5) e5.addEventListener('click', deactivate);
+  window.addEventListener('scroll', hideTip, true);
+  window.addEventListener('resize', hideTip);
 })();
 
 // ---- registrazione del service worker (rende l'app installabile e offline) ----
