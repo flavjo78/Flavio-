@@ -394,6 +394,65 @@ function predizione_password_ok(?string $inserita): bool {
     return hash_equals(PREDIZIONE_PASSWORD, $inserita);
 }
 
+/* ---- APERTURE VERE (tolte le "aperture di servizio") --------------------
+   Gmail e alcuni client SCARICANO la foto da soli appena la mail arriva, e la
+   ri-scaricano piu' volte per una sola apertura (per via degli header anti-cache).
+   Per contare le aperture VERE togliamo:
+   - gli scaricamenti nei primi PRED_APERTURA_GRACE secondi dall'ARRIVO della mail
+     (il caricamento automatico del client);
+   - i ri-scaricamenti ravvicinati della stessa persona (debounce PRED_APERTURA_GRACE s).
+   Ritorna: [ id => ['n'=>N, 'times'=>[...], 'labels'=>['A'=>bool,'B'=>bool], 'ua'=>str, 'first'=>str] ].
+   Gli id SENZA alcuna apertura vera NON compaiono. */
+const PRED_APERTURA_GRACE = 15;   // secondi
+
+/* Orario (timestamp) di ARRIVO della mail, per ciascun id, da mail_sess_N.jsonl. */
+function predizione_mail_ricevute_ts(int $sessione): array {
+    $out = [];
+    $f = predizione_data_dir() . '/mail_sess_' . $sessione . '.jsonl';
+    if (!is_file($f)) return $out;
+    foreach (file($f, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $ln) {
+        $r = json_decode($ln, true); if (!is_array($r)) continue;
+        $id = (string)($r['id'] ?? ''); if ($id === '') continue;
+        $ts = strtotime((string)($r['ora'] ?? '')); if ($ts === false) continue;
+        if (!isset($out[$id]) || $ts < $out[$id]) $out[$id] = $ts;   // il piu' antico
+    }
+    return $out;
+}
+
+function predizione_aperture_vere(int $sessione): array {
+    $logf = predizione_log_file();
+    if ($sessione <= 0 || !is_file($logf)) return [];
+    $ric = predizione_mail_ricevute_ts($sessione);
+    $grezze = [];
+    foreach (file($logf, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
+        $c = str_getcsv($line);
+        if ((string)($c[1] ?? '') !== (string)$sessione) continue;
+        $lbl = strtoupper(substr((string)($c[3] ?? ''), 0, 1));
+        if ($lbl !== 'A' && $lbl !== 'B') continue;   // neutro/test non contano
+        $id  = trim((string)($c[2] ?? ''));
+        $ts  = strtotime((string)($c[0] ?? '')); if ($ts === false) continue;
+        $key = $id !== '' ? $id : ('_r' . count($grezze));
+        $grezze[$key][] = ['ts' => $ts, 'lbl' => $lbl, 'ua' => (string)($c[5] ?? '')];
+    }
+    $out = [];
+    foreach ($grezze as $id => $rows) {
+        usort($rows, function ($a, $b) { return $a['ts'] - $b['ts']; });
+        $ricTs = $ric[$id] ?? 0;
+        $vere = []; $last = 0;
+        foreach ($rows as $r) {
+            if ($ricTs > 0 && $r['ts'] <= $ricTs + PRED_APERTURA_GRACE) continue;  // 1) primi 15s = servizio
+            if ($last  > 0 && $r['ts'] <= $last  + PRED_APERTURA_GRACE) continue;  // 2) debounce 15s
+            $vere[] = $r; $last = $r['ts'];
+        }
+        if (!$vere) continue;
+        $labels = ['A' => false, 'B' => false]; $times = [];
+        foreach ($vere as $v) { $labels[$v['lbl']] = true; $times[] = date('Y-m-d H:i:s', $v['ts']); }
+        $out[$id] = ['n' => count($vere), 'times' => $times, 'labels' => $labels,
+                     'ua' => $vere[count($vere) - 1]['ua'], 'first' => $times[0]];
+    }
+    return $out;
+}
+
 /* Conta le aperture registrate nel log dell'utente corrente (righe del CSV). */
 function predizione_conta_aperture(): int {
     $file = predizione_log_file();

@@ -86,6 +86,7 @@ if (p('lista') !== null) {
     </style></head><body><div class="wrap">
       <h1>Cronologia report</h1>
       <div class="sub">Utente <?= h($utente) ?> · tocca una sessione per aprirne il report</div>
+      <div class="btns" style="margin:0 0 14px"><button onclick="if(history.length>1){history.back();}else{window.close();}" style="font:inherit;cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:8px;padding:9px 14px">← Indietro</button></div>
       <?php if (!$sess): ?><div class="empty">Nessuna sessione ancora registrata.</div>
       <?php else: foreach ($sess as $sn => $sv):
           $ts = !empty($sv['avvio_ts']) ? date('d/m/Y H:i', (int)$sv['avvio_ts']) : '—';
@@ -117,27 +118,12 @@ if (is_file($mfile)) {
     }
 }
 
-/* --- aperture (dal log image.php) ---------------------------------------- */
-$ap = [];   // id => {first, labels[], ua, ip, n}
-$lf = predizione_log_file();
-if (is_file($lf)) {
-    $fh = @fopen($lf, 'r');
-    if ($fh) {
-        while (($ln = fgets($fh)) !== false) {
-            if (trim($ln) === '') continue;
-            $c = str_getcsv($ln);
-            if ((string)($c[1] ?? '') !== (string)$sid) continue;
-            $id = (string)($c[2] ?? '');
-            $lbl = strtoupper(substr((string)($c[3] ?? ''), 0, 1));
-            $key = $id !== '' ? $id : ('a' . count($ap));
-            if (!isset($ap[$key])) $ap[$key] = ['first' => $c[0] ?? '', 'labels' => [], 'ua' => $c[5] ?? '', 'ip' => $c[4] ?? '', 'n' => 0, 'times' => []];
-            $ap[$key]['n']++;
-            $ap[$key]['times'][] = (string)($c[0] ?? '');   // TUTTI gli orari di apertura, non solo il primo
-            if ($lbl === 'A' || $lbl === 'B') $ap[$key]['labels'][$lbl] = true;
-            // prima apertura = la più antica (le righe sono in ordine cronologico, tengo la prima)
-        }
-        fclose($fh);
-    }
+/* --- aperture VERE (filtro "aperture di servizio": vedi config.php) ------- */
+/* Scarta il pre-scarico automatico (primi 15s dall'arrivo) e i ri-scaricamenti
+   ravvicinati della stessa persona: restano solo le aperture reali. */
+$ap = [];   // id => {first, labels[], ua, n, times}
+foreach (predizione_aperture_vere($sid) as $id => $v) {
+    $ap[$id] = ['first' => $v['first'], 'labels' => $v['labels'], 'ua' => $v['ua'], 'n' => $v['n'], 'times' => $v['times']];
 }
 
 /* --- dispositivo leggibile dall'user-agent ------------------------------- */
@@ -221,6 +207,7 @@ header('Cache-Control: no-store');
   </div>
 
   <div class="btns">
+    <button onclick="if(history.length>1){history.back();}else{window.close();}">← Indietro</button>
     <button onclick="window.print()">Stampa / Salva PDF</button>
     <button onclick="location.href='<?= h($base) ?>?<?= $authQ ?>&lista=1'">Cronologia report</button>
   </div>

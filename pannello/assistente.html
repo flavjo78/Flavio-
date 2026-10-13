@@ -4,95 +4,281 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Predizione — Assistente di scena</title>
+<meta name="description" content="Pannello dell'assistente di scena">
+
+<!-- Font usati dal pannello (uguali alla Regia) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+
 <style>
   :root{
-    --bg:#0a0908; --bg-deep:#060505; --surface:#1b1712; --surface-2:#2a251d;
-    --line:rgba(236,224,201,.09); --line-2:rgba(236,224,201,.16);
-    --ink:#ece0c9; --ink-dim:#9a8f7b; --faint:#6c6455;
-    --gold:#c9a465; --gold-soft:rgba(201,164,101,.14);
-    --good:#86b26f; --good-soft:rgba(134,178,111,.14);
-    --stop:#cf8262; --stop-soft:rgba(207,130,98,.14); --r:16px;
+    color-scheme: dark;
+    --bg:        #0a0908;
+    --bg-deep:   #060505;
+    --surface:   #1b1712;
+    --surface-2: #2a251d;
+    --surface-3: #332d23;
+    --line:      rgba(236,224,201,.09);
+    --line-2:    rgba(236,224,201,.16);
+    --ink:       #ece0c9;
+    --ink-dim:   #9a8f7b;
+    --ink-faint: #6c6455;
+    --gold:      #c9a465;
+    --gold-soft: rgba(201,164,101,.14);
+    --good:      #86b26f;
+    --good-soft: rgba(134,178,111,.14);
+    --stop:      #cf8262;
+    --stop-soft: rgba(207,130,98,.14);
+    --r:         18px;
+    --r-lg:      22px;
   }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,-apple-system,sans-serif;line-height:1.5}
-  .wrap{max-width:460px;margin:0 auto;padding:22px 16px 60px}
-  .kicker{color:var(--gold);letter-spacing:.4em;text-transform:uppercase;font-size:10px;font-weight:600;text-align:center}
-  h1{font-family:Georgia,serif;font-weight:400;font-size:28px;text-align:center;margin:2px 0 2px}
-  .sub{text-align:center;color:var(--ink-dim);font-size:12px;margin-bottom:18px}
-  .card{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r);padding:16px;margin-bottom:14px}
-  .phase{text-align:center}
-  .phase .big{font-family:Georgia,serif;font-size:24px;color:var(--gold)}
-  .phase .meta{color:var(--faint);font-size:12px;margin-top:4px}
-  .cnt{display:grid;grid-template-columns:repeat(2,1fr);gap:10px 8px;margin-top:12px}
-  .cnt div{text-align:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:8px 4px}
-  .cnt b{display:block;font-size:20px;color:var(--ink)}
-  .cnt span{font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--faint)}
-  .sec-title{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);margin-bottom:10px}
-  input,button,textarea{font-family:inherit}
-  textarea{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:10px;padding:10px 12px;font-size:15px;width:100%;resize:vertical}
-  .btn{cursor:pointer;font-size:15px;font-weight:700;padding:13px 12px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);width:100%}
-  .btn.gold{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
-  .btn.ghost{background:transparent}
-  .btn:disabled{opacity:.4;cursor:default}
-  .btn:active:not(:disabled){transform:scale(.99)}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .slot{display:flex;align-items:center;gap:10px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:12px;margin-bottom:10px}
-  .slot .t{font-weight:700;font-size:14px}
-  .slot .s{display:block;font-size:12px;color:var(--faint)}
-  .slot-txt{min-width:0;flex:1 1 auto}
-  .thumb{width:56px;height:56px;flex:0 0 56px;border-radius:12px;overflow:hidden;background:var(--bg-deep);display:grid;place-items:center;border:1px solid var(--line);cursor:zoom-in}
+
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg-deep);
+    color:var(--ink);
+    font-family:"Manrope",system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    line-height:1.5;
+  }
+
+  .app{
+    max-width:440px;
+    margin:0 auto;
+    min-height:100%;
+    background:
+      radial-gradient(120% 60% at 50% 0%, #14110c 0%, var(--bg) 46%, var(--bg-deep) 100%);
+    padding:0 20px 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  @media (min-width:520px){
+    body{padding:26px 0}
+    .app{
+      border:1px solid var(--line-2);
+      border-radius:34px;
+      min-height:calc(100vh - 52px);
+      box-shadow:0 30px 80px -30px #000, inset 0 1px 0 rgba(236,224,201,.05);
+    }
+  }
+
+  /* ---- Header ---- */
+  header{position:relative;text-align:center;padding:30px 0 8px}
+  .kicker{position:relative;font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 2px}
+  .wordmark{
+    position:relative;margin:0;font-family:"Cormorant Garamond",Georgia,serif;
+    font-weight:600;font-size:clamp(38px,13vw,52px);letter-spacing:.02em;line-height:.98;text-wrap:balance;
+    text-shadow:0 2px 30px rgba(201,164,101,.18);
+  }
+  .subwordmark{position:relative;color:var(--ink-dim);font-size:12.5px;letter-spacing:.16em;text-transform:uppercase;margin-top:8px}
+
+  .gear{
+    flex:0 0 auto;
+    width:46px;height:46px;border-radius:50%;
+    display:grid;place-items:center;cursor:pointer;
+    background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-dim);
+    transition:color .15s,border-color .15s,transform .1s;
+  }
+  .gear:hover{color:var(--gold);border-color:var(--gold)}
+  .gear:active{transform:scale(.94)}
+  .gear:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .gear svg{width:24px;height:24px}
+
+  /* ---- Cards ---- */
+  section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 18px;margin-top:16px}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .sec-title{font-size:11px;letter-spacing:.28em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin:0}
+  .sec-num{font-size:11px;letter-spacing:.1em;color:var(--ink-faint);font-weight:700}
+
+  /* ---- Status / counter ---- */
+  .status{background:linear-gradient(180deg,var(--surface) 0%, #211c15 100%)}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 13px;border-radius:999px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--line-2)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint)}
+  .pill.live{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .pill.live .dot{background:var(--good);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(134,178,111,.5)}70%{box-shadow:0 0 0 7px rgba(134,178,111,0)}100%{box-shadow:0 0 0 0 rgba(134,178,111,0)}}
+
+  .counter{text-align:center;padding:14px 0 6px}
+  .counter .num{font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:82px;line-height:.9;letter-spacing:.01em;font-variant-numeric:tabular-nums;color:var(--ink)}
+  .counter.live .num{color:var(--gold);text-shadow:0 4px 40px rgba(201,164,101,.28)}
+  .counter .lbl{font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-top:4px}
+  .meta{display:flex;justify-content:center;gap:22px;margin-top:14px;color:var(--ink-faint);font-size:12px}
+  .meta b{color:var(--ink-dim);font-weight:700;font-variant-numeric:tabular-nums}
+
+  .game-btns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .btn{-webkit-appearance:none;appearance:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;letter-spacing:.02em;padding:16px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);transition:transform .08s ease, background .15s ease, opacity .15s ease}
+  .btn:active{transform:scale(.985)}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .btn.primary{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  .btn.stop{background:var(--stop-soft);color:var(--stop);border-color:transparent}
+  .btn.reveal{background:var(--gold-soft);color:var(--gold);border-color:var(--gold)}
+  .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
+  .btn[disabled]{opacity:.32;cursor:not-allowed}
+  /* tasto "prossima azione": contorno dorato ben evidente (anche se disabilitato) */
+  .btn.nextstep{opacity:1 !important;background:transparent;border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
+  /* tasto della fase RIVELATO: pieno dorato */
+  .btn.curgold{opacity:1 !important;background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent;box-shadow:0 6px 22px rgba(201,164,101,.35)}
+  /* come curgold ma lampeggia piano: invita a premere "Cambia" quando è in corso */
+  .btn.blinkgold{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent;box-shadow:0 6px 22px rgba(201,164,101,.35);animation:goldblink 1.4s ease-in-out infinite}
+  @keyframes goldblink{0%,100%{opacity:1}50%{opacity:.4}}
+
+  /* ---- Settings overlay (schermata "Prepara") ---- */
+  .settings{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;padding:0 20px 40px;
+    transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);visibility:hidden}
+  .settings.open{transform:translateY(0);visibility:visible}
+  .set-top{display:flex;align-items:center;gap:14px;padding:26px 0 6px;position:sticky;top:0;background:linear-gradient(180deg,var(--bg) 70%,transparent);z-index:2}
+  .back{width:42px;height:42px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink)}
+  .back:active{transform:scale(.94)}
+  .back:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .set-top h2{margin:0;font-family:"Cormorant Garamond",serif;font-weight:600;font-size:30px}
+  .set-top .sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-dim)}
+
+  /* ---- Photo slots ---- */
+  .slot{display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px dashed var(--line-2);border-radius:var(--r);padding:12px;cursor:pointer;transition:border-color .15s,background .15s;margin-bottom:10px}
+  .slot:hover{border-color:var(--gold);background:var(--surface-3)}
+  .slot.filled{border-style:solid;border-color:var(--line-2)}
+  .thumb{width:56px;height:56px;flex:0 0 56px;border-radius:12px;overflow:hidden;background:var(--bg);display:grid;place-items:center;border:1px solid var(--line);cursor:zoom-in}
   .thumb img{width:100%;height:100%;object-fit:cover;display:block}
-  .thumb .ph{font-family:Georgia,serif;font-size:24px;color:var(--faint);font-weight:600}
+  .thumb .ph{font-family:"Cormorant Garamond",serif;font-size:26px;color:var(--ink-faint);font-weight:600}
   .thumb .ph.none{color:var(--stop);font-weight:800}
+  .slot-txt{min-width:0;flex:1}
+  .slot-txt .t{display:block;font-weight:700;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .slot-txt .s{display:block;font-size:12px;color:var(--ink-dim);margin-top:2px;white-space:normal;overflow-wrap:anywhere;line-height:1.35}
   .slotbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold);border-radius:999px;padding:7px 12px;cursor:pointer}
   .slotbtn:active{transform:scale(.96)}
-  .slotx{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface);color:var(--stop);font-weight:800;font-size:15px;cursor:pointer;line-height:1}
+  .slotx{flex:0 0 auto;width:30px;height:30px;border-radius:50%;border:1px solid var(--line-2);background:var(--surface-2);color:var(--stop);font-weight:800;font-size:15px;cursor:pointer;line-height:1}
   .slotx:active{transform:scale(.94)}
-  .mt{margin-top:8px}
-  .hint{font-size:12px;color:var(--faint);margin-top:8px}
-  .prev{width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);display:none;cursor:zoom-in}
+
+  .field{margin-top:14px}
+  .field > label{display:block;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;margin-bottom:7px}
+  input[type="text"],textarea{width:100%;font-family:inherit;font-size:15px;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:13px 14px}
+  input::placeholder,textarea::placeholder{color:var(--ink-faint)}
+  input:focus,textarea:focus{outline:none;border-color:var(--gold)}
+  textarea{resize:vertical;min-height:82px;line-height:1.5}
+  .hint{font-size:12px;color:var(--ink-faint);margin-top:9px;line-height:1.45}
+  .hint b{color:var(--ink-dim);font-weight:700}
+
+  .phaseline{text-align:center;color:var(--ink-dim);font-size:13px;margin-top:2px}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:9;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
+  .toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .foot{text-align:center;color:var(--ink-faint);font-size:11px;letter-spacing:.1em;margin-top:22px;line-height:1.6}
+
+  /* visore a tutto schermo per l'anteprima della rivelazione */
   .lightbox{position:fixed;inset:0;z-index:80;background:rgba(0,0,0,.93);display:none;align-items:center;justify-content:center;padding:16px}
   .lightbox.open{display:flex}
   .lightbox img{max-width:100%;max-height:86vh;border-radius:10px;box-shadow:0 10px 60px rgba(0,0,0,.6)}
-  .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
-  .toast.show{opacity:1}
-  .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
-  .toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .lb-back{position:absolute;top:14px;left:14px;display:inline-flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer}
+  .lb-back:active{transform:scale(.97)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.settings{transition:none!important}}
+
+  /* ---- orologio conto alla rovescia IA (30s) ---- */
+  .iaclock{position:fixed;inset:0;z-index:95;background:rgba(6,5,5,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center}
+  .iaclock.open{display:flex}
+  .iac-card{position:relative;width:200px;height:200px;display:grid;place-items:center;opacity:.92}
+  .iac-face{position:absolute;inset:0;width:100%;height:100%}
+  .iac-ring{fill:rgba(27,23,18,.5);stroke:var(--line-2);stroke-width:2}
+  .iac-prog{fill:none;stroke:var(--gold);stroke-width:3;stroke-linecap:round;stroke-dasharray:283;stroke-dashoffset:0;transform:rotate(-90deg);transform-origin:50% 50%}
+  .iac-hand{stroke:var(--gold);stroke-width:2.4;stroke-linecap:round;transform-origin:50px 50px}
+  .iac-pin{fill:var(--gold)}
+  .iac-num{position:relative;font-family:"Cormorant Garamond",Georgia,serif;font-size:56px;font-weight:600;color:var(--ink);line-height:1}
+  .iac-lbl{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+  @keyframes iacSpin{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
+  @keyframes iacWipe{from{stroke-dashoffset:0}to{stroke-dashoffset:283}}
+  .iaclock.open .iac-hand{animation:iacSpin 30s linear forwards}
+  .iaclock.open .iac-prog{animation:iacWipe 30s linear forwards}
+
   .hidden{display:none}
-  .errbox{text-align:center;color:var(--stop);padding:30px 10px}
+  .errbox{text-align:center;color:var(--stop);padding:40px 16px;font-size:15px;line-height:1.5}
+  .prev{width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);display:none;cursor:zoom-in}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <p class="kicker">Predizione</p>
-  <h1>Assistente di scena</h1>
-  <p class="sub" id="sub">Aiuti il prestigiatore · nessuna impostazione</p>
 
-  <div id="main" class="hidden">
-    <!-- stato del gioco -->
-    <div class="card phase">
-      <div class="big" id="phaseBig">—</div>
-      <div class="meta" id="phaseMeta"></div>
-      <div class="cnt">
-        <div><b id="cntA">0</b><span>Viste Foto A</span></div>
-        <div><b id="cntB">0</b><span>Viste rivelaz.</span></div>
-        <div><b id="cntRic">0</b><span>Mail ricevute</span></div>
-        <div><b id="cntInv">0</b><span>Mail inviate</span></div>
-      </div>
+<div class="app">
+
+  <!-- ============ SCHERMATA 1 · GIOCO ============ -->
+  <div class="main" id="mainView">
+    <header>
+      <p class="kicker">Assistente di scena</p>
+      <h1 class="wordmark">Predizione</h1>
+      <p class="subwordmark" id="subLine">Aiuti il mago</p>
+    </header>
+
+    <div id="main" class="hidden">
+      <section class="status" aria-label="Stato del gioco">
+        <div class="sec-head">
+          <button class="gear" id="openSet" aria-label="Prepara" title="Prepara la rivelazione">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg>
+          </button>
+          <span id="statePill" class="pill"><span class="dot"></span><span id="stateLbl">In pausa</span></span>
+        </div>
+
+        <div class="counter" id="counterWrap">
+          <div class="num" id="count">0</div>
+          <div class="lbl">Aperture · questa sessione</div>
+        </div>
+
+        <div class="abstats" style="display:flex;gap:10px;margin-top:12px">
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntA">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Foto A</div>
+          </div>
+          <div style="flex:1;background:var(--gold-soft);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--gold)" id="cntB">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Rivelazione</div>
+          </div>
+        </div>
+        <div class="abstats" style="display:flex;gap:10px;margin-top:10px">
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntRic">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail ricevute</div>
+          </div>
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntInv">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail inviate</div>
+          </div>
+        </div>
+
+        <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
+
+        <div class="meta">
+          <span>Sessione&nbsp;·&nbsp;<b id="sessNum">—</b></span>
+        </div>
+
+        <div class="game-btns">
+          <button class="btn ghost" id="bAvvia">Avvia gioco</button>
+          <button class="btn ghost" id="bRispondi" style="display:none">✉️ Rispondi mail</button>
+          <div style="display:flex;gap:10px">
+            <button class="btn ghost" id="bCambia" disabled style="flex:1">Cambia (rivela)</button>
+            <button class="btn ghost" id="eyeBtn" type="button" title="Vedi Foto A e B" style="flex:0 0 54px;font-size:20px;padding:0">👁</button>
+          </div>
+          <button class="btn ghost" id="bFinisci" disabled>Finisci gioco</button>
+        </div>
+      </section>
+
+      <p class="foot">Assistente di scena · Predizione</p>
     </div>
 
-    <!-- comandi del gioco -->
-    <div class="card">
-      <div class="sec-title">Comandi del gioco</div>
-      <button class="btn gold mt" id="bAvvia">▶ Avvia</button>
-      <button class="btn mt" id="bRispondi" style="display:none">✉️ Rispondi mail</button>
-      <button class="btn mt" id="bCambia">✦ Cambia (rivela)</button>
-      <button class="btn ghost mt" id="bFinisci">■ Finisci</button>
+    <div id="err" class="errbox hidden"></div>
+  </div>
+
+  <!-- ============ SCHERMATA 2 · PREPARA ============ -->
+  <div class="settings" id="setView" role="dialog" aria-label="Prepara">
+    <div class="set-top">
+      <button class="back" id="closeSet" aria-label="Indietro">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+      </button>
+      <div><h2>Prepara</h2><div class="sub">La rivelazione dello show</div></div>
     </div>
 
-    <!-- preparazione rivelazione (solo utenti foto) -->
-    <div class="card hidden" id="secPrep">
-      <div class="sec-title">Prepara la rivelazione</div>
+    <!-- Imposta foto (Foto A + Foto B pronta) -->
+    <section aria-label="Imposta foto">
+      <div class="sec-head"><h2 class="sec-title">Imposta foto</h2><span class="sec-num">A e B</span></div>
       <div class="slot" id="slotA">
         <input type="file" accept="image/*" hidden>
         <span class="thumb" id="thumbA" title="Vedi la foto"><span class="ph none">✕</span></span>
@@ -100,38 +286,61 @@
         <button class="slotbtn" type="button" data-cambia>Carica</button>
         <button class="slotx" type="button" data-del title="Elimina">&times;</button>
       </div>
-      <div class="slot" id="slotBase">
-        <input type="file" accept="image/*" hidden>
-        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph none">✕</span></span>
-        <span class="slot-txt"><span class="t">Foto base</span><span class="s">il performer col foglio bianco</span></span>
-        <button class="slotbtn" type="button" data-cambia>Carica</button>
-        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
-      </div>
-      <label class="sec-title mt" for="txt">Cosa scrivere sul foglio</label>
-      <textarea id="txt" rows="2" placeholder="Es. Asso di cuori"></textarea>
-      <button class="btn ghost mt" id="bNL">↵ Vai a capo</button>
-      <button class="btn gold mt" id="bGen">Genera la rivelazione con IA</button>
-      <img class="prev" id="genPrev" alt="rivelazione">
-      <div class="hint">L'IA scrive la frase a mano sul foglio (~30s) e la prepara come rivelazione. Controlla sempre la foto prima di usarla.</div>
-    </div>
-
-    <!-- carica rivelazione pronta (per chi non usa l'IA) -->
-    <div class="card hidden" id="secCarica">
-      <div class="sec-title">Carica la rivelazione (Foto B)</div>
       <div class="slot" id="slotB">
         <input type="file" accept="image/*" hidden>
         <span class="thumb" id="thumbB" title="Vedi la foto"><span class="ph none">✕</span></span>
-        <span class="slot-txt"><span class="t">Rivelazione</span><span class="s">la foto da svelare</span></span>
+        <span class="slot-txt"><span class="t">Rivelazione (Foto B)</span><span class="s">la foto da svelare col "Cambia"</span></span>
         <button class="slotbtn" type="button" data-cambia>Carica</button>
         <button class="slotx" type="button" data-del title="Elimina">&times;</button>
       </div>
-    </div>
+      <p class="hint">La <b>Foto A</b> è quella neutra che gli spettatori vedono all'inizio. La <b>Foto B</b> è la rivelazione: la puoi caricare da file oppure crearla con <b>Foto magic</b> qui sotto.</p>
+    </section>
+
+    <!-- Foto magic: crea la Foto B con l'IA -->
+    <section aria-label="Foto magic">
+      <div class="sec-head"><h2 class="sec-title">Foto magic</h2><span class="sec-num">Foto B</span></div>
+      <div class="slot" id="slotBase">
+        <input type="file" accept="image/*" hidden>
+        <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph none">✕</span></span>
+        <span class="slot-txt"><span class="t">Foto base</span><span class="s">il mago col foglio bianco in mano</span></span>
+        <button class="slotbtn" type="button" data-cambia>Carica</button>
+        <button class="slotx" type="button" data-del title="Elimina">&times;</button>
+      </div>
+      <div class="field" style="margin-top:12px">
+        <label for="txt">Cosa deve comparire sul foglio</label>
+        <textarea id="txt" rows="2" placeholder="Es. Asso di cuori"></textarea>
+        <button class="btn ghost" id="bNL" type="button" style="width:100%;margin-top:6px">↵ Vai a capo</button>
+      </div>
+      <button class="btn" id="bGen" type="button" style="width:100%;margin-top:6px">Crea la Foto magic (rivelazione)</button>
+      <img class="prev" id="genPrev" alt="anteprima rivelazione">
+      <p class="hint">Carica la <b>foto base</b> (il mago col foglio bianco), scrivi la <b>frase</b> e premi <b>Crea Foto magic</b>: la frase viene scritta a mano sul foglio e diventa subito la <b>rivelazione (Foto B)</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
+    </section>
+
+    <button class="btn primary" id="closeSet2" style="margin-top:16px;width:100%">Torna al gioco</button>
+    <p class="foot">La rivelazione si prepara prima dello show.</p>
   </div>
 
-  <div id="err" class="errbox hidden"></div>
 </div>
 
-<div class="lightbox" id="lightbox"><img id="lbImg" alt=""></div>
+<!-- visore a tutto schermo -->
+<div class="lightbox" id="lightbox">
+  <button class="lb-back" id="lbBack" type="button">← Indietro</button>
+  <img id="lbImg" alt="anteprima a tutto schermo">
+</div>
+
+<!-- orologio del conto alla rovescia IA (30s, lancetta antioraria) -->
+<div class="iaclock" id="iaClock" aria-hidden="true">
+  <div class="iac-card">
+    <svg viewBox="0 0 100 100" class="iac-face">
+      <circle cx="50" cy="50" r="45" class="iac-ring"/>
+      <circle cx="50" cy="50" r="45" class="iac-prog" id="iacProg"/>
+      <line x1="50" y1="50" x2="50" y2="12" class="iac-hand" id="iacHand"/>
+      <circle cx="50" cy="50" r="3.2" class="iac-pin"/>
+    </svg>
+    <div class="iac-num" id="iacNum">30</div>
+    <div class="iac-lbl">creo la rivelazione…</div>
+  </div>
+</div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
@@ -146,12 +355,19 @@
   var toastEl=$('toast'), tT=null;
   function toast(m,k){ toastEl.textContent=m; toastEl.className='toast show'+(k?(' '+k):''); clearTimeout(tT); tT=setTimeout(function(){toastEl.className='toast';},2600); }
 
-  if(!U || !T){ mostraErr('Link non valido. Chiedi al prestigiatore di rigenerare il link.'); return; }
-
   function mostraErr(msg){ $('main').classList.add('hidden'); var e=$('err'); e.textContent=msg; e.classList.remove('hidden'); }
 
+  if(!U || !T){ mostraErr('Link non valido. Chiedi al mago di rigenerare il link.'); return; }
+
+  /* ---- schermata Prepara (overlay) ---- */
+  function openSet(){ $('setView').classList.add('open'); }
+  function closeSet(){ $('setView').classList.remove('open'); }
+  $('openSet').addEventListener('click', openSet);
+  $('closeSet').addEventListener('click', closeSet);
+  $('closeSet2').addEventListener('click', closeSet);
+
+  /* ---- chiamate al server ---- */
   function statoGet(){
-    // mandiamo anche il lasciapassare: cosi' il server ci dice se e' ANCORA valido
     return fetch(API+'stato.php?azione=stato&u='+encodeURIComponent(U)+'&assistente='+encodeURIComponent(T),{cache:'no-store'}).then(function(r){return r.json();});
   }
   function cmd(azione){
@@ -168,42 +384,64 @@
   }
 
   var cur={fase:'spento', flags:{}};
-  function faseLbl(f){ return {spento:'Gioco spento',avviato:'In corso',cambiato:'Rivelato',terminato:'Sessione terminata'}[f]||f; }
 
   function render(st){
     cur=st;
-    $('phaseBig').textContent=faseLbl(st.fase);
-    var meta='Sessione '+(st.sessione||'—');
-    if(st.fase==='avviato') meta+=' · si vede la Foto A';
-    else if(st.fase==='cambiato') meta+=' · si vede la rivelazione';
-    else if(st.fase==='terminato') meta+=' · chiusa';
-    $('phaseMeta').textContent=meta;
+    var fase=st.fase||'spento';
+    var attivo=(fase==='avviato'||fase==='cambiato');
+
+    // pill di stato
+    var pill=$('statePill'), lbl=$('stateLbl'), wrap=$('counterWrap');
+    pill.classList.remove('live'); wrap.classList.remove('live');
+    if(fase==='avviato'){ pill.classList.add('live'); wrap.classList.add('live'); lbl.textContent='In corso'; }
+    else if(fase==='cambiato'){ pill.classList.add('live'); wrap.classList.add('live'); lbl.textContent='Rivelato'; }
+    else if(fase==='terminato'){ lbl.textContent='Terminato'; }
+    else { lbl.textContent='In pausa'; }
+
+    // contatori
+    $('count').textContent=(st.aperture_a||0)+(st.aperture_b||0);
     $('cntA').textContent=st.aperture_a||0;
     $('cntB').textContent=st.aperture_b||0;
     $('cntRic').textContent=st.mail_ricevute||0;
     $('cntInv').textContent=st.mail_inviate||0;
+    $('sessNum').textContent=st.sessione||'—';
 
-    // comandi secondo la fase
-    $('bAvvia').disabled  = !(st.fase==='spento' || st.fase==='terminato');
-    $('bCambia').disabled = (st.fase!=='avviato');
-    $('bFinisci').disabled= !(st.fase==='avviato' || st.fase==='cambiato');
+    // riga di fase
+    var pl=$('phaseLine');
+    if(fase==='avviato') pl.textContent='In corso · si vede la Foto A';
+    else if(fase==='cambiato') pl.textContent='Rivelato · si vede la rivelazione';
+    else if(fase==='terminato') pl.textContent='Sessione terminata';
+    else pl.textContent='Gioco spento · nessuna foto mostrata';
 
-    // tasto "Rispondi mail": compare solo se l'opzione è attiva, il gioco è attivo
-    // e non si è ancora dato il via libera (come nella Regia)
-    var attivo = (st.fase==='avviato' || st.fase==='cambiato');
-    var showReply = !!st.rispondi_manuale && attivo && !st.rispondi_ok;
-    var br=$('bRispondi'); if(br){ br.style.display = showReply ? '' : 'none'; br.disabled = !showReply; }
+    // abilitazione tasti (come la Regia)
+    var bAvvia=$('bAvvia'), bCambia=$('bCambia'), bFinisci=$('bFinisci'), bRisp=$('bRispondi');
+    bAvvia.disabled   = attivo;
+    bCambia.disabled  = (fase!=='avviato');
+    bFinisci.disabled = !attivo;
 
-    // preparazione: IA per utenti foto, upload per gli altri
-    var foto = st.flags && st.flags.foto;
-    $('secPrep').classList.toggle('hidden', !foto);
-    $('secCarica').classList.toggle('hidden', !!foto);
+    var manuale=!!st.rispondi_manuale;
+    if(bRisp){
+      bRisp.style.display = manuale ? '' : 'none';
+      bRisp.disabled = !(attivo && !st.rispondi_ok);
+    }
 
-    // miniature delle foto salvate (come nella Regia)
-    updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
-    updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
-    updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
-    // anteprima IA vuota se non c'è una rivelazione
+    // colori dei tasti, fase per fase (identico alla Regia)
+    [bAvvia,bRisp,bCambia,bFinisci].forEach(function(b){ if(b) b.classList.remove('nextstep','curgold','blinkgold'); });
+    if(fase==='avviato'){
+      bAvvia.classList.add('blinkgold');
+      if(manuale && !st.rispondi_ok && bRisp){ bRisp.classList.add('nextstep'); }
+      else { if(manuale && st.rispondi_ok && bRisp) bRisp.classList.add('blinkgold'); bCambia.classList.add('nextstep'); }
+    } else if(fase==='cambiato'){
+      bCambia.classList.add('blinkgold');
+      bFinisci.classList.add('nextstep');
+    } else {
+      bAvvia.classList.add('nextstep');
+    }
+
+    // miniature delle foto salvate
+    updateSlot('slotA','thumbA','A', !!st.ha_foto_a);
+    updateSlot('slotB','thumbB','R', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
+    updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base);
     if(!(st.ha_rivelazione || st.ha_rivelazione_sess)){ var gpx=$('genPrev'); if(gpx){ gpx.style.display='none'; gpx.removeAttribute('src'); } }
   }
 
@@ -212,10 +450,9 @@
     if(scaduto) return;
     statoGet().then(function(j){
       if(!j || !j.stato) return;
-      // link assistente non piu' valido (revocato dal performer o sessione finita)
       if(j.stato.assistente_valido===false){
         scaduto=true;
-        mostraErr('Il link non è più valido (sessione finita o revocato dal prestigiatore). Chiedi un nuovo link.');
+        mostraErr('Il link non è più valido (sessione finita o revocato dal mago). Chiedi un nuovo link.');
         return;
       }
       render(j.stato);
@@ -229,7 +466,7 @@
   }
 
   $('bAvvia').addEventListener('click', function(){ cmd('avvia').then(function(r){ dopoComando(r,'Avviato ✓'); }); });
-  if($('bRispondi')) $('bRispondi').addEventListener('click', function(){ cmd('rispondi').then(function(r){ dopoComando(r,'Risposte avviate ✓'); }); });
+  $('bRispondi').addEventListener('click', function(){ cmd('rispondi').then(function(r){ dopoComando(r,'Risposte avviate ✓'); }); });
   $('bCambia').addEventListener('click', function(){ cmd('cambia').then(function(r){ dopoComando(r,'Rivelato ✓'); }); });
   $('bFinisci').addEventListener('click', function(){
     if(!confirm('Finire la sessione? Il gioco si chiude e questo link smette di funzionare.')) return;
@@ -243,17 +480,35 @@
     else { t.value=v+'\n'; t.focus(); }
   });
 
-  // genera con IA
+  // ---- orologio conto alla rovescia IA (30s, lancetta antioraria) ----
+  var iaTimer=null;
+  function startIaClock(){ var c=$('iaClock'); if(!c) return; var n=$('iacNum'); var left=30; if(n)n.textContent=left;
+    c.classList.remove('open'); void c.offsetWidth; c.classList.add('open');
+    clearInterval(iaTimer); iaTimer=setInterval(function(){ left--; if(left<0)left=0; if(n)n.textContent=left; if(left<=0) clearInterval(iaTimer); },1000);
+  }
+  function stopIaClock(){ var c=$('iaClock'); if(c) c.classList.remove('open'); clearInterval(iaTimer); }
+
+  // ---- genera con IA: la foto creata diventa SUBITO la Foto B ----
   $('bGen').addEventListener('click', function(){
     var t=(($('txt').value)||'').trim();
     if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
-    var b=$('bGen'); b.disabled=true; var old=b.textContent; b.textContent='Genero con IA… (~30s)';
+    var b=$('bGen'); b.disabled=true; var old=b.textContent; b.textContent='Creo la Foto magic… (~30s)';
+    startIaClock();
     generaIA(t).then(function(r){
-      b.disabled=false; b.textContent=old;
+      b.disabled=false; b.textContent=old; stopIaClock();
       if(r.code===401){ mostraErr('Il link non è più valido. Chiedi un nuovo link.'); return; }
-      if(r.data && r.data.ok){ toast('Rivelazione creata ✓','ok'); var gp=$('genPrev'); if(gp && r.data.preview){ gp.src=r.data.preview; gp.style.display='block'; } poll(); }
+      if(r.data && r.data.ok){
+        toast('Rivelazione creata ✓','ok');
+        var gp=$('genPrev'); if(gp && r.data.preview){ gp.src=r.data.preview; gp.style.display='block'; }
+        // la foto generata diventa SUBITO la Foto B anche nella sua miniatura
+        if(r.data.preview){
+          var tb=$('thumbB'); if(tb){ tb.innerHTML='<img alt="">'; tb.querySelector('img').src=r.data.preview; tb.setAttribute('data-loaded','1'); }
+          var sB=$('slotB'); if(sB) sB.classList.add('filled');
+        }
+        poll();
+      }
       else { toast((r.data&&r.data.errore)||'Generazione fallita','err'); }
-    }).catch(function(){ b.disabled=false; b.textContent=old; toast('Server non raggiungibile','err'); });
+    }).catch(function(){ b.disabled=false; b.textContent=old; stopIaClock(); toast('Server non raggiungibile','err'); });
   });
 
   // --- anteprima / elimina delle foto salvate -----------------------------
@@ -266,8 +521,8 @@
   function openLightbox(src){ if(!src||!lightbox) return; lbImg.src=src; lightbox.classList.add('open'); }
   function closeLightbox(){ if(lightbox) lightbox.classList.remove('open'); }
   if(lightbox) lightbox.addEventListener('click', function(e){ if(e.target===lightbox) closeLightbox(); });
+  var lbb=$('lbBack'); if(lbb) lbb.addEventListener('click', closeLightbox);
 
-  // miniatura VUOTA = X rossa (quando non c'e' nessuna foto)
   var PH_EMPTY='<span class="ph none">✕</span>';
   function setThumbImg(thumb,src){
     thumb.innerHTML='<img alt="">';
@@ -275,16 +530,15 @@
     im.onerror=function(){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); };
     im.src=src; thumb.setAttribute('data-loaded','1');
   }
-  // aggiorna la miniatura di uno slot in base allo stato (foto salvata o no)
-  function updateSlot(id,thumbId,key,loaded,ph){
+  function updateSlot(id,thumbId,key,loaded){
     var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
+    slot.classList.toggle('filled', !!loaded);
     var was=thumb.getAttribute('data-loaded')==='1';
     if(loaded){ if(!was){ setThumbImg(thumb, slotPreviewUrl(key)); } }
     else { if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); } }
   }
 
-  // caricamento foto (A, base e B) con anteprima, Cambia (ricarica) e X (elimina)
-  function wireSlot(slotId, slotName, ph){
+  function wireSlot(slotId, slotName){
     var lab=$(slotId); if(!lab) return;
     var inp=lab.querySelector('input[type=file]'),
         thumb=lab.querySelector('.thumb'),
@@ -292,7 +546,6 @@
         delBtn=lab.querySelector('[data-del]');
     function apri(){ inp.click(); }
     if(camBtn) camBtn.addEventListener('click', apri);
-    // clic sulla miniatura: se c'e' una foto la mostra a tutto schermo, altrimenti carica
     thumb.addEventListener('click', function(){
       if(thumb.getAttribute('data-loaded')==='1'){ openLightbox(slotPreviewUrl(slotName)); } else { apri(); }
     });
@@ -318,9 +571,15 @@
       inp.value='';
     });
   }
-  wireSlot('slotA','A','A');
-  wireSlot('slotBase','BASE','F');
-  wireSlot('slotB','B','R');
+  wireSlot('slotA','A');
+  wireSlot('slotB','R');
+  wireSlot('slotBase','BASE');
+
+  // "occhio": vedi la foto attualmente mostrata nel gioco (A o B secondo la fase)
+  $('eyeBtn').addEventListener('click', function(){
+    var key = (cur.fase==='cambiato'||cur.fase==='terminato') ? 'R' : 'A';
+    openLightbox(slotPreviewUrl(key));
+  });
 
   // la rivelazione creata con IA si puo' vedere a tutto schermo
   var gpEl=$('genPrev'); if(gpEl){ gpEl.addEventListener('click', function(){ if(gpEl.src) openLightbox(gpEl.src); }); }

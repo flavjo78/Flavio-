@@ -23,37 +23,20 @@ function p(string $k): ?string {
     return is_string($v) ? trim($v) : null;
 }
 
-/* Conta le aperture di UNA sessione divise per foto vista:
-   'a' = quante hanno visto la Foto A ("prima"), 'b' = la Rivelazione ("dopo").
-   Legge l'etichetta scritta da image.php (A / B / A(test) / B(test) / neutro).
-   Definita qui (non in config.php) cosi' non serve ricaricare config.php sul server. */
+/* Conta le aperture VERE di UNA sessione divise per foto vista:
+   'a' = quante persone hanno visto la Foto A, 'b' = la Rivelazione (B),
+   'tot' = destinatari distinti che hanno aperto DAVVERO.
+   Usa predizione_aperture_vere() (config.php) che toglie le "aperture di
+   servizio": il pre-scarico automatico nei primi 15s e i ri-scaricamenti
+   ravvicinati della stessa persona. Cosi' il contatore mostra le aperture reali. */
 function predizione_conta_aperture_ab(int $sessione): array {
-    $logf = predizione_log_file();
-    if ($sessione <= 0 || !is_file($logf)) return ['a' => 0, 'b' => 0, 'tot' => 0];
-    $fh = @fopen($logf, 'r');
-    if (!$fh) return ['a' => 0, 'b' => 0, 'tot' => 0];
-    $sid = (string)$sessione;
-    // Conta i DESTINATARI distinti (per codice "id"), non i singoli scaricamenti:
-    // i programmi di posta (es. Gmail) scaricano la stessa foto piu' volte per
-    // una sola apertura, quindi contiamo una volta sola per id. Se l'id manca
-    // (es. apertura di prova dal browser), quella riga conta comunque una volta.
-    $va = []; $vb = []; $vt = []; $n = 0;
-    while (($line = fgets($fh)) !== false) {
-        if (trim($line) === '') continue;
-        $n++;
-        $c = str_getcsv($line);
-        if (($c[1] ?? '') !== $sid) continue;   // solo la sessione corrente
-        $lbl = (string)($c[3] ?? '');
-        if ($lbl === '') continue;
-        $id  = trim((string)($c[2] ?? ''));
-        $key = ($id !== '') ? $id : ('_r' . $n);
-        $first = strtoupper($lbl[0]);
-        if     ($first === 'A') { $va[$key] = true; $vt[$key] = true; }
-        elseif ($first === 'B') { $vb[$key] = true; $vt[$key] = true; }
+    $vere = predizione_aperture_vere($sessione);
+    $a = 0; $b = 0;
+    foreach ($vere as $op) {
+        if (!empty($op['labels']['A'])) $a++;
+        if (!empty($op['labels']['B'])) $b++;
     }
-    fclose($fh);
-    // 'tot' = destinatari distinti di QUESTA sessione (si azzera a ogni nuova sessione)
-    return ['a' => count($va), 'b' => count($vb), 'tot' => count($vt)];
+    return ['a' => $a, 'b' => $b, 'tot' => count($vere)];
 }
 
 /* Normalizza il modo di invio: 'casella' | 'brevo' | 'ses'
