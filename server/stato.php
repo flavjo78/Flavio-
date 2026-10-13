@@ -777,6 +777,19 @@ switch ($azione) {
         predizione_utenti_scrivi($utenti);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
+    case 'email_comunicazione':
+        // l'utente aggiorna la PROPRIA mail di comunicazione (ricevute/avvisi da noi).
+        // Serve alla guida del primo accesso ("mi confermi che e' questa?").
+        $nuova = strtolower(trim((string)p('email')));
+        if ($nuova === '' || !filter_var($nuova, FILTER_VALIDATE_EMAIL)) {
+            predizione_json(['ok' => false, 'errore' => 'Scrivi una mail valida'], 400);
+        }
+        $utenti = predizione_utenti_leggi();
+        if (!isset($utenti[$utente])) predizione_json(['ok' => false, 'errore' => 'Utente non trovato'], 404);
+        $utenti[$utente]['email_comunicazione'] = substr($nuova, 0, 160);
+        predizione_utenti_scrivi($utenti);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
     case 'foto_zona':
         // salva i 4 ANGOLI del foglio (quad) e la GOMMA (poligono, es. la mano)
         if (empty(predizione_flags($utente)['foto'])) {
