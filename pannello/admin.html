@@ -72,7 +72,8 @@
   .side .brand .nm{font-family:Georgia,serif;font-size:22px}
   .navitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:var(--ink-dim);
     font-family:inherit;font-size:14px;font-weight:600;padding:11px 12px;border-radius:10px;cursor:pointer;margin-bottom:2px}
-  .navitem .ic{width:22px;text-align:center}
+  .navitem .ic{width:24px;flex:0 0 24px;display:inline-flex;align-items:center;justify-content:center}
+  .navitem .ic svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .navitem:hover{background:var(--surface-2);color:var(--ink)}
   .navitem.sel{background:var(--gold-soft);color:var(--gold)}
   .navitem .badge{margin-left:auto;background:var(--gold);color:#231a0c;font-size:11px;font-weight:800;border-radius:999px;padding:1px 8px}
@@ -122,15 +123,15 @@
   <!-- MENU LATERALE -->
   <nav class="side" id="side">
     <div class="brand"><span class="kicker">abraka</span><span class="nm">Pannello 000</span></div>
-    <button class="navitem" data-view="nuovo"><span class="ic">＋</span> Nuovo utente</button>
-    <button class="navitem sel" data-view="ordini"><span class="ic">🧾</span> Ordini <span class="badge hidden" id="ordBadge">0</span></button>
-    <button class="navitem" data-view="utenti"><span class="ic">👤</span> Utenti</button>
-    <button class="navitem" data-view="listino"><span class="ic">🏷️</span> Listino (piani)</button>
-    <button class="navitem" data-view="storico"><span class="ic">📚</span> Storico piani</button>
-    <button class="navitem" data-view="accessi"><span class="ic">🔑</span> Password d'accesso</button>
-    <button class="navitem" data-view="operazioni"><span class="ic">🗂️</span> Operazioni</button>
+    <button class="navitem" data-view="nuovo"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 20c0-3.3 2.6-5.4 5.5-5.4"/><path d="M17.5 11v6M14.5 14h6"/></svg></span> Nuovo utente</button>
+    <button class="navitem sel" data-view="ordini"><span class="ic"><svg viewBox="0 0 24 24"><path d="M6 3h12v18l-2-1.3-2 1.3-2-1.3-2 1.3-2-1.3V3z"/><path d="M9 8h6M9 12h6"/></svg></span> Ordini <span class="badge hidden" id="ordBadge">0</span></button>
+    <button class="navitem" data-view="utenti"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5 6-5"/><circle cx="17" cy="9" r="2.6"/><path d="M13.6 19c.4-2.3 1.8-3.4 3.6-3.4s3.2 1.1 3.6 3.4"/></svg></span> Utenti</button>
+    <button class="navitem" data-view="listino"><span class="ic"><svg viewBox="0 0 24 24"><path d="M20.6 13.4L13 21l-9-9V4h8z"/><circle cx="8" cy="8" r="1.3"/></svg></span> Listino (piani)</button>
+    <button class="navitem" data-view="storico"><span class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></span> Storico piani</button>
+    <button class="navitem" data-view="accessi"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="3.6"/><path d="M11.6 12H21M18 12v3M15 12v2.4"/></svg></span> Password d'accesso</button>
+    <button class="navitem" data-view="operazioni"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span> Operazioni</button>
     <div class="sep"></div>
-    <a class="navitem" href="regia-predizione.html" style="text-decoration:none"><span class="ic">←</span> Vai alla Regia</a>
+    <a class="navitem" href="regia-predizione.html" style="text-decoration:none"><span class="ic"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></span> Vai alla Regia</a>
   </nav>
 
   <div class="appwrap">
@@ -445,7 +446,12 @@
       var base=(l.nomi_base||[]).indexOf(p.nome)>=0;
       var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
       var righe=CAMPI.map(function(c){ return '<div class="edline"><label>'+c[1]+'</label>'+numField('ep_'+idx+'_'+c[0], p[c[0]])+'</div>'; }).join('');
-      var flags='<div class="edline"><label>Assistente di scena</label><input type="checkbox" id="ep_'+idx+'_assistente" '+(p.assistente?'checked':'')+'></div>'+
+      var ill=(p.assistente===-1);
+      var flags='<div class="edline"><label>Assistente di scena (0 = non disponibile)</label>'+
+                  '<span style="display:flex;gap:8px;align-items:center">'+
+                    '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+(ill?' disabled':'')+'>'+
+                    '<label class="chk" style="white-space:nowrap"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+' onchange="this.closest(\'.edline\').querySelector(\'input[type=number]\').disabled=this.checked"> illimitato</label>'+
+                  '</span></div>'+
                 '<div class="edline"><label>Report</label><input type="checkbox" id="ep_'+idx+'_report" '+(p.report?'checked':'')+'></div>'+
                 '<div class="edline"><label>Palco (grandi invii)</label><input type="checkbox" id="ep_'+idx+'_grandi" '+(p.grandi_invii?'checked':'')+'></div>';
       var verLab=('0'+(p.versione||1)).slice(-2);
@@ -476,7 +482,7 @@
         mail_mese:+$('ep_'+idx+'_mail_mese').value||0, mail_giorno:+$('ep_'+idx+'_mail_giorno').value||0,
         foto_ia_mese:+$('ep_'+idx+'_foto_ia_mese').value||0, sessioni_mese:+$('ep_'+idx+'_sessioni_mese').value||0,
         sessioni_giorno:+$('ep_'+idx+'_sessioni_giorno').value||0,
-        assistente:$('ep_'+idx+'_assistente').checked, report:$('ep_'+idx+'_report').checked,
+        assistente:($('ep_'+idx+'_assist_ill').checked ? -1 : (Math.max(0,+$('ep_'+idx+'_assist_num').value||0))), report:$('ep_'+idx+'_report').checked,
         grandi_invii:$('ep_'+idx+'_grandi').checked, flags:{mail:true,foto:(+$('ep_'+idx+'_foto_ia_mese').value||0)>0}
       };
     });
@@ -508,7 +514,7 @@
           '<div class="kv"><span>Sessioni</span><b>'+(d.sessioni_giorno?d.sessioni_giorno+'/giorno + ':'')+(d.sessioni_mese||0)+'/mese</b></div>'+
           '<div class="kv"><span>Mail</span><b>'+(d.mail_mese||0)+'/mese'+(d.mail_giorno?(' ('+d.mail_giorno+'/giorno)'):'')+'</b></div>'+
           '<div class="kv"><span>Foto IA</span><b>'+(d.foto_ia_mese||0)+'/mese</b></div>'+
-          '<div class="kv"><span>Funzioni</span><b>'+(d.assistente?'Assistente ':'')+(d.report?'Report ':'')+(d.grandi_invii?'Palco':'')+'</b></div></div>';
+          '<div class="kv"><span>Funzioni</span><b>'+(d.assistente?('Assistente '+(d.assistente===-1?'illimitato':d.assistente)+' '):'')+(d.report?'Report ':'')+(d.grandi_invii?'Palco':'')+'</b></div></div>';
       }).join('');
     });
   }

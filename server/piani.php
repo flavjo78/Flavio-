@@ -29,28 +29,28 @@ function predizione_piani_default(): array {
             'prezzo_anno' => 0,   'prezzo_mese' => 0,
             'mail_mese' => 85,    'mail_giorno' => 0,    'foto_ia_mese' => 0,
             'sessioni_mese' => 12,'sessioni_giorno' => 0,
-            'assistente' => false,'report' => false,     'grandi_invii' => false,
+            'assistente' => 0,    'report' => false,     'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => false],
         ],
         'Quinte' => [
             'prezzo_anno' => 66,  'prezzo_mese' => 15,
             'mail_mese' => 500,   'mail_giorno' => 100,  'foto_ia_mese' => 15,
             'sessioni_mese' => 5, 'sessioni_giorno' => 1,
-            'assistente' => true, 'report' => true,      'grandi_invii' => false,
+            'assistente' => -1,   'report' => true,      'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => true],
         ],
         'Sipario' => [
             'prezzo_anno' => 96,  'prezzo_mese' => 30,
             'mail_mese' => 1500,  'mail_giorno' => 150,  'foto_ia_mese' => 30,
             'sessioni_mese' => 10,'sessioni_giorno' => 2,
-            'assistente' => true, 'report' => true,      'grandi_invii' => false,
+            'assistente' => -1,   'report' => true,      'grandi_invii' => false,
             'flags' => ['mail' => true, 'foto' => true],
         ],
         'Palco' => [
             'prezzo_anno' => 228, 'prezzo_mese' => 58,
             'mail_mese' => 3500,  'mail_giorno' => 0,    'foto_ia_mese' => 100,
             'sessioni_mese' => 15,'sessioni_giorno' => 3,
-            'assistente' => true, 'report' => true,      'grandi_invii' => true,
+            'assistente' => -1,   'report' => true,      'grandi_invii' => true,
             'flags' => ['mail' => true, 'foto' => true],
         ],
     ];
@@ -65,6 +65,11 @@ function predizione_piano_normalizza(array $p, array $base = []): array {
     $g = function ($k, $def) use ($p, $base) { return array_key_exists($k, $p) ? $p[$k] : ($base[$k] ?? $def); };
     $flags = $g('flags', ['mail' => true, 'foto' => true]);
     if (!is_array($flags)) $flags = ['mail' => true, 'foto' => true];
+    // Assistente di scena: NUMERO. 0 = non disponibile, -1 = illimitato, N = quota.
+    // (compatibilita': un vecchio valore true/false diventa illimitato/non disponibile)
+    $ass = $g('assistente', 0);
+    if (is_bool($ass)) $ass = $ass ? -1 : 0;
+    $ass = (int)$ass; if ($ass < -1) $ass = -1;
     return [
         'prezzo_anno'    => max(0, (int)$g('prezzo_anno', 0)),
         'prezzo_mese'    => max(0, (int)$g('prezzo_mese', 0)),
@@ -73,7 +78,7 @@ function predizione_piano_normalizza(array $p, array $base = []): array {
         'foto_ia_mese'   => max(0, (int)$g('foto_ia_mese', 0)),
         'sessioni_mese'  => max(0, (int)$g('sessioni_mese', 0)),
         'sessioni_giorno'=> max(0, (int)$g('sessioni_giorno', 0)), // 0 = nessun limite giornaliero
-        'assistente'     => (bool)$g('assistente', false),
+        'assistente'     => $ass,                                  // int: 0 no, -1 illimitato, N quota
         'report'         => (bool)$g('report', false),
         'grandi_invii'   => (bool)$g('grandi_invii', false),
         'flags'          => ['mail' => !empty($flags['mail']), 'foto' => !empty($flags['foto'])],
@@ -250,7 +255,8 @@ function predizione_limiti_utente(array $rec): array {
         'foto_ia_mese'     => (int)$p['foto_ia_mese'],
         'sessioni_mese'    => (int)$p['sessioni_mese'],
         'sessioni_giorno'  => (int)($p['sessioni_giorno'] ?? 0),
-        'assistente'       => (bool)$p['assistente'],
+        'assistente'       => ((int)$p['assistente'] !== 0),      // disponibile? (compat booleana)
+        'assistente_num'   => (int)$p['assistente'],              // 0 no · -1 illimitato · N quota
         // Report: incluso nel piano OPPURE attivato a parte dall'admin (report_extra).
         // Se report_extra e' impostato (true/false), VINCE sul piano (si puo' anche togliere).
         'report'           => array_key_exists('report_extra', $rec) ? (bool)$rec['report_extra'] : (bool)$p['report'],

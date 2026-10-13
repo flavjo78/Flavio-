@@ -53,6 +53,14 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
 >   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
 
+> ### Aggiunte 13 ottobre 2026 (AGG 19 — ritocchi)
+> - **Assistente di scena = NUMERO** nel modello piano (0 = non disponibile, -1 = illimitato, N = quota).
+>   `predizione_piano_normalizza` accetta int (o bool vecchio: true→-1, false→0); `predizione_limiti_utente`
+>   espone sia `assistente` (bool compat, true se ≠0) sia `assistente_num` (il numero). Editor con campo
+>   numero + spunta "illimitato".
+> - **Icone pannello 000** rifatte in SVG lineari `currentColor` (stile Regia), al posto delle emoji.
+> - **Regia:** i sottotitoli degli slot foto (`.slot-txt .s`) ora vanno a capo (niente più testo tagliato).
+
 > ### Aggiunte 13 ottobre 2026 (AGG 18 — listino modificabile + versioni piani + pannello 000)
 > - **Listino modificabile (editor nel pannello 000).** I piani NON sono più solo nel codice:
 >   `predizione_piani()`/`predizione_extra()`/`predizione_accesso_prezzo()` leggono i valori di
