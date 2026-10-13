@@ -38,6 +38,24 @@ if ($cUser === '' || $cPass === '') {
     predizione_json(['ok' => false, 'errore' => 'Prima imposta la tua casella (email + password per app)'], 400);
 }
 
+/* --- PROVA CASELLA: manda una mail di test a te stesso e dice l'errore esatto.
+       Serve per capire se la Gmail (password per app) funziona: è lo STESSO
+       percorso d'invio della risposta automatica. Non serve una sessione. ---- */
+if (iv_p('azione') === 'prova') {
+    [$ph, $pp] = pred_smtp_host($cUser);
+    $perr = null;
+    $pbody = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
+           . '<p>Prova casella <b>PREDIZIONE</b>.</p>'
+           . '<p>Se leggi questa mail, la tua casella <b>' . htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8')
+           . '</b> invia correttamente: la risposta automatica potrà partire.</p></div>';
+    $okProva = pred_smtp_send($ph, $pp, $cUser, $cPass, $cUser, $cFrom, $cUser, 'Prova casella — PREDIZIONE', $pbody, $perr);
+    predizione_json([
+        'ok'      => $okProva,
+        'dove'    => $cUser,
+        'errore'  => $okProva ? null : $perr,
+    ]);
+}
+
 /* --- sessione attiva? (serve perché la foto giusta venga mostrata) ------ */
 $sid = (int)($stato['sessione_corrente'] ?? 0);
 if ($sid <= 0) {

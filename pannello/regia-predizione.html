@@ -479,6 +479,8 @@
         <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
         <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
         <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
+        <button class="btn" id="provaMail" type="button" style="width:100%;margin-top:8px">Prova casella (manda una mail a te stesso)</button>
+        <p class="hint" id="provaMsg"></p>
         <p class="hint">Collega la <b>tua</b> Gmail: le mail partiranno dal tuo indirizzo. Serve la <b>verifica in due passaggi</b> e una <b>password per app</b> creata su Google (così non dai la password vera).</p>
       </div>
     </section>
@@ -1437,6 +1439,19 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var e=($('mailEmail').value||'').trim(), a=($('mailApp').value||'').trim(), f=($('mailFrom').value||'').trim();
     if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
     comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
+  });
+  // ---- "Prova casella": manda una mail di test a te stesso e mostra l'errore esatto ----
+  var pmBtn=$('provaMail');
+  if(pmBtn) pmBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var msg=$('provaMsg'); pmBtn.disabled=true; var old=pmBtn.textContent; pmBtn.textContent='Provo a inviare…';
+    if(msg){ msg.style.color='var(--ink-faint)'; msg.textContent='Sto inviando la mail di prova…'; }
+    var fd=new FormData(); fd.append('azione','prova'); fd.append('utente',USER); fd.append('password',PW);
+    fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      pmBtn.disabled=false; pmBtn.textContent=old;
+      if(d && d.ok){ if(msg){ msg.style.color='var(--good)'; msg.innerHTML='✅ Inviata! Controlla la casella <b>'+(d.dove||'')+'</b> (anche nello spam). La tua casella funziona.'; } toast('Prova inviata','ok'); }
+      else { if(msg){ msg.style.color='var(--stop)'; msg.innerHTML='❌ Non è partita. Errore: <b>'+((d&&d.errore)||'sconosciuto')+'</b><br>Di solito è la <b>password per app</b> sbagliata/scaduta, o <b>IMAP</b> spento in Gmail.'; } toast('Invio fallito','err'); }
+    }).catch(function(){ pmBtn.disabled=false; pmBtn.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile.'; } });
   });
 
   // ---- "vai a capo" per il testo del foglio (la tastiera del telefono a volte non lo fa) ----
