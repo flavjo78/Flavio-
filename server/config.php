@@ -220,6 +220,7 @@ function predizione_stato_default(): array {
         'ultimo_id'          => 0,
         'forza'              => null,
         'autorisponditore'   => false,
+        'blocca_foto_a'      => true,   // prima volta: la Foto A resta dopo "Finisci" (spunta accesa)
         'sessioni'           => [],
         'aggiornato'         => null,
     ];

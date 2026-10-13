@@ -220,7 +220,7 @@ function predizione_applica_piano(array &$rec, string $piano, string $durata = '
 /* ---- Crediti extra (con scadenza facoltativa) ------------------------- */
 /* $tipo: 'mail' | 'foto_ia' | 'sessioni'. $scad: timestamp o 0 = senza scadenza. */
 function predizione_aggiungi_crediti(array &$rec, string $tipo, int $qta, int $scad = 0): void {
-    if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true) || $qta <= 0) return;
+    if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true) || $qta <= 0) return;
     if (!isset($rec['crediti']) || !is_array($rec['crediti'])) $rec['crediti'] = [];
     $rec['crediti'][] = ['tipo' => $tipo, 'qta' => $qta, 'scad' => $scad, 'aggiunto' => time()];
 }
@@ -262,9 +262,10 @@ function predizione_limiti_utente(array $rec): array {
         'report'           => array_key_exists('report_extra', $rec) ? (bool)$rec['report_extra'] : (bool)$p['report'],
         'grandi_invii'     => (bool)$p['grandi_invii'],
         'crediti' => [
-            'mail'     => predizione_crediti_disponibili($rec, 'mail'),
-            'foto_ia'  => predizione_crediti_disponibili($rec, 'foto_ia'),
-            'sessioni' => predizione_crediti_disponibili($rec, 'sessioni'),
+            'mail'      => predizione_crediti_disponibili($rec, 'mail'),
+            'foto_ia'   => predizione_crediti_disponibili($rec, 'foto_ia'),
+            'sessioni'  => predizione_crediti_disponibili($rec, 'sessioni'),
+            'assistente'=> predizione_crediti_disponibili($rec, 'assistente'),
         ],
     ];
 }

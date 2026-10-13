@@ -53,6 +53,26 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **Avviso all'autore a OGNI ordine:** mail a `PRED_NOTIFY_EMAIL` sia alla **ricezione** dell'ordine
 >   (azione `crea`) sia alla **lavorazione**/pagamento (azione `admin_attiva`). Prima solo al pagamento.
 
+> ### Aggiunte 13 ottobre 2026 (AGG 21 — lotto Regia/listino/scheda)
+> - **Imposta foto si svuota dopo "Finisci"**, salvo la spunta **"Blocca la Foto A"** (Regia, sezione foto).
+>   Stato `blocca_foto_a` (default TRUE la prima volta); azione `blocca_foto` (ON/OFF); in `finisci` si
+>   cancella sempre `rivelazione_pronta` e, se la spunta è OFF, anche `foto_a`. Esposto in stato pubblico.
+> - **Tile grigie (bloccate) → Acquista con spiegazione.** In Regia un tap su una tile `.locked` apre la
+>   sezione **Limiti** e mostra un box rosso (`#lockMsg`) con la spiegazione; il tasto Acquista è lì.
+> - **Prezzi al mese + totale.** `acquista.html`: per l'annuale mostra l'equivalente **€/mese** grande e il
+>   **totale annuo** sotto (96 → 8 €/mese). Link **"Prezzi e guida agli acquisti"** (`guide/guida-acquisti.html`)
+>   in acquista e nella sezione Limiti della Regia (`#guidaLink`).
+> - **"IA" → "Foto magic" ovunque** (Regia tile+sezione, listino editor/storico/scheda, acquista); icona
+>   bacchetta magica. Chiavi tecniche `foto_ia` invariate.
+> - **Pop-up Aiuto:** le funzioni non attive sono scritte in **rosso e più grandi** (`.help-lock .hl-t/.hl-s`).
+> - **Scheda utente (000) a fisarmonica:** sezioni comprimibili (default tutte chiuse), aprendone una si
+>   chiudono le altre; tasto **"Apri tutte"/"Chiudi tutte"** in alto (`.acc-h`/`.acc-b`).
+> - **Assistente di scena "al mese"** nel listino (etichette editor/scheda) e **nuovo tipo di credito
+>   `assistente`** (piani.php/stato.php/config). Gestione crediti nella scheda: **4 righe separate**
+>   (mail / Foto magic / sessioni / assistenti) con quantità + scadenza, niente più menù a tendina.
+> - **Orario di sicurezza:** selettore in **oro/nero** (due `<select>` Ore/Minuti + azzera) al posto del
+>   picker blu di sistema (non stilabile). `swVal()` compone `HH:MM` per `avvia`.
+
 > ### Aggiunte 13 ottobre 2026 (AGG 20 — funzione "Aiuto" nella Regia)
 > - **Guida ai tasti (Regia).** Tasto **"Aiuto"** in Impostazioni sotto "Salva e torna" (bordo rosso).
 >   Primo tocco → pop-up (`#helpIntro`, stile `.hist`) che elenca le funzioni **grigie bloccate dal piano**

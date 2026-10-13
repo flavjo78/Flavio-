@@ -183,8 +183,20 @@
   input:focus,textarea:focus{outline:none;border-color:var(--gold)}
   textarea{resize:vertical;min-height:82px;line-height:1.5}
   input[type="time"]{max-width:150px;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  /* selettore orario in stile app (oro/nero), al posto del picker blu di sistema */
+  .timepick{display:flex;align-items:center;gap:8px}
+  .timepick select{appearance:none;-webkit-appearance:none;font-family:inherit;font-size:20px;font-weight:700;
+    font-variant-numeric:tabular-nums;color:var(--ink);background:var(--surface-2);border:1px solid var(--line-2);
+    border-radius:14px;padding:12px 16px;text-align:center;cursor:pointer}
+  .timepick select:focus{outline:none;border-color:var(--gold)}
+  .timepick .tpsep{font-size:22px;font-weight:800;color:var(--gold)}
+  .timepick .tpclear{width:40px;height:44px;border-radius:12px;border:1px solid var(--line-2);background:var(--surface-2);
+    color:var(--ink-dim);font-size:20px;cursor:pointer;line-height:1}
   .hint{font-size:12px;color:var(--ink-faint);margin-top:9px;line-height:1.45}
   .hint b{color:var(--ink-dim);font-weight:700}
+  /* avviso "funzione bloccata" quando tocchi una tile grigia */
+  .lockmsg{background:var(--stop-soft);border:1.5px solid var(--stop);border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:13.5px;color:var(--ink);line-height:1.45}
+  .lockmsg b{color:var(--stop)}
 
   .toggle-row{display:flex;align-items:center;justify-content:space-between;margin-top:16px}
   .toggle-row .t{font-weight:700;font-size:14.5px}
@@ -259,9 +271,9 @@
   #helpTip.up:after{top:auto;bottom:-9px;border-bottom-color:transparent;border-top-color:var(--stop)}
   .help-lock{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
   .help-lock:last-child{border:none}
-  .help-lock .hl-t{font-weight:700;font-size:14px}
-  .help-lock .hl-s{font-size:12.5px;color:var(--ink-dim)}
-  .help-lock .dot{flex:0 0 auto;width:10px;height:10px;border-radius:50%;background:var(--ink-faint);margin-top:5px}
+  .help-lock .hl-t{font-weight:800;font-size:17px;color:var(--stop)}
+  .help-lock .hl-s{font-size:14px;color:var(--stop);opacity:.85}
+  .help-lock .dot{flex:0 0 auto;width:11px;height:11px;border-radius:50%;background:var(--stop);margin-top:6px}
 
   /* ---- orologio conto alla rovescia IA (30s) ---- */
   .iaclock{position:fixed;inset:0;z-index:95;background:rgba(6,5,5,.55);backdrop-filter:blur(2px);display:none;align-items:center;justify-content:center}
@@ -430,7 +442,7 @@
         <div class="tile" data-go="foto"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg></div><div class="tx"><div class="tl">Imposta foto</div><div class="ts" id="tsFoto">—</div></div></div>
         <div class="tile" data-go="testomail"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h8"/><path d="M15 19l5-5 1.6 1.6-5 5H15z"/></svg></div><div class="tx"><div class="tl">Testo mail</div><div class="ts">oggetto e testo</div></div></div>
         <div class="tile" data-go="invio"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
-        <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18 14l.8 2.2L21 17l-2.2.8L18 20l-.8-2.2L15 17l2.2-.8z"/></svg></div><div class="tx"><div class="tl">Rivelazione IA</div><div class="ts">genera la Foto B</div></div></div>
+        <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M15 6l3 3M14.5 6.5L5 16v3h3l9.5-9.5z"/><path d="M18.2 2.8l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z"/><path d="M20.5 8.5l.35 1 1 .35-1 .35-.35 1-.35-1-1-.35 1-.35z"/></svg></div><div class="tx"><div class="tl">Foto magic</div><div class="ts">crea la Foto B</div></div></div>
         <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M5 9l7 5 7-5"/></svg></div><div class="tx"><div class="tl">Invia mail</div><div class="ts" id="tsCasella">a pochi indirizzi</div></div></div>
         <div class="tile" data-go="limiti"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div class="tx"><div class="tl">Limiti</div><div class="ts" id="tsLimiti">—</div></div></div>
         <div class="tile" data-go="report" id="tileReport"><div class="ic"><svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/><path d="M10 13h5M10 16h5"/></svg></div><div class="tx"><div class="tl">Report</div><div class="ts">chi apre e scrive</div></div></div>
@@ -454,7 +466,7 @@
       <div class="kv"><span>Abbonamento</span><b id="accScad">—</b></div>
       <div class="boxes2">
         <div class="box2 tap" data-hist="mail"><b id="accMail">—</b><span>Mail / mese</span></div>
-        <div class="box2 tap" data-hist="foto_ia"><b id="accFoto">—</b><span>Foto IA / mese</span></div>
+        <div class="box2 tap" data-hist="foto_ia"><b id="accFoto">—</b><span>Foto magic / mese</span></div>
         <div class="box2 tap" data-hist="sessioni"><b id="accSess">—</b><span>Sessioni / mese</span></div>
         <div class="box2 tap" data-hist="mail"><b id="accCred">—</b><span>Crediti extra</span></div>
       </div>
@@ -474,13 +486,15 @@
     <!-- ===== I MIEI LIMITI (barre a semaforo) ===== -->
     <section class="sp" data-sp="limiti" aria-label="I miei limiti">
       <div class="sec-head"><h2 class="sec-title">I miei limiti</h2><span class="sec-num" id="limPiano">—</span></div>
+      <div id="lockMsg" class="lockmsg" style="display:none"></div>
       <div class="lim tap" data-hist="mail"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
-      <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto con IA</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
+      <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto magic</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni del mese</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
       <p class="hint" id="limReset" style="color:var(--gold);font-weight:700"></p>
       <p class="hint" id="limGiorno"></p>
       <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
       <button class="btn primary" id="buyBtn" type="button" style="width:100%;margin-top:8px">Acquista crediti / Cambia piano</button>
+      <a id="guidaLink" href="#" target="_blank" style="display:block;text-align:center;color:var(--gold);font-size:13px;font-weight:700;margin-top:12px;text-decoration:none">📄 Prezzi e guida agli acquisti</a>
     </section>
 
     <section class="sp" data-sp="invio" aria-label="Modo di invio">
@@ -518,9 +532,19 @@
       </div>
       <p class="hint">La <b>Foto A</b> neutra si carica una volta e resta. La <b>rivelazione</b> va caricata <b>prima di ogni "Avvia"</b>: viene usata per quella sessione e chi la riceve la vedrà sempre.</p>
 
+      <div class="toggle-row" style="margin-top:4px">
+        <div><div class="t">Blocca la Foto A</div><div class="s">Dopo "Finisci" la tieni per il prossimo show (se spenta, si svuota)</div></div>
+        <label class="switch"><input type="checkbox" id="bloccaA"><span class="track"></span><span class="knob"></span></label>
+      </div>
+
       <div class="field">
-        <label for="swtime">Orario di sicurezza (facoltativo)</label>
-        <input type="time" id="swtime" style="color-scheme:dark;accent-color:var(--gold)">
+        <label for="swH">Orario di sicurezza (facoltativo)</label>
+        <div class="timepick">
+          <select id="swH" aria-label="Ore"></select>
+          <span class="tpsep">:</span>
+          <select id="swM" aria-label="Minuti"></select>
+          <button type="button" class="tpclear" id="swClear" title="Azzera">&times;</button>
+        </div>
       </div>
       <p class="hint">Rete di sicurezza: se a quest'ora <b>non</b> hai ancora premuto "Finisci gioco", lo scambio A→B scatta da solo. Di solito coincide con la fine dello spettacolo. Lascia vuoto per comandare solo a mano.</p>
     </section>
@@ -550,8 +574,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </section>
 
     <!-- Sezione STRUMENTO FOTO (visibile solo se l'utente ha la funzione 'foto') -->
-    <section class="sp" data-sp="ia" aria-label="Rivelazione con IA" id="secFoto">
-      <div class="sec-head"><h2 class="sec-title">Rivelazione con IA</h2><span class="sec-num">Foto B</span></div>
+    <section class="sp" data-sp="ia" aria-label="Foto magic" id="secFoto">
+      <div class="sec-head"><h2 class="sec-title">Foto magic</h2><span class="sec-num">Foto B</span></div>
       <div class="slot" id="slotBase">
         <input type="file" accept="image/*" hidden>
         <span class="thumb" id="thumbBase" title="Vedi la foto"><span class="ph none">✕</span></span>
@@ -583,9 +607,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <!-- cursori della vecchia scrittura grafica: nascosti (con l'IA non servono) -->
       <div class="field" style="display:none"><label for="predSize">Dimensione scritta</label><input type="range" id="predSize" min="4" max="40" value="12" style="width:100%"></div>
       <div class="field" style="display:none"><label for="predPos">Posizione (alto ↔ basso)</label><input type="range" id="predPos" min="15" max="85" value="40" style="width:100%"></div>
-      <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Genera la rivelazione con IA (Foto B)</button>
+      <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Crea la Foto magic (rivelazione)</button>
       <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
-      <p class="hint">Carica la <b>foto base</b> (tu col foglio bianco), scrivi la <b>frase</b> e premi <b>Genera con IA</b>: l'intelligenza artificiale scrive la frase a mano sul foglio e la usa come <b>rivelazione</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
+      <p class="hint">Carica la <b>foto base</b> (tu col foglio bianco), scrivi la <b>frase</b> e premi <b>Crea Foto magic</b>: la frase viene scritta a mano sul foglio e usata come <b>rivelazione</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
     </section>
 
     <section class="sp" data-sp="report" aria-label="Report della sessione">
@@ -659,8 +683,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <div class="hist-head"><b>Rivelazione (Foto B)</b><button id="bChooseClose" type="button" aria-label="Chiudi">&times;</button></div>
       <div style="padding:16px 18px 22px">
         <button class="btn primary" id="bFromFile" type="button" style="width:100%">📁 Carica da file</button>
-        <button class="btn" id="bFromIa" type="button" style="width:100%;margin-top:10px">✨ Crea con IA</button>
-        <p class="hint" style="margin-top:10px">Scegli una foto dal telefono, oppure fai scrivere all'IA la frase a mano sul foglio.</p>
+        <button class="btn" id="bFromIa" type="button" style="width:100%;margin-top:10px">✨ Crea con Foto magic</button>
+        <p class="hint" style="margin-top:10px">Scegli una foto dal telefono, oppure usa <b>Foto magic</b> per scrivere la frase a mano sul foglio.</p>
       </div>
     </div>
   </div>
@@ -928,6 +952,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }
     // allinea l'interruttore "tasto Rispondi" (se non lo stai toccando)
     var rm=$('rispManuale'); if(rm && document.activeElement!==rm){ rm.checked = !!st.rispondi_manuale; }
+    // allinea la spunta "blocca Foto A"
+    var bl=$('bloccaA'); if(bl && document.activeElement!==bl){ bl.checked = !!st.blocca_foto_a; }
 
     // #2 Palco attivabile solo se il piano lo include
     var modoBig=$('modoBig');
@@ -1042,7 +1068,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
     if(!cur.ha_foto_a){ toast('Carica prima la Foto A neutra (impostazioni)','err'); return; }
     // la rivelazione (Foto B) NON serve per avviare: si può caricare anche dopo, fino a "Cambia"
-    var extra={}; var t=$('swtime').value; if(t){ extra.orario_scambio=t; }
+    var extra={}; var t=swVal(); if(t){ extra.orario_scambio=t; }
     comando('avvia', extra, 'Nuova sessione avviata · Foto A');
   });
   swapBtn.addEventListener('click', function(){
@@ -1160,6 +1186,23 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Inserisci prima la password','err'); rispManuale.checked=!rispManuale.checked; return; }
     comando('rispondi_manuale', {valore: rispManuale.checked?'ON':'OFF'}, rispManuale.checked?'Tasto "Rispondi mail" attivo':'Tasto "Rispondi mail" tolto');
   });
+  // spunta "blocca la Foto A" (dopo Finisci la tieni per il prossimo show)
+  var bloccaA=$('bloccaA');
+  if(bloccaA) bloccaA.addEventListener('change', function(){
+    if(!getPw()){ toast('Inserisci prima la password','err'); bloccaA.checked=!bloccaA.checked; return; }
+    comando('blocca_foto', {valore: bloccaA.checked?'ON':'OFF'}, bloccaA.checked?'Foto A bloccata (resta dopo Finisci)':'Foto A libera (si svuota dopo Finisci)');
+  });
+  // ---- selettore orario di sicurezza (oro/nero, due menu Ore/Minuti) ----
+  (function(){
+    var h=$('swH'), m=$('swM'); if(!h||!m) return;
+    var oh='<option value="">—</option>'; for(var i=0;i<24;i++){ var v=('0'+i).slice(-2); oh+='<option value="'+v+'">'+v+'</option>'; }
+    var om='<option value="">—</option>'; for(var j=0;j<60;j+=5){ var w=('0'+j).slice(-2); om+='<option value="'+w+'">'+w+'</option>'; }
+    h.innerHTML=oh; m.innerHTML=om;
+    // se scegli l'ora e i minuti sono vuoti, metti 00 (comodità)
+    h.addEventListener('change', function(){ if(h.value!=='' && m.value==='') m.value='00'; });
+    var c=$('swClear'); if(c) c.addEventListener('click', function(){ h.value=''; m.value=''; });
+  })();
+  function swVal(){ var h=$('swH'), m=$('swM'); if(!h||!m) return ''; return (h.value!==''&&m.value!=='')?(h.value+':'+m.value):''; }
   // #6 acquista crediti / cambia piano -> pagina carrello, collegata all'utente
   var buyBtn=$('buyBtn');
   if(buyBtn) buyBtn.addEventListener('click', function(){
@@ -1181,7 +1224,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   });
   // #4 storico movimenti: tocca una voce (account/limiti) -> modale
   var histBox=$('histBox');
-  function histLabel(t){ return t==='foto_ia'?'Foto IA':(t==='sessioni'?'Sessioni':'Mail'); }
+  function histLabel(t){ return t==='foto_ia'?'Foto magic':(t==='sessioni'?'Sessioni':'Mail'); }
   function openHist(tipo){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
     $('histTitle').textContent='Storico · '+histLabel(tipo);
@@ -1249,12 +1292,33 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     document.querySelectorAll('#setView .sp').forEach(function(s){ s.classList.remove('on'); });
     setView.scrollTop=0;
   }
+  var LOCKSPIEGA={
+    casella:['Invia mail','mandare le mail dalla tua casella'],
+    ia:['Foto magic','creare la Foto B in automatico'],
+    report:['Report','vedere chi apre la mail e chi scrive'],
+    assist:['Assistente','creare un link per chi ti aiuta']
+  };
   document.querySelectorAll('#setMenu .tile').forEach(function(t){
     t.addEventListener('click', function(){
-      if(t.classList.contains('locked')){ toast('Funzione non attiva nel tuo piano · scrivi a supporto@abraka.it','err'); return; }
+      if(t.classList.contains('locked')){
+        // funzione bloccata dal piano: porta ad Acquista (dentro Limiti) e spiega
+        var k=t.getAttribute('data-go'), info=LOCKSPIEGA[k]||['Questa funzione',''];
+        var lm=$('lockMsg');
+        if(lm){ lm.innerHTML='<b>'+info[0]+'</b> non è inclusa nel tuo piano'+(info[1]?' (serve per '+info[1]+')':'')+'. Puoi aggiungerla qui sotto con <b>Acquista / Cambia piano</b>.'; lm.style.display='block'; }
+        goSP('limiti');
+        return;
+      }
+      var lm2=$('lockMsg'); if(lm2) lm2.style.display='none';
       goSP(t.getAttribute('data-go'));
     });
   });
+  // link "Prezzi e guida agli acquisti" (sta sul sito, radice /guide/)
+  (function(){
+    var g=$('guidaLink'); if(!g) return;
+    var dir=location.href.split('?')[0].replace(/[^/]*$/,'');      // .../predizione/
+    var root=dir.replace(/predizione\/$/,'');                      // .../ (radice sito)
+    g.setAttribute('href', root+'guide/guida-acquisti.html');
+  })();
   var spb=$('spBack'); if(spb) spb.addEventListener('click', backMenu);
   $('openSet').addEventListener('click', function(){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; });
   $('closeSet').addEventListener('click', function(){
@@ -1390,7 +1454,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var t=(($('predText').value)||'').trim();
     if(!t){ toast('Scrivi cosa deve comparire sul foglio','err'); return; }
-    gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Genero con IA… (~30s)';
+    gBtn.disabled=true; var old=gBtn.textContent; gBtn.textContent='Creo la Foto magic… (~30s)';
     startIaClock();   // #13 orologio conto alla rovescia (30s)
     apiGeneraIa(t).then(function(res){
       gBtn.disabled=false; gBtn.textContent=old; stopIaClock();
@@ -1512,7 +1576,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     'go:foto':['Imposta foto','Carichi la Foto A di attesa e la rivelazione (Foto B) da usare nel gioco.'],
     'go:testomail':['Testo mail','Scrivi l\'oggetto e il testo della mail di risposta (sopra la foto).'],
     'go:invio':['Autorisponditore','Accendi o spegni la risposta automatica e scegli come inviare.'],
-    'go:ia':['Rivelazione IA','Generi la Foto B con l\'intelligenza artificiale.'],
+    'go:ia':['Foto magic','Crei la Foto B con Foto magic.'],
     'go:casella':['Invia mail','Mandi le mail a pochi indirizzi dalla tua casella.'],
     'go:limiti':['Limiti','Vedi quanto hai usato e quanto ti resta: mail, foto, sessioni.'],
     'go:report':['Report','Vedi chi apre la mail e chi scrive durante lo show.'],
@@ -1528,7 +1592,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // voci che POSSONO essere grigie (bloccate dal piano)
   var LOCKS=[
     {id:'tileCasella',t:'Invia mail',s:'Mandare le mail dalla tua casella (serve la funzione mail del piano).'},
-    {id:'tileIa',t:'Rivelazione IA',s:'Generare la Foto B con l\'intelligenza artificiale (serve lo strumento foto).'},
+    {id:'tileIa',t:'Foto magic',s:'Creare la Foto B con Foto magic (serve lo strumento foto).'},
     {id:'tileReport',t:'Report',s:'Vedere chi apre e chi scrive (incluso in alcuni piani o attivabile a parte).'},
     {id:'modoBig',t:'Palco',s:'Inviare a centinaia di persone (serve un piano con Palco).'}
   ];

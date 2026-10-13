@@ -20,6 +20,10 @@
   .opt .t{font-weight:700;font-size:15px}
   .opt .s{font-size:12px;color:var(--faint)}
   .opt .pz{font-weight:800;color:var(--gold);white-space:nowrap}
+  .opt .pz.col{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+  .opt .pzm{font-weight:800;color:var(--gold);font-size:17px}
+  .opt .pzm .per{font-size:11px;color:var(--faint);font-weight:700}
+  .opt .pzy{font-size:11px;color:var(--faint);font-weight:600;margin-top:1px}
   .qrow{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line2);border-radius:14px;padding:11px 14px;margin-bottom:9px}
   .qrow .t{font-weight:700;font-size:14px}
   .qrow .s{font-size:12px;color:var(--faint)}
@@ -67,6 +71,7 @@
     <div id="piani"></div>
     <div class="collapse" id="confrontoToggle">▸ Vedi dettagli e confronto dei piani</div>
     <div id="confronto" class="hidden"></div>
+    <a class="collapse" href="guide/guida-acquisti.html" target="_blank" style="display:block">📄 Prezzi e guida agli acquisti</a>
 
     <h2>Extra (facoltativi)</h2>
     <div id="extra"></div>
@@ -131,7 +136,7 @@
   function ses(n){ return n+(n===1?' sessione':' sessioni'); }
   function dSess(p){ return (p.sessioni_giorno>0) ? (ses(p.sessioni_giorno)+' al giorno + '+nf(p.sessioni_mese)+' al mese') : (ses(p.sessioni_mese)+' al mese'); }
   function dMail(p){ return (p.mail_giorno>0) ? (nf(p.mail_mese)+' mail al mese ('+nf(p.mail_giorno)+' al giorno)') : (nf(p.mail_mese)+' mail al mese'); }
-  function dFoto(p){ return (p.foto_ia_mese>0) ? (nf(p.foto_ia_mese)+' foto con IA al mese') : 'niente foto con IA'; }
+  function dFoto(p){ return (p.foto_ia_mese>0) ? (nf(p.foto_ia_mese)+' Foto magic al mese') : 'niente Foto magic'; }
   function descr(p){ return dSess(p)+'<br>'+dMail(p)+'<br>'+dFoto(p)+(p.grandi_invii?'<br>invii grandi (Palco)':'')+(p.report?'<br>Report incluso':''); }
 
   function renderPiani(){
@@ -150,8 +155,15 @@
   }
   function rowPlan(val,titolo,sub,pz){
     var sel = (val===curPlan)?' sel':'';
-    var prezzo = pz>0 ? money(pz) : (val===''?'—':'incluso');
-    return '<div class="opt'+sel+'" data-p="'+val+'" style="align-items:flex-start"><span><span class="t">'+titolo+'</span><span class="d">'+sub+'</span></span><span class="pz">'+prezzo+'</span></div>';
+    var prezzo;
+    if(pz<=0){ prezzo='<span class="pzm">'+(val===''?'—':'incluso')+'</span>'; }
+    else if(dur==='anno'){
+      var pm=Math.round(pz/12*100)/100;   // es. 96/12 = 8 €/mese
+      prezzo='<span class="pzm">'+money(pm)+'<span class="per">/mese</span></span><span class="pzy">'+money(pz)+' all\'anno</span>';
+    } else {
+      prezzo='<span class="pzm">'+money(pz)+'<span class="per">/mese</span></span>';
+    }
+    return '<div class="opt'+sel+'" data-p="'+val+'" style="align-items:flex-start"><span><span class="t">'+titolo+'</span><span class="d">'+sub+'</span></span><span class="pz col">'+prezzo+'</span></div>';
   }
   function renderConfronto(){
     var box=document.getElementById('confronto');
@@ -164,7 +176,7 @@
     h+=rowT('Sessioni al mese', function(p){return nf(p.sessioni_mese);});
     h+=rowT('Mail al mese', function(p){return nf(p.mail_mese);});
     h+=rowT('Mail al giorno', function(p){return p.mail_giorno>0?nf(p.mail_giorno):'—';});
-    h+=rowT('Foto IA al mese', function(p){return nf(p.foto_ia_mese);});
+    h+=rowT('Foto magic al mese', function(p){return nf(p.foto_ia_mese);});
     h+=rowT('Assistente di scena', function(p){return p.assistente?'✓':'—';});
     h+=rowT('Report', function(p){return p.report?'✓':'—';});
     h+=rowT('Invii grandi (Palco)', function(p){return p.grandi_invii?'✓':'—';});

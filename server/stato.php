@@ -91,6 +91,7 @@ function predizione_stato_pubblico(array $s): array {
         'avvio_ts'       => ($sess && !empty($sess['avvio_ts'])) ? (int)$sess['avvio_ts'] : null,
         'forza'          => $s['forza'],
         'autorisponditore'   => !empty($s['autorisponditore']),
+        'blocca_foto_a'  => !empty($s['blocca_foto_a']),   // spunta "tieni la Foto A dopo Finisci"
         'invio_modo'     => predizione_invio_modo($s['invio_modo'] ?? null),
         'mail_oggetto'   => (string)($s['mail_oggetto'] ?? ''),
         'mail_testo'     => (string)($s['mail_testo'] ?? ''),
@@ -249,7 +250,7 @@ function predizione_admin(string $azione): void {
             $qta  = (int)(p('qta') ?? 0);
             $scad = 0; $sc = (string)(p('scad') ?? '');
             if ($sc !== '') { $ts = strtotime($sc); if ($ts) $scad = $ts; }
-            if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true) || $qta <= 0) {
+            if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true) || $qta <= 0) {
                 predizione_json(['ok' => false, 'errore' => 'Tipo o quantità crediti non validi'], 400);
             }
             predizione_aggiungi_crediti($utenti[$num], $tipo, $qta, $scad);
@@ -669,7 +670,15 @@ switch ($azione) {
         $stato['autorisponditore'] = false;
         // il link "Assistente di scena" scade con la fine della sessione
         $stato['assistente_token'] = null;
-        predizione_pulisci_foto_base($stato);   // la sezione IA riparte pulita al prossimo show
+        predizione_pulisci_foto_base($stato);   // la "Foto magic" riparte pulita al prossimo show
+        // "Imposta foto" si svuota dopo Finisci, A MENO CHE la spunta "blocca Foto A" sia accesa.
+        // La rivelazione (Foto B pronta) si svuota comunque: è sempre diversa a ogni show.
+        if (!empty($stato['rivelazione_pronta']) && is_file($stato['rivelazione_pronta'])) @unlink($stato['rivelazione_pronta']);
+        $stato['rivelazione_pronta'] = null;
+        if (empty($stato['blocca_foto_a'])) {
+            if (!empty($stato['foto_a']) && is_file($stato['foto_a'])) @unlink($stato['foto_a']);
+            $stato['foto_a'] = null;
+        }
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -719,6 +728,13 @@ switch ($azione) {
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
+    case 'blocca_foto':
+        // spunta "blocca la Foto A": se ON, dopo "Finisci" la Foto A resta (per il prossimo show).
+        $valore = strtoupper((string)p('valore'));
+        $stato['blocca_foto_a'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
     case 'rispondi_manuale':
         // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte
         // restano in attesa finche' non si preme "Rispondi mail". Solo il performer.
@@ -738,7 +754,7 @@ switch ($azione) {
         // storico dei consumi/accrediti (per "Mio account"): elenco {ts,tipo,delta,nota}
         $tipoF = strtolower((string)(p('tipo') ?? ''));
         $mv = is_array($stato['movimenti'] ?? null) ? $stato['movimenti'] : [];
-        if ($tipoF !== '' && in_array($tipoF, ['mail','foto_ia','sessioni'], true)) {
+        if ($tipoF !== '' && in_array($tipoF, ['mail','foto_ia','sessioni','assistente'], true)) {
             $mv = array_values(array_filter($mv, function ($r) use ($tipoF) { return ($r['tipo'] ?? '') === $tipoF; }));
         }
         // dal piu' recente al piu' vecchio, massimo 200 righe

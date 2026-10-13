@@ -92,6 +92,18 @@
   .collapse-h{display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin:20px 0 8px}
   .collapse-h h2{margin:0}
   .collapse-h .chev{color:var(--faint);font-size:13px}
+  /* fisarmonica della scheda utente */
+  .acc-h{display:flex;align-items:center;justify-content:space-between;width:100%;text-align:left;background:var(--surface);
+    border:1px solid var(--line-2);border-radius:12px;padding:13px 15px;margin-bottom:8px;color:var(--ink);font-family:inherit;
+    font-size:14px;font-weight:700;cursor:pointer}
+  .acc-h .chev{color:var(--faint);transition:transform .18s}
+  .acc-h.open{border-color:var(--gold);color:var(--gold)}
+  .acc-h.open .chev{transform:rotate(90deg);color:var(--gold)}
+  .acc-b{display:none;margin:-2px 0 10px}
+  .acc-b.open{display:block}
+  .crow{display:flex;gap:8px;align-items:center;margin-bottom:8px}
+  .crow .cl{flex:1;font-size:13px;color:var(--ink-dim)}
+  .crow input[type=date]{min-width:0;flex:0 1 auto}
   .legend{font-size:12px;color:var(--faint);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:10px}
   .legend b{color:var(--ink-dim)}
   .edline{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line)}
@@ -238,20 +250,23 @@
           <div class="meta" id="dStato">—</div>
         </div>
 
-        <h2>Anagrafica</h2>
-        <div class="card" id="dAnag"></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn" id="accAll">Apri tutte</button></div>
+        <div class="acc">
+          <button class="acc-h" data-acc="anag"><span>Anagrafica</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accAnag"><div class="card" id="dAnag"></div></div>
 
-        <h2>Piano e limiti</h2>
-        <div class="card" id="dPiano"></div>
+          <button class="acc-h" data-acc="piano"><span>Piano e limiti</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accPiano"><div class="card" id="dPiano"></div></div>
 
-        <h2>Cronologia acquisti</h2>
-        <div class="card" id="dAcq"><div class="small">—</div></div>
+          <button class="acc-h" data-acc="acq"><span>Cronologia acquisti</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accAcq"><div class="card" id="dAcq"><div class="small">—</div></div></div>
 
-        <h2>Sessioni (cronologia)</h2>
-        <div class="card" id="dSess"></div>
+          <button class="acc-h" data-acc="sess"><span>Sessioni (cronologia)</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accSess"><div class="card" id="dSess"></div></div>
 
-        <h2>Gestione crediti e piano</h2>
-        <div class="card" id="dManage"></div>
+          <button class="acc-h" data-acc="manage"><span>Gestione crediti e piano</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accManage"><div class="card" id="dManage"></div></div>
+        </div>
       </section>
     </div>
   </div>
@@ -274,6 +289,11 @@
   function fasePill(f){ if(f==='avviato')return '<span class="pill on">In corso</span>'; if(f==='cambiato')return '<span class="pill rev">Rivelato</span>'; if(f==='terminato')return '<span class="pill">Terminato</span>'; return '<span class="pill">Spento</span>'; }
   function fdata(ts){ if(!ts)return '—'; try{var d=new Date(ts*1000);return d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return '—';} }
   function fgiorno(ts){ if(!ts)return '—'; try{return new Date(ts*1000).toLocaleDateString('it-IT');}catch(e){return '—';} }
+  function assLbl(n){ n=+n||0; return n<0?'illimitato':(n===0?'non incluso':(n+' / mese')); }
+  function creditRow(t,label){ return '<div class="crow"><span class="cl">'+label+'</span>'+
+    '<input id="cq_'+t+'" type="number" min="1" placeholder="q.tà" style="width:66px">'+
+    '<input id="cs_'+t+'" type="date" title="scadenza (facoltativa)">'+
+    '<button class="btn" data-ct="'+t+'">Aggiungi</button></div>'; }
 
   function call(azione, params){
     var b=new URLSearchParams(); b.set('azione',azione); b.set('utente',AU); b.set('password',AP);
@@ -439,7 +459,7 @@
       ['prezzo_anno','Prezzo annuale €'],['prezzo_mese','Prezzo mensile €'],
       ['sessioni_giorno','Sessioni al giorno (0 = senza limite)'],['sessioni_mese','Sessioni al mese'],
       ['mail_mese','Mail al mese'],['mail_giorno','Mail al giorno (0 = senza limite)'],
-      ['foto_ia_mese','Foto IA al mese']
+      ['foto_ia_mese','Foto magic al mese']
     ];
     var box=$('edPiani'); box.innerHTML='';
     l.piani.forEach(function(p,idx){
@@ -447,7 +467,7 @@
       var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
       var righe=CAMPI.map(function(c){ return '<div class="edline"><label>'+c[1]+'</label>'+numField('ep_'+idx+'_'+c[0], p[c[0]])+'</div>'; }).join('');
       var ill=(p.assistente===-1);
-      var flags='<div class="edline"><label>Assistente di scena (0 = non disponibile)</label>'+
+      var flags='<div class="edline"><label>Assistente di scena — al mese (0 = non disponibile)</label>'+
                   '<span style="display:flex;gap:8px;align-items:center">'+
                     '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+(ill?' disabled':'')+'>'+
                     '<label class="chk" style="white-space:nowrap"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+' onchange="this.closest(\'.edline\').querySelector(\'input[type=number]\').disabled=this.checked"> illimitato</label>'+
@@ -513,7 +533,7 @@
           '<div class="kv"><span>Prezzo</span><b>'+(d.prezzo_anno||0)+' €/anno · '+(d.prezzo_mese||0)+' €/mese</b></div>'+
           '<div class="kv"><span>Sessioni</span><b>'+(d.sessioni_giorno?d.sessioni_giorno+'/giorno + ':'')+(d.sessioni_mese||0)+'/mese</b></div>'+
           '<div class="kv"><span>Mail</span><b>'+(d.mail_mese||0)+'/mese'+(d.mail_giorno?(' ('+d.mail_giorno+'/giorno)'):'')+'</b></div>'+
-          '<div class="kv"><span>Foto IA</span><b>'+(d.foto_ia_mese||0)+'/mese</b></div>'+
+          '<div class="kv"><span>Foto magic</span><b>'+(d.foto_ia_mese||0)+'/mese</b></div>'+
           '<div class="kv"><span>Funzioni</span><b>'+(d.assistente?('Assistente '+(d.assistente===-1?'illimitato':d.assistente)+' '):'')+(d.report?'Report ':'')+(d.grandi_invii?'Palco':'')+'</b></div></div>';
       }).join('');
     });
@@ -523,11 +543,37 @@
   function openUser(num){
     call('admin_scheda',{numero:num}).then(function(r){
       if(!(r.data&&r.data.ok)){ toast((r.data&&r.data.errore)||'Errore','err'); return; }
-      CUR=r.data.scheda; renderDetail(CUR); showView('detail');
+      CUR=r.data.scheda; renderDetail(CUR); showView('detail'); accCloseAll();
       call('admin_acquisti',{numero:num}).then(function(a){ renderAcquisti((a.data&&a.data.acquisti)||[]); });
     });
   }
   $('dBack').addEventListener('click', function(){ showView('utenti'); });
+
+  /* ---------- fisarmonica scheda utente (default tutte chiuse) ---------- */
+  var ACCMAP={anag:'accAnag',piano:'accPiano',acq:'accAcq',sess:'accSess',manage:'accManage'};
+  function accCloseAll(){
+    for(var k in ACCMAP){ var b=$(ACCMAP[k]); if(b) b.classList.remove('open'); }
+    document.querySelectorAll('.acc-h').forEach(function(h){ h.classList.remove('open'); });
+    var a=$('accAll'); if(a) a.textContent='Apri tutte';
+  }
+  function accOpen(key, only){
+    if(only){ accCloseAll(); }
+    var b=$(ACCMAP[key]); if(b) b.classList.add('open');
+    var h=document.querySelector('.acc-h[data-acc="'+key+'"]'); if(h) h.classList.add('open');
+  }
+  document.querySelectorAll('.acc-h').forEach(function(h){
+    h.addEventListener('click', function(){
+      var key=h.getAttribute('data-acc'), isOpen=h.classList.contains('open');
+      if(isOpen){ // richiudi quella aperta
+        var b=$(ACCMAP[key]); if(b) b.classList.remove('open'); h.classList.remove('open');
+      } else { accOpen(key, true); }   // apri questa e chiudi le altre
+    });
+  });
+  if($('accAll')) $('accAll').addEventListener('click', function(){
+    var tuttiAperti = Object.keys(ACCMAP).every(function(k){ var b=$(ACCMAP[k]); return b && b.classList.contains('open'); });
+    if(tuttiAperti){ accCloseAll(); }
+    else { for(var k in ACCMAP){ accOpen(k, false); } this.textContent='Chiudi tutte'; }
+  });
 
   function renderAcquisti(acq){
     if(!acq.length){ $('dAcq').innerHTML='<div class="small">Nessun acquisto registrato.</div>'; return; }
@@ -569,13 +615,15 @@
       '<div class="sep"></div>'+
       '<div class="plinfo">Compreso nel piano (al mese)</div>'+
       '<div class="kv"><span>Mail</span><b>'+(lim.mail_mese||0)+' / mese'+((lim.mail_giorno)?(' · max '+lim.mail_giorno+'/giorno'):'')+'</b></div>'+
-      '<div class="kv"><span>Foto IA</span><b>'+(lim.foto_ia_mese||0)+' / mese</b></div>'+
-      '<div class="kv"><span>Sessioni</span><b>'+(lim.sessioni_mese||0)+' / mese</b></div>'+
+      '<div class="kv"><span>Foto magic</span><b>'+(lim.foto_ia_mese||0)+' / mese</b></div>'+
+      '<div class="kv"><span>Sessioni</span><b>'+(lim.sessioni_mese||0)+' / mese'+((lim.sessioni_giorno)?(' · max '+lim.sessioni_giorno+'/giorno'):'')+'</b></div>'+
+      '<div class="kv"><span>Assistente di scena</span><b>'+assLbl(lim.assistente_num)+'</b></div>'+
       '<div class="sep"></div>'+
       '<div class="plinfo">Crediti extra ancora disponibili</div>'+
       '<div class="kv"><span>Crediti mail</span><b>'+(cr.mail||0)+'</b></div>'+
-      '<div class="kv"><span>Crediti foto IA</span><b>'+(cr.foto_ia||0)+'</b></div>'+
-      '<div class="kv"><span>Crediti sessioni</span><b>'+(cr.sessioni||0)+'</b></div>';
+      '<div class="kv"><span>Crediti foto magic</span><b>'+(cr.foto_ia||0)+'</b></div>'+
+      '<div class="kv"><span>Crediti sessioni</span><b>'+(cr.sessioni||0)+'</b></div>'+
+      '<div class="kv"><span>Crediti assistenti</span><b>'+(cr.assistente||0)+'</b></div>';
     // SESSIONI
     if(!s.sessioni||!s.sessioni.length){ $('dSess').innerHTML='<div class="small">Nessuna sessione registrata.</div>'; }
     else{
@@ -592,7 +640,7 @@
     var num=s.numero;
     $('dManage').innerHTML=
       '<div class="row"><label class="chk"><input type="checkbox" id="mFlagMail" '+(s.flags.mail?'checked':'')+'> mail</label>'+
-        '<label class="chk"><input type="checkbox" id="mFlagFoto" '+(s.flags.foto?'checked':'')+'> foto IA</label>'+
+        '<label class="chk"><input type="checkbox" id="mFlagFoto" '+(s.flags.foto?'checked':'')+'> Foto magic</label>'+
         '<label class="chk"><input type="checkbox" id="mReport" '+(s.report?'checked':'')+'> report</label>'+
         '<button class="btn" id="mSalvaFlags">Salva funzioni</button></div>'+
       '<div class="btns"><button class="btn" id="mAttiva">'+(s.attivo?'Sospendi':'Riattiva')+'</button>'+
@@ -603,10 +651,11 @@
         '<span class="small" style="margin:0">per</span><input id="mQ" type="number" min="1" value="1" style="width:56px">'+
         '<select id="mDur"><option value="anno">anni</option><option value="mese">mesi</option></select>'+
         '<button class="btn gold" id="mUpgrade">Applica</button></div>'+
-      '<div class="plinfo" style="margin-top:12px">Aggiungi crediti extra</div>'+
-      '<div class="row"><select id="mTipo"><option value="mail">Crediti mail</option><option value="foto_ia">Crediti foto IA</option><option value="sessioni">Crediti sessioni</option></select>'+
-        '<input id="mQta" type="number" min="1" placeholder="quantità" style="width:92px"><span class="small" style="margin:0">scad.</span><input id="mScad" type="date">'+
-        '<button class="btn" id="mCrediti">Aggiungi</button></div>';
+      '<div class="plinfo" style="margin-top:12px">Aggiungi crediti extra (una riga per tipo)</div>'+
+      creditRow('mail','Crediti mail')+
+      creditRow('foto_ia','Crediti Foto magic')+
+      creditRow('sessioni','Crediti sessioni')+
+      creditRow('assistente','Crediti assistenti');
     // riempi tendina piani dal listino (o dai 4 nomi)
     var nomi=(LIS&&LIS.piani)?LIS.piani.map(function(p){return p.nome;}):['Foyer','Quinte','Sipario','Palco'];
     $('mPiano').innerHTML=nomi.map(function(n){return '<option'+(n===(s.piano||'Foyer')?' selected':'')+'>'+esc(n)+'</option>';}).join('');
@@ -622,7 +671,11 @@
     $('mAttiva').onclick=function(){ call('admin_attiva',{numero:num,valore:(s.attivo?'0':'1')}).then(function(r){done(r,'Stato aggiornato');}); };
     $('mDel').onclick=function(){ if(!confirm('Eliminare l\'utente '+num+'? I dati restano sul server ma l\'accesso viene rimosso.'))return; call('admin_elimina',{numero:num}).then(function(r){ if(r.data&&r.data.ok){toast('Eliminato','ok');showView('utenti');carica();}else toast('Errore','err'); }); };
     $('mUpgrade').onclick=function(){ call('admin_piano',{numero:num,piano:$('mPiano').value,durata:$('mDur').value,quante:$('mQ').value||'1'}).then(function(r){done(r,'Upgrade applicato');}); };
-    $('mCrediti').onclick=function(){ var q=$('mQta').value; if(!q||parseInt(q,10)<=0){toast('Scrivi la quantità','err');return;} call('admin_crediti',{numero:num,tipo:$('mTipo').value,qta:q,scad:$('mScad').value}).then(function(r){done(r,'Crediti aggiunti');}); };
+    document.querySelectorAll('#dManage [data-ct]').forEach(function(b){
+      b.onclick=function(){ var t=b.getAttribute('data-ct'), q=$('cq_'+t).value;
+        if(!q||parseInt(q,10)<=0){toast('Scrivi la quantità','err');return;}
+        call('admin_crediti',{numero:num,tipo:t,qta:q,scad:$('cs_'+t).value}).then(function(r){done(r,'Crediti aggiunti');}); };
+    });
     $('mSalvaMail').onclick=function(){ var e=$('mEmail').value.trim(),ap=$('mApp').value.trim(),fr=$('mFrom').value.trim(); if(!e||!ap){toast('Email e password per app','err');return;} call('admin_mail',{numero:num,email:e,app_password:ap,from:fr}).then(function(r){done(r,'Casella salvata');}); };
   }
 
