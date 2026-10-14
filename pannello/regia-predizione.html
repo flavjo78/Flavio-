@@ -46,7 +46,7 @@
   }
 
   *{box-sizing:border-box}
-  html,body{margin:0}
+  html,body{margin:0;overflow-x:hidden}
   body{
     background:var(--bg-deep);
     color:var(--ink);
@@ -148,9 +148,11 @@
   .login-card .field{text-align:left;margin-top:14px}
 
   /* ---- Settings overlay ---- */
-  .settings{position:absolute;inset:0;z-index:5;background:var(--bg);overflow-y:auto;padding:0 20px 40px;
-    transform:translateY(100%);transition:transform .32s cubic-bezier(.4,0,.2,1);visibility:hidden}
-  .settings.open{transform:translateY(0);visibility:visible}
+  /* overlay fisso (non 'absolute'): evita che resti spazio vuoto sotto e che lo scroll si inchiodi */
+  .settings{position:fixed;top:0;bottom:0;left:50%;width:100%;max-width:440px;z-index:40;background:var(--bg);
+    overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 20px 40px;
+    transform:translate(-50%,100%);transition:transform .32s cubic-bezier(.4,0,.2,1);visibility:hidden}
+  .settings.open{transform:translate(-50%,0);visibility:visible}
   .set-top{display:flex;align-items:center;gap:14px;padding:26px 0 6px;position:sticky;top:0;background:linear-gradient(180deg,var(--bg) 70%,transparent);z-index:2}
   .back{width:42px;height:42px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink)}
   .back:active{transform:scale(.94)}
@@ -210,7 +212,7 @@
   .switch input:focus-visible ~ .track{outline:2px solid var(--gold);outline-offset:2px}
 
   .phaseline{text-align:center;color:var(--ink-dim);font-size:13px;margin-top:2px}
-  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:9;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88%;text-align:center}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:110;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88%;text-align:center}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}
   .toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
@@ -610,13 +612,20 @@
       <div class="sec-title" style="font-size:11px;margin:16px 0 6px" id="accCasellaHead">La tua casella (per inviare)</div>
       <div id="accCasellaBox">
         <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
-        <div class="field"><label for="mailApp">Password per app</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
+        <div class="field"><label for="mailApp">Password per le app di Gmail (16 lettere)</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
         <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
         <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
         <button class="btn" id="provaMail" type="button" style="width:100%;margin-top:8px">Prova casella (manda una mail a te stesso)</button>
         <p class="hint" id="provaMsg"></p>
-        <p class="hint">Collega la <b>tua</b> Gmail: le mail partiranno dal tuo indirizzo. Serve la <b>verifica in due passaggi</b> e una <b>password per app</b> creata su Google (così non dai la password vera).</p>
+        <p class="hint"><b>Attenzione:</b> questa è la <b>password per le app di Gmail</b> (16 lettere create su Google) — <b>NON</b> è la password con cui entri nel pannello. Serve la <b>verifica in due passaggi</b> su Google (così non dai la password vera).</p>
       </div>
+
+      <!-- Cambia la password DI ACCESSO al pannello (diversa dalla password per le app di Gmail) -->
+      <div class="sec-title" style="font-size:11px;margin:18px 0 6px">Password di accesso al pannello</div>
+      <div class="field"><label for="pwNew">Nuova password</label><input type="password" id="pwNew" placeholder="almeno 10 caratteri, 1 maiuscola, 1 simbolo" autocomplete="new-password"></div>
+      <div class="field"><label for="pwNew2">Ripeti la nuova password</label><input type="password" id="pwNew2" autocomplete="new-password"></div>
+      <button class="btn" id="savePw" type="button" style="width:100%;margin-top:6px">Cambia password di accesso</button>
+      <p class="hint">È la password con cui <b>entri nel pannello</b> (quella della mail di benvenuto). <b>Non</b> è la password per le app di Gmail qui sopra.</p>
     </section>
 
     <!-- ===== I MIEI LIMITI (barre a semaforo) ===== -->
@@ -847,6 +856,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <button class="btn spiega" id="ahelpSpiega" type="button">▶ Spiega come si gioca (passo-passo)</button>
       <button class="btn" id="ahelpAvanzata" type="button">★ Guida avanzata (le altre funzioni)</button>
       <button class="btn ghost" id="ahelpTasti" type="button">Spiega i singoli tasti</button>
+      <button class="btn" id="ahelpTest" type="button" style="width:100%;margin-bottom:10px;border-color:var(--good);color:var(--good)">🔍 Prova che tutto funzioni</button>
       <div class="ahelp-note">👁 <b>L'occhio</b> ti fa vedere la <b>Foto A</b> e la <b>Rivelazione</b> come le vedono gli spettatori, <b>senza inviare</b> nulla: un controllo al volo.</div>
       <div class="ahelp-note">Per <b>avviare</b> basta la <b>Foto A</b>: la <b class="em">Rivelazione (Foto B)</b> puoi caricarla <b>anche dopo l'Avvia</b>, fino a quando premi <b>Cambia</b> (e se premi "Cambia" senza averla, te la fa caricare lì).</div>
       <div class="ahelp-note">Le <b>foto</b> le puoi cambiare quando vuoi: le trovi sempre in <b class="em">Impostazioni → Imposta foto</b> (la <b>prima casella</b> del menù).</div>
@@ -864,6 +874,32 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   <div class="ti" id="coTi"></div>
   <div class="tx" id="coTx"></div>
   <div class="row"><button id="coSkip" type="button">Esci</button><button class="go" id="coNext" type="button">Avanti →</button></div>
+</div>
+
+<!-- Dopo la prima guida automatica: proponi la guida avanzata / la prova -->
+<div class="hist" id="coBridge" role="dialog" aria-label="Continua">
+  <div class="hist-card">
+    <div class="hist-head"><b>Vuoi continuare?</b><button id="coBridgeClose" type="button" aria-label="Chiudi">&times;</button></div>
+    <div style="padding:14px 18px 22px">
+      <p class="hint" style="margin:0 0 12px">Hai visto le basi. Vuoi vedere anche le <b>altre funzioni</b> o <b>provare che tutto funzioni</b>?</p>
+      <button class="btn" id="coBridgeAdv" type="button" style="width:100%;background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent">★ Vedi la Guida avanzata</button>
+      <button class="btn" id="coBridgeTest" type="button" style="width:100%;margin-top:10px;border-color:var(--good);color:var(--good)">🔍 Prova che tutto funzioni</button>
+      <button class="btn ghost" id="coBridgeNo" type="button" style="width:100%;margin-top:10px">Più tardi</button>
+      <p class="hint" style="margin-top:10px">Le ritrovi sempre nel tasto <b>?</b> (Aiuto).</p>
+    </div>
+  </div>
+</div>
+
+<!-- Prova che tutto funzioni (diagnostica · non consuma le mail del pacchetto) -->
+<div class="hist" id="coTest" role="dialog" aria-label="Prova che tutto funzioni">
+  <div class="hist-card">
+    <div class="hist-head"><b>Prova che tutto funzioni</b><button id="coTestClose" type="button" aria-label="Chiudi">&times;</button></div>
+    <div style="padding:14px 18px 22px">
+      <div id="coTestList"></div>
+      <button class="btn" id="coTestRun" type="button" style="width:100%;margin-top:10px;background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent">▶ Avvia la prova</button>
+      <p class="hint" style="margin-top:10px">Questa prova <b>non consuma</b> le mail del tuo pacchetto: controlla la casella, l'invio e l'autorisponditore, e ti dice cosa non va.</p>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1617,6 +1653,21 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
     comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
   });
+  // ---- Cambia la PASSWORD DI ACCESSO al pannello ----
+  var spwBtn=$('savePw');
+  if(spwBtn) spwBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var a=($('pwNew').value||''), b=($('pwNew2').value||'');
+    if(a!==b){ toast('Le due password non sono uguali','err'); return; }
+    if(a.length<10 || !/[A-Z]/.test(a) || !/[^A-Za-z0-9]/.test(a)){ toast('Almeno 10 caratteri, 1 maiuscola e 1 simbolo','err'); return; }
+    apiAzione('cambia_password',{nuova:a}).then(function(r){
+      if(r.data && r.data.ok){
+        PW=a; try{ localStorage.setItem('pred_pw',a); }catch(e){}
+        if($('pwNew'))$('pwNew').value=''; if($('pwNew2'))$('pwNew2').value='';
+        toast('Password di accesso cambiata ✓','ok');
+      } else { toast((r.data&&r.data.errore)||'Non cambiata','err'); }
+    }).catch(function(){ toast('Server non raggiungibile','err'); });
+  });
   // ---- "Prova casella": manda una mail di test a te stesso e mostra l'errore esatto ----
   var pmBtn=$('provaMail');
   if(pmBtn) pmBtn.addEventListener('click', function(){
@@ -2004,21 +2055,52 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     {sel:'#eyeBtn', n:9, t:'L\'occhio', x:'Ti fa vedere la <b>Foto A</b> e la <b>B</b> come le vedono gli spettatori, <b>senza inviare</b> nulla.'},
     {sel:'#helpRound', n:10, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui in basso, <b>tra "Cambia" e "Finisci"</b>. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
   ];
-  // ---- GUIDA AVANZATA: le altre funzioni (apre le Impostazioni e illumina ogni casella) ----
+  // ---- GUIDA AVANZATA: apre OGNI casella delle Impostazioni e spiega TUTTI i suoi tasti ----
+  function coSub(n){ return function(){ openSettingsTo(n); }; }
   var coAdv=[
-    {prep:function(){ coOpenMenu(); }, wait:440, sel:'#setMenu [data-go="invio"]', n:1, t:'Autorisponditore', x:'Qui <b>accendi o spegni</b> la risposta automatica e scegli <b>come inviare</b>: <b>Casella</b> (eventi piccoli, dalla tua posta) o <b>Palco</b> (eventi grandi).'},
-    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="ia"]', n:2, t:'Foto magic', x:'Crei la <b>Foto B</b> con l\'IA: ti <b>fotografi col foglio bianco</b> in mano e l\'IA <b>scrive la tua frase</b> sul foglio. (Se è grigia, non è nel tuo piano.)'},
-    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="casella"]', n:3, t:'Invia mail', x:'Mandi la foto a <b>pochi indirizzi</b> scritti a mano, dalla tua casella: comodo per <b>prove</b> o piccoli gruppi. (Se è grigia, non è nel tuo piano.)'},
-    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="report"]', n:4, t:'Report', x:'Vedi <b>chi apre</b> la mail e <b>chi ti scrive</b> durante lo show. Lo puoi <b>stampare</b> o salvare in PDF.'},
-    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="limiti"]', n:5, t:'Limiti', x:'Quanto hai <b>usato</b> e quanto ti <b>resta</b>: mail, foto, sessioni. Le barre diventano <b>gialle/rosse</b> quando sei vicino al limite.'},
-    {prep:function(){ openSettingsTo('limiti'); }, wait:470, sel:'#buyBtn', n:6, t:'Acquista / Cambia piano', x:'Dentro i <b>Limiti</b>, questo tasto apre la pagina per <b>comprare crediti</b> o <b>cambiare piano</b>.'},
-    {prep:function(){ coOpenMenu(); }, wait:420, sel:'#setMenu [data-go="assist"]', n:7, t:'Assistente di scena', x:'Crei un <b>link</b> per chi ti aiuta: può <b>preparare la rivelazione</b> e <b>comandare il gioco</b>, ma <b>non</b> vede password, casella o report.'},
-    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="account"]', n:8, t:'Il mio account', x:'I tuoi <b>dati</b>, il <b>piano</b>, la <b>casella</b> per inviare (email + password per app) e i <b>crediti</b>.'},
-    {prep:function(){ coCloseSet(); }, wait:380, sel:'#helpRound', n:9, t:'Hai finito!', x:'Queste sono le funzioni avanzate: le ritrovi tutte nelle <b>Impostazioni</b> (ingranaggio). Riapri le guide quando vuoi da questo <b>?</b>.'}
+    // Autorisponditore (modo di invio)
+    {prep:coSub('invio'), wait:440, sel:'#modoCasella', n:1, t:'Autorisponditore · "Casella"', x:'Invio <b>dalla tua posta</b> (la tua Gmail): per <b>eventi piccoli</b> (una ventina di mail).'},
+    {prep:coSub('invio'), wait:220, sel:'#modoBig', n:2, t:'Autorisponditore · "Palco"', x:'Canale <b>dedicato</b> per <b>eventi grandi</b> (centinaia di mail). Serve un piano con Palco.'},
+    {prep:coSub('invio'), wait:220, sel:'#rispManuale', n:3, t:'Interruttore "Rispondi mail"', x:'Se <b>acceso</b>, dopo "Avvia" le risposte <b>aspettano</b>: partono quando premi tu il tasto "Rispondi mail" in Regia.'},
+    // Imposta foto
+    {prep:coSub('foto'), wait:360, sel:'#slotA', n:4, t:'Foto · "Foto A"', x:'La foto di <b>attesa</b>. Il tasto <b>Carica</b> la mette, la <b>✕</b> la toglie.'},
+    {prep:coSub('foto'), wait:220, sel:'#slotB', n:5, t:'Foto · "Rivelazione"', x:'La <b>Foto B</b>, da caricare prima di ogni "Avvia". Stessi tasti <b>Carica</b> / <b>✕</b>.'},
+    {prep:coSub('foto'), wait:220, sel:'#bloccaA', n:6, t:'Foto · "Blocca la Foto A"', x:'Se <b>acceso</b>, dopo "Finisci" la Foto A <b>resta</b> per il prossimo show (altrimenti si svuota).'},
+    {prep:coSub('foto'), wait:220, sel:'#swH', n:7, t:'Foto · "Orario di sicurezza"', x:'Rete di sicurezza: se a quest\'ora <b>non</b> hai premuto "Finisci", lo scambio A→B scatta <b>da solo</b>. Lascia vuoto per fare tutto a mano.'},
+    // Testo mail
+    {prep:coSub('testomail'), wait:360, sel:'#body', n:8, t:'Testo mail · il messaggio', x:'Il <b>testo</b> (e l\'<b>oggetto</b> sopra) che arriva insieme alla foto. È facoltativo.'},
+    {prep:coSub('testomail'), wait:220, sel:'#saveMsg', n:9, t:'Testo mail · "Salva il testo"', x:'<b>Salva</b> oggetto e testo (è l\'unico testo da confermare a mano).'},
+    {prep:coSub('testomail'), wait:220, sel:'#capture', n:10, t:'Testo mail · "Attiva cattura"', x:'Se <b>acceso</b>, registra <b>chi apre</b> la mail e <b>quando</b>: così il <b>Report</b> è completo.'},
+    // Foto magic
+    {prep:coSub('ia'), wait:360, sel:'#slotBase', n:11, t:'Foto magic · "Foto base"', x:'La foto di <b>te col foglio bianco</b> in mano: l\'IA ci scriverà sopra la frase.'},
+    {prep:coSub('ia'), wait:220, sel:'#predText', n:12, t:'Foto magic · la frase', x:'Scrivi <b>cosa deve comparire</b> sul foglio (es. "Asso di cuori").'},
+    {prep:coSub('ia'), wait:220, sel:'#genBtn', n:13, t:'Foto magic · "Crea"', x:'L\'IA <b>scrive la frase</b> sul foglio (~30s) e la prepara come <b>Rivelazione (Foto B)</b>.'},
+    // Invia mail (a mano)
+    {prep:coSub('casella'), wait:360, sel:'#inviaList', n:14, t:'Invia mail · indirizzi', x:'Gli <b>indirizzi</b> a cui mandare la foto a mano (uno per riga). Utile per <b>prove</b> o piccoli gruppi.'},
+    {prep:coSub('casella'), wait:220, sel:'#inviaBtn', n:15, t:'Invia mail · "Invia"', x:'Manda la foto a quegli indirizzi <b>dalla tua casella</b>. Se il gioco è spento, parte da solo.'},
+    // Report
+    {prep:coSub('report'), wait:360, sel:'#reportBtn', n:16, t:'Report · "Apri il report"', x:'Chi ti ha <b>scritto</b> e <b>tutti</b> gli orari di apertura della sessione. Si stampa o si salva in PDF.'},
+    {prep:coSub('report'), wait:220, sel:'#reportHistBtn', n:17, t:'Report · "Cronologia"', x:'L\'elenco dei report delle <b>sessioni passate</b>.'},
+    {prep:coSub('report'), wait:220, sel:'#wipeBtn', n:18, t:'Report · "Cancella i dati"', x:'Cancella indirizzi e messaggi salvati, per <b>rispetto della privacy</b> degli spettatori.'},
+    // Assistente
+    {prep:coSub('assist'), wait:360, sel:'#assistCrea', n:19, t:'Assistente · "Crea link"', x:'Un <b>link</b> per chi ti aiuta: può <b>preparare la rivelazione</b> e <b>comandare il gioco</b>, ma <b>non</b> vede password, casella o report.'},
+    // Limiti
+    {prep:coSub('limiti'), wait:360, sel:'#limMailBar', n:20, t:'Limiti · le barre', x:'Quanto hai <b>usato</b> e quanto ti <b>resta</b> (mail, foto, sessioni), del <b>mese</b> e di <b>oggi</b>. Tocca una barra per lo <b>storico</b>.'},
+    {prep:coSub('limiti'), wait:220, sel:'#buyBtn', n:21, t:'Limiti · "Acquista / Cambia piano"', x:'Apre la pagina per <b>comprare crediti</b> o <b>cambiare piano</b>.'},
+    // Il mio account
+    {prep:coSub('account'), wait:360, sel:'#saveMail', n:22, t:'Account · "Salva casella"', x:'La <b>tua casella</b>: email + <b>password per le app di Gmail</b> (16 lettere). Poi <b>Salva casella</b>.'},
+    {prep:coSub('account'), wait:220, sel:'#provaMail', n:23, t:'Account · "Prova casella"', x:'Manda una <b>mail di test a te stesso</b> per vedere se la casella funziona. <b>Non</b> consuma le mail del pacchetto.'},
+    {prep:coSub('account'), wait:220, sel:'#savePw', n:24, t:'Account · "Cambia password"', x:'Cambia la password con cui <b>entri nel pannello</b> (diversa dalla password per le app di Gmail).'},
+    {prep:function(){ coCloseSet(); }, wait:380, sel:'#helpRound', n:25, t:'Hai visto tutto!', x:'Queste sono le funzioni avanzate: le ritrovi tutte nelle <b>Impostazioni</b>. Riapri le guide quando vuoi da questo <b>?</b>.'}
   ];
-  var ci=0, coSteps=coPassi, coBase=true;
-  function coStart(steps, isBase){ ahClose(); coSteps=steps||coPassi; coBase=(isBase!==false); ci=0; $('coBack').classList.add('on'); $('coTip').style.display='block'; coShow(); }
-  function coEnd(){ clearTimeout(coTimer); coCloseSet(); $('coBack').classList.remove('on'); $('coTip').style.display='none'; $('coSpot').style.display='none'; if(coBase){ try{ localStorage.setItem('pred_howto_'+getUser(),'1'); }catch(e){} } }
+  var ci=0, coSteps=coPassi, coBase=true, coAuto=false;
+  function coStart(steps, isBase, isAuto){ ahClose(); coSteps=steps||coPassi; coBase=(isBase!==false); coAuto=!!isAuto; ci=0; $('coBack').classList.add('on'); $('coTip').style.display='block'; coShow(); }
+  function coEnd(){ clearTimeout(coTimer); coCloseSet(); $('coBack').classList.remove('on'); $('coTip').style.display='none'; $('coSpot').style.display='none';
+    if(coBase){ try{ localStorage.setItem('pred_howto_'+getUser(),'1'); }catch(e){} }
+    var wasAuto=coAuto; coAuto=false;
+    // dopo la PRIMA guida automatica: proponi la guida avanzata / la prova
+    if(coBase && wasAuto && $('coBridge')){ setTimeout(function(){ $('coBridge').classList.add('open'); }, 250); }
+  }
   var coTimer=null;
   function coShow(){
     clearTimeout(coTimer);
@@ -2062,8 +2144,50 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     // (per i nuovi utenti prima parte l'altra guida, poi questa a configurazione fatta)
     if(!cur || cur.mail_impostata===false) return;
     if($('guida') && $('guida').classList.contains('open')) return;
-    coStart(coPassi, true);
+    coStart(coPassi, true, true);   // true,true = guida base in automatico (poi propone l'avanzata/la prova)
   };
+
+  // --- ponte dopo la guida base automatica + PROVA che tutto funzioni ---
+  function coBridgeClose(){ var m=$('coBridge'); if(m) m.classList.remove('open'); }
+  if($('coBridgeClose')) $('coBridgeClose').addEventListener('click', coBridgeClose);
+  if($('coBridgeNo')) $('coBridgeNo').addEventListener('click', coBridgeClose);
+  if($('coBridge')) $('coBridge').addEventListener('click', function(e){ if(e.target===this) coBridgeClose(); });
+  if($('coBridgeAdv')) $('coBridgeAdv').addEventListener('click', function(){ coBridgeClose(); coStart(coAdv, false); });
+  if($('coBridgeTest')) $('coBridgeTest').addEventListener('click', function(){ coBridgeClose(); coTestOpen(); });
+
+  function coTestOpen(){ ahClose(); if($('coBridge')) $('coBridge').classList.remove('open'); var m=$('coTest'); if(m){ m.classList.add('open'); coTestReset(); } }
+  function coTestClose(){ var m=$('coTest'); if(m) m.classList.remove('open'); }
+  if($('coTestClose')) $('coTestClose').addEventListener('click', coTestClose);
+  if($('coTest')) $('coTest').addEventListener('click', function(e){ if(e.target===this) coTestClose(); });
+  if($('ahelpTest')) $('ahelpTest').addEventListener('click', function(){ coTestOpen(); });
+  if($('coTestRun')) $('coTestRun').addEventListener('click', coTestRun);
+  function coTestReset(){ var l=$('coTestList'); if(l) l.innerHTML='<p class="hint" style="margin:0">Premi <b>Avvia la prova</b>: controllo la casella, l\'invio e l\'autorisponditore. Non consuma le mail del pacchetto.</p>'; }
+  function tRow(label,state,detail){
+    var col={ok:'var(--good)',err:'var(--stop)',wait:'var(--ink-dim)',na:'var(--ink-faint)'}[state]||'var(--ink-dim)';
+    var ic={ok:'✓',err:'✗',wait:'…',na:'—'}[state]||'•';
+    return '<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)"><b style="color:'+col+';min-width:18px;font-size:16px">'+ic+'</b><div style="min-width:0"><div style="font-weight:700;font-size:14px">'+label+'</div>'+(detail?('<div style="font-size:12.5px;color:var(--ink-dim);line-height:1.4;margin-top:2px">'+detail+'</div>'):'')+'</div></div>';
+  }
+  function coTestVerdetto(allOk){
+    if(allOk) return '<div style="background:var(--good-soft);border:1px solid var(--good);border-radius:12px;padding:12px 14px;margin-top:12px;font-size:14px;color:var(--ink)"><b style="color:var(--good)">✅ Tutto pronto!</b> Avvia il gioco e prova scrivendo da un\'altra mail alla tua casella: dovresti ricevere la risposta con la foto entro 1-2 minuti.</div>';
+    return '<div style="background:var(--stop-soft);border:1px solid var(--stop);border-radius:12px;padding:12px 14px;margin-top:12px;font-size:13.5px;color:var(--ink);line-height:1.5">Sistema le voci con la <b style="color:var(--stop)">✗</b>. Se poi la risposta automatica ancora non arriva, di solito è: la <b>password per le app</b> di Gmail sbagliata/scaduta, <b>IMAP spento</b> in Gmail, l\'<b>Autorisponditore spento</b>, oppure il <b>gioco non avviato</b>.</div>';
+  }
+  function coTestRun(){
+    var l=$('coTestList'); if(!l) return;
+    var st=cur||{};
+    var caOk=!!st.mail_impostata, arOk=!!st.autorisponditore;
+    var rows=[];
+    rows.push(tRow('Casella del gioco impostata', caOk?'ok':'err', caOk?((st.mail_cfg&&st.mail_cfg.user)?st.mail_cfg.user:''):'Vai in "Il mio account" → scrivi email + password per le app di Gmail → Salva casella'));
+    rows.push(tRow('Autorisponditore acceso', arOk?'ok':'err', arOk?'':'Accendilo in Impostazioni → Autorisponditore (dev\'essere acceso a gioco avviato)'));
+    rows.push(tRow('Invio dalla tua casella', 'wait', 'Mando una mail di prova a te stesso…'));
+    l.innerHTML=rows.join('');
+    if(!caOk){ rows[2]=tRow('Invio dalla tua casella','na','Prima imposta la casella'); l.innerHTML=rows.join('')+coTestVerdetto(false); return; }
+    var fd=new FormData(); fd.append('azione','prova'); fd.append('utente',getUser()); fd.append('password',getPw());
+    fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok){ rows[2]=tRow('Invio dalla tua casella','ok','Mail di prova partita verso '+(d.dove||'te stesso')+' (controlla anche lo spam)'); }
+      else { rows[2]=tRow('Invio dalla tua casella','err','Errore: '+((d&&d.errore)||'sconosciuto')); }
+      l.innerHTML=rows.join('')+coTestVerdetto(!!(d&&d.ok)&&caOk&&arOk);
+    }).catch(function(){ rows[2]=tRow('Invio dalla tua casella','err','Server non raggiungibile'); l.innerHTML=rows.join('')+coTestVerdetto(false); });
+  }
 })();
 
 // ====== AIUTO — guida ai tasti della Regia (1° tocco spiega, 2° esegue) ======

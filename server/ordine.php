@@ -242,6 +242,33 @@ if ($azione === 'verifica_codice') {
     predizione_json(['ok' => false, 'errore' => 'Codice errato o scaduto']);
 }
 
+/* ===== RICHIESTA ACCESSO (pubblico): il form del sito manda la richiesta.
+   La mail parte da accesso@abraka.it e arriva SIA all'autore (appisolata)
+   SIA a chi ha scritto (conferma). Niente piu' apertura del programma di posta. */
+if ($azione === 'richiesta') {
+    $mail  = strtolower(ord_p('mail'));
+    $chi   = substr(ord_p('chi'), 0, 400);
+    $gioco = substr(ord_p('gioco'), 0, 120);
+    if (!filter_var($mail, FILTER_VALIDATE_EMAIL)) {
+        predizione_json(['ok' => false, 'errore' => 'Scrivi una mail valida'], 400);
+    }
+    $da = 'accesso@abraka.it';
+    // 1) all'autore: la richiesta
+    $corpoAutore = "Nuova RICHIESTA DI ACCESSO dal sito.\n\n"
+                 . "Email di chi scrive: $mail\n"
+                 . "Gioco: " . ($gioco !== '' ? $gioco : '(non indicato)') . "\n"
+                 . "Chi e': " . ($chi !== '' ? $chi : '(non indicato)') . "\n\n"
+                 . "Rispondi direttamente a $mail.";
+    ord_manda_mail(PRED_NOTIFY_EMAIL, 'Richiesta accesso — ' . ($gioco !== '' ? $gioco : 'PREDIZIONE'), $corpoAutore, $da);
+    // 2) a chi ha scritto: la conferma
+    $corpoCliente = "Ciao,\n\nabbiamo ricevuto la tua richiesta di accesso"
+                  . ($gioco !== '' ? " per \"$gioco\"" : '') . ".\n"
+                  . "Ti rispondiamo al piu' presto da questo indirizzo.\n\n"
+                  . "Un saluto,\nabraka";
+    ord_manda_mail($mail, 'Abbiamo ricevuto la tua richiesta — abraka', $corpoCliente, $da);
+    predizione_json(['ok' => true]);
+}
+
 /* ===== LISTINO (pubblico): piani + extra con prezzi, per la pagina carrello */
 if ($azione === 'listino') {
     $piani = [];

@@ -597,10 +597,12 @@
       '<div class="kv"><span>Email (comunicazione)</span><b>'+(s.email?esc(s.email):'—')+'</b></div>'+
       '<div class="kv"><span>Telefono</span><b>'+(s.tel?esc(s.tel):'—')+'</b></div>'+
       '<div class="kv"><span>Provenienza</span><b>'+(s.fonte?esc(s.fonte):'—')+'</b></div>'+
+      '<div class="kv"><span>Password di ACCESSO (pannello)</span><b style="color:var(--gold)">'+(s.pass?esc(s.pass):'—')+'</b></div>'+
+      '<div class="kv"><span>Password per le app di GOOGLE</span><b style="color:var(--gold)">'+(m.pass?esc(m.pass):'— (non impostata)')+'</b></div>'+
       '<div class="sep"></div>'+
       '<div class="plinfo">Casella del gioco (Gmail)</div>'+
       '<div class="field"><input type="email" id="mEmail" placeholder="utente@gmail.com" value="'+esc(m.user||'')+'"></div>'+
-      '<div class="field"><input type="text" id="mApp" placeholder="password per app (16 lettere)" value="'+esc(m.pass||'')+'"></div>'+
+      '<div class="field"><label class="small" for="mApp">Password per le app di Google (16 lettere)</label><input type="text" id="mApp" placeholder="codice di 16 lettere da Google" value="'+esc(m.pass||'')+'"></div>'+
       '<div class="field"><input type="text" id="mFrom" placeholder="nome mittente (facoltativo)" value="'+esc(m.from||'')+'"></div>'+
       '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button></div>'+
       '<div class="sep"></div>'+

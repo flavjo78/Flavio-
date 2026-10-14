@@ -244,7 +244,17 @@
   document.getElementById('codeCancel').onclick=function(){codeOv.classList.remove('on');};
   document.getElementById('askCancel').onclick=function(){askOv.classList.remove('on');codeOv.classList.add('on');};
   document.getElementById('toAsk').onclick=function(){codeOv.classList.remove('on');askOv.classList.add('on');};
-  document.getElementById('askSend').onclick=function(){var chi=(document.getElementById('chiSei').value||'').trim();var em=(document.getElementById('askMail').value||'').trim();var body='Vorrei richiedere l\'accesso al gioco '+GAMES[i][1]+'.%0D%0A%0D%0ALa mia email: '+encodeURIComponent(em||'(scrivi la tua email)')+'%0D%0AChi sono: '+encodeURIComponent(chi||'(scrivi qui chi sei)');window.location.href='mailto:accesso@abraka.it?subject='+encodeURIComponent('Richiesta accesso — '+GAMES[i][1])+'&body='+body;};
+  document.getElementById('askSend').onclick=function(){
+    var chi=(document.getElementById('chiSei').value||'').trim();
+    var em=(document.getElementById('askMail').value||'').trim();
+    if(!em || em.indexOf('@')<1){ alert('Scrivi la tua email, così possiamo ricontattarti.'); return; }
+    var b=this; if(b.disabled) return; b.disabled=true; var old=b.textContent; b.textContent='Invio in corso…';
+    var fd=new FormData(); fd.append('azione','richiesta'); fd.append('mail',em); fd.append('chi',chi); fd.append('gioco',GAMES[i][1]);
+    fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      if(d && d.ok){ b.textContent='✓ Richiesta inviata'; alert('Richiesta inviata! Ti abbiamo mandato una conferma via email (controlla anche lo spam). Ti rispondiamo presto.'); }
+      else { b.disabled=false; b.textContent=old; alert((d&&d.errore)||'Non è stato possibile inviare, riprova.'); }
+    }).catch(function(){ b.disabled=false; b.textContent=old; alert('Server non raggiungibile, riprova tra poco.'); });
+  };
   var _sl=document.getElementById('siteLang'),_sln=document.getElementById('langNote');
   if(_sl)_sl.onclick=function(){_sln.style.display='block';setTimeout(function(){_sln.style.display='none';},2600);};
   function codeOk(pw){ window._accessoPw=pw||''; codeOv.classList.remove('on');plateaOv.classList.remove('on');L1.classList.remove('on');L2.classList.add('on');boost(v2a);try{v2a.currentTime=0;}catch(e){}v2a.play().catch(function(){}); }

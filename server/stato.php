@@ -790,6 +790,20 @@ switch ($azione) {
         predizione_utenti_scrivi($utenti);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
+    case 'cambia_password':
+        // l'utente cambia la PROPRIA password di ACCESSO al pannello.
+        // La password attuale e' gia' verificata dal controllo d'accesso qui sopra.
+        // Regole (come nella mail di benvenuto): >= 10 caratteri, 1 maiuscola, 1 simbolo.
+        $np = (string)(p('nuova') ?? '');
+        if (strlen($np) < 10 || !preg_match('/[A-Z]/', $np) || !preg_match('/[^A-Za-z0-9]/', $np)) {
+            predizione_json(['ok' => false, 'errore' => 'La password deve avere almeno 10 caratteri, 1 maiuscola e 1 simbolo'], 400);
+        }
+        $utenti = predizione_utenti_leggi();
+        if (!isset($utenti[$utente])) predizione_json(['ok' => false, 'errore' => 'Utente non trovato'], 404);
+        $utenti[$utente]['pass'] = substr($np, 0, 100);
+        predizione_utenti_scrivi($utenti);
+        predizione_json(['ok' => true]);
+
     case 'foto_zona':
         // salva i 4 ANGOLI del foglio (quad) e la GOMMA (poligono, es. la mano)
         if (empty(predizione_flags($utente)['foto'])) {
