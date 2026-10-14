@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anteprima Regia — base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Manrope:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    color-scheme:dark;
+    --bg:#0a0908; --bg-deep:#060505; --surface:#1b1712; --surface-2:#2a251d; --surface-3:#332d23;
+    --line:rgba(236,224,201,.09); --line-2:rgba(236,224,201,.16);
+    --ink:#ece0c9; --ink-dim:#9a8f7b; --ink-faint:#6c6455;
+    --gold:#c9a465; --gold-soft:rgba(201,164,101,.14);
+    --good:#86b26f; --good-soft:rgba(134,178,111,.14);
+    --stop:#cf8262; --stop-soft:rgba(207,130,98,.14);
+    --r:18px; --r-lg:22px;
+  }
+  *{box-sizing:border-box} html,body{margin:0}
+  body{background:var(--bg-deep);color:var(--ink);font-family:"Manrope",system-ui,sans-serif;line-height:1.5}
+
+  .demobar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    background:#1a140c;border-bottom:1px solid var(--line-2);padding:8px 14px;font-size:12px}
+  .demobar .tag{background:var(--gold);color:#201105;font-weight:800;border-radius:999px;padding:3px 10px;letter-spacing:.1em}
+  .demobar .note{color:var(--ink-faint)}
+  .demobar .mini{margin-left:auto;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);border-radius:999px;padding:5px 12px;font:inherit;font-weight:700;cursor:pointer}
+
+  .app{max-width:440px;margin:0 auto;min-height:100vh;
+    background:radial-gradient(120% 55% at 50% 0%, #14110c 0%, var(--bg) 46%, var(--bg-deep) 100%);
+    padding:0 20px 44px;position:relative;overflow:hidden}
+  @media (min-width:520px){ body{padding:16px 0} .app{border:1px solid var(--line-2);border-radius:34px;min-height:calc(100vh - 110px);box-shadow:0 30px 80px -30px #000} }
+
+  header{text-align:center;padding:26px 0 6px}
+  .kicker{font-size:11px;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:600;margin:0 0 2px}
+  .wordmark{margin:0;font-family:"Cormorant Garamond",Georgia,serif;font-weight:600;font-size:clamp(34px,12vw,48px);line-height:1}
+  .subwordmark{color:var(--ink-dim);font-size:12px;letter-spacing:.16em;text-transform:uppercase;margin-top:7px}
+
+  section{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px 18px;margin-top:16px}
+  .status{background:linear-gradient(180deg,var(--surface) 0%, #211c15 100%)}
+  .sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+  .gear{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;cursor:pointer;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-dim)}
+  .gear svg{width:24px;height:24px}
+  .pill{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:6px 13px;border-radius:999px;background:var(--surface-2);color:var(--ink-dim);border:1px solid var(--line-2)}
+  .pill .dot{width:8px;height:8px;border-radius:50%;background:var(--ink-faint)}
+  .pill.live{background:var(--good-soft);color:var(--good);border-color:transparent}
+  .pill.live .dot{background:var(--good)}
+
+  /* titolo della zona che cambia */
+  .stage-title{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-dim);font-weight:700;text-align:center;margin:2px 0 10px}
+
+  /* --- le 4 caselle (a gioco in corso) --- */
+  .boxes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .box{background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center}
+  .box.bgold{background:var(--gold-soft)}
+  .box b{display:block;font-size:26px;font-weight:800;line-height:1;color:var(--ink)}
+  .box.bgold b{color:var(--gold)}
+  .box span{display:block;font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px}
+  .phaseline{text-align:center;color:var(--ink-dim);font-size:13px;margin-top:12px}
+
+  /* --- caricamento foto (a gioco spento/terminato) --- */
+  .slot{display:flex;align-items:center;gap:14px;background:var(--surface-2);border:1px dashed var(--line-2);border-radius:var(--r);padding:12px;margin-bottom:10px}
+  .slot.filled{border-style:solid}
+  .thumb{width:54px;height:54px;flex:0 0 54px;border-radius:12px;overflow:hidden;background:var(--bg);display:grid;place-items:center;border:1px solid var(--line);cursor:zoom-in}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+  .thumb .ph{font-family:"Cormorant Garamond",serif;font-size:24px;color:var(--stop);font-weight:800}
+  .thumb.ok .ph{color:var(--good)}
+  .slot-txt{flex:1;min-width:0}
+  .slot-txt .t{display:block;font-weight:700;font-size:14.5px}
+  .slot-txt .s{display:block;font-size:12px;color:var(--ink-dim);margin-top:2px;line-height:1.3}
+  .slotbtn{flex:0 0 auto;font:inherit;font-size:12px;font-weight:700;color:var(--gold);background:var(--gold-soft);border:1px solid var(--gold);border-radius:999px;padding:7px 12px;cursor:pointer}
+  .prep-hint{font-size:12px;color:var(--ink-faint);margin-top:2px;line-height:1.4}
+
+  .game-btns{display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px}
+  .btn{-webkit-appearance:none;appearance:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:700;padding:16px;border-radius:var(--r);border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink);transition:transform .08s}
+  .btn:active{transform:scale(.985)}
+  .btn.ghost{background:transparent;border-color:var(--line-2);color:var(--ink-dim)}
+  .btn[disabled]{opacity:.32;cursor:not-allowed}
+  .btn.nextstep{opacity:1 !important;background:transparent;border-color:var(--gold);color:var(--gold);box-shadow:0 0 0 2px var(--gold-soft)}
+  .btn.blinkgold{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent;box-shadow:0 6px 22px rgba(201,164,101,.35);animation:gb 1.4s ease-in-out infinite}
+  @keyframes gb{0%,100%{opacity:1}50%{opacity:.45}}
+  .btn.aiuto{border:1.5px solid var(--stop);color:var(--stop);background:transparent;margin-top:10px;width:100%}
+  .foot{text-align:center;color:var(--ink-faint);font-size:11px;margin-top:18px}
+
+  /* --- menu "Aiuto" (dove sta anche "Spiega come si gioca") --- */
+  .sheet{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+  .sheet.open{display:flex}
+  .sheet-card{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line-2);border-radius:18px 18px 0 0}
+  .sheet-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .sheet-head b{font-family:"Cormorant Garamond",serif;font-size:21px}
+  .sheet-head button{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer}
+  .sheet-body{padding:14px 18px 22px}
+  .sheet-body .btn{width:100%;margin-bottom:10px}
+  .sheet-body .btn.spiega{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  .sheet-body .hint{font-size:12.5px;color:var(--ink-faint);line-height:1.45}
+
+  /* --- COACHMARK (riflettore clic-dopo-clic) --- */
+  #spotBack{position:fixed;inset:0;z-index:60;display:none}
+  #spotBack.on{display:block}
+  #spot{position:fixed;z-index:61;border-radius:14px;border:2px solid var(--gold);
+    box-shadow:0 0 0 9999px rgba(6,5,5,.74), 0 0 24px rgba(201,164,101,.5);pointer-events:none;transition:all .25s ease}
+  #tip{position:fixed;z-index:62;max-width:290px;background:var(--surface);border:2px solid var(--gold);border-radius:16px;
+    padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  #tip .num{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--gold);color:#201105;font-weight:800;font-size:13px;margin-bottom:8px}
+  #tip .ti{font-family:"Cormorant Garamond",serif;font-size:19px;color:var(--ink);margin:2px 0 6px}
+  #tip .tx{font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+  #tip .row{display:flex;gap:8px;margin-top:12px}
+  #tip .row button{flex:1;font:inherit;font-weight:700;border-radius:10px;padding:10px;cursor:pointer;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink)}
+  #tip .row button.go{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  #tip .arrow{position:absolute;width:0;height:0;border:9px solid transparent}
+
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);z-index:70;background:var(--surface-3);color:var(--ink);border:1px solid var(--line-2);border-radius:999px;padding:10px 18px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:88%;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+
+<div class="demobar">
+  <span class="tag">ANTEPRIMA</span>
+  <span class="note">Prova i tasti. Qui le foto sono finte.</span>
+  <button class="mini" id="reset">↺ Azzera</button>
+</div>
+
+<div class="app">
+  <header>
+    <p class="kicker">Regia dello spettacolo</p>
+    <h1 class="wordmark">Predizione</h1>
+    <p class="subwordmark">Pannello del mentalista</p>
+  </header>
+
+  <section class="status">
+    <div class="sec-head">
+      <button class="gear" id="gear" title="Impostazioni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+      <span class="pill" id="pill"><span class="dot"></span><span id="pillLbl">In pausa</span></span>
+    </div>
+
+    <!-- ZONA CHE CAMBIA: a gioco spento = caricamento foto · a gioco in corso = 4 caselle -->
+    <div id="stage"></div>
+
+    <div class="game-btns">
+      <button class="btn ghost" id="bAvvia">Avvia gioco</button>
+      <button class="btn ghost" id="bCambia" disabled>Cambia (rivela)</button>
+      <button class="btn ghost" id="bFinisci" disabled>Finisci gioco</button>
+    </div>
+    <button class="btn aiuto" id="bAiuto">Aiuto — come funzionano i tasti</button>
+  </section>
+
+  <p class="foot">Anteprima Regia · base</p>
+</div>
+
+<!-- MENU AIUTO (contiene anche "Spiega come si gioca") -->
+<div class="sheet" id="aiutoSheet">
+  <div class="sheet-card">
+    <div class="sheet-head"><b>Aiuto</b><button id="aiutoClose">&times;</button></div>
+    <div class="sheet-body">
+      <button class="btn spiega" id="bSpiega">▶ Spiega come si gioca (passo-passo)</button>
+      <p class="hint" style="margin:0 0 14px">Ti prende per mano e ti mostra <b>dove toccare</b>, un clic alla volta: carica le foto, avvia, rivela, finisci.</p>
+      <button class="btn ghost" id="bTasti">Spiega i singoli tasti</button>
+      <p class="hint">Toccando un tasto te lo spiego; al secondo tocco lo usa davvero. Il tasto <b>Aiuto</b> sta sempre qui, in fondo alla schermata, col bordo rosso.</p>
+    </div>
+  </div>
+</div>
+
+<!-- COACHMARK -->
+<div id="spotBack"></div>
+<div id="spot"></div>
+<div id="tip" style="display:none">
+  <span class="arrow" id="tipArrow"></span>
+  <span class="num" id="tipNum">1</span>
+  <div class="ti" id="tipTi">Titolo</div>
+  <div class="tx" id="tipTx">Testo</div>
+  <div class="row">
+    <button id="tipSkip">Esci</button>
+    <button class="go" id="tipNext">Avanti →</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var $=function(s){return document.getElementById(s);};
+  var fase='spento';           // spento | avviato | cambiato | terminato
+  var fotoA=false, fotoB=false;
+  var nA=0,nB=0,nRic=0,nInv=0, tick=null;
+
+  var toastEl=$('toast'),tT=null;
+  function toast(m){ toastEl.textContent=m; toastEl.className='toast show'; clearTimeout(tT); tT=setTimeout(function(){toastEl.className='toast';},2200); }
+
+  // ---------- la ZONA che cambia ----------
+  function renderStage(){
+    var inCorso = (fase==='avviato'||fase==='cambiato');
+    if(inCorso){
+      $('stage').innerHTML =
+        '<div class="stage-title">Lo spettacolo in corso</div>'
+      + '<div class="boxes">'
+      +   '<div class="box"><b id="cA">'+nA+'</b><span>Viste Foto A</span></div>'
+      +   '<div class="box bgold"><b id="cB">'+nB+'</b><span>Viste Rivelazione</span></div>'
+      +   '<div class="box"><b id="cR">'+nRic+'</b><span>Mail ricevute</span></div>'
+      +   '<div class="box"><b id="cI">'+nInv+'</b><span>Mail inviate</span></div>'
+      + '</div>'
+      + '<div class="phaseline">'+(fase==='avviato'?'In corso · gli spettatori vedono la Foto A':'Rivelato · ora vedono la rivelazione')+'</div>';
+    } else {
+      $('stage').innerHTML =
+        '<div class="stage-title">Imposta gioco</div>'
+      + slot('A', fotoA, 'Foto A (attesa)', 'la foto neutra di partenza')
+      + slot('B', fotoB, 'Rivelazione (Foto B)', 'la foto da svelare col "Cambia"')
+      + '<p class="prep-hint">Carica <b>Foto A</b> e <b>Foto B</b>, poi premi <b>Avvia gioco</b> qui sotto.'
+      + (fase==='terminato'?' · La sessione precedente è chiusa: prepara la prossima.':'')+'</p>';
+      wireSlots();
+    }
+  }
+  function slot(k,ok,t,s){
+    return '<div class="slot'+(ok?' filled':'')+'" id="slot'+k+'">'
+      +'<span class="thumb'+(ok?' ok':'')+'" id="thumb'+k+'"><span class="ph">'+(ok?'✓':'✕')+'</span></span>'
+      +'<span class="slot-txt"><span class="t">'+t+'</span><span class="s">'+s+'</span></span>'
+      +'<button class="slotbtn" data-load="'+k+'">'+(ok?'Cambia':'Carica')+'</button></div>';
+  }
+  function wireSlots(){
+    [].forEach.call(document.querySelectorAll('[data-load]'),function(b){
+      b.addEventListener('click',function(){
+        var k=b.getAttribute('data-load');
+        if(k==='A') fotoA=true; else fotoB=true;
+        toast('Foto '+k+' caricata ✓'); renderStage(); renderButtons();
+      });
+    });
+  }
+
+  // ---------- i tasti del gioco ----------
+  function renderButtons(){
+    var a=$('bAvvia'),c=$('bCambia'),f=$('bFinisci');
+    [a,c,f].forEach(function(b){ b.classList.remove('nextstep','blinkgold'); });
+    var pronto = fotoA && fotoB;
+    a.disabled = (fase==='avviato'||fase==='cambiato') || !pronto;
+    c.disabled = (fase!=='avviato');
+    f.disabled = !(fase==='avviato'||fase==='cambiato');
+    a.textContent = pronto ? 'Avvia gioco' : 'Avvia gioco (carica prima le foto)';
+    // colori guida: cosa premere adesso
+    if(fase==='spento'||fase==='terminato'){ if(pronto) a.classList.add('nextstep'); }
+    else if(fase==='avviato'){ a.classList.add('blinkgold'); c.classList.add('nextstep'); }
+    else if(fase==='cambiato'){ c.classList.add('blinkgold'); f.classList.add('nextstep'); }
+    // pill
+    var p=$('pill'),l=$('pillLbl');
+    p.classList.toggle('live', fase==='avviato'||fase==='cambiato');
+    l.textContent = {spento:'In pausa',avviato:'In corso',cambiato:'Rivelato',terminato:'Terminato'}[fase];
+  }
+
+  function startTick(){ clearInterval(tick); tick=setInterval(function(){
+    if(fase!=='avviato'&&fase!=='cambiato') return;
+    nRic++; nInv++; nA += (fase==='avviato'?1:0); nB += (fase==='cambiato'?1:0);
+    var eA=$('cA'),eB=$('cB'),eR=$('cR'),eI=$('cI');
+    if(eA)eA.textContent=nA; if(eB)eB.textContent=nB; if(eR)eR.textContent=nRic; if(eI)eI.textContent=nInv;
+  },1500); }
+
+  $('bAvvia').addEventListener('click',function(){
+    if(this.disabled) return;
+    fase='avviato'; nA=0;nB=0;nRic=0;nInv=0; renderStage(); renderButtons(); startTick(); toast('Gioco avviato ▶');
+  });
+  $('bCambia').addEventListener('click',function(){ if(this.disabled)return; fase='cambiato'; renderStage(); renderButtons(); toast('Rivelazione ✦'); });
+  $('bFinisci').addEventListener('click',function(){ if(this.disabled)return; fase='terminato'; clearInterval(tick); renderStage(); renderButtons(); toast('Gioco finito ■ — tornano le foto da caricare'); });
+  $('reset').addEventListener('click',function(){ fase='spento'; fotoA=false; fotoB=false; clearInterval(tick); renderStage(); renderButtons(); });
+
+  // ---------- menu Aiuto ----------
+  $('bAiuto').addEventListener('click',function(){ $('aiutoSheet').classList.add('open'); });
+  $('aiutoClose').addEventListener('click',function(){ $('aiutoSheet').classList.remove('open'); });
+  $('aiutoSheet').addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); });
+  $('bTasti').addEventListener('click',function(){ $('aiutoSheet').classList.remove('open'); toast('(nell\'app: spiega i singoli tasti al tocco)'); });
+
+  // ---------- COACHMARK: spiega come si gioca (clic-dopo-clic) ----------
+  var passi=[
+    {sel:function(){return document.querySelector('[data-load=A]');}, prep:function(){ if(fase!=='spento'&&fase!=='terminato'){fase='spento';} renderStage();renderButtons(); }, n:1, t:'Carica la Foto A', x:'È la foto di attesa: quella che gli spettatori vedono all\'inizio. Tocca <b>Carica</b> qui.'},
+    {sel:function(){return document.querySelector('[data-load=B]');}, prep:function(){ renderStage();renderButtons(); }, n:2, t:'Carica la Foto B', x:'È la <b>rivelazione</b>: la foto che apparirà quando premi "Cambia". Tocca <b>Carica</b> qui.'},
+    {sel:function(){return $('bAvvia');}, prep:function(){ fotoA=true;fotoB=true; renderStage();renderButtons(); }, n:3, t:'Premi "Avvia gioco"', x:'Parte lo show: gli spettatori che scrivono ricevono la <b>Foto A</b>. Le 4 caselle qui sopra mostrano i conteggi dal vivo.'},
+    {sel:function(){return $('bCambia');}, prep:function(){ fase='avviato'; renderStage();renderButtons(); }, n:4, t:'Al momento giusto: "Cambia"', x:'La foto passa dalla A alla <b>rivelazione (B)</b>. Il gioco resta attivo e continua a rispondere.'},
+    {sel:function(){return $('bFinisci');}, prep:function(){ fase='cambiato'; renderStage();renderButtons(); }, n:5, t:'A fine show: "Finisci"', x:'Chiude la sessione. La foto <b>B resta per sempre</b> a chi l\'ha ricevuta. Tornano in primo piano le foto da caricare per il prossimo show.'},
+    {sel:function(){return $('bAiuto');}, prep:function(){ fase='spento';fotoA=false;fotoB=false; renderStage();renderButtons(); }, n:6, t:'Il tasto "Aiuto" è qui', x:'Lo trovi sempre in fondo, col <b>bordo rosso</b>. Dentro c\'è questo "Spiega come si gioca" ogni volta che ti serve.'}
+  ];
+  var pi=0;
+  function spotStart(){ $('aiutoSheet').classList.remove('open'); pi=0; $('spotBack').classList.add('on'); $('tip').style.display='block'; spotShow(); }
+  function spotEnd(){ $('spotBack').classList.remove('on'); $('tip').style.display='none'; $('spot').style.display='none'; fase='spento';fotoA=false;fotoB=false; renderStage();renderButtons(); }
+  function spotShow(){
+    var p=passi[pi]; if(p.prep) p.prep();
+    // aspetta che il DOM sia aggiornato, poi posiziona
+    requestAnimationFrame(function(){
+      var el=p.sel(); if(!el){ spotNext(); return; }
+      el.scrollIntoView({block:'center',behavior:'instant'});
+      var r=el.getBoundingClientRect(), pad=8;
+      var sp=$('spot'); sp.style.display='block';
+      sp.style.left=(r.left-pad)+'px'; sp.style.top=(r.top-pad)+'px';
+      sp.style.width=(r.width+pad*2)+'px'; sp.style.height=(r.height+pad*2)+'px';
+      $('tipNum').textContent=p.n; $('tipTi').textContent=p.t; $('tipTx').innerHTML=p.x;
+      $('tipNext').textContent = (pi>=passi.length-1)?'Ho capito ✓':'Avanti →';
+      // posiziona il fumetto sopra o sotto il riquadro
+      var tip=$('tip'); tip.style.visibility='hidden';
+      requestAnimationFrame(function(){
+        var th=tip.offsetHeight, tw=tip.offsetWidth, below=(r.bottom+12+th < window.innerHeight);
+        var top = below ? (r.bottom+12) : (r.top-12-th);
+        var left = Math.min(Math.max(12, r.left + r.width/2 - tw/2), window.innerWidth-tw-12);
+        tip.style.top=top+'px'; tip.style.left=left+'px';
+        var ar=$('tipArrow'), ax=Math.min(Math.max(16, r.left+r.width/2-left), tw-16);
+        ar.style.left=(ax-9)+'px';
+        if(below){ ar.style.top='-18px'; ar.style.borderBottomColor='var(--gold)'; ar.style.borderTopColor='transparent'; }
+        else { ar.style.top=th+'px'; ar.style.borderTopColor='var(--gold)'; ar.style.borderBottomColor='transparent'; }
+        tip.style.visibility='visible';
+      });
+    });
+  }
+  function spotNext(){ if(pi>=passi.length-1){ spotEnd(); return; } pi++; spotShow(); }
+  $('bSpiega').addEventListener('click', spotStart);
+  $('tipNext').addEventListener('click', spotNext);
+  $('tipSkip').addEventListener('click', spotEnd);
+  window.addEventListener('resize', function(){ if($('spotBack').classList.contains('on')) spotShow(); });
+
+  // avvio
+  renderStage(); renderButtons();
+})();
+</script>
+</body>
+</html>
