@@ -525,7 +525,7 @@
           <button class="slotbtn" type="button" data-cambia>Carica</button>
           <button class="slotx" type="button" data-del title="Elimina">&times;</button>
         </div>
-        <p class="hint">Carica <b>Foto A</b> e <b>Rivelazione</b>, poi premi <b>Avvia gioco</b>. Le trovi sempre anche in <b>Impostazioni → Imposta foto</b>.</p>
+        <p class="hint">Carica la <b>Foto A</b> e premi <b>Avvia gioco</b>. La <b>Rivelazione (Foto B)</b> puoi caricarla anche dopo, fino a <b>Cambia</b>. Le trovi sempre anche in <b>Impostazioni → Imposta foto</b>.</p>
       </div>
 
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
@@ -548,6 +548,8 @@
         <div style="display:flex;gap:10px;align-items:center">
           <button class="btn ghost" id="swapBtn" disabled style="flex:1">Cambia (rivela)</button>
           <button class="btn ghost" id="eyeBtn" type="button" title="Vedi Foto A e B" style="flex:0 0 46px;height:46px;font-size:20px;padding:0">👁</button>
+        </div>
+        <div style="display:flex;justify-content:center;margin:2px 0 0">
           <button id="helpRound" type="button" title="Aiuto — come si gioca" aria-label="Aiuto">?</button>
         </div>
         <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
@@ -843,8 +845,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <button class="btn spiega" id="ahelpSpiega" type="button">▶ Spiega come si gioca (passo-passo)</button>
       <button class="btn ghost" id="ahelpTasti" type="button">Spiega i singoli tasti</button>
       <div class="ahelp-note">👁 <b>L'occhio</b> ti fa vedere la <b>Foto A</b> e la <b>Rivelazione</b> come le vedono gli spettatori, <b>senza inviare</b> nulla: un controllo al volo.</div>
-      <div class="ahelp-note">Le <b>foto</b> le puoi cambiare anche dopo: le trovi sempre in <b class="em">Impostazioni → Imposta foto</b> (la prima casella del menù). E se non avevi preparato la rivelazione, puoi caricarla al momento dal tasto <b class="em">Cambia (rivela)</b>.</div>
-      <div class="ahelp-note">Questo <b>?</b> è il tuo aiuto: sta sempre qui, accanto all'<b>occhio</b>. Riaprilo quando vuoi.</div>
+      <div class="ahelp-note">Per <b>avviare</b> basta la <b>Foto A</b>: la <b class="em">Rivelazione (Foto B)</b> puoi caricarla <b>anche dopo l'Avvia</b>, fino a quando premi <b>Cambia</b> (e se premi "Cambia" senza averla, te la fa caricare lì).</div>
+      <div class="ahelp-note">Le <b>foto</b> le puoi cambiare quando vuoi: le trovi sempre in <b class="em">Impostazioni → Imposta foto</b> (la <b>prima casella</b> del menù).</div>
+      <div class="ahelp-note">Questo <b>?</b> è il tuo aiuto: sta sempre qui in basso, <b>tra "Cambia" e "Finisci"</b>. Riaprilo quando vuoi.</div>
     </div>
   </div>
 </div>
@@ -1989,12 +1992,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   var coPassi=[
     {sel:'mSlotA', n:1, t:'Carica la Foto A', x:'È la foto di <b>attesa</b>: quella che gli spettatori vedono all\'inizio. Tocca <b>Carica</b> qui.'},
-    {sel:'mSlotB', n:2, t:'Carica la Rivelazione', x:'È la <b>Foto B</b>: appare quando premi "Cambia". Tocca <b>Carica</b> qui.'},
+    {sel:'mSlotB', n:2, t:'Carica la Rivelazione', x:'È la <b>Foto B</b>: appare quando premi "Cambia". Puoi caricarla ora, oppure <b>anche dopo l\'Avvia</b> (fino a "Cambia"). La trovi sempre in <b>Impostazioni → Imposta foto</b>.'},
     {sel:'startBtn', n:3, t:'Premi "Avvia gioco"', x:'Parte lo show: chi scrive riceve la <b>Foto A</b>. Qui sopra compaiono i <b>conteggi</b> dal vivo.'},
     {sel:'swapBtn', n:4, t:'Al momento giusto: "Cambia"', x:'La foto passa alla <b>rivelazione (B)</b>. Il gioco resta attivo e continua a rispondere.'},
     {sel:'stopBtn', n:5, t:'A fine show: "Finisci"', x:'Chiude la sessione. La foto <b>B resta per sempre</b> a chi l\'ha ricevuta. Tornano le foto da caricare.'},
     {sel:'eyeBtn', n:6, t:'L\'occhio', x:'Ti fa vedere la <b>Foto A</b> e la <b>B</b> come le vedono gli spettatori, <b>senza inviare</b> nulla.'},
-    {sel:'helpRound', n:7, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui, accanto all\'occhio. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
+    {sel:'helpRound', n:7, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui in basso, <b>tra "Cambia" e "Finisci"</b>. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
   ];
   var ci=0;
   function coStart(){ ahClose(); ci=0; $('coBack').classList.add('on'); $('coTip').style.display='block'; coShow(); }
