@@ -626,6 +626,8 @@
       <div class="lim tap" data-hist="mail"><div class="top"><span>Mail del mese</span><b id="limMailTxt">—</b></div><div class="bar" id="limMailBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="foto_ia"><div class="top"><span>Foto magic</span><b id="limFotoTxt">—</b></div><div class="bar" id="limFotoBar"><i style="width:0"></i></div></div>
       <div class="lim tap" data-hist="sessioni"><div class="top"><span>Sessioni del mese</span><b id="limSessTxt">—</b></div><div class="bar" id="limSessBar"><i style="width:0"></i></div></div>
+      <div class="lim" id="limMailDay" style="display:none"><div class="top"><span>Mail oggi</span><b id="limMailDayTxt">—</b></div><div class="bar" id="limMailDayBar"><i style="width:0"></i></div></div>
+      <div class="lim" id="limSessDay" style="display:none"><div class="top"><span>Sessioni oggi</span><b id="limSessDayTxt">—</b></div><div class="bar" id="limSessDayBar"><i style="width:0"></i></div></div>
       <p class="hint" id="limReset" style="color:var(--gold);font-weight:700"></p>
       <p class="hint" id="limGiorno"></p>
       <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
@@ -690,7 +692,8 @@
       <div class="field"><label for="subj">Oggetto</label><input type="text" id="subj" value="La lettera (non aprire ancora)"></div>
       <div class="field"><label for="body">Testo della mail</label><textarea id="body">CIAO,
 GRAZIE per essere venuto al nostro SHOW.</textarea></div>
-      <p class="hint">Sono l'<b>oggetto</b> e il <b>testo</b> che compaiono nella mail di risposta (sopra la foto). Si salvano premendo <b>"Salva e torna"</b> qui sotto.</p>
+      <p class="hint">Sono l'<b>oggetto</b> e il <b>testo</b> che compaiono nella mail di risposta (sopra la foto).</p>
+      <button class="btn primary" id="saveMsg" type="button" style="width:100%;margin-top:4px">Salva il testo</button>
       <div class="toggle-row">
         <div><div class="t">Attiva cattura</div><div class="s">Registra chi apre e quando</div></div>
         <label class="switch"><input type="checkbox" id="capture" checked><span class="track"></span><span class="knob"></span></label>
@@ -771,9 +774,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Crea un <b>link</b> da mandare a chi ti aiuta (WhatsApp, ecc.). L'assistente può <b>preparare la rivelazione</b> e <b>comandare il gioco</b>, ma <b>non</b> vede password, casella o report. Il link <b>scade quando premi "Finisci"</b> o quando lo revochi.</p>
     </section>
 
-    <button class="btn primary" id="saveSet" style="margin-top:16px;width:100%">Salva e torna</button>
-    <button class="btn aiuto" id="helpBtn" type="button" style="margin-top:10px;width:100%">Aiuto — come funzionano i tasti</button>
-    <p class="foot">Le impostazioni si preparano prima dello show.</p>
+    <button class="btn aiuto" id="helpBtn" type="button" style="margin-top:16px;width:100%">Aiuto — come funzionano i tasti</button>
+    <p class="foot">Le impostazioni si salvano da sole. Per tornare, usa la freccia in alto a sinistra.</p>
   </div>
 
   <!-- AIUTO: badge per spegnere, nuvoletta di spiegazione, pop-up iniziale -->
@@ -931,14 +933,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');
       // #5 data di ricarica (giorno dell'abbonamento)
       var lr=$('limReset'); if(lr){ lr.textContent = uso.reset_ts ? ('Si ripristina il '+fmtData(uso.reset_ts)) : ''; }
-      // riepilogo GIORNALIERO (alcuni piani hanno limiti al giorno)
-      var lg=$('limGiorno');
-      if(lg){
-        var parti=[];
-        parti.push('Oggi: '+(uso.mail_oggi||0)+' mail'+((ac.mail_giorno)?(' su '+ac.mail_giorno+' al giorno'):''));
-        if(ac.sessioni_giorno) parti.push((ac.sessioni_giorno)+' sessioni al giorno incluse');
-        lg.innerHTML='<b>Al giorno</b> — '+parti.join(' · ');
-      }
+      // barre GIORNALIERE (compaiono solo se il piano ha un limite "al giorno")
+      var md=$('limMailDay');
+      if(md){ if((ac.mail_giorno||0)>0){ md.style.display=''; setBar('limMailDayTxt','limMailDayBar', uso.mail_oggi, ac.mail_giorno); } else { md.style.display='none'; } }
+      var sd=$('limSessDay');
+      if(sd){ if((ac.sessioni_giorno||0)>0){ sd.style.display=''; setBar('limSessDayTxt','limSessDayBar', uso.sessioni_oggi, ac.sessioni_giorno); } else { sd.style.display='none'; } }
+      var lg=$('limGiorno'); if(lg){ lg.innerHTML = ((ac.mail_giorno||0)>0 || (ac.sessioni_giorno||0)>0) ? '<b>Oggi</b>: i limiti "al giorno" si azzerano a mezzanotte.' : ''; }
     }
     // ripristina la casella salvata (email + password per app 16 cifre + mittente)
     var mc=st.mail_cfg;
@@ -1503,14 +1503,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(document.body.classList.contains('sp-open')){ backMenu(); return; }
     setView.classList.remove('open'); poll();
   });
-  $('saveSet').addEventListener('click', function(){
-    // salva sul server l'oggetto e il testo personalizzati (se c'è la password)
-    if(getPw()){
-      var oggetto=$('subj')?$('subj').value:'';
-      var testo=$('body')?$('body').value:'';
-      comando('messaggio', {oggetto:oggetto, testo:testo}, 'Impostazioni mail salvate');
-    }
-    setView.classList.remove('open'); poll();
+  // "Salva il testo": oggetto + testo della mail (è l'unico testo libero da salvare a mano)
+  var smsg=$('saveMsg');
+  if(smsg) smsg.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var oggetto=$('subj')?$('subj').value:'';
+    var testo=$('body')?$('body').value:'';
+    comando('messaggio', {oggetto:oggetto, testo:testo}, 'Testo della mail salvato ✓');
   });
 
   // apre le Impostazioni direttamente su una sotto-pagina (foto, ia, ...)
@@ -2089,7 +2088,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     buyBtn:['Acquista crediti / Cambia piano','Apri la pagina per comprare crediti o cambiare piano.'],
     saveMail:['Salva casella','Salvi l\'indirizzo e la password per app della tua casella.'],
     inviaBtn:['Invia mail','Manda la foto agli indirizzi scritti: è come premere Avvia gioco.'],
-    saveSet:['Salva e torna','Salva le impostazioni e torna al menu.']
+    saveMsg:['Salva il testo','Salva l\'oggetto e il testo della mail di risposta.']
   };
   // voci che POSSONO essere grigie (bloccate dal piano)
   var LOCKS=[
