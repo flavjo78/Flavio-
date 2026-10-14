@@ -389,6 +389,39 @@
   #guida .gsupport a{color:var(--ink);font-weight:800;text-decoration:none;border-bottom:1px solid var(--gold)}
   #guida .gfoot{text-align:center;color:var(--ink-faint);font-size:11px;margin-top:18px}
   #guida .code-in{letter-spacing:.18em}
+
+  /* ====== tasto AIUTO tondo "?" (accanto all'occhio, circa il doppio) ====== */
+  #helpRound{flex:0 0 auto;width:64px;height:64px;border-radius:50%;cursor:pointer;
+    background:var(--stop-soft);border:2px solid var(--stop);color:var(--stop);
+    font-family:"Cormorant Garamond",Georgia,serif;font-weight:700;font-size:32px;line-height:1;
+    display:grid;place-items:center;transition:transform .08s}
+  #helpRound:active{transform:scale(.94)}
+  #helpRound:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+  /* ====== foglio AIUTO (si apre dal "?") ====== */
+  .ahelp{position:fixed;inset:0;z-index:92;background:rgba(0,0,0,.6);display:none;align-items:flex-end;justify-content:center}
+  .ahelp.open{display:flex}
+  .ahelp-card{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line-2);border-radius:18px 18px 0 0;max-height:86vh;display:flex;flex-direction:column}
+  .ahelp-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line)}
+  .ahelp-head b{font-family:"Cormorant Garamond",Georgia,serif;font-size:21px}
+  .ahelp-head button{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);width:34px;height:34px;border-radius:50%;font-size:18px;font-weight:800;cursor:pointer}
+  .ahelp-body{overflow:auto;padding:14px 18px 22px}
+  .ahelp-body .btn{width:100%;margin-bottom:10px}
+  .ahelp-body .btn.spiega{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  .ahelp-note{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:10px;font-size:13.5px;color:var(--ink-dim);line-height:1.5}
+  .ahelp-note b{color:var(--ink)} .ahelp-note .em{color:var(--gold);font-weight:700}
+
+  /* ====== COACHMARK "come si gioca" (riflettore passo-passo) ====== */
+  #coBack{position:fixed;inset:0;z-index:96;display:none} #coBack.on{display:block}
+  #coSpot{position:fixed;z-index:97;border-radius:14px;border:2px solid var(--gold);box-shadow:0 0 0 9999px rgba(6,5,5,.74),0 0 24px rgba(201,164,101,.5);pointer-events:none;transition:all .25s ease;display:none}
+  #coTip{position:fixed;z-index:98;max-width:290px;background:var(--surface);border:2px solid var(--gold);border-radius:16px;padding:14px 16px;box-shadow:0 18px 50px rgba(0,0,0,.6);display:none}
+  #coTip .num{display:inline-block;min-width:24px;height:24px;line-height:24px;text-align:center;border-radius:50%;background:var(--gold);color:#201105;font-weight:800;font-size:13px;margin-bottom:8px}
+  #coTip .ti{font-family:"Cormorant Garamond",Georgia,serif;font-size:19px;color:var(--ink);margin:2px 0 6px}
+  #coTip .tx{font-size:13.5px;color:var(--ink-dim);line-height:1.5} #coTip .tx b{color:var(--ink)}
+  #coTip .row{display:flex;gap:8px;margin-top:12px}
+  #coTip .row button{flex:1;font:inherit;font-weight:700;border-radius:10px;padding:10px;cursor:pointer;border:1px solid var(--line-2);background:var(--surface-2);color:var(--ink)}
+  #coTip .row button.go{background:linear-gradient(180deg,#d8b877,#c39a52);color:#231a0c;border-color:transparent}
+  #coTip .arrow{position:absolute;width:0;height:0;border:9px solid transparent}
 </style>
 </head>
 <body>
@@ -446,31 +479,55 @@
         <span id="statePill" class="pill"><span class="dot"></span><span id="stateLbl">In pausa</span></span>
       </div>
 
-      <div class="counter" id="counterWrap">
-        <div class="num" id="count">0</div>
-        <div class="lbl">Aperture · questa sessione</div>
+      <!-- ZONA CHE CAMBIA · a gioco in corso: conteggi · a gioco spento/finito: carica foto -->
+      <div id="stageLive">
+        <div class="counter" id="counterWrap">
+          <div class="num" id="count">0</div>
+          <div class="lbl">Aperture · questa sessione</div>
+        </div>
+
+        <div class="abstats" style="display:flex;gap:10px;margin-top:12px">
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntA">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Foto A</div>
+          </div>
+          <div style="flex:1;background:var(--gold-soft);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--gold)" id="cntB">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Rivelazione</div>
+          </div>
+        </div>
+        <div class="abstats" style="display:flex;gap:10px;margin-top:10px">
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntRic">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail ricevute</div>
+          </div>
+          <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
+            <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntInv">0</div>
+            <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail inviate</div>
+          </div>
+        </div>
       </div>
 
-      <div class="abstats" style="display:flex;gap:10px;margin-top:12px">
-        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntA">0</div>
-          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Foto A</div>
+      <!-- Imposta gioco: le foto da caricare (occupano lo spazio delle 4 caselle, a gioco spento) -->
+      <div id="stagePrep" style="display:none">
+        <div class="sec-title" style="text-align:center;margin:2px 0 10px">Imposta gioco</div>
+        <div class="slot" id="mSlotA">
+          <input type="file" accept="image/*" hidden>
+          <span class="thumb" id="mThumbA" title="Vedi la foto"><span class="ph none">✕</span></span>
+          <span class="slot-txt"><span class="t">Foto A · neutra</span><span class="s">di attesa · resta in memoria</span></span>
+          <button class="slotbtn" type="button" data-cambia>Carica</button>
+          <button class="slotx" type="button" data-del title="Elimina">&times;</button>
         </div>
-        <div style="flex:1;background:var(--gold-soft);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--gold)" id="cntB">0</div>
-          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Viste Rivelazione</div>
+        <div class="slot" id="mSlotB">
+          <input type="file" accept="image/*" hidden>
+          <span class="thumb" id="mThumbB" title="Vedi la foto"><span class="ph none">✕</span></span>
+          <span class="slot-txt"><span class="t">Rivelazione (Foto B)</span><span class="s">da caricare prima di ogni "Avvia"</span></span>
+          <button class="slotbtn" type="button" data-cambia>Carica</button>
+          <button class="slotx" type="button" data-del title="Elimina">&times;</button>
         </div>
+        <p class="hint">Carica <b>Foto A</b> e <b>Rivelazione</b>, poi premi <b>Avvia gioco</b>. Le trovi sempre anche in <b>Impostazioni → Imposta foto</b>.</p>
       </div>
-      <div class="abstats" style="display:flex;gap:10px;margin-top:10px">
-        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntRic">0</div>
-          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail ricevute</div>
-        </div>
-        <div style="flex:1;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;padding:12px 10px;text-align:center">
-          <div style="font-size:26px;font-weight:800;line-height:1;color:var(--ink)" id="cntInv">0</div>
-          <div style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-dim);margin-top:6px">Mail inviate</div>
-        </div>
-      </div>
+
       <div class="phaseline" id="phaseLine">Gioco spento · nessuna foto mostrata</div>
 
       <div class="meta">
@@ -488,9 +545,10 @@
       <div class="game-btns">
         <button class="btn ghost" id="startBtn">Avvia gioco</button>
         <button class="btn ghost" id="replyBtn" style="display:none">✉️ Rispondi mail</button>
-        <div style="display:flex;gap:10px">
+        <div style="display:flex;gap:10px;align-items:center">
           <button class="btn ghost" id="swapBtn" disabled style="flex:1">Cambia (rivela)</button>
-          <button class="btn ghost" id="eyeBtn" type="button" title="Vedi Foto A e B" style="flex:0 0 54px;font-size:20px;padding:0">👁</button>
+          <button class="btn ghost" id="eyeBtn" type="button" title="Vedi Foto A e B" style="flex:0 0 46px;height:46px;font-size:20px;padding:0">👁</button>
+          <button id="helpRound" type="button" title="Aiuto — come si gioca" aria-label="Aiuto">?</button>
         </div>
         <button class="btn ghost" id="stopBtn" disabled>Finisci gioco</button>
       </div>
@@ -777,6 +835,31 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
 </div>
 
+<!-- FOGLIO AIUTO (si apre dal tasto "?") -->
+<div class="ahelp" id="ahelp" role="dialog" aria-label="Aiuto">
+  <div class="ahelp-card">
+    <div class="ahelp-head"><b>Aiuto</b><button id="ahelpClose" type="button" aria-label="Chiudi">&times;</button></div>
+    <div class="ahelp-body">
+      <button class="btn spiega" id="ahelpSpiega" type="button">▶ Spiega come si gioca (passo-passo)</button>
+      <button class="btn ghost" id="ahelpTasti" type="button">Spiega i singoli tasti</button>
+      <div class="ahelp-note">👁 <b>L'occhio</b> ti fa vedere la <b>Foto A</b> e la <b>Rivelazione</b> come le vedono gli spettatori, <b>senza inviare</b> nulla: un controllo al volo.</div>
+      <div class="ahelp-note">Le <b>foto</b> le puoi cambiare anche dopo: le trovi sempre in <b class="em">Impostazioni → Imposta foto</b> (la prima casella del menù). E se non avevi preparato la rivelazione, puoi caricarla al momento dal tasto <b class="em">Cambia (rivela)</b>.</div>
+      <div class="ahelp-note">Questo <b>?</b> è il tuo aiuto: sta sempre qui, accanto all'<b>occhio</b>. Riaprilo quando vuoi.</div>
+    </div>
+  </div>
+</div>
+
+<!-- COACHMARK "come si gioca" (riflettore passo-passo) -->
+<div id="coBack"></div>
+<div id="coSpot"></div>
+<div id="coTip">
+  <span class="arrow" id="coArrow"></span>
+  <span class="num" id="coNum">1</span>
+  <div class="ti" id="coTi"></div>
+  <div class="tx" id="coTx"></div>
+  <div class="row"><button id="coSkip" type="button">Esci</button><button class="go" id="coNext" type="button">Avanti →</button></div>
+</div>
+
 <script>
 (function(){
   var $=function(id){return document.getElementById(id);};
@@ -900,6 +983,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         if(j.admin){ window.location.href='admin.html'; return; }   // amministratore
         if(loginView) loginView.classList.add('hidden');
         applyFlags(); poll();
+        // prima installazione: mostra una volta sola il percorso "come si gioca"
+        setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 900);
       })
       .catch(function(){ toast('Server non raggiungibile','err'); });
   }
@@ -1016,6 +1101,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     else if(fase==='terminato'){ elLbl.textContent='Terminato'; }
     else { elLbl.textContent='Spento'; }
 
+    // ZONA CHE CAMBIA: a gioco attivo mostro i conteggi; a gioco spento/finito le foto da caricare
+    var sLive=$('stageLive'), sPrep=$('stagePrep');
+    if(sLive && sPrep){ sLive.style.display = attivo ? '' : 'none'; sPrep.style.display = attivo ? 'none' : ''; }
+
     startBtn.disabled = attivo;                 // si avvia solo se non c'è già un gioco attivo
     swapBtn.disabled  = (fase!=='avviato');      // "Cambia" solo mentre è "In corso"
     stopBtn.disabled  = !attivo;                 // "Finisci" mentre è attivo (in corso o rivelato)
@@ -1081,6 +1170,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
     updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
     updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
+    // slot foto della PRIMA schermata (stessi file del menù "Imposta foto")
+    if($('mSlotA')) updateSlot('mSlotA','mThumbA','A', !!st.ha_foto_a, 'A');
+    if($('mSlotB')) updateSlot('mSlotB','mThumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
     // nel menù IA: niente foto base "fantasma" e niente anteprima vecchia
     if(!st.ha_foto_base){ var ma=$('markArea'); if(ma) ma.style.display='none'; }
     if(!(st.ha_rivelazione || st.ha_rivelazione_sess)){ var gpx=$('genPrev'); if(gpx){ gpx.style.display='none'; gpx.removeAttribute('src'); } }
@@ -1511,6 +1603,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   wireSlot('slotA','A','A');
   wireSlot('slotB','B','R');
   if($('slotBase')) wireSlot('slotBase','BASE','F');   // foto base (strumento foto, utente 003)
+  if($('mSlotA')) wireSlot('mSlotA','A','A');          // Foto A nella PRIMA schermata
+  if($('mSlotB')) wireSlot('mSlotB','B','R');          // Rivelazione nella PRIMA schermata
 
   // ---- salva la casella mail dell'utente (sezione mail) ----
   var smBtn=$('saveMail');
@@ -1691,7 +1785,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   };
 
   function gApri(s){ if(!gEl) return; gOpen=true; gEl.classList.add('open'); gScreen=s; gRender(); }
-  function gChiudi(ok){ gOpen=false; if(gEl) gEl.classList.remove('open'); if(ok) gOkSet(true); poll(); }
+  function gChiudi(ok){ gOpen=false; if(gEl) gEl.classList.remove('open'); if(ok) gOkSet(true); poll();
+    // appena finita la configurazione casella, proponi "come si gioca" (una volta sola)
+    setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 700); }
   function gGo(s){ gScreen=s; gRender(); if(gEl) gEl.scrollTop=0; window.scrollTo(0,0); }
 
   function gSetSteps(n){
@@ -1881,6 +1977,66 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       return;
     }
   });
+
+  /* ===== AIUTO rapido ("?") + percorso "come si gioca" (coachmark) ===== */
+  var ahEl=$('ahelp');
+  function ahOpen(){ if(ahEl) ahEl.classList.add('open'); }
+  function ahClose(){ if(ahEl) ahEl.classList.remove('open'); }
+  var hr=$('helpRound'); if(hr) hr.addEventListener('click', ahOpen);
+  if($('ahelpClose')) $('ahelpClose').addEventListener('click', ahClose);
+  if(ahEl) ahEl.addEventListener('click', function(e){ if(e.target===ahEl) ahClose(); });
+  if($('ahelpTasti')) $('ahelpTasti').addEventListener('click', function(){ ahClose(); if(window.__helpTastiOpen) window.__helpTastiOpen(); });
+
+  var coPassi=[
+    {sel:'mSlotA', n:1, t:'Carica la Foto A', x:'È la foto di <b>attesa</b>: quella che gli spettatori vedono all\'inizio. Tocca <b>Carica</b> qui.'},
+    {sel:'mSlotB', n:2, t:'Carica la Rivelazione', x:'È la <b>Foto B</b>: appare quando premi "Cambia". Tocca <b>Carica</b> qui.'},
+    {sel:'startBtn', n:3, t:'Premi "Avvia gioco"', x:'Parte lo show: chi scrive riceve la <b>Foto A</b>. Qui sopra compaiono i <b>conteggi</b> dal vivo.'},
+    {sel:'swapBtn', n:4, t:'Al momento giusto: "Cambia"', x:'La foto passa alla <b>rivelazione (B)</b>. Il gioco resta attivo e continua a rispondere.'},
+    {sel:'stopBtn', n:5, t:'A fine show: "Finisci"', x:'Chiude la sessione. La foto <b>B resta per sempre</b> a chi l\'ha ricevuta. Tornano le foto da caricare.'},
+    {sel:'eyeBtn', n:6, t:'L\'occhio', x:'Ti fa vedere la <b>Foto A</b> e la <b>B</b> come le vedono gli spettatori, <b>senza inviare</b> nulla.'},
+    {sel:'helpRound', n:7, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui, accanto all\'occhio. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
+  ];
+  var ci=0;
+  function coStart(){ ahClose(); ci=0; $('coBack').classList.add('on'); $('coTip').style.display='block'; coShow(); }
+  function coEnd(){ $('coBack').classList.remove('on'); $('coTip').style.display='none'; $('coSpot').style.display='none'; try{ localStorage.setItem('pred_howto_'+getUser(),'1'); }catch(e){} }
+  function coShow(){
+    var p=coPassi[ci], el=$(p.sel);
+    if(!el || el.offsetParent===null){ if(ci>=coPassi.length-1){ coEnd(); return; } ci++; return coShow(); }
+    el.scrollIntoView({block:'center'});
+    requestAnimationFrame(function(){
+      var r=el.getBoundingClientRect(), pad=8, sp=$('coSpot');
+      sp.style.display='block'; sp.style.left=(r.left-pad)+'px'; sp.style.top=(r.top-pad)+'px';
+      sp.style.width=(r.width+pad*2)+'px'; sp.style.height=(r.height+pad*2)+'px';
+      $('coNum').textContent=p.n; $('coTi').textContent=p.t; $('coTx').innerHTML=p.x;
+      $('coNext').textContent=(ci>=coPassi.length-1)?'Ho capito ✓':'Avanti →';
+      var tip=$('coTip'); tip.style.visibility='hidden';
+      requestAnimationFrame(function(){
+        var th=tip.offsetHeight, tw=tip.offsetWidth, below=(r.bottom+12+th<window.innerHeight);
+        var top=below?(r.bottom+12):(r.top-12-th);
+        var left=Math.min(Math.max(12, r.left+r.width/2-tw/2), window.innerWidth-tw-12);
+        tip.style.top=top+'px'; tip.style.left=left+'px';
+        var ar=$('coArrow'), ax=Math.min(Math.max(16, r.left+r.width/2-left), tw-16); ar.style.left=(ax-9)+'px';
+        if(below){ ar.style.top='-18px'; ar.style.borderBottomColor='var(--gold)'; ar.style.borderTopColor='transparent'; }
+        else { ar.style.top=th+'px'; ar.style.borderTopColor='var(--gold)'; ar.style.borderBottomColor='transparent'; }
+        tip.style.visibility='visible';
+      });
+    });
+  }
+  function coNext(){ if(ci>=coPassi.length-1){ coEnd(); return; } ci++; coShow(); }
+  if($('ahelpSpiega')) $('ahelpSpiega').addEventListener('click', coStart);
+  if($('coNext')) $('coNext').addEventListener('click', coNext);
+  if($('coSkip')) $('coSkip').addEventListener('click', coEnd);
+  window.addEventListener('resize', function(){ if($('coBack').classList.contains('on')) coShow(); });
+  window.__comeSiGioca = coStart;
+  // PRIMA INSTALLAZIONE: mostra una volta sola il percorso "come si gioca"
+  window.__howtoFirstRun = function(){
+    try{ if(localStorage.getItem('pred_howto_'+getUser())==='1') return; }catch(e){ return; }
+    // mostra solo quando sappiamo che la casella del gioco è già impostata
+    // (per i nuovi utenti prima parte l'altra guida, poi questa a configurazione fatta)
+    if(!cur || cur.mail_impostata===false) return;
+    if($('guida') && $('guida').classList.contains('open')) return;
+    coStart();
+  };
 })();
 
 // ====== AIUTO — guida ai tasti della Regia (1° tocco spiega, 2° esegue) ======
@@ -1959,6 +2115,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }).join('');
   }
   function openIntro(){ buildLocked(); var m=$('helpIntro'); if(m) m.classList.add('open'); }
+  window.__helpTastiOpen = openIntro;   // richiamabile dal nuovo foglio Aiuto ("?")
   function closeIntro(){ var m=$('helpIntro'); if(m) m.classList.remove('open'); }
   function activate(){ helpMode=true; armed=null; var b=$('helpBadge'); if(b) b.classList.add('on'); closeIntro(); }
   function deactivate(){ helpMode=false; armed=null; hideTip(); var b=$('helpBadge'); if(b) b.classList.remove('on'); }
