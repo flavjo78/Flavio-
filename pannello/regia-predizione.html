@@ -1990,20 +1990,28 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(ahEl) ahEl.addEventListener('click', function(e){ if(e.target===ahEl) ahClose(); });
   if($('ahelpTasti')) $('ahelpTasti').addEventListener('click', function(){ ahClose(); if(window.__helpTastiOpen) window.__helpTastiOpen(); });
 
+  function coCloseSet(){ try{ setView.classList.remove('open'); backMenu(); }catch(e){} }
+  function coOpenMenu(){ try{ backMenu(); setView.classList.add('open'); setView.scrollTop=0; }catch(e){} }
   var coPassi=[
-    {sel:'mSlotA', n:1, t:'Carica la Foto A', x:'È la foto di <b>attesa</b>: quella che gli spettatori vedono all\'inizio. Tocca <b>Carica</b> qui.'},
-    {sel:'mSlotB', n:2, t:'Carica la Rivelazione', x:'È la <b>Foto B</b>: appare quando premi "Cambia". Puoi caricarla ora, oppure <b>anche dopo l\'Avvia</b> (fino a "Cambia"). La trovi sempre in <b>Impostazioni → Imposta foto</b>.'},
-    {sel:'startBtn', n:3, t:'Premi "Avvia gioco"', x:'Parte lo show: chi scrive riceve la <b>Foto A</b>. Qui sopra compaiono i <b>conteggi</b> dal vivo.'},
-    {sel:'swapBtn', n:4, t:'Al momento giusto: "Cambia"', x:'La foto passa alla <b>rivelazione (B)</b>. Il gioco resta attivo e continua a rispondere.'},
-    {sel:'stopBtn', n:5, t:'A fine show: "Finisci"', x:'Chiude la sessione. La foto <b>B resta per sempre</b> a chi l\'ha ricevuta. Tornano le foto da caricare.'},
-    {sel:'eyeBtn', n:6, t:'L\'occhio', x:'Ti fa vedere la <b>Foto A</b> e la <b>B</b> come le vedono gli spettatori, <b>senza inviare</b> nulla.'},
-    {sel:'helpRound', n:7, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui in basso, <b>tra "Cambia" e "Finisci"</b>. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
+    {sel:'#mSlotA', n:1, t:'1) Carica la Foto A', x:'È la foto di <b>attesa</b>: quella che gli spettatori vedono all\'inizio. Tocca <b>Carica</b> qui.'},
+    {sel:'#mSlotB', n:2, t:'2) Carica la Rivelazione', x:'È la <b>Foto B</b>: appare quando premi "Cambia". Puoi caricarla ora, oppure <b>anche dopo l\'Avvia</b> (fino a "Cambia").'},
+    {prep:function(){ coCloseSet(); }, wait:380, sel:'#openSet', n:3, t:'3) Apri le Impostazioni', x:'Per le altre cose tocca l\'<b>ingranaggio</b> in alto a sinistra: si apre il <b>menù</b> con le caselle.'},
+    {prep:function(){ coOpenMenu(); }, wait:440, sel:'#setMenu [data-go="foto"]', n:4, t:'4) Casella "Imposta foto"', x:'Tocca <b>Imposta foto</b>: da qui cambi le foto <b>quando vuoi</b>, anche a <b>gioco avviato</b> — ricarichi la <b>Foto A</b> o la <b>Rivelazione</b> (o la crei con <b>Foto magic</b>).'},
+    {prep:function(){ coOpenMenu(); }, wait:300, sel:'#setMenu [data-go="testomail"]', n:5, t:'5) Casella "Testo mail"', x:'Tocca <b>Testo mail</b> per scrivere il <b>messaggio</b> (e l\'<b>oggetto</b>) che arriva insieme alla foto. È facoltativo.'},
+    {prep:function(){ coCloseSet(); }, wait:380, sel:'#startBtn', n:6, t:'6) Premi "Avvia gioco"', x:'Parte lo show: chi scrive riceve la <b>Foto A</b>. Nella prima schermata compaiono i <b>conteggi</b> dal vivo.'},
+    {sel:'#swapBtn', n:7, t:'7) Al momento giusto: "Cambia"', x:'La foto passa alla <b>rivelazione (B)</b>. Se non avevi caricato la Rivelazione, premendo "Cambia" <b>te la fa caricare</b> al volo.'},
+    {sel:'#stopBtn', n:8, t:'8) A fine show: "Finisci"', x:'Chiude la sessione. La foto <b>B resta per sempre</b> a chi l\'ha ricevuta. Tornano le foto da caricare.'},
+    {sel:'#eyeBtn', n:9, t:'L\'occhio', x:'Ti fa vedere la <b>Foto A</b> e la <b>B</b> come le vedono gli spettatori, <b>senza inviare</b> nulla.'},
+    {sel:'#helpRound', n:10, t:'Questo è l\'Aiuto', x:'Il <b>?</b> sta sempre qui in basso, <b>tra "Cambia" e "Finisci"</b>. Riaprilo quando vuoi: dentro c\'è anche questo percorso.'}
   ];
   var ci=0;
   function coStart(){ ahClose(); ci=0; $('coBack').classList.add('on'); $('coTip').style.display='block'; coShow(); }
-  function coEnd(){ $('coBack').classList.remove('on'); $('coTip').style.display='none'; $('coSpot').style.display='none'; try{ localStorage.setItem('pred_howto_'+getUser(),'1'); }catch(e){} }
+  function coEnd(){ coCloseSet(); $('coBack').classList.remove('on'); $('coTip').style.display='none'; $('coSpot').style.display='none'; try{ localStorage.setItem('pred_howto_'+getUser(),'1'); }catch(e){} }
   function coShow(){
-    var p=coPassi[ci], el=$(p.sel);
+    var p=coPassi[ci];
+    if(p.prep){ try{ p.prep(); }catch(e){} }
+    setTimeout(function(){
+    var el=document.querySelector(p.sel);
     if(!el || el.offsetParent===null){ if(ci>=coPassi.length-1){ coEnd(); return; } ci++; return coShow(); }
     el.scrollIntoView({block:'center'});
     requestAnimationFrame(function(){
@@ -2024,6 +2032,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         tip.style.visibility='visible';
       });
     });
+    }, p.wait||0);
   }
   function coNext(){ if(ci>=coPassi.length-1){ coEnd(); return; } ci++; coShow(); }
   if($('ahelpSpiega')) $('ahelpSpiega').addEventListener('click', coStart);
