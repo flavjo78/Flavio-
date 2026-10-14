@@ -478,6 +478,11 @@ function predizione_admin(string $azione): void {
                 $st   = predizione_leggi_stato();
                 $sess = predizione_sessione_corrente($st);
                 predizione_set_utente($prevU);
+                // OTTIMIZZAZIONE (ROADMAP §2): elenca al robottino SOLO i giochi ATTIVI.
+                // L'autorisponditore e' ON solo tra "Avvia" e "Finisci": i giochi spenti
+                // non vengono nemmeno inviati, cosi' la Lambda non ci perde tempo (ne' si
+                // connette alla loro casella). Il robottino ha comunque il suo controllo.
+                if (empty($st['autorisponditore'])) continue;
                 $out[] = [
                     'utente'           => (string)$num,
                     'pass_pannello'    => (string)($rec['pass'] ?? ''),

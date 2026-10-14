@@ -23,6 +23,13 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 33)
+> - **Robottino: solo i giochi ATTIVI (ROADMAP §2).** `admin_caselle` ora salta le caselle con
+>   gioco spento (`if (empty($st['autorisponditore'])) continue;`): la Lambda riceve solo gli show
+>   avviati e non perde tempo né si connette alle caselle spente. Il controllo lato Lambda
+>   (`!stato.autorisponditore` → esce) resta come rete di sicurezza. 001 resta gestito a parte via env.
+>   Solo `stato.php` (nessuna modifica alla Lambda per questa voce). ROADMAP §2 → fatto.
+
 > ### Aggiunte 14 ottobre 2026 (AGG 32)
 > - **Report: righe non più sfalsate.** La riga "mail ricevuta" e la riga "aperture" ora si
 >   UNISCONO per destinatario. Causa del problema: l'`id` del destinatario cambiava tra la
