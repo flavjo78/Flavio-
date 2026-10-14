@@ -75,6 +75,80 @@ function predizione_diario(array &$stato, int $sid, string $azione): void {
     $stato['sessioni'][$k]['diario'][] = ['a' => $azione, 'ts' => time()];
 }
 
+/* Chiude una sessione (come il tasto "Finisci"): congela la rivelazione pronta,
+   fase=terminato, spegne l'autorisponditore, revoca l'assistente, pulisce le foto.
+   Usata sia dall'azione 'finisci' sia dallo spegnimento automatico di sicurezza. */
+function predizione_chiudi_sessione(array &$stato, int $id, string $motivo = 'finisci'): void {
+    if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) return;
+    // se si chiude senza aver mai premuto "Cambia" ma c'e' una rivelazione pronta, congelala
+    $aft = $stato['sessioni'][(string)$id]['after'] ?? null;
+    $riv = $stato['rivelazione_pronta'] ?? null;
+    if ((empty($aft) || !is_file($aft)) && !empty($riv) && is_file($riv)) {
+        predizione_congela_rivelazione($stato, $id, $riv);
+    }
+    $stato['sessioni'][(string)$id]['fase'] = 'terminato';
+    $stato['sessioni'][(string)$id]['fine_ts'] = time();
+    predizione_diario($stato, $id, $motivo);
+    $stato['forza'] = null;
+    $stato['autorisponditore'] = false;      // la Lambda smette di leggere/rispondere
+    $stato['assistente_token'] = null;        // il link assistente scade con la fine
+    predizione_pulisci_foto_base($stato);
+    if (!empty($stato['rivelazione_pronta']) && is_file($stato['rivelazione_pronta'])) @unlink($stato['rivelazione_pronta']);
+    $stato['rivelazione_pronta'] = null;
+    if (empty($stato['blocca_foto_a'])) {
+        if (!empty($stato['foto_a']) && is_file($stato['foto_a'])) @unlink($stato['foto_a']);
+        $stato['foto_a'] = null;
+    }
+}
+
+/* Stato della SICUREZZA della sessione in corso: da quanto è attiva e a che
+   "tappa" siamo (ok → avviso → rallentato → fermo). Il cronometro parte
+   dall'ULTIMA conferma: 'proroga_ts' (impostato all'Avvia e aggiornato dal tasto
+   "Sì, continua"); ripiega su 'avvio_ts'. Ogni "Avvia" fa una sessione nuova con
+   orario nuovo, quindi un gioco nuovo non viene mai scambiato per uno vecchio.
+   Ritorna anche i secondi mancanti alle prossime tappe (per il pop-up in Regia). */
+function predizione_sicurezza(array $s): array {
+    $id = (int)($s['sessione_corrente'] ?? 0);
+    $sess = ($id > 0 && isset($s['sessioni'][(string)$id])) ? $s['sessioni'][(string)$id] : null;
+    $vuoto = ['fase' => 'ok', 'attiva' => false, 'disattivata' => false, 'ferma_tra' => 0,
+              'avviso_tra' => 0, 'rallenta_tra' => 0];
+    if (!$sess) return $vuoto;
+    $faseGioco = $sess['fase'] ?? '';
+    if ($faseGioco !== 'avviato' && $faseGioco !== 'cambiato') return $vuoto;
+    $avv = (int)($sess['avvio_ts'] ?? time());
+    $off = !empty($sess['sicurezza_off']);
+    // scadenza = quando il gioco si chiude da solo (impostata all'Avvia, spostata da "Sì, continua")
+    $scad = (int)($sess['scadenza_ts'] ?? ($avv + PRED_SIC_DURATA_ORE * 3600));
+    $now  = time();
+    if ($off) {
+        // avvisi disattivati: niente pop-up/rallenta, SOLO il tetto assoluto dall'Avvia
+        $hard = $avv + PRED_SIC_HARD_ORE * 3600;
+        return ['fase' => ($now >= $hard ? 'fermo' : 'ok'), 'attiva' => true, 'disattivata' => true,
+                'ferma_tra' => max(0, $hard - $now), 'avviso_tra' => 0, 'rallenta_tra' => 0];
+    }
+    $manca    = $scad - $now;                                   // secondi alla chiusura
+    $sogliaAv = PRED_SIC_AVVISO_ANTICIPO_ORE   * 3600;          // avviso quando manca <= 3h
+    $sogliaRa = PRED_SIC_RALLENTA_ANTICIPO_ORE * 3600;          // rallenta quando manca <= 1h
+    if     ($manca <= 0)        $fase = 'fermo';
+    elseif ($manca <= $sogliaRa) $fase = 'rallentato';
+    elseif ($manca <= $sogliaAv) $fase = 'avviso';
+    else                         $fase = 'ok';
+    return ['fase' => $fase, 'attiva' => true, 'disattivata' => false,
+            'ferma_tra' => max(0, $manca),
+            'avviso_tra' => max(0, $manca - $sogliaAv),
+            'rallenta_tra' => max(0, $manca - $sogliaRa)];
+}
+
+/* SPEGNIMENTO AUTOMATICO: se la sicurezza è arrivata alla tappa 'fermo', chiude
+   la sessione da sola. Scatta a ogni lettura (incluso ogni giro del robottino),
+   quindi funziona anche con l'app del performer chiusa. Ritorna true se ha chiuso. */
+function predizione_autochiusura(array &$stato): bool {
+    $sic = predizione_sicurezza($stato);
+    if (($sic['fase'] ?? 'ok') !== 'fermo') return false;
+    predizione_chiudi_sessione($stato, (int)($stato['sessione_corrente'] ?? 0), 'auto_fine');
+    return true;
+}
+
 /* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
     $sess = predizione_sessione_corrente($s);
@@ -114,6 +188,7 @@ function predizione_stato_pubblico(array $s): array {
         'palco_abilitato'  => !empty(predizione_limiti_utente(predizione_utente_record(predizione_utente()) ?: [])['grandi_invii']),
         'rispondi_manuale' => !empty($s['rispondi_manuale']),   // "tasto Rispondi" attivo?
         'rispondi_ok'      => !empty($s['rispondi_ok']),        // via libera gia' dato in questa sessione?
+        'sicurezza'        => predizione_sicurezza($s),         // tappe anti-dimenticanza (pop-up Regia)
     ];
 }
 
@@ -476,6 +551,7 @@ function predizione_admin(string $azione): void {
                 $prevU = predizione_utente();
                 predizione_set_utente((string)$num);
                 $st   = predizione_leggi_stato();
+                if (predizione_autochiusura($st)) { predizione_scrivi_stato($st); }  // spegnimento 12h anche per i clienti
                 $sess = predizione_sessione_corrente($st);
                 predizione_set_utente($prevU);
                 // OTTIMIZZAZIONE (ROADMAP §2): elenca al robottino SOLO i giochi ATTIVI.
@@ -499,6 +575,7 @@ function predizione_admin(string $azione): void {
                     'autorisponditore' => !empty($st['autorisponditore']),
                     'rispondi_manuale' => !empty($st['rispondi_manuale']),
                     'rispondi_ok'      => !empty($st['rispondi_ok']),
+                    'sicurezza_fase'   => predizione_sicurezza($st)['fase'],   // ok|avviso|rallentato (per i giri veloci)
                     'mail_oggetto'     => (string)($st['mail_oggetto'] ?? ''),
                     'mail_testo'       => (string)($st['mail_testo'] ?? ''),
                 ];
@@ -550,6 +627,11 @@ if (strpos($azione, 'admin_') === 0) {
 
 $stato = predizione_leggi_stato();
 
+/* Spegnimento automatico di sicurezza: se il gioco è avviato da troppe ore
+   (dimenticanza) lo chiude da solo. Scatta a ogni lettura — incluso ogni giro
+   del robottino — così funziona anche se l'app del performer è chiusa. */
+if (predizione_autochiusura($stato)) { predizione_scrivi_stato($stato); }
+
 /* ---- lettura stato (senza password) ------------------------------------ */
 if ($azione === 'stato') {
     $pub = predizione_stato_pubblico($stato);
@@ -564,7 +646,7 @@ if ($azione === 'stato') {
 
 /* ---- da qui serve l'accesso: password dell'utente OPPURE, per i soli
        comandi del gioco, un valido lasciapassare "Assistente di scena" ---- */
-$AZIONI_ASSISTENTE = ['avvia', 'cambia', 'finisci', 'rispondi'];
+$AZIONI_ASSISTENTE = ['avvia', 'cambia', 'finisci', 'rispondi', 'proroga', 'sicurezza'];
 $assistTok = p('assistente');
 $accessoOk = predizione_auth($utente, $password)
     || (in_array($azione, $AZIONI_ASSISTENTE, true) && predizione_assistente_valido($stato, $assistTok));
@@ -613,6 +695,7 @@ switch ($azione) {
             'after'          => null,       // la rivelazione si congela a "Cambia" (o se e' gia' pronta, qui sotto)
             'orario_scambio' => $ts ?: null,
             'avvio_ts'       => time(),
+            'scadenza_ts'    => time() + PRED_SIC_DURATA_ORE * 3600,   // chiusura automatica (la sposta "Sì, continua")
         ];
         $stato['sessione_corrente']  = $nid;
         $stato['ultimo_id']          = $nid;
@@ -667,30 +750,7 @@ switch ($azione) {
         if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
             predizione_json(['ok' => false, 'errore' => 'Nessuna sessione da terminare'], 400);
         }
-        // se si chiude senza aver mai premuto "Cambia" ma c'e' una rivelazione
-        // pronta, congelala (cosi' resta per sempre a chi apre dopo)
-        $aft = $stato['sessioni'][(string)$id]['after'] ?? null;
-        $riv = $stato['rivelazione_pronta'] ?? null;
-        if ((empty($aft) || !is_file($aft)) && !empty($riv) && is_file($riv)) {
-            predizione_congela_rivelazione($stato, $id, $riv);
-        }
-        $stato['sessioni'][(string)$id]['fase'] = 'terminato';
-        $stato['sessioni'][(string)$id]['fine_ts'] = time();   // orario di fine gioco (per il report)
-        predizione_diario($stato, $id, 'finisci');             // storia della sessione
-        $stato['forza'] = null;
-        // l'autorisponditore si SPEGNE da solo alla fine (la Lambda smette di leggere la posta)
-        $stato['autorisponditore'] = false;
-        // il link "Assistente di scena" scade con la fine della sessione
-        $stato['assistente_token'] = null;
-        predizione_pulisci_foto_base($stato);   // la "Foto magic" riparte pulita al prossimo show
-        // "Imposta foto" si svuota dopo Finisci, A MENO CHE la spunta "blocca Foto A" sia accesa.
-        // La rivelazione (Foto B pronta) si svuota comunque: è sempre diversa a ogni show.
-        if (!empty($stato['rivelazione_pronta']) && is_file($stato['rivelazione_pronta'])) @unlink($stato['rivelazione_pronta']);
-        $stato['rivelazione_pronta'] = null;
-        if (empty($stato['blocca_foto_a'])) {
-            if (!empty($stato['foto_a']) && is_file($stato['foto_a'])) @unlink($stato['foto_a']);
-            $stato['foto_a'] = null;
-        }
+        predizione_chiudi_sessione($stato, $id, 'finisci');
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -760,6 +820,32 @@ switch ($azione) {
         // (serve solo quando "rispondi_manuale" e' attivo). Password o assistente.
         $stato['rispondi_ok'] = true;
         predizione_diario($stato, (int)($stato['sessione_corrente'] ?? 0), 'rispondi');  // storia della sessione
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'proroga':
+        // "Sì, continua": rimanda lo spegnimento di sicurezza (riparte da adesso).
+        $id = (int)($stato['sessione_corrente'] ?? 0);
+        if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
+            predizione_json(['ok' => false, 'errore' => 'Nessuna sessione attiva'], 400);
+        }
+        $base = max((int)($stato['sessioni'][(string)$id]['scadenza_ts'] ?? 0), time());
+        $stato['sessioni'][(string)$id]['scadenza_ts'] = $base + PRED_SIC_PROROGA_ORE * 3600;  // +3 ore
+        $stato['sessioni'][(string)$id]['sicurezza_off'] = false;   // confermare riattiva gli avvisi
+        predizione_diario($stato, $id, 'proroga');
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'sicurezza':
+        // interruttore degli avvisi di sicurezza PER QUESTO SHOW (ON=attivi, OFF=disattivati).
+        $id = (int)($stato['sessione_corrente'] ?? 0);
+        if ($id <= 0 || !isset($stato['sessioni'][(string)$id])) {
+            predizione_json(['ok' => false, 'errore' => 'Nessuna sessione attiva'], 400);
+        }
+        $valore = strtoupper((string)(p('valore') ?? ''));
+        $off = ($valore === 'OFF' || $valore === '0' || $valore === 'FALSE');
+        $stato['sessioni'][(string)$id]['sicurezza_off'] = $off;
+        if (!$off) $stato['sessioni'][(string)$id]['scadenza_ts'] = time() + PRED_SIC_DURATA_ORE * 3600;  // riattivando, riparte il conto
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

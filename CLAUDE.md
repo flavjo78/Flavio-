@@ -23,6 +23,30 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 34 — robottino veloce + sicurezza anti-dimenticanza)
+> - **Robottino VELOCE (~12s).** La sveglia resta 1/minuto (minimo EventBridge) ma la Lambda
+>   fa più giri ravvicinati dentro la stessa invocazione: `handler` cicla `unGiro()` con pausa
+>   ~12s finché c'è almeno uno show con `giro_veloce` e finché resta tempo (MAX_MS 50s, niente
+>   sovrapposizioni). A riposo/shows spenti esce subito (gratis). `processaCasella` ritorna
+>   `giro_veloce` (attivo e non 'rallentato'/'fermo'). Giri sequenziali = nessun rischio doppione.
+> - **Sicurezza anti-dimenticanza a tappe** (config.php: `PRED_SIC_DURATA_ORE`=12,
+>   `_AVVISO_ANTICIPO`=3→9h, `_RALLENTA_ANTICIPO`=1→11h, `_PROROGA`=3, `_HARD`=24). Ogni sessione
+>   ha `scadenza_ts` (avvia = now+12h). `predizione_sicurezza($s)` → fase ok|avviso|rallentato|fermo
+>   + `ferma_tra`; esposta in stato pubblico e in `admin_caselle` (`sicurezza_fase`).
+>   `predizione_autochiusura()` chiude la sessione a 'fermo' (riusa `predizione_chiudi_sessione`,
+>   estratto da 'finisci'); gira a OGNI lettura di stato.php (anche ogni giro del robottino →
+>   funziona ad app chiusa). Azioni nuove: `proroga` (scadenza += 3h, "Sì continua") e `sicurezza`
+>   (ON/OFF avvisi per lo show; OFF lascia solo il tetto HARD 24h). Entrambe anche per l'assistente.
+> - **Pop-up Regia "Sei ancora in gioco?"** (`#sicBox`, stile `.hist`): compare quando
+>   `st.sicurezza.fase` è 'avviso' o 'rallentato', con countdown `ferma_tra`, tasti "Sì, continua
+>   (+3 ore)" (azione `proroga`) e "Non avvisarmi per questo show" (azione `sicurezza` OFF).
+>   `aggiornaSicurezza(st)` chiamata da `render`. Service-worker v12.
+> - **Ogni "Avvia" azzera il cronometro** (nuova sessione = nuovo `scadenza_ts`): un gioco nuovo
+>   non viene mai scambiato per uno vecchio.
+> - **NOTA SCALA:** la Lambda è ancora SEQUENZIALE (un giro processa casa + le caselle attive una
+>   dopo l'altra). Ottima per pochi show insieme; per decine di show grandi in contemporanea serve
+>   il "parallelo sicuro" (ROADMAP §2), non ancora costruito. **Richiede re-deploy Lambda su AWS.**
+
 > ### Aggiunte 14 ottobre 2026 (AGG 33)
 > - **Robottino: solo i giochi ATTIVI (ROADMAP §2).** `admin_caselle` ora salta le caselle con
 >   gioco spento (`if (empty($st['autorisponditore'])) continue;`): la Lambda riceve solo gli show

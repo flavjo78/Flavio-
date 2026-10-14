@@ -32,6 +32,22 @@ const PRED_DEFAULT_PASS = 'aaa';   // utenti 001/002/003
 /* ---- Log delle aperture (la "cattura") --------------------------------- */
 const ABILITA_LOG = true;
 
+/* ---- Spegnimento automatico di sicurezza (anti-dimenticanza) ----------- */
+/* Se nessuno preme "Finisci", il gioco si chiude da solo a una SCADENZA fissata
+   all'Avvia (now + DURATA ore). Avvicinandosi alla scadenza, a tappe:
+     - AVVISO_ANTICIPO ore prima  -> compare il pop-up "Sei ancora in gioco?";
+     - RALLENTA_ANTICIPO ore prima -> il robottino torna lento (stop giri veloci);
+     - alla scadenza               -> il gioco si chiude da solo.
+   Esempio con DURATA 12 e AVVISO 3: avviso alle 9 ore, stop alle 12 ore.
+   "Sì, continua" sposta la scadenza avanti di PROROGA ore (si può ripetere).
+   Se il performer DISATTIVA gli avvisi, resta solo il tetto assoluto HARD (non
+   si lascia mai acceso all'infinito: protegge dai costi). */
+const PRED_SIC_DURATA_ORE            = 12;  // dall'Avvia alla chiusura automatica
+const PRED_SIC_AVVISO_ANTICIPO_ORE   = 3;   // avviso quante ore PRIMA della scadenza (-> 9h)
+const PRED_SIC_RALLENTA_ANTICIPO_ORE = 1;   // rallenta quante ore PRIMA della scadenza (-> 11h)
+const PRED_SIC_PROROGA_ORE           = 3;   // "Sì, continua" aggiunge queste ore
+const PRED_SIC_HARD_ORE              = 24;   // tetto massimo anche con avvisi disattivati
+
 /* (compatibilita': vecchia costante, non piu' usata per l'accesso) */
 const PREDIZIONE_PASSWORD = 'CAMBIA_QUESTA_PASSWORD';
 

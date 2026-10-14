@@ -844,6 +844,19 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </div>
   </div>
 
+  <!-- AVVISO DI SICUREZZA: "sei ancora in gioco?" (anti-dimenticanza) -->
+  <div class="hist" id="sicBox" role="dialog" aria-label="Sei ancora in gioco?">
+    <div class="hist-card">
+      <div class="hist-head"><b id="sicTitle">Sei ancora in gioco?</b></div>
+      <div style="padding:16px 18px 22px">
+        <p id="sicMsg" style="margin:0 0 6px;font-size:15px;line-height:1.5"></p>
+        <p id="sicCount" style="margin:0 0 16px;color:#b8863b;font-weight:700"></p>
+        <button class="btn primary" id="sicContinua" type="button" style="width:100%">Sì, continua (+3 ore)</button>
+        <button class="btn" id="sicStop" type="button" style="width:100%;margin-top:10px">Non avvisarmi per questo show</button>
+      </div>
+    </div>
+  </div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1137,6 +1150,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }
     phaseLine.textContent=frase;
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
+    if(typeof aggiornaSicurezza==='function') aggiornaSicurezza(st);
 
     setModoUI(st.invio_modo);
     var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : 'Palco'; }
@@ -1269,6 +1283,45 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function offline(){
     chipConn.classList.remove('ok'); connLbl.textContent='Offline'; footHost.textContent='non collegato';
   }
+
+  // ---- AVVISO DI SICUREZZA ("sei ancora in gioco?"): mostra il pop-up quando
+  // la sessione è avviata da troppe ore, con tasti "Sì, continua" / "Non avvisarmi".
+  function sicDurata(sec){ sec=Math.max(0,sec|0); var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
+    if(h>0) return h+'h'+(m>0?(' '+m+'m'):''); if(m>0) return m+' minuti'; return sec+' secondi'; }
+  function aggiornaSicurezza(st){
+    var box=$('sicBox'); if(!box) return;
+    var s=(st && st.sicurezza) ? st.sicurezza : null;
+    var fase=s ? s.fase : 'ok';
+    if(fase==='avviso' || fase==='rallentato'){
+      var tit=$('sicTitle'), msg=$('sicMsg'), cnt=$('sicCount');
+      if(fase==='rallentato'){
+        if(tit) tit.textContent='Il robottino sta rallentando';
+        if(msg) msg.innerHTML="Nessuno conferma da un po'. Il robottino ha <b>rallentato</b> e tra poco <b>si ferma</b> da solo. Sei ancora in gioco?";
+      } else {
+        if(tit) tit.textContent='Sei ancora in gioco?';
+        if(msg) msg.innerHTML='Il gioco è avviato da diverse ore. Se non confermi, il robottino <b>rallenterà</b> e poi <b>si fermerà</b> da solo (sicurezza).';
+      }
+      if(cnt) cnt.textContent = (s && s.ferma_tra) ? ('Si spegne da solo tra circa '+sicDurata(s.ferma_tra)) : '';
+      box.classList.add('open');
+    } else {
+      box.classList.remove('open');
+    }
+  }
+  if($('sicContinua')) $('sicContinua').addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    apiAzione('proroga').then(function(r){
+      if(r && r.data && r.data.ok){ $('sicBox').classList.remove('open'); toast('Gioco prolungato di 3 ore ✓'); if(r.data.stato) render(r.data.stato); }
+      else { toast('Non riuscito','err'); }
+    }).catch(function(){ toast('Non riuscito','err'); });
+  });
+  if($('sicStop')) $('sicStop').addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    apiAzione('sicurezza',{valore:'OFF'}).then(function(r){
+      if(r && r.data && r.data.ok){ $('sicBox').classList.remove('open'); toast('Avvisi disattivati per questo show'); if(r.data.stato) render(r.data.stato); }
+      else { toast('Non riuscito','err'); }
+    }).catch(function(){ toast('Non riuscito','err'); });
+  });
+
   function poll(){ apiStato().then(function(j){ if(j && j.stato){ render(j.stato); aggiornaMenu(j.stato); if(typeof maybeGuida==='function') maybeGuida(j.stato); } else { offline(); } }).catch(offline); }
 
   // aggiorna il timer "Attivo da" ogni secondo (fluido, senza aspettare il polling)

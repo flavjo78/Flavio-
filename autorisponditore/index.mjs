@@ -188,10 +188,13 @@ async function processaCasella(cfg) {
     .filter(Boolean).map((s) => String(s).toLowerCase());
 
   if (!stato.autorisponditore) {
-    return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase };
+    return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase, giro_veloce: false };
   }
   // risponde solo a gioco ATTIVO (avviato = mostra A, cambiato = mostra B)
   const gioco_attivo = stato.sessione > 0 && (stato.fase === 'avviato' || stato.fase === 'cambiato');
+  // giri VELOCI (ogni ~12s) solo se il gioco è attivo e NON è in fase "rallentato"
+  // della sicurezza (vicino allo spegnimento automatico): allora torna lento.
+  const giro_veloce = gioco_attivo && stato.sicurezzaFase !== 'rallentato' && stato.sicurezzaFase !== 'fermo';
   // "TASTO RISPONDI" attivo ma non ancora premuto: NON rispondiamo e NON segnamo
   // le mail come lette (restano in attesa del "Rispondi mail"), pero' le LEGGIAMO
   // lo stesso per CONTARE quelle ricevute (il contatore "Mail ricevute" deve salire
@@ -322,7 +325,7 @@ async function processaCasella(cfg) {
     } catch (e) { console.log('mail_report fallito', utente, e.message); }
   }
 
-  return { utente, sessione: stato.sessione, fase: stato.fase, lette, risposte, errori };
+  return { utente, sessione: stato.sessione, fase: stato.fase, lette, risposte, errori, giro_veloce };
 }
 
 /* invio dalla casella di CASA (001): sceglie il canale (casella/brevo/ses) */
@@ -352,7 +355,10 @@ async function inviaCasa(modo, dest, oggetto, html) {
   });
 }
 
-export const handler = async () => {
+/* UN GIRO: processa la casella di casa (001) + tutte le caselle attive dei
+   clienti. Ritorna l'elenco degli esiti (ognuno con giro_veloce = true se quel
+   gioco vuole essere ricontrollato in fretta). */
+async function unGiro() {
   const esiti = [];
 
   // ---------- casella di CASA (001 / io@abraka.it) ----------
@@ -371,6 +377,7 @@ export const handler = async () => {
           autorisponditore: stato.autorisponditore === true,
           rispondiManuale: stato.rispondi_manuale === true,
           rispondiOk:      stato.rispondi_ok === true,
+          sicurezzaFase:   (stato.sicurezza && stato.sicurezza.fase) ? String(stato.sicurezza.fase) : 'ok',
           oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
           intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
           avvioMs: Number(stato.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
@@ -398,6 +405,7 @@ export const handler = async () => {
           autorisponditore: c.autorisponditore === true,
           rispondiManuale: c.rispondi_manuale === true,
           rispondiOk:      c.rispondi_ok === true,
+          sicurezzaFase:   c.sicurezza_fase ? String(c.sicurezza_fase) : 'ok',
           oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
           intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
           avvioMs: Number(c.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
@@ -420,7 +428,27 @@ export const handler = async () => {
       esiti.push({ utente: c.utente, errore: e.message });
     }
   }
+  return esiti;
+}
 
+const dormi = (ms) => new Promise((r) => setTimeout(r, ms));
+
+export const handler = async () => {
+  // GIRI VELOCI: ogni sveglia (1/minuto) fa più controlli ravvicinati (~12s)
+  // FINCHÉ c'è almeno uno show attivo, così le risposte partono in ~10-12s
+  // invece di ~60s. I giri si fermano prima del minuto dopo (niente sovrapposizioni),
+  // e si fanno SOLO quando serve: a riposo o a show spento si esce subito (gratis).
+  const INIZIO = Date.now();
+  const PAUSA_MS = 12000;     // ~12 secondi tra un controllo e l'altro
+  const MAX_MS   = 50000;     // esci entro ~50s: la sveglia dopo è a 60s
+  let esiti = [];
+  while (true) {
+    esiti = await unGiro();
+    const serveVeloce = esiti.some((e) => e && e.giro_veloce);   // qualche show attivo?
+    if (!serveVeloce) break;                                     // niente da servire in fretta -> esci
+    if (Date.now() - INIZIO + PAUSA_MS > MAX_MS) break;          // tempo quasi finito -> esci
+    await dormi(PAUSA_MS);
+  }
   console.log('ESITO', JSON.stringify(esiti));
   return { caselle: esiti };
 };
