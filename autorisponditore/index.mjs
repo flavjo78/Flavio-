@@ -110,6 +110,23 @@ function idPulito(email) {
   return (base.slice(0, 36) || 'x') + '-' + Date.now().toString(36).slice(-4);
 }
 
+/* hash corto e stabile di una stringa (base36) */
+function hashBreve(s) {
+  let h = 5381; s = String(s || '');
+  for (let i = 0; i < s.length; i++) { h = ((h << 5) + h + s.charCodeAt(i)) >>> 0; }
+  return h.toString(36);
+}
+
+/* id STABILE del destinatario: dipende SOLO dalla mail e dalla sua chiave
+   (Message-ID), non dall'orario. Cosi' l'id con cui registriamo la mail in
+   arrivo e' lo STESSO che mettiamo nell'immagine della risposta: nel report la
+   riga "mail ricevuta" e la riga "aperture" si uniscono (prima restavano sfalsate
+   perche' l'id cambiava tra la registrazione e la risposta). */
+function idStabile(email, chiave) {
+  const base = (email || 'x').replace(/[^A-Za-z0-9_\-]/g, '').slice(0, 36) || 'x';
+  return base + '-' + hashBreve(chiave || email);
+}
+
 /* stato del gioco della casella di casa (utente 001) */
 async function statoCasa() {
   const r = await fetch(STATO_URL + '?azione=stato&u=' + encodeURIComponent(PANEL_USER), { cache: 'no-store' });
@@ -222,6 +239,9 @@ async function processaCasella(cfg) {
         }
         // chiave STABILE della mail (per non contarla due volte tra un giro e l'altro)
         const chiave = msgid || ('uid-' + utente + '-' + stato.sessione + '-' + uid);
+        // id STABILE del destinatario: lo stesso per la registrazione E per l'immagine
+        // della risposta, cosi' nel report le righe si uniscono invece di sfalsarsi.
+        const id = idStabile(mittente, chiave);
 
         // ANTI-LOOP: se la mail arriva dal nostro stesso indirizzo (o e' una
         // nostra risposta rientrata), la ignoriamo. E' gia' segnata \Seen sopra,
@@ -257,7 +277,7 @@ async function processaCasella(cfg) {
               await postPannello({
                 azione: 'mail_log', utente: panelUser, password: panelPass,
                 sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto,
-                id: idPulito(mittente), msgid: chiave,
+                id, msgid: chiave,
               });
             } catch (e) { console.log('mail_log (attesa) fallito', utente, e.message); }
           }
@@ -266,7 +286,6 @@ async function processaCasella(cfg) {
 
         if (gioco_attivo && mittente) {
           try {
-            const id = idPulito(mittente);
             await invia(mittente, stato.oggetto, corpoHtml(utente, stato.sessione, id, stato.intro));
             risposte++;
             // registra il mittente per il report di sessione di QUESTO utente

@@ -145,12 +145,20 @@ function fotoVista($labels) {
     return '—';
 }
 
-/* --- orari chiave della sessione (intestazione del report) --------------- */
-function orarioBreve($ts){ return $ts ? date('d/m/Y H:i', (int)$ts) : '—'; }
-$sInfo   = is_array($stato['sessioni'][(string)$sid] ?? null) ? $stato['sessioni'][(string)$sid] : [];
-$tAvvia  = (int)($sInfo['avvio_ts']  ?? 0);
-$tCambia = (int)($sInfo['cambio_ts'] ?? 0);
-$tFine   = (int)($sInfo['fine_ts']   ?? 0);
+/* --- DIARIO della sessione: la "storia" (cosa è stato premuto e quando) --- */
+$sInfo = is_array($stato['sessioni'][(string)$sid] ?? null) ? $stato['sessioni'][(string)$sid] : [];
+$diarioLbl = [
+    'avvia'    => 'Avviato il gioco',
+    'rispondi' => 'Risposta mail (via libera)',
+    'cambia'   => 'Rivelato (cambio foto)',
+    'finisci'  => 'Chiuso il gioco',
+];
+$diario = (isset($sInfo['diario']) && is_array($sInfo['diario'])) ? $sInfo['diario'] : [];
+if (!$diario) {   // sessioni vecchie senza diario: ricostruisci dagli orari salvati
+    if (!empty($sInfo['avvio_ts']))  $diario[] = ['a' => 'avvia',   'ts' => (int)$sInfo['avvio_ts']];
+    if (!empty($sInfo['cambio_ts'])) $diario[] = ['a' => 'cambia',  'ts' => (int)$sInfo['cambio_ts']];
+    if (!empty($sInfo['fine_ts']))   $diario[] = ['a' => 'finisci', 'ts' => (int)$sInfo['fine_ts']];
+}
 
 /* --- unione per destinatario (id) ---------------------------------------- */
 $ids = array_values(array_unique(array_merge(array_keys($mitt), array_keys($ap))));
@@ -189,16 +197,28 @@ header('Cache-Control: no-store');
   .times .t{flex:1;min-width:140px;background:var(--soft);border:1px solid var(--line);border-radius:10px;padding:9px 12px}
   .times .t span{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim)}
   .times .t b{font-size:14px;font-family:ui-monospace,Menlo,Consolas,monospace}
+  /* diario della sessione (la "storia": cosa è stato premuto e quando) */
+  .diario{background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:0 0 18px}
+  .diario .dt{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin:0 0 8px}
+  .diario .de{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-top:1px dashed var(--line)}
+  .diario .de:first-of-type{border-top:0}
+  .diario .de b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--gold);white-space:nowrap}
+  .diario .de span{font-size:14px}
 </style>
 </head><body><div class="wrap">
   <h1>Report sessione #<?= (int)$sid ?></h1>
   <div class="sub">Utente <?= h($utente) ?> · generato il <?= h(date('d/m/Y H:i')) ?></div>
 
-  <div class="times">
-    <div class="t"><span>Avvio gioco</span><b><?= h(orarioBreve($tAvvia)) ?></b></div>
-    <div class="t"><span>Cambio foto (rivela)</span><b><?= h(orarioBreve($tCambia)) ?></b></div>
-    <div class="t"><span>Fine gioco</span><b><?= h(orarioBreve($tFine)) ?></b></div>
+  <?php if ($diario): ?>
+  <div class="diario">
+    <div class="dt">Storia della sessione</div>
+    <?php foreach ($diario as $d):
+        $lbl = $diarioLbl[$d['a'] ?? ''] ?? ($d['a'] ?? '');
+        $ora = !empty($d['ts']) ? date('d/m/Y H:i:s', (int)$d['ts']) : '—'; ?>
+    <div class="de"><b><?= h($ora) ?></b><span><?= h($lbl) ?></span></div>
+    <?php endforeach; ?>
   </div>
+  <?php endif; ?>
 
   <div class="cards">
     <div class="card"><b><?= count($mitt) ?></b><span>Mittenti</span></div>

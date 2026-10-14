@@ -23,6 +23,19 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 32)
+> - **Report: righe non più sfalsate.** La riga "mail ricevuta" e la riga "aperture" ora si
+>   UNISCONO per destinatario. Causa del problema: l'`id` del destinatario cambiava tra la
+>   registrazione della mail e la risposta (era basato su `Date.now()`). Ora la Lambda usa
+>   `idStabile(mail, chiave)` (hash del Message-ID): lo STESSO id in `mail_log` e nell'immagine
+>   della risposta → join corretto in `report.php`. **Richiede re-deploy della Lambda su AWS.**
+>   (Vale per le sessioni NUOVE; i vecchi log con id casuali restano sfalsati.)
+> - **Report: "Storia della sessione" (diario).** Nuovo riquadro in alto con la sequenza di cosa
+>   ha premuto il prestigiatore/assistente e QUANDO: Avviato il gioco · Risposta mail · Rivelato
+>   (cambio foto) · Chiuso il gioco. Stato: `stato['sessioni'][N]['diario']` = lista `{a,ts}`,
+>   scritta da `predizione_diario()` nelle azioni avvia/rispondi/cambia/finisci. `report.php` lo
+>   mostra (fallback: ricostruito da avvio_ts/cambio_ts/fine_ts per le sessioni vecchie).
+
 > ### Aggiunte 14 ottobre 2026 (AGG 31)
 > - **Occhio → ritorno diretto al gioco.** Premendo l'occhio (accanto a "Cambia") si apre
 >   Impostazioni→Foto in "modalità occhio" (`eyeMode`): il tasto `#spBack` diventa

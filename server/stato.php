@@ -62,6 +62,19 @@ function predizione_congela_rivelazione(array &$stato, int $nid, string $riv): v
     $stato['rivelazione_pronta'] = null;
 }
 
+/* Aggiunge una voce al "diario" della sessione: COSA e' stato premuto e QUANDO.
+   Serve all'intestazione del report (la "storia" della sessione: Avvia / Rispondi
+   mail / Rivela / Finisci), così il prestigiatore vede la sequenza con gli orari. */
+function predizione_diario(array &$stato, int $sid, string $azione): void {
+    if ($sid <= 0) return;
+    $k = (string)$sid;
+    if (!isset($stato['sessioni'][$k]) || !is_array($stato['sessioni'][$k])) return;
+    if (!isset($stato['sessioni'][$k]['diario']) || !is_array($stato['sessioni'][$k]['diario'])) {
+        $stato['sessioni'][$k]['diario'] = [];
+    }
+    $stato['sessioni'][$k]['diario'][] = ['a' => $azione, 'ts' => time()];
+}
+
 /* Vista pubblica e sicura (senza percorsi dei file). */
 function predizione_stato_pubblico(array $s): array {
     $sess = predizione_sessione_corrente($s);
@@ -613,6 +626,7 @@ switch ($azione) {
         $stato['mail_inviate']  = 0;
         predizione_pulisci_foto_base($stato);   // la sezione IA riparte pulita
         predizione_uso_incr($stato, 'sessioni', 1);   // consumo mensile: una sessione in piu'
+        predizione_diario($stato, $nid, 'avvia');     // storia della sessione (per il report)
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
@@ -637,6 +651,7 @@ switch ($azione) {
         }
         $stato['sessioni'][(string)$id]['fase'] = 'cambiato';
         $stato['sessioni'][(string)$id]['cambio_ts'] = time();   // orario del cambio foto (per il report)
+        predizione_diario($stato, $id, 'cambia');                // storia della sessione
         $stato['forza'] = null;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
@@ -656,6 +671,7 @@ switch ($azione) {
         }
         $stato['sessioni'][(string)$id]['fase'] = 'terminato';
         $stato['sessioni'][(string)$id]['fine_ts'] = time();   // orario di fine gioco (per il report)
+        predizione_diario($stato, $id, 'finisci');             // storia della sessione
         $stato['forza'] = null;
         // l'autorisponditore si SPEGNE da solo alla fine (la Lambda smette di leggere la posta)
         $stato['autorisponditore'] = false;
@@ -738,6 +754,7 @@ switch ($azione) {
         // VIA LIBERA alle risposte: da ora il robottino risponde alle mail raccolte
         // (serve solo quando "rispondi_manuale" e' attivo). Password o assistente.
         $stato['rispondi_ok'] = true;
+        predizione_diario($stato, (int)($stato['sessione_corrente'] ?? 0), 'rispondi');  // storia della sessione
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
