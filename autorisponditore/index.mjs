@@ -63,6 +63,30 @@ const {
 
 const ses = new SESClient({ region: AWS_REGION });
 
+// PARALLELO + ANTI-INGORGO (regolabili da variabili d'ambiente):
+//  ROBOTTINI   = quante caselle vengono servite INSIEME nello stesso giro (parallelo).
+//  MAX_PER_GIRO = quante mail al massimo risponde a UNA casella in un singolo giro,
+//                 poi passa oltre (le altre partono al giro dopo): così una casella
+//                 con tante mail non "ingolfa" il robottino e tutti ricevono un po'.
+const ROBOTTINI    = Math.max(1, Number(process.env.ROBOTTINI || 20));
+const MAX_PER_GIRO = Math.max(1, Number(process.env.MAX_PER_GIRO || 25));
+
+// esegue una lista di lavori con AL MASSIMO "limite" in parallelo (pool di worker)
+async function inParallelo(lista, limite, fn) {
+  const esiti = new Array(lista.length);
+  let prossimo = 0;
+  async function worker() {
+    while (prossimo < lista.length) {
+      const i = prossimo++;
+      try { esiti[i] = await fn(lista[i]); }
+      catch (e) { esiti[i] = { errore: e && e.message ? e.message : String(e) }; }
+    }
+  }
+  const n = Math.min(Math.max(1, limite), lista.length || 1);
+  await Promise.all(Array.from({ length: n }, worker));
+  return esiti;
+}
+
 // indirizzo email "di casa" (estratto da SES_FROM, es. "Predizione <io@abraka.it>")
 const CASA_FROM_EMAIL = (String(SES_FROM).match(/<([^>]+)>/) || [, SES_FROM])[1];
 
@@ -210,12 +234,15 @@ async function processaCasella(cfg) {
   });
   await client.connect();
 
-  let lette = 0, risposte = 0, errori = 0;
+  let lette = 0, risposte = 0, errori = 0, fatti = 0;
   try {
     const lock = await client.getMailboxLock('INBOX');
     try {
       const uids = await client.search({ seen: false }, { uid: true });
       for (const uid of uids) {
+        // ANTI-INGORGO: massimo MAX_PER_GIRO mail a questa casella per giro, poi basta
+        // (le altre partono al giro dopo, ~12s). Così una casella piena non blocca le altre.
+        if (fatti >= MAX_PER_GIRO) break;
         // ANTI-DOPPIONE: in modo normale segna LETTA prima di rispondere (una mail =
         // una risposta). In modo "solo conteggio" NON la segniamo letta: resta in
         // attesa del "Rispondi mail" (la rileggeremo, ma non la conteremo due volte).
@@ -284,13 +311,14 @@ async function processaCasella(cfg) {
               });
             } catch (e) { console.log('mail_log (attesa) fallito', utente, e.message); }
           }
+          fatti++;   // conta per il tetto "a turni"
           continue;
         }
 
         if (gioco_attivo && mittente) {
           try {
             await invia(mittente, stato.oggetto, corpoHtml(utente, stato.sessione, id, stato.intro));
-            risposte++;
+            risposte++; fatti++;   // conta per il tetto "a turni"
             // registra il mittente per il report di sessione di QUESTO utente
             if (panelPass) {
               try {
@@ -355,11 +383,11 @@ async function inviaCasa(modo, dest, oggetto, html) {
   });
 }
 
-/* UN GIRO: processa la casella di casa (001) + tutte le caselle attive dei
-   clienti. Ritorna l'elenco degli esiti (ognuno con giro_veloce = true se quel
-   gioco vuole essere ricontrollato in fretta). */
+/* UN GIRO: prepara la lista delle caselle (casa 001 + clienti attivi) e le serve
+   IN PARALLELO, fino a ROBOTTINI insieme. Ritorna l'elenco degli esiti (ognuno con
+   giro_veloce = true se quel gioco vuole essere ricontrollato in fretta). */
 async function unGiro() {
-  const esiti = [];
+  const lavori = [];   // ogni elemento è la "cfg" da passare a processaCasella
 
   // ---------- casella di CASA (001 / io@abraka.it) ----------
   let stato = null;
@@ -367,67 +395,62 @@ async function unGiro() {
   if (stato) {
     const modoRaw = String(stato.invio_modo || 'casella');
     const modo    = (modoRaw === 'ses') ? 'ses' : (modoRaw === 'brevo') ? 'brevo' : 'casella';
-    try {
-      esiti.push(await processaCasella({
-        utente: PANEL_USER,
-        imap: { host: IMAP_HOST, port: IMAP_PORT, user: IMAP_USER, pass: IMAP_PASS },
-        stato: {
-          sessione: Number(stato.sessione || 0),
-          fase: String(stato.fase || 'spento'),
-          autorisponditore: stato.autorisponditore === true,
-          rispondiManuale: stato.rispondi_manuale === true,
-          rispondiOk:      stato.rispondi_ok === true,
-          sicurezzaFase:   (stato.sicurezza && stato.sicurezza.fase) ? String(stato.sicurezza.fase) : 'ok',
-          oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
-          intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
-          avvioMs: Number(stato.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
-        },
-        invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
-        panelUser: PANEL_USER, panelPass: PANEL_PASS,
-        selfEmail: CASA_FROM_EMAIL,            // io@abraka.it: non rispondere a se stessa
-      }));
-    } catch (e) {
-      console.log('casella di casa fallita:', e.message);
-      esiti.push({ utente: PANEL_USER, errore: e.message });
-    }
+    lavori.push({
+      utente: PANEL_USER,
+      imap: { host: IMAP_HOST, port: IMAP_PORT, user: IMAP_USER, pass: IMAP_PASS },
+      stato: {
+        sessione: Number(stato.sessione || 0),
+        fase: String(stato.fase || 'spento'),
+        autorisponditore: stato.autorisponditore === true,
+        rispondiManuale: stato.rispondi_manuale === true,
+        rispondiOk:      stato.rispondi_ok === true,
+        sicurezzaFase:   (stato.sicurezza && stato.sicurezza.fase) ? String(stato.sicurezza.fase) : 'ok',
+        oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
+        intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
+        avvioMs: Number(stato.avvio_ts || 0) * 1000,
+      },
+      invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
+      panelUser: PANEL_USER, panelPass: PANEL_PASS,
+      selfEmail: CASA_FROM_EMAIL,
+    });
   }
 
   // ---------- caselle EXTRA (002, 003, ...) ----------
   const extra = await caselleExtra();
   for (const c of extra) {
-    try {
-      esiti.push(await processaCasella({
-        utente: c.utente,
-        imap: { host: c.imap_host, port: c.imap_port, user: c.imap_user, pass: c.imap_pass },
-        stato: {
-          sessione: Number(c.sessione || 0),
-          fase: String(c.fase || 'spento'),
-          autorisponditore: c.autorisponditore === true,
-          rispondiManuale: c.rispondi_manuale === true,
-          rispondiOk:      c.rispondi_ok === true,
-          sicurezzaFase:   c.sicurezza_fase ? String(c.sicurezza_fase) : 'ok',
-          oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
-          intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
-          avvioMs: Number(c.avvio_ts || 0) * 1000,   // orario di "Avvia" (ms): salta la posta precedente
-        },
-        // gli utenti con casella propria inviano dalla LORO casella (SMTP = stesse
-        // credenziali dell'IMAP; per Gmail: indirizzo + password per app).
-        // "from": se c.from e' un'email la uso cosi'; se e' solo un nome diventa
-        // "Nome <indirizzo>"; se manca uso l'indirizzo della casella.
-        invia: (dest, ogg, html) => smtpTransport(c.smtp_host, c.smtp_port, c.imap_user, c.imap_pass).sendMail({
-          from: (c.from && c.from.includes('@')) ? c.from
-                : (c.from ? { name: c.from, address: c.imap_user } : c.imap_user),
-          to: dest, subject: ogg,
-          html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
-        }),
-        panelUser: c.utente, panelPass: c.pass_pannello,
-        selfEmail: (c.from && c.from.includes('@')) ? c.from : c.imap_user, // non rispondere a se stessa
-      }));
-    } catch (e) {
-      console.log('casella fallita', c.utente, e.message);
-      esiti.push({ utente: c.utente, errore: e.message });
-    }
+    lavori.push({
+      utente: c.utente,
+      imap: { host: c.imap_host, port: c.imap_port, user: c.imap_user, pass: c.imap_pass },
+      stato: {
+        sessione: Number(c.sessione || 0),
+        fase: String(c.fase || 'spento'),
+        autorisponditore: c.autorisponditore === true,
+        rispondiManuale: c.rispondi_manuale === true,
+        rispondiOk:      c.rispondi_ok === true,
+        sicurezzaFase:   c.sicurezza_fase ? String(c.sicurezza_fase) : 'ok',
+        oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
+        intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
+        avvioMs: Number(c.avvio_ts || 0) * 1000,
+      },
+      // gli utenti con casella propria inviano dalla LORO casella (SMTP = credenziali IMAP)
+      invia: (dest, ogg, html) => smtpTransport(c.smtp_host, c.smtp_port, c.imap_user, c.imap_pass).sendMail({
+        from: (c.from && c.from.includes('@')) ? c.from
+              : (c.from ? { name: c.from, address: c.imap_user } : c.imap_user),
+        to: dest, subject: ogg,
+        html, text: 'Apri questa mail con la visualizzazione immagini attiva.',
+      }),
+      panelUser: c.utente, panelPass: c.pass_pannello,
+      selfEmail: (c.from && c.from.includes('@')) ? c.from : c.imap_user,
+    });
   }
+
+  // PARALLELO: fino a ROBOTTINI caselle servite insieme (ognuna con il suo tetto "a turni").
+  const esiti = await inParallelo(lavori, ROBOTTINI, (cfg) =>
+    processaCasella(cfg).catch((e) => {
+      console.log('casella fallita', cfg.utente, e && e.message);
+      return { utente: cfg.utente, errore: e && e.message ? e.message : String(e) };
+    })
+  );
   return esiti;
 }
 

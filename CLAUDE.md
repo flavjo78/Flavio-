@@ -23,6 +23,21 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 35 — robottino PARALLELO + anti-ingorgo "a turni")
+> - **Parallelo DENTRO la stessa Lambda (ROADMAP §2 fatto).** `unGiro()` ora costruisce la lista
+>   dei lavori (casa 001 + caselle attive) e li serve con `inParallelo(lavori, ROBOTTINI, processaCasella)`:
+>   un pool di worker con AL MASSIMO `ROBOTTINI` (default 20, env) caselle insieme. Essendo lavoro I/O
+>   (IMAP/SMTP/HTTP async), 20 caselle avanzano davvero in parallelo → niente più coda sequenziale.
+>   **Nessuna nuova infrastruttura AWS** (niente SQS/fan-out): tutto nell'unica Lambda già deployata.
+> - **Anti-ingorgo "a turni".** In `processaCasella` tetto `MAX_PER_GIRO` (default 25, env): una casella
+>   risponde al massimo a 25 mail per giro poi passa oltre (le altre partono al giro ~12s dopo, restano
+>   non lette). Così una casella da 800 mail non blocca le altre. Contatore `fatti` (log o risposta),
+>   `if (fatti >= MAX_PER_GIRO) break;`. Si combina con i giri veloci e con il parallelo.
+> - **Regolabili da env:** `ROBOTTINI` (quante caselle insieme) e `MAX_PER_GIRO` (mail per casella a giro).
+>   Consigliata memoria Lambda 512 MB per 20 in parallelo (opzionale; a 256 funziona). Costo sempre ~€0.
+> - Helper `inParallelo(lista, limite, fn)` = pool di worker, preserva l'ordine, cattura gli errori per
+>   casella. **Richiede re-deploy Lambda su AWS** (solo `index.mjs`, nessuna modifica PHP/Regia).
+
 > ### Aggiunte 14 ottobre 2026 (AGG 34 — robottino veloce + sicurezza anti-dimenticanza)
 > - **Robottino VELOCE (~12s).** La sveglia resta 1/minuto (minimo EventBridge) ma la Lambda
 >   fa più giri ravvicinati dentro la stessa invocazione: `handler` cicla `unGiro()` con pausa
