@@ -23,6 +23,20 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 31)
+> - **Occhio → ritorno diretto al gioco.** Premendo l'occhio (accanto a "Cambia") si apre
+>   Impostazioni→Foto in "modalità occhio" (`eyeMode`): il tasto `#spBack` diventa
+>   "‹ torna al gioco" e, come la ✕, chiude del tutto le impostazioni (`tornaAlGioco()`)
+>   invece di tornare al menu. `openSettingsTo`/`openSet` azzerano `eyeMode` e l'etichetta.
+> - **Contatore "Mail ricevute" anche in "Rispondi a mano".** Le RICEVUTE ora le conta
+>   `mail_log` (una per mail, idempotente con la chiave `msgid` = Message-ID), non più
+>   `mail_report` (che resta solo per le INVIATE + consumo mensile). La Lambda, in
+>   modalità `rispondiManuale && !rispondiOk`, NON esce più prima: legge le mail per
+>   CONTARLE (senza rispondere e senza segnarle `\Seen`) e le registra via `mail_log`
+>   con `msgid`; così "ricevute" sale e "inviate" resta 0 finché non si preme "Rispondi
+>   mail". **Richiede il re-deploy della Lambda su AWS** (il file `stato.php` da solo non
+>   basta per la modalità manuale; in modalità automatica funziona comunque).
+
 > ### Aggiunte 12 ottobre 2026 (AGG 12)
 > - **Mail automatiche ignorate.** La Lambda e il report scartano i mittenti automatici
 >   (`no-reply@`, `updates@`, newsletter, notifiche, domini ESP): non contano né ricevono

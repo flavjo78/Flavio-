@@ -835,29 +835,49 @@ switch ($azione) {
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
     case 'mail_report':
-        // l'autorisponditore comunica quante mail ha letto/risposto (incrementi)
-        $ric = max(0, (int)p('ricevute'));
+        // l'autorisponditore comunica quante mail ha RISPOSTO (incrementi).
+        // NB: le RICEVUTE ora le conta 'mail_log' (una per mail, senza doppioni),
+        // così il conteggio funziona anche in modalità "Rispondi a mano" (quando
+        // le mail arrivano ma la risposta è ancora in attesa). Qui aggiorniamo
+        // solo le INVIATE e il consumo mensile delle mail.
         $inv = max(0, (int)p('inviate'));
-        $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + $ric;
         $stato['mail_inviate']  = (int)($stato['mail_inviate']  ?? 0) + $inv;
         if ($inv > 0) predizione_uso_incr($stato, 'mail', $inv);   // consumo mensile mail
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 
     case 'mail_log':
-        // l'autorisponditore registra UNA mail in arrivo (per il report di sessione)
+        // l'autorisponditore registra UNA mail in arrivo (per il report di sessione
+        // e per il conteggio "Mail ricevute"). È idempotente: ogni mail porta una
+        // chiave stabile 'msgid'; se è già registrata non la conta una seconda volta
+        // (così la modalità "Rispondi a mano", che rilegge le stesse mail ogni minuto
+        // senza segnarle lette, non gonfia il contatore).
         $sid = ctype_digit((string)p('sessione')) ? (int)p('sessione') : (int)($stato['sessione_corrente'] ?? 0);
         if ($sid <= 0) predizione_json(['ok' => false, 'errore' => 'Nessuna sessione'], 400);
         predizione_prepara_cartella();
+        $msgid = substr((string)(p('msgid') ?? ''), 0, 200);
+        $file  = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
+        // doppione? se questa mail (stessa chiave) è già nel registro, non rifaccio nulla
+        if ($msgid !== '' && is_file($file)) {
+            foreach (file($file, FILE_IGNORE_NEW_LINES) ?: [] as $riga) {
+                $r = json_decode($riga, true);
+                if (is_array($r) && isset($r['msgid']) && $r['msgid'] === $msgid) {
+                    predizione_json(['ok' => true, 'gia' => true]);
+                }
+            }
+        }
         $rec = [
             'ora'      => date('Y-m-d H:i:s'),
             'mittente' => substr((string)(p('mittente') ?? ''), 0, 160),
             'oggetto'  => substr((string)(p('oggetto')  ?? ''), 0, 300),
             'testo'    => substr((string)(p('testo')    ?? ''), 0, 4000),
             'id'       => substr((string)(p('id')       ?? ''), 0, 60),
+            'msgid'    => $msgid,
         ];
-        $file = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
         @file_put_contents($file, json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
+        // ogni mail NUOVA conta come "ricevuta" (il contatore del pannello)
+        $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + 1;
+        predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 
     case 'report_cancella':

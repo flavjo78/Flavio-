@@ -1548,10 +1548,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var root=dir.replace(/predizione\/$/,'');                      // .../ (radice sito)
     g.setAttribute('href', root+'guide/guida-acquisti.html');
   })();
-  var spb=$('spBack'); if(spb) spb.addEventListener('click', backMenu);
-  $('openSet').addEventListener('click', function(){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; });
+  // "occhio": quando apri le foto con l'occhio, il tasto indietro ti riporta
+  // DIRETTAMENTE al gioco (non al menu delle impostazioni).
+  var eyeMode=false;
+  function tornaAlGioco(){ eyeMode=false; var sb=$('spBack'); if(sb) sb.textContent='‹ torna al menu'; document.body.classList.remove('sp-open'); setView.classList.remove('open'); poll(); }
+  var spb=$('spBack'); if(spb) spb.addEventListener('click', function(){ if(eyeMode){ tornaAlGioco(); return; } backMenu(); });
+  $('openSet').addEventListener('click', function(){ eyeMode=false; var sb=$('spBack'); if(sb) sb.textContent='‹ torna al menu'; backMenu(); setView.classList.add('open'); setView.scrollTop=0; });
   $('closeSet').addEventListener('click', function(){
-    if(document.body.classList.contains('sp-open')){ backMenu(); return; }
+    if(document.body.classList.contains('sp-open')){ if(eyeMode){ tornaAlGioco(); return; } backMenu(); return; }
     setView.classList.remove('open'); poll();
   });
   // "Salva il testo": oggetto + testo della mail (è l'unico testo libero da salvare a mano)
@@ -1566,7 +1570,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // apre le Impostazioni direttamente su una sotto-pagina (foto, ia, ...)
   function openSettingsTo(name){ backMenu(); setView.classList.add('open'); setView.scrollTop=0; goSP(name); }
   // #11 occhio accanto a "Cambia": porta alle foto A e B (Impostazioni → Foto)
-  if($('eyeBtn')) $('eyeBtn').addEventListener('click', function(){ openSettingsTo('foto'); });
+  // e attiva la modalità "ritorno diretto al gioco" (tasto indietro = torna al gioco).
+  if($('eyeBtn')) $('eyeBtn').addEventListener('click', function(){ openSettingsTo('foto'); eyeMode=true; var sb=$('spBack'); if(sb) sb.textContent='‹ torna al gioco'; });
   // #12 scelta per la Foto B: da file oppure con IA
   var bChoose=$('bChoose');
   if($('bChooseClose')) $('bChooseClose').addEventListener('click', function(){ bChoose.classList.remove('open'); });

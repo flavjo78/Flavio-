@@ -173,13 +173,13 @@ async function processaCasella(cfg) {
   if (!stato.autorisponditore) {
     return { utente, saltato: true, sessione: stato.sessione, fase: stato.fase };
   }
-  // "TASTO RISPONDI" attivo ma non ancora premuto: le mail restano in casella,
-  // NON le leggiamo (cosi' restano non lette) finche' non arriva il via libera.
-  if (stato.rispondiManuale && !stato.rispondiOk) {
-    return { utente, inAttesaRispondi: true, sessione: stato.sessione, fase: stato.fase };
-  }
   // risponde solo a gioco ATTIVO (avviato = mostra A, cambiato = mostra B)
   const gioco_attivo = stato.sessione > 0 && (stato.fase === 'avviato' || stato.fase === 'cambiato');
+  // "TASTO RISPONDI" attivo ma non ancora premuto: NON rispondiamo e NON segnamo
+  // le mail come lette (restano in attesa del "Rispondi mail"), pero' le LEGGIAMO
+  // lo stesso per CONTARE quelle ricevute (il contatore "Mail ricevute" deve salire
+  // anche prima della risposta). Il conteggio e' idempotente grazie al 'msgid'.
+  const soloConteggio = (stato.rispondiManuale && !stato.rispondiOk);
 
   const client = new ImapFlow({
     host: imap.host,
@@ -196,25 +196,32 @@ async function processaCasella(cfg) {
     try {
       const uids = await client.search({ seen: false }, { uid: true });
       for (const uid of uids) {
-        // ANTI-DOPPIONE: segna LETTA prima di rispondere (una mail = una risposta)
-        try {
-          await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
-        } catch (e) {
-          console.log('claim (Seen) fallito', utente, uid, e.message, '-> salto');
-          continue;
+        // ANTI-DOPPIONE: in modo normale segna LETTA prima di rispondere (una mail =
+        // una risposta). In modo "solo conteggio" NON la segniamo letta: resta in
+        // attesa del "Rispondi mail" (la rileggeremo, ma non la conteremo due volte).
+        if (!soloConteggio) {
+          try {
+            await client.messageFlagsAdd(uid, ['\\Seen'], { uid: true });
+          } catch (e) {
+            console.log('claim (Seen) fallito', utente, uid, e.message, '-> salto');
+            continue;
+          }
         }
 
-        let mittente = '', mOggetto = '', mTesto = '', arrivataMs = 0;
+        let mittente = '', mOggetto = '', mTesto = '', arrivataMs = 0, msgid = '';
         try {
           const msg = await client.fetchOne(uid, { source: true, internalDate: true }, { uid: true });
           const parsed = await simpleParser(msg.source);
           mittente = parsed?.from?.value?.[0]?.address || '';
           mOggetto = parsed?.subject || '';
           mTesto   = parsed?.text || '';
+          msgid    = parsed?.messageId || '';
           if (msg.internalDate) arrivataMs = new Date(msg.internalDate).getTime();
         } catch (e) {
           console.log('parsing mail fallito', utente, uid, e.message);
         }
+        // chiave STABILE della mail (per non contarla due volte tra un giro e l'altro)
+        const chiave = msgid || ('uid-' + utente + '-' + stato.sessione + '-' + uid);
 
         // ANTI-LOOP: se la mail arriva dal nostro stesso indirizzo (o e' una
         // nostra risposta rientrata), la ignoriamo. E' gia' segnata \Seen sopra,
@@ -241,6 +248,22 @@ async function processaCasella(cfg) {
         }
         lette++;
 
+        // MODO "SOLO CONTEGGIO" (Rispondi a mano, non ancora premuto): registra la
+        // mail come RICEVUTA (idempotente grazie a 'msgid'), NON risponde, NON la
+        // segna letta. Cosi' "Mail ricevute" sale e "Mail inviate" resta a 0.
+        if (soloConteggio) {
+          if (gioco_attivo && mittente && panelPass) {
+            try {
+              await postPannello({
+                azione: 'mail_log', utente: panelUser, password: panelPass,
+                sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto,
+                id: idPulito(mittente), msgid: chiave,
+              });
+            } catch (e) { console.log('mail_log (attesa) fallito', utente, e.message); }
+          }
+          continue;
+        }
+
         if (gioco_attivo && mittente) {
           try {
             const id = idPulito(mittente);
@@ -251,7 +274,7 @@ async function processaCasella(cfg) {
               try {
                 await postPannello({
                   azione: 'mail_log', utente: panelUser, password: panelPass,
-                  sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto, id,
+                  sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto, id, msgid: chiave,
                 });
               } catch (e) { console.log('mail_log fallito', utente, e.message); }
             }
@@ -268,8 +291,10 @@ async function processaCasella(cfg) {
     await client.logout();
   }
 
-  // conteggi nel pannello di QUESTO utente
-  if (panelPass && (lette > 0 || risposte > 0)) {
+  // conteggi "inviate" nel pannello di QUESTO utente (le "ricevute" le ha gia'
+  // registrate mail_log, una per mail). In modo "solo conteggio" non c'e' nulla
+  // da inviare, quindi non chiamiamo mail_report.
+  if (panelPass && !soloConteggio && risposte > 0) {
     try {
       await postPannello({
         azione: 'mail_report', utente: panelUser, password: panelPass,
