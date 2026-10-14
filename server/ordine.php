@@ -99,7 +99,8 @@ if (strpos($azione, 'admin_') === 0) {
         $out = [];
         foreach ($ordini as $id => $o) {
             $out[] = [
-                'id' => $id, 'stato' => $o['stato'] ?? 'attesa',
+                'id' => $id, 'codice' => (string)($o['codice'] ?? $id), 'stato' => $o['stato'] ?? 'attesa',
+                'fonte' => (string)($o['fonte'] ?? ''),
                 'nome' => trim(($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '')),
                 'mail' => $o['mail'] ?? '', 'gioco' => $o['gioco'] ?? '',
                 'piano' => $o['piano'] ?? '', 'durata' => $o['durata'] ?? '',
@@ -307,9 +308,13 @@ if ($azione === 'pagamenti') {
 if ($azione === 'stato') {
     $ordini = ord_leggi();
     $id = ord_p('id');
+    if (!isset($ordini[$id])) {
+        // puo' arrivare il CODICE mascherato (es. p41a0): cerchiamo l'ordine con quel codice
+        foreach ($ordini as $k => $o) { if ((string)($o['codice'] ?? '') === $id) { $id = $k; break; } }
+    }
     if (!isset($ordini[$id])) predizione_json(['ok' => false, 'errore' => 'non trovato'], 404);
-    predizione_json(['ok' => true, 'id' => $id, 'stato' => $ordini[$id]['stato'] ?? 'attesa',
-                     'importo' => $ordini[$id]['importo'] ?? 0]);
+    predizione_json(['ok' => true, 'id' => $id, 'codice' => (string)($ordini[$id]['codice'] ?? $id),
+                     'stato' => $ordini[$id]['stato'] ?? 'attesa', 'importo' => $ordini[$id]['importo'] ?? 0]);
 }
 
 /* ===== CREA ordine (pubblico, dal sito) ================================= */
@@ -324,8 +329,9 @@ if ($azione === 'crea') {
     $canale  = in_array(ord_p('canale'), ['bonifico', 'satispay', 'paypal'], true) ? ord_p('canale') : 'bonifico';
     $licenza = ord_p('licenza');
 
-    // provenienza (etichetta della password d'accesso usata sul sito)
-    $fonte = predizione_accesso_etichetta(ord_p('accesso_pw')) ?? '';
+    // provenienza (etichetta della password d'accesso usata sul sito) + lettera per il numero ordine
+    $fonte   = predizione_accesso_etichetta(ord_p('accesso_pw')) ?? '';
+    $lettera = predizione_accesso_lettera(ord_p('accesso_pw'));
 
     // EXTRA (carrello): mappa {codice: quantita'} in JSON
     $extra = []; $extraRaw = ord_p('extra');
@@ -362,8 +368,11 @@ if ($azione === 'crea') {
 
     $ordini = ord_leggi();
     $id = ord_prossimo_id($ordini);
+    // numero ordine MASCHERATO mostrato al cliente e all'autore (es. p41a0).
+    // La chiave interna resta PRD-NNNN; "codice" e' quello che si vede e si usa come causale.
+    $codice = predizione_codice_ordine((int)preg_replace('/\D/', '', $id), $lettera);
     $ordini[$id] = [
-        'id' => $id, 'stato' => 'attesa', 'data' => date('c'),
+        'id' => $id, 'codice' => $codice, 'stato' => 'attesa', 'data' => date('c'),
         'nome' => $nome, 'cognome' => $cognome, 'mail' => $mail, 'tel' => $tel,
         'naz' => $naz, 'prov' => $prov, 'citta' => $citta, 'via' => $via, 'lingua' => $lingua,
         'gioco' => $gioco, 'piano' => $piano, 'durata' => $durata, 'quante' => 1,
@@ -376,7 +385,7 @@ if ($azione === 'crea') {
 
     // istruzioni di pagamento per canale. La CAUSALE è breve e chiara: codice + nome.
     $pg = ord_pagamenti();
-    $causale = "$id $nome $cognome";
+    $causale = "$codice $nome $cognome";
     if ($canale === 'bonifico') {
         $istr = "Bonifico di $importo € a:\n"
               . "Intestatario: {$pg['intestatario']}\n"
@@ -384,23 +393,23 @@ if ($azione === 'crea') {
               . "CAUSALE (scrivila ESATTA, tutta su una riga):\n"
               . "    $causale";
     } elseif ($canale === 'paypal') {
-        $istr = "PayPal: paga $importo € qui: {$pg['paypal']}\n\nNella NOTA del pagamento scrivi:  $id";
+        $istr = "PayPal: paga $importo € qui: {$pg['paypal']}\n\nNella NOTA del pagamento scrivi:  $codice";
     } else {
-        $istr = "Satispay: riceverai la richiesta di $importo € al tuo numero.\nCausale/nota:  $id";
+        $istr = "Satispay: riceverai la richiesta di $importo € al tuo numero.\nCausale/nota:  $codice";
     }
 
-    // mail al cliente (come pagare) e a supporto (nuovo ordine)
-    $corpoCliente = "Grazie! Ecco come completare l'ordine $id.\n\n$istr\n\n"
+    // mail al cliente (come pagare) e a supporto (nuovo ordine) — si usa il CODICE mascherato
+    $corpoCliente = "Grazie! Ecco come completare l'ordine $codice.\n\n$istr\n\n"
                   . "Il gioco viene ATTIVATO entro 72 ore dalla conferma del pagamento.\n"
                   . "La password ti arrivera' da supporto@abraka.it (controlla anche lo spam).\n\n"
                   . "abraka — supporto@abraka.it";
-    ord_manda_mail($mail, "Ordine $id — come pagare", $corpoCliente);
+    ord_manda_mail($mail, "Ordine $codice — come pagare", $corpoCliente);
     // AVVISO all'autore: 1) appena arriva l'ordine (QUI), 2) quando viene processato (in admin_attiva)
-    $avviso = "Ordine $id\n$nome $cognome\n$mail\n$gioco · $piano ($durata)\nImporto $importo €\nCanale: $canale";
-    ord_manda_mail('supporto@abraka.it', "Nuovo ordine $id", $avviso);
-    ord_manda_mail(PRED_NOTIFY_EMAIL, "Nuovo ordine ricevuto — $id", "È arrivato un nuovo ordine (in attesa di pagamento):\n\n$avviso");
+    $avviso = "Ordine $codice\n$nome $cognome\n$mail\n$gioco · $piano ($durata)\nImporto $importo €\nCanale: $canale";
+    ord_manda_mail('supporto@abraka.it', "Nuovo ordine $codice", $avviso);
+    ord_manda_mail(PRED_NOTIFY_EMAIL, "Nuovo ordine ricevuto — $codice", "È arrivato un nuovo ordine (in attesa di pagamento):\n\n$avviso");
 
-    predizione_json(['ok' => true, 'ordine' => $id, 'importo' => $importo,
+    predizione_json(['ok' => true, 'ordine' => $codice, 'id' => $id, 'importo' => $importo,
                      'canale' => $canale, 'causale' => $causale, 'istruzioni' => $istr]);
 }
 

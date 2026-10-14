@@ -368,6 +368,41 @@ function predizione_accesso_etichetta(?string $password): ?string {
     return null;
 }
 
+/* LETTERA di provenienza di una password d'accesso (finisce nel numero ordine).
+   base "aaa" (diretto) -> 'a'. Le altre hanno la loro 'lettera' salvata. */
+function predizione_accesso_lettera(?string $password): string {
+    $p = trim((string)$password);
+    if ($p === '' || hash_equals(PRED_ACCESSO_BASE, $p)) return 'a';
+    foreach (predizione_accessi_leggi() as $pw => $info) {
+        if (hash_equals((string)$pw, $p)) {
+            $l = preg_replace('/[^a-z]/', '', strtolower((string)($info['lettera'] ?? '')));
+            return $l !== '' ? substr($l, 0, 1) : 'a';
+        }
+    }
+    return 'a';
+}
+
+/* Prima LETTERA libera per una nuova provenienza (a = base/diretto, poi b, c, ...). */
+function predizione_accesso_lettera_libera(): string {
+    $usate = ['a' => true];
+    foreach (predizione_accessi_leggi() as $info) {
+        $l = substr(preg_replace('/[^a-z]/', '', strtolower((string)($info['lettera'] ?? ''))), 0, 1);
+        if ($l !== '') $usate[$l] = true;
+    }
+    foreach (range('a', 'z') as $c) { if (empty($usate[$c])) return $c; }
+    return 'z';
+}
+
+/* NUMERO ORDINE mascherato: "p" + numero a 3 cifre scritto AL CONTRARIO, con la
+   lettera di provenienza PRIMA dell'ultima cifra. Es. ordine 14, diretto(a) -> p41a0. */
+function predizione_codice_ordine(int $n, string $lettera): string {
+    $l = preg_replace('/[^a-z]/', '', strtolower($lettera));
+    $l = $l !== '' ? substr($l, 0, 1) : 'a';
+    $num = str_pad((string)max(0, $n), 3, '0', STR_PAD_LEFT);   // "014"
+    $rev = strrev($num);                                         // "410"
+    return 'p' . substr($rev, 0, -1) . $l . substr($rev, -1);    // p41a0
+}
+
 /* Riconosce le mail AUTOMATICHE (no-reply, newsletter, notifiche, bounce):
    NON sono spettatori, quindi non vanno contate ne' ricevono risposta. */
 function predizione_mitt_automatico(string $email): bool {

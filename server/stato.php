@@ -279,11 +279,14 @@ function predizione_admin(string $azione): void {
             predizione_utenti_scrivi($utenti);
             predizione_json(['ok' => true]);
 
-        case 'admin_accessi':   // elenco password d'accesso (provenienza)
+        case 'admin_accessi':   // elenco password d'accesso (provenienza) + LETTERA per il numero ordine
             $acc = predizione_accessi_leggi();
             $out = [];
+            // la base "aaa" (diretto) sempre in cima, lettera 'a'
+            $out[] = ['password' => PRED_ACCESSO_BASE, 'etichetta' => 'diretto', 'lettera' => 'a', 'creato' => 0, 'base' => true];
             foreach ($acc as $pw => $info) {
-                $out[] = ['password' => (string)$pw, 'etichetta' => (string)($info['etichetta'] ?? ''), 'creato' => (int)($info['creato'] ?? 0)];
+                $out[] = ['password' => (string)$pw, 'etichetta' => (string)($info['etichetta'] ?? ''),
+                          'lettera' => (string)($info['lettera'] ?? ''), 'creato' => (int)($info['creato'] ?? 0)];
             }
             predizione_json(['ok' => true, 'accessi' => $out, 'base' => PRED_ACCESSO_BASE]);
 
@@ -294,9 +297,14 @@ function predizione_admin(string $azione): void {
             if ($pw === '' || $et === '') predizione_json(['ok' => false, 'errore' => 'Password ed etichetta obbligatorie'], 400);
             if ($pw === PRED_ACCESSO_BASE) predizione_json(['ok' => false, 'errore' => 'Questa password è già la base'], 400);
             $acc = predizione_accessi_leggi();
-            $acc[$pw] = ['etichetta' => $et, 'creato' => time()];
+            // lettera: se l'admin ne propone una valida e libera la usa, altrimenti la prima libera
+            $lett = substr(preg_replace('/[^a-z]/', '', strtolower((string)(p('lettera') ?? ''))), 0, 1);
+            $gia  = ['a' => true];
+            foreach ($acc as $i) { $x = substr((string)($i['lettera'] ?? ''), 0, 1); if ($x !== '') $gia[$x] = true; }
+            if ($lett === '' || !empty($gia[$lett])) { $lett = predizione_accesso_lettera_libera(); }
+            $acc[$pw] = ['etichetta' => $et, 'lettera' => $lett, 'creato' => time()];
             predizione_accessi_scrivi($acc);
-            predizione_json(['ok' => true]);
+            predizione_json(['ok' => true, 'lettera' => $lett]);
 
         case 'admin_accesso_elimina':
             $pw  = (string)(p('pw_accesso') ?? '');

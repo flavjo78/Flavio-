@@ -1031,6 +1031,21 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(loginBtn) loginBtn.addEventListener('click', doLogin);
   if(loginPw)  loginPw.addEventListener('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); doLogin(); } });
   // NB: il login NON viene saltato: anche con dati salvati, bisogna premere "Accedi".
+  // ECCEZIONE — "Entra diretto" dall'admin: apertura con ?u=NUM&k=PASSWORD -> accesso automatico.
+  (function(){
+    try{
+      var q=new URLSearchParams(location.search);
+      var eu=(q.get('u')||'').toLowerCase().replace(/[^a-z0-9._-]/g,'');
+      var ek=q.get('k');
+      if(eu && ek){
+        if(loginUser) loginUser.value=eu;
+        if(loginPw)   loginPw.value=ek;
+        // togli le credenziali dall'indirizzo (non restano nella cronologia)
+        try{ history.replaceState(null,'',location.pathname); }catch(e){}
+        doLogin();
+      }
+    }catch(e){}
+  })();
 
   // ---- toast (messaggi brevi) ----
   var toastEl=$('toast'), toastT=null;

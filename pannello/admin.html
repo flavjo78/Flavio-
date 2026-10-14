@@ -228,8 +228,8 @@
       <!-- ===== PASSWORD D'ACCESSO ===== -->
       <section class="view" id="v-accessi" style="display:none">
         <div class="card">
-          <div class="small" style="margin-bottom:8px">Crea password da dare sul sito dopo il video: chi si iscrive con quella password riceve l'<b>etichetta</b> nella sua anagrafica (così sai da dove arriva). La base <b id="accBase">aaa</b> è sempre valida (provenienza “diretto”).</div>
-          <div class="row"><input type="text" id="apPw" placeholder="password (es. QQQ)" style="flex:1"><input type="text" id="apEt" placeholder="etichetta (es. gruppo1)" style="flex:1"><button class="btn gold" id="apCrea">Crea</button></div>
+          <div class="small" style="margin-bottom:8px">Crea password da dare sul sito dopo il video: chi si iscrive con quella password riceve l'<b>etichetta</b> nella sua anagrafica (così sai da dove arriva). La base <b id="accBase">aaa</b> è sempre valida (provenienza “diretto”, lettera «a»).<br>La <b>lettera</b> è il codice di provenienza che finisce nel <b>numero ordine</b> (es. ordine 14 da «b» → <b>p41b0</b>). Lasciala vuota e la assegno io (a, b, c…).</div>
+          <div class="row"><input type="text" id="apPw" placeholder="password (es. QQQ)" style="flex:1"><input type="text" id="apEt" placeholder="etichetta (es. gruppo1)" style="flex:1"><input type="text" id="apLett" placeholder="lettera" maxlength="1" style="width:70px;text-align:center"><button class="btn gold" id="apCrea">Crea</button></div>
           <div id="apList" style="margin-top:10px"></div>
         </div>
       </section>
@@ -344,21 +344,22 @@
     var az=(o.stato==='attesa')
       ? '<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>'
       : (o.utente?'<span class="small">utente: <b>'+esc(o.utente)+'</b></span>':'');
-    d.innerHTML='<div class="row" style="justify-content:space-between"><b>'+esc(o.id)+'</b>'+statoPill(o.stato)+'</div>'+
-      '<div class="meta">'+esc(o.nome||'—')+' · '+esc(o.mail||'')+'<br>'+esc(o.gioco||'')+' · '+esc(o.piano||'')+' ('+esc(o.durata||'')+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale||'')+'</div>'+
+    d.innerHTML='<div class="row" style="justify-content:space-between"><b style="color:var(--gold);font-size:17px">'+esc(o.codice||o.id)+'</b>'+statoPill(o.stato)+'</div>'+
+      '<div class="meta">'+esc(o.nome||'—')+' · '+esc(o.mail||'')+'<br>'+esc(o.gioco||'')+' · '+esc(o.piano||'')+' ('+esc(o.durata||'')+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale||'')+(o.fonte?(' · da <b>'+esc(o.fonte)+'</b>'):'')+'<br><span class="small" style="opacity:.55">rif. interno: '+esc(o.id)+'</span></div>'+
       '<div class="btns">'+az+'</div>';
     d.querySelectorAll('button[data-oa]').forEach(function(btn){ btn.addEventListener('click',function(){
-      var a=btn.getAttribute('data-oa');
-      if(a==='attiva'){ if(!confirm('Confermi che il pagamento di '+o.id+' è arrivato?'))return;
+      var a=btn.getAttribute('data-oa'), cod=(o.codice||o.id);
+      if(a==='attiva'){ if(!confirm('Confermi che il pagamento di '+cod+' è arrivato?'))return;
         callOrdini('admin_attiva',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){ if(r.data.nuovo)alert('Attivato!\nUtente: '+r.data.utente+'\nPassword: '+r.data.password+'\nRicevuta: '+r.data.ricevuta); toast('Ordine attivato','ok'); caricaOrdini(); carica(); } else toast((r.data&&r.data.errore)||'Errore','err'); }); }
-      else if(a==='annulla'){ if(!confirm('Annullare '+o.id+'?'))return; callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Annullato','ok');caricaOrdini();}else toast('Errore','err'); }); }
+      else if(a==='annulla'){ if(!confirm('Annullare '+cod+'?'))return; callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Annullato','ok');caricaOrdini();}else toast('Errore','err'); }); }
     }); });
     return d;
   }
   window.renderOrdiniAll=function(){
     var q=($('ordSearch').value||'').toLowerCase().trim();
     function match(o){ if(!q)return true;
-      return (o.id||'').toLowerCase().indexOf(q)>=0 || (o.nome||'').toLowerCase().indexOf(q)>=0 ||
+      return (o.id||'').toLowerCase().indexOf(q)>=0 || (o.codice||'').toLowerCase().indexOf(q)>=0 ||
+             (o.fonte||'').toLowerCase().indexOf(q)>=0 || (o.nome||'').toLowerCase().indexOf(q)>=0 ||
              (o.mail||'').toLowerCase().indexOf(q)>=0 || (o.piano||'').toLowerCase().indexOf(q)>=0 ||
              (o.gioco||'').toLowerCase().indexOf(q)>=0 || (o.canale||'').toLowerCase().indexOf(q)>=0;
     }
@@ -430,10 +431,11 @@
   /* ---------- PASSWORD D'ACCESSO ---------- */
   function renderAccessi(acc, base){
     if($('accBase') && base) $('accBase').textContent=base;
-    if(!acc || !acc.length){ $('apList').innerHTML='<div class="small">Nessuna password creata (c\'è solo la base).</div>'; return; }
+    if(!acc || !acc.length){ $('apList').innerHTML='<div class="small">—</div>'; return; }
     $('apList').innerHTML=acc.map(function(a){
-      return '<div class="srow"><b>'+esc(a.password)+'</b><span class="d">→ '+esc(a.etichetta)+'</span>'+
-        '<button class="btn danger" data-del="'+esc(a.password)+'">Elimina</button></div>';
+      var lett=a.lettera?('<span class="d" style="color:var(--gold);font-weight:800">lettera «'+esc(a.lettera)+'»</span>'):'';
+      var azione=a.base?'<span class="small" style="opacity:.6">base</span>':'<button class="btn danger" data-del="'+esc(a.password)+'">Elimina</button>';
+      return '<div class="srow"><b>'+esc(a.password)+'</b><span class="d">→ '+esc(a.etichetta)+'</span>'+lett+azione+'</div>';
     }).join('');
     document.querySelectorAll('#apList [data-del]').forEach(function(b){
       b.onclick=function(){ if(!confirm('Eliminare la password '+b.getAttribute('data-del')+'?'))return;
@@ -442,10 +444,10 @@
   }
   function caricaAccessi(){ call('admin_accessi').then(function(r){ if(r.data&&r.data.ok) renderAccessi(r.data.accessi||[], r.data.base||'aaa'); }).catch(function(){}); }
   $('apCrea').addEventListener('click', function(){
-    var pw=($('apPw').value||'').trim(), et=($('apEt').value||'').trim();
+    var pw=($('apPw').value||'').trim(), et=($('apEt').value||'').trim(), lt=($('apLett').value||'').trim().toLowerCase();
     if(!pw||!et){ toast('Scrivi password ed etichetta','err'); return; }
-    call('admin_accesso_crea',{pw_accesso:pw,etichetta:et}).then(function(r){
-      if(r.data&&r.data.ok){ toast('Creata','ok'); $('apPw').value='';$('apEt').value=''; caricaAccessi(); }
+    call('admin_accesso_crea',{pw_accesso:pw,etichetta:et,lettera:lt}).then(function(r){
+      if(r.data&&r.data.ok){ toast('Creata (lettera «'+(r.data.lettera||'?')+'»)','ok'); $('apPw').value='';$('apEt').value='';$('apLett').value=''; caricaAccessi(); }
       else toast((r.data&&r.data.errore)||'Errore','err');
     });
   });
@@ -608,7 +610,7 @@
       '<div class="sep"></div>'+
       '<div class="plinfo">Cambia password d\'accesso</div>'+
       '<div class="field"><input type="text" id="mPw" placeholder="nuova password"></div>'+
-      '<div class="btns"><button class="btn" id="mSalvaPw">Salva password</button></div>';
+      '<div class="btns"><button class="btn" id="mSalvaPw">Salva password</button><button class="btn gold" id="mEntra">Entra diretto ▶</button></div>';
     // PIANO E LIMITI: scadenza + cosa resta + 3 righe crediti separate
     $('dPiano').innerHTML=
       '<div class="kv"><span>Piano</span><b style="color:var(--gold)">'+esc(s.piano||'Foyer')+(s.piano_versione?(' · versione '+('0'+s.piano_versione).slice(-2)):'')+'</b></div>'+
@@ -670,6 +672,12 @@
       });
     };
     $('mSalvaPw').onclick=function(){ var v=$('mPw').value.trim(); if(!v){toast('Scrivi la password','err');return;} call('admin_password',{numero:num,pw:v}).then(function(r){done(r,'Password aggiornata');}); };
+    // ENTRA DIRETTO: apre la Regia di questo utente gia' loggata (siamo gia' nell'admin)
+    if($('mEntra')) $('mEntra').onclick=function(){
+      var pw=(($('mPw').value||'').trim())||s.pass||'';
+      if(!pw){ toast('Password utente non disponibile','err'); return; }
+      window.open('regia-predizione.html?u='+encodeURIComponent(num)+'&k='+encodeURIComponent(pw),'_blank');
+    };
     $('mAttiva').onclick=function(){ call('admin_attiva',{numero:num,valore:(s.attivo?'0':'1')}).then(function(r){done(r,'Stato aggiornato');}); };
     $('mDel').onclick=function(){ if(!confirm('Eliminare l\'utente '+num+'? I dati restano sul server ma l\'accesso viene rimosso.'))return; call('admin_elimina',{numero:num}).then(function(r){ if(r.data&&r.data.ok){toast('Eliminato','ok');showView('utenti');carica();}else toast('Errore','err'); }); };
     $('mUpgrade').onclick=function(){ call('admin_piano',{numero:num,piano:$('mPiano').value,durata:$('mDur').value,quante:$('mQ').value||'1'}).then(function(r){done(r,'Upgrade applicato');}); };
