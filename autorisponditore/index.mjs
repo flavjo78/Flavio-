@@ -68,7 +68,7 @@ const ses = new SESClient({ region: AWS_REGION });
 //  MAX_PER_GIRO = quante mail al massimo risponde a UNA casella in un singolo giro,
 //                 poi passa oltre (le altre partono al giro dopo): così una casella
 //                 con tante mail non "ingolfa" il robottino e tutti ricevono un po'.
-const ROBOTTINI    = Math.max(1, Number(process.env.ROBOTTINI || 20));
+const ROBOTTINI    = Math.max(1, Number(process.env.ROBOTTINI || 30));
 const MAX_PER_GIRO = Math.max(1, Number(process.env.MAX_PER_GIRO || 25));
 
 // esegue una lista di lavori con AL MASSIMO "limite" in parallelo (pool di worker)
@@ -353,7 +353,10 @@ async function processaCasella(cfg) {
     } catch (e) { console.log('mail_report fallito', utente, e.message); }
   }
 
-  return { utente, sessione: stato.sessione, fase: stato.fase, lette, risposte, errori, giro_veloce };
+  // 'ancora' = ho colpito il tetto "a turni" => probabilmente c'è ancora posta in coda:
+  // il giro dopo deve ripartire SUBITO (raffica), senza la pausa della ronda.
+  const ancora = (fatti >= MAX_PER_GIRO);
+  return { utente, sessione: stato.sessione, fase: stato.fase, lette, risposte, errori, giro_veloce, ancora };
 }
 
 /* invio dalla casella di CASA (001): sceglie il canale (casella/brevo/ses) */
@@ -457,20 +460,28 @@ async function unGiro() {
 const dormi = (ms) => new Promise((r) => setTimeout(r, ms));
 
 export const handler = async () => {
-  // GIRI VELOCI: ogni sveglia (1/minuto) fa più controlli ravvicinati (~12s)
-  // FINCHÉ c'è almeno uno show attivo, così le risposte partono in ~10-12s
-  // invece di ~60s. I giri si fermano prima del minuto dopo (niente sovrapposizioni),
-  // e si fanno SOLO quando serve: a riposo o a show spento si esce subito (gratis).
+  // RONDA VELOCE + RAFFICA.
+  // Ogni sveglia (1/minuto) fa tante "ronde" ravvicinate, così le risposte partono
+  // in ~5 secondi invece di ~60. Due regole:
+  //  - RAFFICA: se in una ronda qualche casella ha colpito il tetto (c'è ancora
+  //    posta in coda), riparte SUBITO senza pausa -> svuota a raffica.
+  //  - RONDA: se è tutto svuotato ma c'è uno show attivo, aspetta solo ~5s e
+  //    ricontrolla (per rispondere in fretta alle mail nuove).
+  //  - RIPOSO: se non c'è nessuno show attivo, esce subito (gratis).
+  // NB: con "Concorrenza riservata = 1" su AWS NON ci sono mai due esecuzioni
+  // sovrapposte -> zero doppioni anche quando la ronda dura a lungo.
   const INIZIO = Date.now();
-  const PAUSA_MS = 12000;     // ~12 secondi tra un controllo e l'altro
-  const MAX_MS   = 50000;     // esci entro ~50s: la sveglia dopo è a 60s
+  const PAUSA_MS = 5000;      // ~5 secondi tra una ronda e l'altra (quando è tutto svuotato)
+  const MAX_MS   = 55000;     // ogni esecuzione dura ~1 minuto, poi la sveglia dopo riparte
   let esiti = [];
   while (true) {
     esiti = await unGiro();
-    const serveVeloce = esiti.some((e) => e && e.giro_veloce);   // qualche show attivo?
-    if (!serveVeloce) break;                                     // niente da servire in fretta -> esci
-    if (Date.now() - INIZIO + PAUSA_MS > MAX_MS) break;          // tempo quasi finito -> esci
-    await dormi(PAUSA_MS);
+    const backlog     = esiti.some((e) => e && e.ancora);        // c'è ancora coda da svuotare?
+    const serveVeloce = esiti.some((e) => e && e.giro_veloce);   // c'è almeno uno show attivo?
+    if (Date.now() - INIZIO > MAX_MS) break;                     // tempo finito -> esci (la sveglia dopo continua)
+    if (backlog) continue;                                       // RAFFICA: riparti subito, niente pausa
+    if (serveVeloce) { await dormi(PAUSA_MS); continue; }        // RONDA: ricontrolla tra ~5s le mail nuove
+    break;                                                       // RIPOSO: niente di attivo -> esci
   }
   console.log('ESITO', JSON.stringify(esiti));
   return { caselle: esiti };

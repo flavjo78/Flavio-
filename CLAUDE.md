@@ -23,6 +23,21 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 14 ottobre 2026 (AGG 36 — ronda ~5s + RAFFICA + 30 robottini)
+> - **Ronda ~5s** (`PAUSA_MS=5000`): durante uno show le mail nuove ricevono risposta in ~5s.
+> - **RAFFICA (niente pausa quando c'è coda).** `processaCasella` ritorna `ancora` (true se ha
+>   colpito `MAX_PER_GIRO`, cioè c'è altra posta). Nuovo loop `handler`: se `backlog` → `continue`
+>   SUBITO (svuota a raffica, niente 5s); se svuotato ma show attivo → pausa 5s (ronda per mail
+>   nuove); se niente attivo → esce (riposo). `MAX_MS=55000` (esecuzione ~1 min, la sveglia dopo
+>   continua). **Richiede "Concorrenza riservata = 1" su AWS** (con la raffica un'esecuzione può
+>   durare oltre il minuto: la concorrenza 1 impedisce sovrapposizioni → zero doppioni).
+> - **ROBOTTINI default 30** (era 20). Resta `inParallelo` (pool) + cap per casella.
+> - **NON ancora fatto:** spartire UNA singola casella grande tra più robottini (work-stealing dentro
+>   la stessa casella). Con la raffica un robottino solo svuota 800 in ~10-15 min (limite: timeout
+>   Lambda 2 min per esecuzione). Per scendere a ~2 min su un singolo show enorme serve lo split
+>   multi-connessione IMAP (parte delicata, da fare con prova reale). Le caselle DIVERSE sono già
+>   in parallelo (30 insieme). **Solo `index.mjs`; i file Tophost restano quelli dell'AGG 34.**
+
 > ### Aggiunte 14 ottobre 2026 (AGG 35 — robottino PARALLELO + anti-ingorgo "a turni")
 > - **Parallelo DENTRO la stessa Lambda (ROADMAP §2 fatto).** `unGiro()` ora costruisce la lista
 >   dei lavori (casa 001 + caselle attive) e li serve con `inParallelo(lavori, ROBOTTINI, processaCasella)`:
