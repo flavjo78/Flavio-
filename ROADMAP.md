@@ -70,6 +70,20 @@
 5. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
 6. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
 
+7. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
+   arrivino in **Posta in arrivo** (non spam) e che i domini siano "caldi". Checklist:
+   - [ ] **mail-tester.com**: mandare 1 mail e leggere il **voto /10** (obiettivo ≥ 8). Da fare per:
+         (a) `abraka.it` (mail commerciali da `supporto@`), (b) il **dominio Mailgun** di ogni cliente (Palco).
+   - [ ] **MXToolbox blacklist**: controllare che dominio/IP **non** siano in liste nere (tutto verde).
+   - [ ] **SPF / DKIM / DMARC**: verificare che i record esistano e siano corretti (li segnala anche mail-tester).
+   - [ ] **Prova inbox reale**: inviare a **Gmail + Outlook/Hotmail + iCloud** e vedere se finiscono in
+         Posta in arrivo o in Spam.
+   - [ ] **Mailgun**: dominio **verde/verified**, controllare i **Logs** (consegnate vs spam/bounce) e
+         il **riscaldamento** (mandare poche alla volta all'inizio, poi salire).
+   - [ ] (Avanzato) **Google Postmaster Tools**: reputazione del dominio su Gmail (Alta/Media/Bassa).
+   - **Nota:** il "riscaldamento" è una reputazione, non un numero unico: si misura con questi strumenti
+     messi insieme. Va rifatto per OGNI nuovo dominio cliente usato con Palco.
+
 ---
 
 ## 📌 Decisioni di riferimento (da non perdere)
