@@ -368,6 +368,7 @@ async function processaCasella(cfg) {
                 await postPannello({
                   azione: 'mail_log', utente: panelUser, password: panelPass,
                   sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto, id, msgid: chiave,
+                  inviata: '1',   // registra ANCHE l'ora d'invio (colonna "Inviata" nel report)
                 });
               } catch (e) { console.log('mail_log fallito', utente, e.message); }
             }

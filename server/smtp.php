@@ -83,3 +83,58 @@ function pred_smtp_host(string $email): array {
     if ($dom === 'gmail.com' || $dom === 'googlemail.com') return ['smtp.gmail.com', 587];
     return ['mail.tophost.it', 587];
 }
+
+/* INVIO IN BLOCCO (una sola connessione, tante mail): serve per il TEST del
+   robottino (riempire una casella). Apre UNA connessione, fa login una volta e
+   spedisce N messaggi di fila -> velocissimo, niente timeout. Prova 587
+   (STARTTLS); se fallisce, 465 (SSL). Ritorna ['inviate'=>, 'errori'=>, 'note'=>[]]. */
+function pred_smtp_invia_blocco(string $host, int $port, string $user, string $pass,
+                                string $from, string $fromName, string $to, int $n): array {
+    $inviate = 0; $errori = 0; $note = [];
+    $stamp = date('His');
+    foreach ([[(int)($port ?: 587), false], [465, true]] as [$pTry, $ssl]) {
+        if ($port === 465) { $pTry = 465; $ssl = true; }
+        $url = ($ssl ? 'ssl://' : 'tcp://') . "$host:$pTry";
+        $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+        $fp = @stream_socket_client($url, $eno, $estr, 18, STREAM_CLIENT_CONNECT, $ctx);
+        if (!$fp) { $note[] = "connessione $host:$pTry fallita ($estr)"; continue; }
+        stream_set_timeout($fp, 20);
+        $read = function () use ($fp) { $d=''; while (($l=fgets($fp,515))!==false){$d.=$l; if(strlen($l)>=4&&$l[3]===' ')break;} return $d; };
+        $cmd  = function (string $c) use ($fp, $read) { fwrite($fp, $c."\r\n"); return $read(); };
+        $read();
+        $cmd("EHLO abraka.it");
+        if (!$ssl) {
+            $r = $cmd("STARTTLS");
+            if (($r[0] ?? '') !== '2' || !@stream_socket_enable_crypto($fp, true,
+                 STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT)) {
+                $note[] = "STARTTLS su $pTry fallito"; fclose($fp); continue;
+            }
+            $cmd("EHLO abraka.it");
+        }
+        $cmd("AUTH LOGIN"); $cmd(base64_encode($user));
+        $r = $cmd(base64_encode($pass));
+        if (($r[0] ?? '') !== '2') { $note[] = "login casella fallito (utente o password per app errati)"; fclose($fp); break; }
+        $fromHdr = ($fromName !== '' ? '=?UTF-8?B?'.base64_encode($fromName).'?= ' : '') . "<$from>";
+        for ($i = 1; $i <= $n; $i++) {
+            $r = $cmd("MAIL FROM:<$from>");
+            if (($r[0] ?? '') !== '2') { $errori++; if(count($note)<6)$note[]="#$i MAIL FROM: ".trim($r); $cmd("RSET"); continue; }
+            $r = $cmd("RCPT TO:<$to>");
+            if (($r[0] ?? '') !== '2') { $errori++; if(count($note)<6)$note[]="#$i destinatario: ".trim($r); $cmd("RSET"); continue; }
+            $r = $cmd("DATA");
+            if (($r[0] ?? '') !== '3') { $errori++; if(count($note)<6)$note[]="#$i DATA: ".trim($r); $cmd("RSET"); continue; }
+            $sub  = "Prova PREDIZIONE #$i-$stamp";
+            $body = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
+                  . "<p>Mail di prova numero <b>$i</b> (infornata $stamp).</p>"
+                  . '<p>Serve a collaudare il robottino: non e\' una mail vera.</p></div>';
+            $hdr  = "From: $fromHdr\r\nTo: <$to>\r\n"
+                  . "Subject: =?UTF-8?B?".base64_encode($sub)."?=\r\n"
+                  . "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
+            fwrite($fp, $hdr . preg_replace('/^\./m', '..', $body) . "\r\n.\r\n");
+            $r = $read();
+            if (($r[0] ?? '') === '2') { $inviate++; } else { $errori++; if(count($note)<6)$note[]="#$i invio: ".trim($r); }
+        }
+        $cmd("QUIT"); fclose($fp);
+        break;
+    }
+    return ['inviate' => $inviate, 'errori' => $errori, 'note' => $note];
+}

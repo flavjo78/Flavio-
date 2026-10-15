@@ -3,7 +3,27 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 38 — lucchetto lato server, vedi in cima; prima: "Correzioni recenti" 11 ottobre e modello di vendita come autore, §8 e ROADMAP §8).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 39 — lotto pannello 000 + report + mobile, vedi in cima; prima: AGG 38 lucchetto lato server).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 39 — pannello 000, report "Inviata", Test interno, mobile)
+> - **Report: colonna "Inviata il".** `mail_log` (stato.php) accetta `inviata` → registra l'ora
+>   della risposta nella riga del destinatario (aggiorna la riga anche se la mail era già stata
+>   registrata come "ricevuta", es. modo manuale). `index.mjs` passa `inviata:'1'` quando risponde.
+>   `report.php` ha la nuova colonna tra "Ricevuta" e "Aperture". **Richiede re-deploy index.mjs.**
+> - **"Test (invio prova)" dentro il pannello 000.** Nuova voce di menù + vista: riempie una casella
+>   di N mail (max 150) per collaudare il robottino, con credenziali **prese in automatico** dall'utente
+>   scelto (azione admin `admin_prova_invio`; invio in blocco `pred_smtp_invia_blocco` in smtp.php, UNA
+>   connessione → niente 504). Mittente ≠ destinatario (anti-loop). Il vecchio `prova-invio.php` sciolto
+>   è stato RIMOSSO (ora è tutto nel pannello admin).
+> - **Scheda utente (pannello 000):** nel titolo ora **provenienza + piano** (non più la password);
+>   la **password attuale** è accanto a "Cambia password d'accesso"; tasto **"Entra diretto ▶"** già
+>   presente (apre la Regia dell'utente in nuova scheda via `?u=&k=`). **Limiti modificabili a mano**
+>   (azione `admin_limiti`): aggiusti i numeri (mail/foto/sessioni/assistenti) e si salvano in
+>   `rec['piano_dati']` SENZA cambiare piano (il piano resta, lo snapshot vince).
+> - **Mobile (Regia + Assistente):** `env(safe-area-inset-*)` su header/impostazioni (il titolo
+>   "Impostazioni" non finisce più sotto il notch iPhone) e **barre di scorrimento nascoste** (scroll
+>   invariato, ma niente più barra verticale inutile). Service-worker **v13** (così i telefoni ricaricano).
+
 
 > ### ⚠️ Correzioni recenti (11 ottobre 2026) — leggere PRIMA del resto
 > Alcune parti più vecchie di questo documento citano ancora Brevo: sono **superate**.

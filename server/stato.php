@@ -658,6 +658,56 @@ function predizione_admin(string $azione): void {
             if ($ttl > 600) $ttl = 600;
             if ($tok === '') predizione_json(['ok' => false, 'errore' => 'token mancante'], 400);
             predizione_json(predizione_robot_lock($op, $tok, $ttl));
+
+        case 'admin_limiti':
+            // Modifica i LIMITI di un utente SENZA cambiare piano: salva i numeri
+            // in rec['piano_dati'] (lo snapshot che predizione_limiti_utente preferisce).
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $rec = $utenti[$num];
+            // base: lo snapshot attuale, altrimenti i dati del piano corrente
+            if (isset($rec['piano_dati']) && is_array($rec['piano_dati'])) {
+                $base = $rec['piano_dati'];
+            } else {
+                $piani = predizione_piani();
+                $pn = (string)($rec['piano'] ?? 'Foyer');
+                $base = $piani[$pn] ?? reset($piani);
+            }
+            $gi = function ($k, $def) { $v = p($k); return ($v === null || $v === '') ? $def : (int)$v; };
+            $base['mail_mese']       = max(0, $gi('mail_mese',       (int)($base['mail_mese'] ?? 0)));
+            $base['mail_giorno']     = max(0, $gi('mail_giorno',     (int)($base['mail_giorno'] ?? 0)));
+            $base['foto_ia_mese']    = max(0, $gi('foto_ia_mese',    (int)($base['foto_ia_mese'] ?? 0)));
+            $base['sessioni_mese']   = max(0, $gi('sessioni_mese',   (int)($base['sessioni_mese'] ?? 0)));
+            $base['sessioni_giorno'] = max(0, $gi('sessioni_giorno', (int)($base['sessioni_giorno'] ?? 0)));
+            $base['assistente']      = $gi('assistente',             (int)($base['assistente'] ?? 0)); // -1 illimitato, 0 no, N quota
+            if (p('report')       !== null) $base['report']       = (p('report') === '1');
+            if (p('grandi_invii') !== null) $base['grandi_invii'] = (p('grandi_invii') === '1');
+            $utenti[$num]['piano_dati'] = predizione_piano_normalizza($base);
+            predizione_utenti_scrivi($utenti);
+            predizione_json(['ok' => true, 'limiti' => predizione_limiti_utente($utenti[$num])]);
+
+        case 'admin_prova_invio':
+            // TEST del robottino: riempie una casella di tante mail. Usa le credenziali
+            // SMTP di un utente GIA' configurato (mitt = numero utente) -> niente password
+            // da ridigitare. Spedisce a 'dest' (indirizzo della casella del gioco da riempire).
+            require_once __DIR__ . '/smtp.php';
+            $mnum = predizione_pulisci_utente(p('mitt'));          // utente mittente
+            $dest = substr(trim((string)(p('dest') ?? '')), 0, 160);
+            $n    = (int)(p('quante') ?? 20);
+            if ($n < 1) $n = 1; if ($n > 150) $n = 150;
+            if (!isset($utenti[$mnum])) predizione_json(['ok' => false, 'errore' => 'Utente mittente assente'], 404);
+            $mc = predizione_mail_cfg($mnum);
+            if ($mc['user'] === '' || $mc['pass'] === '') {
+                predizione_json(['ok' => false, 'errore' => 'Il mittente non ha una casella configurata (email + password per app)'], 400);
+            }
+            if ($dest === '') predizione_json(['ok' => false, 'errore' => 'Scrivi la casella del gioco (destinatario)'], 400);
+            if (strcasecmp($dest, $mc['user']) === 0) {
+                predizione_json(['ok' => false, 'errore' => 'Mittente e destinatario non possono essere la stessa casella (il robottino risponderebbe a sé stesso)'], 400);
+            }
+            [$host, $port] = pred_smtp_host($mc['user']);
+            $esito = pred_smtp_invia_blocco($host, $port, $mc['user'], $mc['pass'],
+                       $mc['user'], ($mc['from'] !== '' ? $mc['from'] : 'Prova Predizione'), $dest, $n);
+            predizione_json(['ok' => true] + $esito);
     }
 }
 
@@ -1041,12 +1091,21 @@ switch ($azione) {
         if ($sid <= 0) predizione_json(['ok' => false, 'errore' => 'Nessuna sessione'], 400);
         predizione_prepara_cartella();
         $msgid = substr((string)(p('msgid') ?? ''), 0, 200);
+        $inviataFlag = !empty(p('inviata'));   // il robottino ha ANCHE risposto adesso
         $file  = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
-        // doppione? se questa mail (stessa chiave) è già nel registro, non rifaccio nulla
+        // doppione? se questa mail (stessa chiave) è già nel registro, non rifaccio nulla.
+        // UNICA eccezione: se adesso c'è stata la RISPOSTA (inviata) e prima non c'era
+        // l'ora d'invio, aggiorno quella riga aggiungendo 'inviata' (per il report).
         if ($msgid !== '' && is_file($file)) {
-            foreach (file($file, FILE_IGNORE_NEW_LINES) ?: [] as $riga) {
+            $righe = file($file, FILE_IGNORE_NEW_LINES) ?: [];
+            foreach ($righe as $ri => $riga) {
                 $r = json_decode($riga, true);
                 if (is_array($r) && isset($r['msgid']) && $r['msgid'] === $msgid) {
+                    if ($inviataFlag && empty($r['inviata'])) {
+                        $r['inviata'] = date('Y-m-d H:i:s');
+                        $righe[$ri] = json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+                        @file_put_contents($file, implode("\n", $righe) . "\n", LOCK_EX);
+                    }
                     predizione_json(['ok' => true, 'gia' => true]);
                 }
             }
@@ -1059,6 +1118,7 @@ switch ($azione) {
             'id'       => substr((string)(p('id')       ?? ''), 0, 60),
             'msgid'    => $msgid,
         ];
+        if ($inviataFlag) $rec['inviata'] = date('Y-m-d H:i:s');   // ora della risposta
         @file_put_contents($file, json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
         // ogni mail NUOVA conta come "ricevuta" (il contatore del pannello)
         $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + 1;

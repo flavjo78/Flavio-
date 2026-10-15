@@ -235,7 +235,7 @@ header('Cache-Control: no-store');
   <h2>Riepilogo per destinatario</h2>
   <?php if (!$ids): ?><div class="empty">Nessun dato per questa sessione.</div><?php else: ?>
   <table>
-    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>Aperture (tutti gli orari)</th><th>Foto vista</th><th>Dispositivo</th><th>N.</th></tr></thead>
+    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>Inviata</th><th>Aperture (tutti gli orari)</th><th>Foto vista</th><th>Dispositivo</th><th>N.</th></tr></thead>
     <tbody>
     <?php foreach ($ids as $id):
         $m = $mitt[$id] ?? null; $a = $ap[$id] ?? null;
@@ -243,6 +243,7 @@ header('Cache-Control: no-store');
       <tr>
         <td><?= h($m['mittente'] ?? '—') ?></td>
         <td class="mono"><?= h($m['ora'] ?? '—') ?></td>
+        <td class="mono"><?= h($m['inviata'] ?? '—') ?></td>
         <td class="mono"><?php if ($orari): foreach ($orari as $i => $t): ?><?= ($i === 0 ? '' : '<br>') . h($t) ?><?php endforeach; else: ?>—<?php endif; ?></td>
         <td><?= $a ? h(fotoVista($a['labels'])) : '—' ?></td>
         <td><?= $a ? h(dispositivo($a['ua'])) : '—' ?></td>
