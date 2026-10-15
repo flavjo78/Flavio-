@@ -242,12 +242,12 @@
 
       <!-- ===== TEST (invio prova) ===== -->
       <section class="view" id="v-test" style="display:none">
-        <div class="legend">Riempie una casella di tante mail <b>non lette</b>, per collaudare il robottino. Le credenziali le prende <b>in automatico</b> dalle caselle scelte. Scegli <b>una o più</b> caselle mittenti: il totale viene <b>diviso fra loro</b> (così nessuna Gmail viene frenata). Mittenti e destinatario devono essere <b>diversi</b>.</div>
+        <div class="legend">Riempie una casella di tante mail <b>non lette</b>, per collaudare il robottino. Le credenziali le prende <b>in automatico</b> dalle caselle scelte. Scegli <b>una o più</b> caselle mittenti: il totale viene <b>diviso fra loro</b> (ogni casella fino al "massimo per casella"). Per inviare di più, <b>spunta più caselle</b>. Consiglio: non oltre ~150 per casella (Gmail frena verso ~84 di fila). Mittenti e destinatario devono essere <b>diversi</b>.</div>
         <div class="card">
           <div class="field"><label>Spedisci da queste caselle (spunta una o più)</label><div id="tMittList" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div></div>
           <div class="field"><label for="tDest">Casella del gioco da riempire (destinatario)</label><input type="text" id="tDest" placeholder="es. io@abraka.it"></div>
-          <div class="field"><label for="tN">Quante mail in tutto (max 300)</label><input type="number" id="tN" min="1" max="300" value="20"></div>
-          <div class="field"><label for="tMax">Massimo per casella (consigliato 50, per non far frenare Gmail)</label><input type="number" id="tMax" min="1" max="150" value="50"></div>
+          <div class="field"><label for="tN">Quante mail in tutto</label><input type="number" id="tN" min="1" max="1500" value="20"></div>
+          <div class="field"><label for="tMax">Massimo per casella (un numero a scelta — consigliato non oltre 150)</label><input type="number" id="tMax" min="1" max="150" value="150"></div>
           <div class="btns"><button class="btn gold" id="tInvia">Invia le mail di prova</button></div>
           <div id="tEsito" class="small" style="margin-top:10px"></div>
         </div>
@@ -372,7 +372,7 @@
       var n=parseInt($('tN').value,10)||20, maxPer=parseInt($('tMax').value,10)||50;
       if(!senders.length){ toast('Spunta almeno una casella mittente','err'); return; }
       if(!dest){ toast('Scrivi la casella del gioco','err'); return; }
-      if(n<1)n=1; if(n>300)n=300; if(maxPer<1)maxPer=1;
+      if(n<1)n=1; if(n>1500)n=1500; if(maxPer<1)maxPer=1; if(maxPer>150)maxPer=150;
       // costruisci i "lavori": riempi casella per casella (max maxPer ciascuna), a blocchi di CHUNK
       var restante=n, jobs=[];
       for(var i=0;i<senders.length && restante>0;i++){
