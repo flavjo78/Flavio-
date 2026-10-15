@@ -23,6 +23,22 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 > - **"Palco" richiede un DOMINIO: NON funziona con Gmail.** Gmail vieta gli invii a raffica
 >   (soglie un po' più alte ma non utilizzabili in pratica). Chi ha solo Gmail usa il modo "Casella".
 
+> ### Aggiunte 15 ottobre 2026 (AGG 37 — split di UNA casella fra più robottini + turno 110s)
+> - **Work-stealing DENTRO una casella.** Una casella piena viene affidata a più robottini insieme
+>   (fino a `MAX_PARTI`=10, env). Ogni fetta prende solo gli uid con `uid % totParti === parte`
+>   (disjoint → nessun doppione per costruzione). `processaCasella` legge `cfg.parte`/`cfg.totParti`
+>   e filtra la search unseen. `unGiro(alloc)` espande ogni casella in `alloc.get(utente)` fette.
+> - **Allocazione dinamica (ramp).** L'handler aggiorna `alloc` a ogni giro: casella che torna
+>   `ancora` (piena) → robottini raddoppiati (1→2→4→8→10); casella svuotata → torna a 1. Il pool
+>   `inParallelo(ROBOTTINI)` limita comunque il totale di fette concorrenti a 30.
+> - **Turno a 110s** (`MAX_MS=110000`, era 55000). **RICHIEDE Concorrenza riservata = 1** su AWS
+>   (il turno supera il minuto). Timeout AWS consigliato 3 min, memoria 512 MB.
+> - Simulato (800 mail, 1 casella): 0 doppioni, 0 perse, sale a 10 robottini. **Rischio reale da
+>   provare: più connessioni IMAP simultanee alla STESSA casella (fino a 10); se il provider le
+>   rifiuta, abbassare `MAX_PARTI`. Fare una PROVA reale prima di uno show grande.** Solo `index.mjs`.
+> - **Nota sul "turno successivo che aiuta":** incompatibile con Concorrenza=1 (un turno alla volta);
+>   l'aiuto avviene DENTRO il turno (fino a 10 robottini per casella), non tra turni.
+
 > ### Aggiunte 14 ottobre 2026 (AGG 36 — ronda ~5s + RAFFICA + 30 robottini)
 > - **Ronda ~5s** (`PAUSA_MS=5000`): durante uno show le mail nuove ricevono risposta in ~5s.
 > - **RAFFICA (niente pausa quando c'è coda).** `processaCasella` ritorna `ancora` (true se ha

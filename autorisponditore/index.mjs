@@ -70,6 +70,11 @@ const ses = new SESClient({ region: AWS_REGION });
 //                 con tante mail non "ingolfa" il robottino e tutti ricevono un po'.
 const ROBOTTINI    = Math.max(1, Number(process.env.ROBOTTINI || 30));
 const MAX_PER_GIRO = Math.max(1, Number(process.env.MAX_PER_GIRO || 25));
+// Quanti robottini AL MASSIMO possono spartirsi UNA SOLA casella piena (work-stealing
+// dentro la stessa casella). Ogni robottino prende mail DIVERSE (uid % totParti) ->
+// nessun doppione. NB: sono connessioni IMAP contemporanee alla stessa casella: se il
+// provider ne rifiuta troppe, abbassa questo numero.
+const MAX_PARTI    = Math.max(1, Number(process.env.MAX_PARTI || 10));
 
 // esegue una lista di lavori con AL MASSIMO "limite" in parallelo (pool di worker)
 async function inParallelo(lista, limite, fn) {
@@ -204,6 +209,11 @@ async function postPannello(campi) {
 */
 async function processaCasella(cfg) {
   const { utente, imap, stato, invia, panelUser, panelPass } = cfg;
+  // "fetta" di questo robottino quando più robottini si spartiscono la stessa casella:
+  // totParti = quanti robottini la stanno lavorando, parte = quale fetta tocca a me.
+  // Prendo solo le mail con (uid % totParti === parte): fette separate, nessun doppione.
+  const totParti = Math.max(1, Number(cfg.totParti || 1));
+  const parte    = Math.max(0, Number(cfg.parte || 0));
 
   // ANTI-LOOP: indirizzi "propri" a cui NON rispondere mai (altrimenti la
   // risposta rientra come nuova mail e parte un giro infinito). Include
@@ -238,7 +248,10 @@ async function processaCasella(cfg) {
   try {
     const lock = await client.getMailboxLock('INBOX');
     try {
-      const uids = await client.search({ seen: false }, { uid: true });
+      let uids = await client.search({ seen: false }, { uid: true });
+      // se più robottini si spartiscono questa casella, tengo solo la MIA fetta
+      // (uid % totParti === parte): mail diverse per ogni robottino, niente doppioni.
+      if (totParti > 1) uids = uids.filter((u) => (Number(u) % totParti) === parte);
       for (const uid of uids) {
         // ANTI-INGORGO: massimo MAX_PER_GIRO mail a questa casella per giro, poi basta
         // (le altre partono al giro dopo, ~12s). Così una casella piena non blocca le altre.
@@ -389,7 +402,7 @@ async function inviaCasa(modo, dest, oggetto, html) {
 /* UN GIRO: prepara la lista delle caselle (casa 001 + clienti attivi) e le serve
    IN PARALLELO, fino a ROBOTTINI insieme. Ritorna l'elenco degli esiti (ognuno con
    giro_veloce = true se quel gioco vuole essere ricontrollato in fretta). */
-async function unGiro() {
+async function unGiro(alloc) {
   const lavori = [];   // ogni elemento è la "cfg" da passare a processaCasella
 
   // ---------- casella di CASA (001 / io@abraka.it) ----------
@@ -447,8 +460,18 @@ async function unGiro() {
     });
   }
 
-  // PARALLELO: fino a ROBOTTINI caselle servite insieme (ognuna con il suo tetto "a turni").
-  const esiti = await inParallelo(lavori, ROBOTTINI, (cfg) =>
+  // SPARTIZIONE: una casella piena può essere affidata a PIÙ robottini insieme.
+  // 'alloc' (deciso dal giro precedente) dice quanti robottini dare a ogni casella:
+  // creo quel numero di "fette" (uid diversi) per quella casella.
+  const fette = [];
+  for (const cfg of lavori) {
+    const n = Math.max(1, Math.min(MAX_PARTI, Number((alloc && alloc.get(cfg.utente)) || 1)));
+    for (let k = 0; k < n; k++) fette.push({ ...cfg, parte: k, totParti: n });
+  }
+
+  // PARALLELO: fino a ROBOTTINI "fette" servite insieme (caselle diverse E fette della
+  // stessa casella), ognuna con il suo tetto "a turni".
+  const esiti = await inParallelo(fette, ROBOTTINI, (cfg) =>
     processaCasella(cfg).catch((e) => {
       console.log('casella fallita', cfg.utente, e && e.message);
       return { utente: cfg.utente, errore: e && e.message ? e.message : String(e) };
@@ -471,11 +494,29 @@ export const handler = async () => {
   // NB: con "Concorrenza riservata = 1" su AWS NON ci sono mai due esecuzioni
   // sovrapposte -> zero doppioni anche quando la ronda dura a lungo.
   const INIZIO = Date.now();
-  const PAUSA_MS = 5000;      // ~5 secondi tra una ronda e l'altra (quando è tutto svuotato)
-  const MAX_MS   = 55000;     // ogni esecuzione dura ~1 minuto, poi la sveglia dopo riparte
+  const PAUSA_MS = 5000;       // ~5 secondi tra una ronda e l'altra (quando è tutto svuotato)
+  const MAX_MS   = 110000;     // l'esecuzione lavora fino a ~110s (sotto il Timeout di 2-3 min).
+                               // Serve "Concorrenza riservata = 1" su AWS, altrimenti rischio doppioni.
   let esiti = [];
+  let alloc = new Map();       // utente -> quanti robottini spartiscono quella casella (default 1)
   while (true) {
-    esiti = await unGiro();
+    esiti = await unGiro(alloc);
+
+    // Aggiorna la spartizione per il giro dopo: le caselle ancora PIENE (hanno
+    // colpito il tetto) ricevono PIÙ robottini (raddoppio, fino a MAX_PARTI);
+    // quelle svuotate tornano a 1 (sparendo dalla mappa).
+    const pienaPerUtente = new Map();
+    for (const e of esiti) {
+      if (!e || !e.utente) continue;
+      if (e.ancora) pienaPerUtente.set(e.utente, true);
+    }
+    const nuova = new Map();
+    for (const u of pienaPerUtente.keys()) {
+      const ora = alloc.get(u) || 1;
+      nuova.set(u, Math.min(MAX_PARTI, ora * 2));   // 1 -> 2 -> 4 -> 8 -> MAX_PARTI
+    }
+    alloc = nuova;
+
     const backlog     = esiti.some((e) => e && e.ancora);        // c'è ancora coda da svuotare?
     const serveVeloce = esiti.some((e) => e && e.giro_veloce);   // c'è almeno uno show attivo?
     if (Date.now() - INIZIO > MAX_MS) break;                     // tempo finito -> esci (la sveglia dopo continua)
