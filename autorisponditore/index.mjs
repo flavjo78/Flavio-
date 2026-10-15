@@ -495,10 +495,16 @@ async function unGiro(alloc) {
   // 'alloc' (deciso dal giro precedente) dice quanti robottini dare a ogni casella:
   // creo quel numero di "fette" (uid diversi) per quella casella.
   const fette = [];
+  const split = {};   // utente -> quanti robottini (fette) gli abbiamo dato in questo giro
   for (const cfg of lavori) {
     const n = Math.max(1, Math.min(MAX_PARTI, Number((alloc && alloc.get(cfg.utente)) || 1)));
+    split[cfg.utente] = n;
     for (let k = 0; k < n; k++) fette.push({ ...cfg, parte: k, totParti: n });
   }
+  // LOG leggibile: quanti robottini stanno lavorando e come sono spartiti
+  // (lo vedi in CloudWatch: "GIRO robottini=NN split={...}"). Il numero per
+  // casella è quanti robottini si spartiscono QUELLA casella in questo giro.
+  console.log('GIRO robottini=' + fette.length + ' split=' + JSON.stringify(split));
 
   // PARALLELO: fino a ROBOTTINI "fette" servite insieme (caselle diverse E fette della
   // stessa casella), ognuna con il suo tetto "a turni".
@@ -539,9 +545,11 @@ export const handler = async () => {
 
   let esiti = [];
   let alloc = new Map();       // utente -> quanti robottini spartiscono quella casella (default 1)
+  const picco = {};            // utente -> MAX robottini raggiunti nel turno (per il riepilogo finale)
   try {
   while (true) {
     esiti = await unGiro(alloc);
+    for (const [u, n] of alloc) { if (!picco[u] || n > picco[u]) picco[u] = n; }
 
     // rinnova il lucchetto a ogni giro: se lo abbiamo PERSO (scaduto o preso da
     // un altro), fermiamoci per non sovrapporci.
@@ -575,6 +583,9 @@ export const handler = async () => {
     // (e comunque, se qualcosa va storto, scade da solo dopo LOCK_TTL).
     await lucchetto('rilascia');
   }
+  // Riepilogo del turno: per ogni casella, il PICCO di robottini che se la sono
+  // spartita (le caselle non elencate sono rimaste a 1 robottino).
+  console.log('PICCO robottini per casella=' + JSON.stringify(picco));
   console.log('ESITO', JSON.stringify(esiti));
   return { caselle: esiti };
 };
