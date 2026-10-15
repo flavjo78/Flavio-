@@ -237,7 +237,7 @@ function predizione_stato_pubblico(array $s): array {
         'utente'         => predizione_utente(),
         'flags'          => predizione_flags(predizione_utente()),  // il pannello sa cosa mostrare
         'mail_impostata' => predizione_mail_impostata(predizione_utente()),
-        'mail_cfg'       => predizione_mail_cfg(predizione_utente()),  // casella salvata (per riempire le Impostazioni)
+        'mail_cfg'       => predizione_mail_cfg_pubblica(predizione_utente()),  // casella salvata (SENZA password in chiaro)
         'ha_zona'        => (!empty($s['foto_quad']) && is_array($s['foto_quad']) && count($s['foto_quad']) === 4),
         'ha_foto_base'   => (!empty($s['foto_base']) && is_file($s['foto_base'])),
         'foto_quad'      => (!empty($s['foto_quad'])  && is_array($s['foto_quad']))  ? $s['foto_quad']  : null,
@@ -282,6 +282,17 @@ function predizione_mail_cfg(string $u): array {
             'from' => (string)($m['from'] ?? ''), 'login' => (string)($m['login'] ?? ''),
             'tipo' => predizione_casella_tipo($m)];
 }
+/* Versione PUBBLICA della config casella: come predizione_mail_cfg ma SENZA la
+   password in chiaro (che non deve mai uscire nella risposta pubblica di 'stato',
+   leggibile da chiunque). Al posto della password mette solo 'pass_impostata'
+   (true/false), così l'app sa se c'è già una password senza vederla. */
+function predizione_mail_cfg_pubblica(string $u): array {
+    $m = predizione_mail_cfg($u);
+    $m['pass_impostata'] = ((string)($m['pass'] ?? '') !== '');
+    $m['pass'] = '';
+    return $m;
+}
+
 /* Che tipo di casella usa l'utente: 'gmail' | 'altro' | '' (nessuna casella).
    Usa il 'tipo' salvato; se manca (utenti vecchi) lo deduce dall'indirizzo. */
 function predizione_casella_tipo(array $m): string {
@@ -1078,7 +1089,13 @@ switch ($azione) {
             predizione_json(['ok' => false, 'errore' => 'Funzione mail non abilitata'], 403);
         }
         $utenti = predizione_utenti_leggi();
-        $utenti[$utente]['mail'] = predizione_mail_da_richiesta();
+        $nuovaMail = predizione_mail_da_richiesta();
+        // se la password non e' stata reinserita (campo lasciato vuoto, perche' non la
+        // mostriamo piu' in chiaro), TIENI quella gia' salvata invece di cancellarla.
+        if ($nuovaMail['pass'] === '' && !empty($utenti[$utente]['mail']['pass'])) {
+            $nuovaMail['pass'] = (string)$utenti[$utente]['mail']['pass'];
+        }
+        $utenti[$utente]['mail'] = $nuovaMail;
         predizione_utenti_scrivi($utenti);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

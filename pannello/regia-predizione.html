@@ -995,12 +995,22 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(sd){ if((ac.sessioni_giorno||0)>0){ sd.style.display=''; setBar('limSessDayTxt','limSessDayBar', uso.sessioni_oggi, ac.sessioni_giorno); } else { sd.style.display='none'; } }
       var lg=$('limGiorno'); if(lg){ lg.innerHTML = ((ac.mail_giorno||0)>0 || (ac.sessioni_giorno||0)>0) ? '<b>Oggi</b>: i limiti "al giorno" si azzerano a mezzanotte.' : ''; }
     }
-    // ripristina la casella salvata (email + password per app 16 cifre + mittente)
+    // ripristina la casella salvata (email + mittente). La PASSWORD non arriva più
+    // dal server in chiaro (sicurezza): mostriamo solo se è "già impostata".
     var mc=st.mail_cfg;
-    if(mc){ [['mailEmail','user'],['mailApp','pass'],['mailFrom','from']].forEach(function(p){
-      var el=$(p[0]); if(el && document.activeElement!==el && !el.value){ el.value=mc[p[1]]||''; }
-    }); caselleLabels(mc.tipo); }
+    if(mc){
+      [['mailEmail','user'],['mailFrom','from']].forEach(function(p){
+        var el=$(p[0]); if(el && document.activeElement!==el && !el.value){ el.value=mc[p[1]]||''; }
+      });
+      g_passImpostata = !!mc.pass_impostata;
+      var pa=$('mailApp');
+      if(pa && document.activeElement!==pa){
+        pa.placeholder = g_passImpostata ? '•••••• già impostata — lascia vuoto per tenerla' : 'password della casella';
+      }
+      caselleLabels(mc.tipo);
+    }
   }
+  var g_passImpostata=false;   // c'è già una password casella salvata sul server?
   // Cambia le ETICHETTE della "tua casella" in base al tipo (Gmail o dominio):
   // Gmail -> "Indirizzo Gmail" + "Password per le app (16 lettere)" + nota Google.
   // Dominio/altro -> "Indirizzo email" + "Password della casella" + nota dominio.
@@ -1744,8 +1754,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(smBtn) smBtn.addEventListener('click', function(){
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var e=($('mailEmail').value||'').trim(), a=($('mailApp').value||'').trim(), f=($('mailFrom').value||'').trim();
-    if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
-    comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
+    if(!e){ toast('Inserisci l\'indirizzo email','err'); return; }
+    if(!a && !g_passImpostata){ toast('Inserisci la password della casella','err'); return; }
+    comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');  // password vuota = tieni quella salvata
   });
   // mentre scrivi l'indirizzo, le etichette si adattano (Gmail o dominio)
   var mEmailEl=$('mailEmail');
