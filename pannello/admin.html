@@ -670,6 +670,13 @@
       '<div class="kv"><span>Email (comunicazione)</span><b>'+(s.email?esc(s.email):'—')+'</b></div>'+
       '<div class="kv"><span>Telefono</span><b>'+(s.tel?esc(s.tel):'—')+'</b></div>'+
       '<div class="kv"><span>Provenienza</span><b>'+(s.fonte?esc(s.fonte):'—')+'</b></div>'+
+      '<div class="kv"><span>Username di accesso</span><b style="color:var(--gold)">'+esc(s.numero)+'</b></div>'+
+      ((s.numero==='000'||s.numero==='001')
+        ? '<div class="small" style="opacity:.7;margin:4px 0 2px">🔒 Username di sistema: non si cambia.</div>'
+        : (s.ha_giocato
+            ? '<div class="small" style="opacity:.75;margin:4px 0 2px">🔒 Non modificabile: questo utente ha già fatto spettacoli (cambiarlo romperebbe le foto già inviate).</div>'
+            : '<div class="field"><label class="small" for="mUser">Cambia username (solo lettere/numeri . _ -)</label><input type="text" id="mUser" placeholder="nuovo username" value="'+esc(s.numero)+'"></div><div class="btns"><button class="btn" id="mSalvaUser">Cambia username</button></div>'))+
+      '<div class="sep"></div>'+
       '<div class="kv"><span>Password per le app di GOOGLE</span><b style="color:var(--gold)">'+(m.pass?esc(m.pass):'— (non impostata)')+'</b></div>'+
       '<div class="sep"></div>'+
       '<div class="plinfo">Casella del gioco (Gmail)</div>'+
@@ -773,6 +780,17 @@
         call('admin_crediti',{numero:num,tipo:t,qta:q,scad:$('cs_'+t).value}).then(function(r){done(r,'Crediti aggiunti');}); };
     });
     $('mSalvaMail').onclick=function(){ var e=$('mEmail').value.trim(),ap=$('mApp').value.trim(),fr=$('mFrom').value.trim(); if(!e||!ap){toast('Email e password per app','err');return;} call('admin_mail',{numero:num,email:e,app_password:ap,from:fr}).then(function(r){done(r,'Casella salvata');}); };
+    // CAMBIA USERNAME (solo se non ha giocato: il server rifiuta altrimenti)
+    if($('mSalvaUser')) $('mSalvaUser').onclick=function(){
+      var nv=(($('mUser').value||'').trim().toLowerCase());
+      if(!nv){ toast('Scrivi il nuovo username','err'); return; }
+      if(nv===num){ toast('È già questo username','err'); return; }
+      if(!confirm('Cambiare l\'username da "'+num+'" a "'+nv+'"?\nL\'utente dovrà accedere col nome nuovo.')) return;
+      call('admin_rinomina',{numero:num,nuovo:nv}).then(function(r){
+        if(r.data&&r.data.ok){ toast('Username cambiato in '+r.data.nuovo,'ok'); carica(); openUser(r.data.nuovo); }
+        else toast((r.data&&r.data.errore)||'Errore','err');
+      });
+    };
   }
 
   /* ---------- NUOVO UTENTE ---------- */

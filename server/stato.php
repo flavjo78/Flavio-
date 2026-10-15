@@ -375,6 +375,7 @@ function predizione_admin(string $azione): void {
                 'report'   => (bool)$lim['report'],
                 'limiti'   => $lim,
                 'sessioni' => $sessOut,
+                'ha_giocato' => !empty($sessOut),   // se ha sessioni NON si puo' rinominare (link gia' inviati)
                 'mail'     => predizione_mail_cfg($num),
             ]]);
 
@@ -501,6 +502,39 @@ function predizione_admin(string $azione): void {
             $utenti[$num]['mail'] = predizione_mail_da_richiesta();
             predizione_utenti_scrivi($utenti);
             predizione_json(['ok' => true]);
+
+        case 'admin_rinomina':
+            // Cambia l'USERNAME di accesso di un utente. L'username e' anche il
+            // nome della cartella dati (_dati/u<nome>) ed e' dentro i link
+            // image.php?u=<nome> gia' inviati: per questo si puo' rinominare SOLO
+            // se l'utente NON ha ancora fatto sessioni (altrimenti si romperebbero
+            // le foto gia' spedite). 000 e 001 non si rinominano mai.
+            $old = predizione_pulisci_utente(p('numero'));
+            $new = predizione_pulisci_utente(p('nuovo'));
+            if (!isset($utenti[$old])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            if ($old === '000' || $old === '001') predizione_json(['ok' => false, 'errore' => 'Questo utente non si puo\' rinominare'], 400);
+            if ($new === '' || $new === '000' || $new === '001') predizione_json(['ok' => false, 'errore' => 'Nome nuovo non valido'], 400);
+            if ($new === $old) predizione_json(['ok' => false, 'errore' => 'E\' gia\' questo il nome'], 400);
+            if (isset($utenti[$new])) predizione_json(['ok' => false, 'errore' => 'Esiste gia\' un utente con questo nome'], 400);
+            // ha gia' giocato? (sessioni fatte) -> blocco
+            $prevU = predizione_utente();
+            predizione_set_utente($old);
+            $stOld = predizione_leggi_stato();
+            $haGiocato = !empty($stOld['sessioni']) || (int)($stOld['sessione_corrente'] ?? 0) > 0;
+            predizione_set_utente($prevU);
+            if ($haGiocato) {
+                predizione_json(['ok' => false, 'errore' => 'Questo utente ha gia\' fatto spettacoli: rinominarlo romperebbe le foto gia\' inviate. Cambio non permesso.'], 400);
+            }
+            // sposta la cartella dati (se c'e') e la scheda sotto il nuovo nome
+            $oldDir = DATA_DIR . '/u' . $old;
+            $newDir = DATA_DIR . '/u' . $new;
+            if (is_dir($oldDir) && !is_dir($newDir)) { @rename($oldDir, $newDir); }
+            $rec = $utenti[$old];
+            unset($utenti[$old]);
+            $utenti[$new] = $rec;
+            predizione_utenti_scrivi($utenti);
+            predizione_log_operazione('rinomina', $new, 'era ' . $old);
+            predizione_json(['ok' => true, 'nuovo' => $new]);
 
         case 'admin_elimina':
             $num = predizione_pulisci_utente(p('numero'));

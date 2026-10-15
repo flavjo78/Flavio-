@@ -3,7 +3,24 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 42 — guida: casella dominio + "Salta" + tipo casella nel 000; prima: AGG 41 login automatico).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 43 — cambio username nel 000 + suffisso + Gmail @auto; prima: AGG 42/42.1 guida+casella).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 43 — cambio username nel pannello 000, suffisso nei nomi doppi, Gmail "@" automatico)
+> - **Cambio USERNAME dal pannello 000 (`admin.html` + `stato.php`).** Nuova azione `admin_rinomina`:
+>   rinomina l'username (chiave in `utenti.json`) E sposta la cartella dati `_dati/u<old>`→`_dati/u<new>`.
+>   **Permesso SOLO se l'utente non ha ancora fatto sessioni** (`ha_giocato` in `admin_scheda`): altrimenti
+>   si romperebbero i link `image.php?u=…` già inviati. `000`/`001` mai rinominabili. Nella scheda:
+>   riga "Username di accesso" + campo "Cambia username" (o lucchetto con spiegazione se ha giocato);
+>   dopo il cambio la scheda si riapre col nuovo nome.
+> - **Nomi doppi: numero come SUFFISSO** (`piani.php` `predizione_utente_libero_da_email`): ora
+>   `mario.rossi` → `mario.rossi1` → `mario.rossi2` (prima era prefisso `1mario.rossi`).
+> - **Gmail "@gmail.com" automatico** nella guida (percorso Gmail): se scrivi solo il nome
+>   (`ilmiomagoshow`), l'app aggiunge da sola `@gmail.com` al salvataggio. Nota nel campo.
+> - **Include anche AGG 42.1:** nella sezione "La tua casella" (Account) le etichette ora si
+>   ADATTANO all'indirizzo (Gmail → "Indirizzo Gmail"/"Password per le app 16 lettere";
+>   dominio → "Indirizzo email"/"Password della casella"), via `caselleLabels()`.
+> - **Richiede:** caricare su Tophost `stato.php`, `invia.php`, `piani.php`, `regia-predizione.html`,
+>   `admin.html`, `service-worker.js` (cache **v17**). Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 42 — guida primo accesso: casella di dominio, "Salta", tipo casella nel pannello 000)
 > - **Guida del primo accesso (`regia-predizione.html`):**

@@ -283,7 +283,7 @@ function predizione_utente_da_email(string $email): string {
 }
 
 /* Nome utente LIBERO a partire dalla mail. Se è già preso (o è un numero
-   riservato), mette un progressivo DAVANTI: mario -> 1mario -> 2mario ...
+   riservato), mette un progressivo DOPO (suffisso): mario -> mario1 -> mario2 ...
    Se dalla mail non si ricava nulla, ripiega sul vecchio numero progressivo. */
 function predizione_utente_libero_da_email(array $utenti, string $email): string {
     $base = predizione_utente_da_email($email);
@@ -291,7 +291,7 @@ function predizione_utente_libero_da_email(array $utenti, string $email): string
     $riservati = function ($u) use ($utenti) { return isset($utenti[$u]) || $u === '000' || $u === '001'; };
     if (!$riservati($base)) return $base;
     $n = 1;
-    do { $cand = $n . $base; $n++; } while ($riservati($cand));
+    do { $cand = $base . $n; $n++; } while ($riservati($cand));
     return $cand;
 }
 

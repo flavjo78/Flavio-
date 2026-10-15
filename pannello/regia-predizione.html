@@ -2053,7 +2053,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
        +'<p class="gcenter"><span class="gpill">Passo 4 di 4</span></p>'
        +'<h2 class="gt">Incolla qui e salva</h2>'
        +'<p class="glead">Ultimo passo: scrivi la Gmail del gioco e incolla le 16 lettere.</p>'
-       +'<div class="gfield"><label>Indirizzo Gmail del gioco</label><input id="gMailIn" type="email" placeholder="ilmiomagoshow@gmail.com" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></div>'
+       +'<div class="gfield"><label>Indirizzo Gmail del gioco</label><input id="gMailIn" type="email" placeholder="ilmiomagoshow@gmail.com" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"><div class="help">Puoi scrivere solo il nome: <b>@gmail.com</b> lo aggiungiamo noi.</div></div>'
        +'<div class="gfield"><label>Le 16 lettere (password per le app)</label><input id="gPassIn" class="code-in" type="text" placeholder="abcd efgh ijkl mnop" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"><div class="help">Puoi incollarle con o senza spazi.</div></div>'
        +'<div class="gfield"><label>Nome mittente (facoltativo)</label><input id="gFromIn" type="text" placeholder="Il Mio Show"></div>'
        +'<button class="gbtn primary" data-act="saveCasella">Salva la casella del gioco</button>'
@@ -2119,7 +2119,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       return;
     }
     if(a==='saveCasella'){
-      var m=(($('gMailIn')&&$('gMailIn').value)||'').trim();
+      var m=(($('gMailIn')&&$('gMailIn').value)||'').trim().toLowerCase();
+      if(m && m.indexOf('@')<0) m=m+'@gmail.com';   // scrivi solo il nome: aggiungiamo noi @gmail.com
       var p=(($('gPassIn')&&$('gPassIn').value)||'').replace(/\s+/g,'');
       var f=(($('gFromIn')&&$('gFromIn').value)||'').trim();
       if(!m || m.indexOf('@')<1){ toast('Scrivi la Gmail del gioco','err'); return; }
