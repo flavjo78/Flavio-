@@ -272,7 +272,7 @@ header('Cache-Control: no-store');
         <td><?= h($m['mittente'] ?? '—') ?></td>
         <td class="mono"><?= h($m['ora'] ?? '—') ?></td>
         <td class="mono"><?= h($m['inviata'] ?? '—') ?></td>
-        <td><?= isset($m['robot']) ? (int)$m['robot'] : '—' ?></td>
+        <td><?= isset($m['robot']) ? ('R' . (int)$m['robot']) : '—' ?></td>
         <td class="mono"><?php if ($orari): foreach ($orari as $i => $t): ?><?= ($i === 0 ? '' : '<br>') . h($t) ?><?php endforeach; else: ?>—<?php endif; ?></td>
         <td><?= $a ? h(fotoVista($a['labels'])) : '—' ?></td>
         <td><?= $a ? h(dispositivo($a['ua'])) : '—' ?></td>
