@@ -163,6 +163,26 @@ if (!$diario) {   // sessioni vecchie senza diario: ricostruisci dagli orari sal
 /* --- unione per destinatario (id) ---------------------------------------- */
 $ids = array_values(array_unique(array_merge(array_keys($mitt), array_keys($ap))));
 
+/* --- statistiche ROBOTTINI + tempo di lavoro (dalle mail di questa sessione) --- */
+$robVisti = [];            // quali robottini (R1, R2, ...) hanno risposto
+$maxInsieme = 0;           // massimo robottini insieme nello stesso giro
+$invTs = [];               // tutti gli orari d'invio (per il tempo di lavoro)
+foreach ($mitt as $m) {
+    if (isset($m['robot']) && (int)$m['robot'] > 0) $robVisti[(int)$m['robot']] = true;
+    if (isset($m['parti']) && (int)$m['parti'] > $maxInsieme) $maxInsieme = (int)$m['parti'];
+    if (!empty($m['inviata'])) { $t = strtotime((string)$m['inviata']); if ($t) $invTs[] = $t; }
+}
+$nRobottini = count($robVisti);
+$primoInvio = $invTs ? min($invTs) : null;
+$ultimoInvio = $invTs ? max($invTs) : null;
+$durataLavoro = ($primoInvio && $ultimoInvio) ? ($ultimoInvio - $primoInvio) : null;
+function pred_durata_umana(?int $sec): string {
+    if ($sec === null) return '—';
+    if ($sec < 60) return $sec . ' secondi';
+    $m = intdiv($sec, 60); $s = $sec % 60;
+    return $m . ' min ' . ($s ? ($s . ' s') : '') ;
+}
+
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store');
 ?><!doctype html>
@@ -226,6 +246,14 @@ header('Cache-Control: no-store');
     <div class="card"><b><?= array_sum(array_map(function($x){return $x['n'];}, $ap)) ?></b><span>Aperture totali</span></div>
   </div>
 
+  <?php if ($nRobottini || $maxInsieme || $durataLavoro !== null): ?>
+  <div class="cards">
+    <div class="card"><b><?= $nRobottini ?: '—' ?></b><span>Robottini che hanno risposto</span></div>
+    <div class="card"><b><?= $maxInsieme ?: '—' ?></b><span>Massimo insieme (stesso momento)</span></div>
+    <div class="card"><b><?= pred_durata_umana($durataLavoro) ?></b><span>Tempo di lavoro (1º → ultimo invio)</span></div>
+  </div>
+  <?php endif; ?>
+
   <div class="btns">
     <button onclick="if(history.length>1){history.back();}else{window.close();}">← Indietro</button>
     <button onclick="window.print()">Stampa / Salva PDF</button>
@@ -235,7 +263,7 @@ header('Cache-Control: no-store');
   <h2>Riepilogo per destinatario</h2>
   <?php if (!$ids): ?><div class="empty">Nessun dato per questa sessione.</div><?php else: ?>
   <table>
-    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>Inviata</th><th>Aperture (tutti gli orari)</th><th>Foto vista</th><th>Dispositivo</th><th>N.</th></tr></thead>
+    <thead><tr><th>Mittente</th><th>Ricevuta</th><th>Inviata</th><th>Robottino</th><th>Aperture (tutti gli orari)</th><th>Foto vista</th><th>Dispositivo</th><th>N.</th></tr></thead>
     <tbody>
     <?php foreach ($ids as $id):
         $m = $mitt[$id] ?? null; $a = $ap[$id] ?? null;
@@ -244,6 +272,7 @@ header('Cache-Control: no-store');
         <td><?= h($m['mittente'] ?? '—') ?></td>
         <td class="mono"><?= h($m['ora'] ?? '—') ?></td>
         <td class="mono"><?= h($m['inviata'] ?? '—') ?></td>
+        <td><?= isset($m['robot']) ? (int)$m['robot'] : '—' ?></td>
         <td class="mono"><?php if ($orari): foreach ($orari as $i => $t): ?><?= ($i === 0 ? '' : '<br>') . h($t) ?><?php endforeach; else: ?>—<?php endif; ?></td>
         <td><?= $a ? h(fotoVista($a['labels'])) : '—' ?></td>
         <td><?= $a ? h(dispositivo($a['ua'])) : '—' ?></td>

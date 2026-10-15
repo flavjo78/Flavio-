@@ -1103,6 +1103,8 @@ switch ($azione) {
                 if (is_array($r) && isset($r['msgid']) && $r['msgid'] === $msgid) {
                     if ($inviataFlag && empty($r['inviata'])) {
                         $r['inviata'] = date('Y-m-d H:i:s');
+                        if (($rb = p('robot')) !== null && $rb !== '') $r['robot'] = (int)$rb;
+                        if (($pp = p('parti')) !== null && $pp !== '') $r['parti'] = (int)$pp;
                         $righe[$ri] = json_encode($r, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
                         @file_put_contents($file, implode("\n", $righe) . "\n", LOCK_EX);
                     }
@@ -1118,7 +1120,11 @@ switch ($azione) {
             'id'       => substr((string)(p('id')       ?? ''), 0, 60),
             'msgid'    => $msgid,
         ];
-        if ($inviataFlag) $rec['inviata'] = date('Y-m-d H:i:s');   // ora della risposta
+        if ($inviataFlag) {
+            $rec['inviata'] = date('Y-m-d H:i:s');   // ora della risposta
+            if (($rb = p('robot')) !== null && $rb !== '') $rec['robot'] = (int)$rb;   // quale robottino (R1, R2, ...)
+            if (($pp = p('parti')) !== null && $pp !== '') $rec['parti'] = (int)$pp;   // quanti robottini in quel giro
+        }
         @file_put_contents($file, json_encode($rec, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) . "\n", FILE_APPEND | LOCK_EX);
         // ogni mail NUOVA conta come "ricevuta" (il contatore del pannello)
         $stato['mail_ricevute'] = (int)($stato['mail_ricevute'] ?? 0) + 1;

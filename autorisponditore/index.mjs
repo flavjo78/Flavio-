@@ -369,6 +369,8 @@ async function processaCasella(cfg) {
                   azione: 'mail_log', utente: panelUser, password: panelPass,
                   sessione: stato.sessione, mittente, oggetto: mOggetto, testo: mTesto, id, msgid: chiave,
                   inviata: '1',   // registra ANCHE l'ora d'invio (colonna "Inviata" nel report)
+                  robot: String(parte + 1),   // QUALE robottino ha risposto (R1, R2, ...)
+                  parti: String(totParti),    // quanti robottini c'erano in quel giro
                 });
               } catch (e) { console.log('mail_log fallito', utente, e.message); }
             }

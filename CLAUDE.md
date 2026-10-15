@@ -3,7 +3,17 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 39 — lotto pannello 000 + report + mobile, vedi in cima; prima: AGG 38 lucchetto lato server).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 40 — report robottini; prima: AGG 39 pannello 000 + report + mobile).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 40 — report: colonna Robottino + robottini/tempo)
+> - **Report:** nuova colonna **"Robottino"** (numero della fetta che ha risposto a quella mail:
+>   `index.mjs` passa `robot=parte+1` e `parti=totParti` nel `mail_log`; `stato.php` li salva nella
+>   riga). Nel riepilogo in alto tre nuove card: **Robottini che hanno risposto** (quanti numeri
+>   diversi), **Massimo insieme** (max `parti` = picco contemporaneo), **Tempo di lavoro**
+>   (dal 1º all'ultimo `inviata`). Tutto calcolato in `report.php` dai dati delle mail.
+>   **Richiede re-deploy index.mjs + stato.php/report.php su Tophost.** (Vale per le sessioni NUOVE.)
+> - **Robottini log (da AGG-39e):** `index.mjs` scrive in CloudWatch `GIRO robottini=N split={...}`
+>   e `PICCO robottini per casella={...}` per contare i robottini anche dai log.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 39 — pannello 000, report "Inviata", Test interno, mobile)
 > - **Report: colonna "Inviata il".** `mail_log` (stato.php) accetta `inviata` → registra l'ora
