@@ -455,6 +455,7 @@
 <!-- ============ GUIDA PRIMO ACCESSO (obbligatoria finché la casella del gioco non è impostata) ============ -->
 <div id="guida" role="dialog" aria-label="Guida al primo accesso">
   <div class="gwrap">
+    <button id="gSkipTop" type="button" aria-label="Salta la guida" style="position:absolute;top:12px;right:12px;z-index:5;background:rgba(255,255,255,.08);color:inherit;border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer">✕ Salta</button>
     <header>
       <p class="kicker">Benvenuto</p>
       <h1 class="wordmark">Predizione</h1>
@@ -2127,6 +2128,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       return;
     }
   });
+
+  // "✕ Salta" in alto nella guida: chiude tutta la configurazione assistita da
+  // QUALSIASI schermata (non si riapre; la si rifà da Impostazioni).
+  var gSkipBtn=$('gSkipTop');
+  if(gSkipBtn) gSkipBtn.addEventListener('click', function(){ gChiudi(true); toast('Guida saltata. La ritrovi in Impostazioni.','ok'); });
 
   /* ===== AIUTO rapido ("?") + percorso "come si gioca" (coachmark) ===== */
   var ahEl=$('ahelp');
