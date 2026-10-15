@@ -1,8 +1,7 @@
 # PREDIZIONE — Roadmap (stato reale)
 
-> Aggiornata il **15 ottobre 2026** ricostruendo lo stato VERO dal codice e dal
-> registro "AGG 12 → 40" in `CLAUDE.md`. La versione vecchia (5-10 ottobre) era
-> rimasta indietro: molte voci segnate "da fare" sono in realtà **già fatte**.
+> Aggiornata il **15 ottobre 2026 (sera)** dallo stato VERO del codice e dal
+> registro "AGG 12 → 46" in `CLAUDE.md`.
 >
 > Legenda: ✅ fatto e funzionante · 🟡 fatto nel codice, da confermare se è ONLINE
 > o da collaudare dal vivo · 🔴 da fare davvero.
@@ -42,6 +41,16 @@
 - **Ordine completo** (`ordine.php`): numero `PRD-NNNN`, codice di conferma via mail, coordinate di
   pagamento (bonifico/PayPal/Satispay), mail al cliente + `supporto@` + autore, **mail di benvenuto
   con password** e **ricevuta PDF**. Attivazione utente (`attiva_ordine`).
+
+**Rifiniture e robustezza (AGG 41→46, 15 ottobre sera)**
+- **Invio a mano "Invia mail"** funziona anche con caselle di **dominio** (login automatico, AGG 41).
+- **Guida primo accesso**: tasto **"Salta"**, percorso **"dominio mio"** che configura davvero la casella,
+  Gmail con **@gmail.com** già scritto, etichette che si adattano (Gmail/dominio) (AGG 42/43).
+- **Pannello 000**: **cambia username** (solo utenti senza sessioni), **tipo casella** (Gmail/Altra) nel titolo,
+  nuovo utente con **funzione mail attiva** di default (AGG 42/43/44).
+- **SICUREZZA**: la **password della casella non è più leggibile** nella risposta pubblica del server (AGG 44).
+- **"Autorisponditore" e "Invia mail" sono funzioni SEPARATE**, attivabili per utente dal pannello 000 (AGG 45).
+- **"Caligrafia Foto magic"**: il **prompt dell'IA** è modificabile/creabile e selezionabile dal pannello 000 (AGG 46).
 
 ---
 
