@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Come si gioca — PREDIZIONE</title>
+<meta name="description" content="Guida passo passo per usare PREDIZIONE dal vivo: Avvia, Cambia, Finisci.">
+<style>
+  :root{
+    --bg:#0a0908; --bg2:#120f0b; --card:#17130d; --line:#2a241a;
+    --ink:#ece0c9; --mut:#a79a80; --gold:#d8b25a; --good:#7bbf7b; --stop:#d98a6a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(120% 60% at 50% 0%, #14110c 0%, var(--bg) 46%, #070605 100%);
+    color:var(--ink); font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:720px; margin:0 auto; padding:34px 16px 60px}
+  header{text-align:center; margin-bottom:26px}
+  .kick{letter-spacing:.28em; text-transform:uppercase; font-size:11px; color:var(--mut); margin:0}
+  h1{font-family:Georgia,'Times New Roman',serif; font-weight:700; font-size:30px; margin:6px 0 4px; color:var(--ink)}
+  .sub{color:var(--mut); margin:0; font-size:15px}
+  .lead{background:var(--card); border:1px solid var(--line); border-radius:16px; padding:16px 18px; margin:22px 0}
+  .lead b{color:var(--gold)}
+  .phases{display:flex; gap:8px; flex-wrap:wrap; margin:18px 0 4px}
+  .ph{flex:1; min-width:140px; background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:12px 14px}
+  .ph .t{font-weight:800; color:var(--gold); font-size:15px}
+  .ph .d{color:var(--mut); font-size:13px; margin-top:2px}
+  h2{font-family:Georgia,serif; font-size:19px; margin:34px 0 10px; color:var(--ink)}
+  ol.steps{list-style:none; counter-reset:s; padding:0; margin:0}
+  ol.steps>li{
+    counter-increment:s; position:relative; background:var(--card);
+    border:1px solid var(--line); border-radius:16px; padding:16px 18px 16px 62px; margin:12px 0;
+  }
+  ol.steps>li::before{
+    content:counter(s); position:absolute; left:14px; top:14px;
+    width:34px; height:34px; border-radius:50%; background:rgba(216,178,90,.14);
+    border:1px solid var(--gold); color:var(--gold); font-weight:800;
+    display:flex; align-items:center; justify-content:center; font-size:15px;
+  }
+  ol.steps>li .st{font-weight:800; display:block; margin-bottom:3px}
+  ol.steps>li b{color:var(--gold)}
+  .gold-box{background:linear-gradient(180deg, rgba(216,178,90,.12), rgba(216,178,90,.04));
+    border:1px solid var(--gold); border-radius:16px; padding:16px 18px; margin:26px 0}
+  .gold-box .h{color:var(--gold); font-weight:800; font-size:16px; margin-bottom:6px}
+  .ab{display:flex; gap:10px; flex-wrap:wrap; margin:14px 0}
+  .ab>div{flex:1; min-width:180px; background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:12px 14px}
+  .ab .n{font-weight:800}
+  .a .n{color:var(--good)} .b .n{color:var(--stop)}
+  .ab .d{color:var(--mut); font-size:13.5px; margin-top:2px}
+  .note{color:var(--mut); font-size:13.5px}
+  footer{text-align:center; color:var(--mut); font-size:12.5px; margin-top:38px; border-top:1px solid var(--line); padding-top:16px}
+  @media print{ body{background:#fff; color:#111} .lead,ol.steps>li,.ph,.ab>div{background:#fff; border-color:#ccc}
+    h1,.ph .t,ol.steps>li b,.gold-box .h{color:#9a6b00} .gold-box{background:#fff8e8} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kick">Guida pratica</p>
+    <h1>Come si gioca, passo passo</h1>
+    <p class="sub">PREDIZIONE — lo strumento da palco</p>
+  </header>
+
+  <div class="lead">
+    L'effetto in breve: gli spettatori ti scrivono una <b>mail</b> e ricevono una risposta con una
+    <b>foto d'attesa</b>. Al momento giusto tu premi <b>“Cambia”</b> e, quando riaprono quella stessa
+    mail, la foto è diventata la <b>rivelazione</b>. Tre tasti, tre momenti: <b>Avvia → Cambia → Finisci</b>.
+  </div>
+
+  <div class="phases">
+    <div class="ph"><div class="t">▶ Avvia</div><div class="d">Lo show parte: chi scrive riceve la Foto A.</div></div>
+    <div class="ph"><div class="t">✦ Cambia</div><div class="d">La foto diventa la rivelazione (B).</div></div>
+    <div class="ph"><div class="t">■ Finisci</div><div class="d">Chiude. La B resta per sempre.</div></div>
+  </div>
+
+  <h2>I passi, nell'ordine</h2>
+  <ol class="steps">
+    <li><span class="st">Carica la Foto A (attesa)</span>È la foto che gli spettatori vedono <b>all'inizio</b>: una neutra, di attesa. Toccala e premi <b>Carica</b>.</li>
+    <li><span class="st">Prepara la Rivelazione (Foto B)</span>È la foto che appare quando premi <b>“Cambia”</b>. Puoi caricarla ora oppure <b>anche dopo l'Avvia</b> (fino al momento del Cambia). Puoi crearla anche con <b>Foto magic</b>: ti fotografi con un <b>foglio bianco</b> in mano e l'intelligenza artificiale ci <b>scrive sopra</b> la frase.</li>
+    <li><span class="st">Apri le Impostazioni</span>L'<b>ingranaggio</b> in alto a sinistra apre il menù con tutte le caselle.</li>
+    <li><span class="st">“Imposta foto”</span>Da qui cambi le foto <b>quando vuoi</b>, anche a gioco avviato: ricarichi la Foto A o la Rivelazione.</li>
+    <li><span class="st">“Testo mail” (facoltativo)</span>Scrivi il <b>messaggio</b> e l'<b>oggetto</b> che arrivano insieme alla foto.</li>
+    <li><span class="st">Premi “Avvia gioco”</span>Parte lo show: chi scrive riceve la <b>Foto A</b>. Nella schermata vedi i <b>conteggi</b> dal vivo (mail ricevute e inviate).</li>
+    <li><span class="st">Al momento giusto: “Cambia”</span>La foto passa alla <b>rivelazione (B)</b>. Se non avevi caricato la Rivelazione, premendo “Cambia” <b>te la fa caricare</b> al volo.</li>
+    <li><span class="st">A fine show: “Finisci”</span>Chiude la sessione. La <b>Foto B resta per sempre</b> a chi l'ha ricevuta. Tornano i riquadri per caricare le foto del prossimo gioco.</li>
+    <li><span class="st">L'occhio 👁</span>Ti fa vedere la Foto A e la B <b>come le vedono gli spettatori</b>, senza inviare nulla.</li>
+    <li><span class="st">Il tasto “?” (Aiuto)</span>Sta sempre in basso, tra “Cambia” e “Finisci”. Riaprilo quando vuoi: dentro c'è anche questo percorso.</li>
+  </ol>
+
+  <div class="gold-box">
+    <div class="h">⭐ La regola d'oro (importante per riuscire)</div>
+    Per vedere il cambio, lo spettatore deve aprire la mail <b>per la PRIMA volta DOPO</b> che hai premuto
+    <b>“Cambia”</b>. Quindi: fai scrivere, tieni la suspense, premi <b>Cambia</b>, e <b>solo allora</b> di'
+    “adesso aprite la mail che vi ho mandato”. <br><br>
+    <span class="note">Perché? Gmail e Apple Mail <b>fotocopiano</b> l'immagine alla prima apertura e non la
+    riscaricano più. Se l'avevano già aperta prima del Cambia, resterebbero con la Foto A. Non funziona il
+    “guardate la foto che cambia dal vivo” a mail già aperta.</span>
+  </div>
+
+  <h2>Le due foto</h2>
+  <div class="ab">
+    <div class="a"><div class="n">Foto A — attesa</div><div class="d">Neutra, uguale per tutti all'inizio. Si riusa in ogni show.</div></div>
+    <div class="b"><div class="n">Foto B — rivelazione</div><div class="d">Diversa a ogni gioco. Chi la riceve continua a vederla <b>per sempre</b>, anche quando parte un nuovo show con una foto diversa.</div></div>
+  </div>
+
+  <p class="note">Suggerimento: prima di uno spettacolo vero, fai una <b>prova in piccolo</b> (2–3 mail da un altro telefono)
+  per prendere il ritmo di Avvia → Cambia → “adesso aprite”.</p>
+
+  <footer>PREDIZIONE · guida pratica “come si gioca” · abraka.it</footer>
+</div>
+</body>
+</html>
