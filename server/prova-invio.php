@@ -20,6 +20,61 @@ header('Cache-Control: no-store');
 
 function pv($k, $d = '') { $v = $_POST[$k] ?? $d; return is_string($v) ? trim($v) : $v; }
 
+/* Invio VELOCE in blocco: apre UNA sola connessione SMTP e spedisce dentro
+   tutte le mail di fila (niente riconnessione a ogni mail -> niente 504).
+   Prova 587 (STARTTLS); se fallisce, riprova 465 (SSL diretto).
+   Ritorna [inviate, errori, primiErrori[]]. */
+function pv_blocco(string $host, int $port, string $user, string $pass,
+                   string $from, string $fromName, string $to, int $n, string $stamp): array {
+    $inviate = 0; $errori = 0; $primi = [];
+    foreach ([[587, false], [465, true]] as [$pTry, $ssl]) {
+        if ($port === 465) { $pTry = 465; $ssl = true; }   // se la casella usa gia' 465
+        $url = ($ssl ? 'ssl://' : 'tcp://') . "$host:$pTry";
+        $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+        $fp = @stream_socket_client($url, $eno, $estr, 18, STREAM_CLIENT_CONNECT, $ctx);
+        if (!$fp) { $primi[] = "connessione $host:$pTry fallita ($estr)"; continue; }
+        stream_set_timeout($fp, 20);
+        $read = function () use ($fp) { $d=''; while (($l=fgets($fp,515))!==false){$d.=$l; if(strlen($l)>=4&&$l[3]===' ')break;} return $d; };
+        $cmd  = function (string $c) use ($fp, $read) { fwrite($fp, $c."\r\n"); return $read(); };
+        $read();
+        $cmd("EHLO abraka.it");
+        if (!$ssl) {   // 587: STARTTLS
+            $r = $cmd("STARTTLS");
+            if (($r[0] ?? '') !== '2' || !@stream_socket_enable_crypto($fp, true,
+                 STREAM_CRYPTO_METHOD_TLS_CLIENT | STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT)) {
+                $primi[] = "STARTTLS su $pTry fallito"; fclose($fp); continue;
+            }
+            $cmd("EHLO abraka.it");
+        }
+        $cmd("AUTH LOGIN"); $cmd(base64_encode($user));
+        $r = $cmd(base64_encode($pass));
+        if (($r[0] ?? '') !== '2') { $primi[] = "login casella fallito (utente o password per app errati)"; fclose($fp); break; }
+
+        $fromHdr = ($fromName !== '' ? '=?UTF-8?B?'.base64_encode($fromName).'?= ' : '') . "<$from>";
+        for ($i = 1; $i <= $n; $i++) {
+            $r = $cmd("MAIL FROM:<$from>");
+            if (($r[0] ?? '') !== '2') { $errori++; if(count($primi)<6)$primi[]="#$i MAIL FROM: ".trim($r); $cmd("RSET"); continue; }
+            $r = $cmd("RCPT TO:<$to>");
+            if (($r[0] ?? '') !== '2') { $errori++; if(count($primi)<6)$primi[]="#$i destinatario: ".trim($r); $cmd("RSET"); continue; }
+            $r = $cmd("DATA");
+            if (($r[0] ?? '') !== '3') { $errori++; if(count($primi)<6)$primi[]="#$i DATA: ".trim($r); $cmd("RSET"); continue; }
+            $sub  = "Prova PREDIZIONE #$i-$stamp";
+            $body = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
+                  . "<p>Mail di prova numero <b>$i</b> (infornata $stamp).</p>"
+                  . '<p>Serve a collaudare il robottino: non e\' una mail vera.</p></div>';
+            $hdr  = "From: $fromHdr\r\nTo: <$to>\r\n"
+                  . "Subject: =?UTF-8?B?".base64_encode($sub)."?=\r\n"
+                  . "MIME-Version: 1.0\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n";
+            fwrite($fp, $hdr . preg_replace('/^\./m', '..', $body) . "\r\n.\r\n");
+            $r = $read();
+            if (($r[0] ?? '') === '2') { $inviate++; } else { $errori++; if(count($primi)<6)$primi[]="#$i invio: ".trim($r); }
+        }
+        $cmd("QUIT"); fclose($fp);
+        break;   // connessione riuscita: non provare l'altra porta
+    }
+    return [$inviate, $errori, $primi];
+}
+
 $fatto    = false;
 $risultati = [];
 $inviate  = 0;
@@ -43,17 +98,8 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
         if ($n > 150) $n = 150;                           // tetto di sicurezza
         [$host, $port] = pred_smtp_host($mitt);           // ricava host/porta dalla casella di prova
         $stamp = date('His');                             // per distinguere questa infornata
-        for ($i = 1; $i <= $n; $i++) {
-            $sub  = "Prova PREDIZIONE #$i-$stamp";
-            $body = '<div style="font-family:Arial,sans-serif;font-size:15px;color:#222">'
-                  . "<p>Mail di prova numero <b>$i</b> (infornata $stamp).</p>"
-                  . '<p>Serve a collaudare il robottino: non e\' una mail vera.</p></div>';
-            $err  = null;
-            $ok   = pred_smtp_send($host, $port, $mitt, $mpas, $from, 'Prova Predizione',
-                                   $dest, $sub, $body, $err);
-            if ($ok) { $inviate++; }
-            else     { $errori++; if (count($risultati) < 6) $risultati[] = "#$i: $err"; }
-        }
+        [$inviate, $errori, $risultati] = pv_blocco($host, $port, $mitt, $mpas,
+                                                    $from, 'Prova Predizione', $dest, $n, $stamp);
         $fatto = true;
         $msgTop = "Inviate: $inviate — Errori: $errori";
     }
