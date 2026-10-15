@@ -45,6 +45,11 @@ $ok = predizione_auth($utente, is_string($pass) ? $pass : null)
    || predizione_assistente_valido($stato, $token !== '' ? $token : null);
 if (!$ok) predizione_json(['ok' => false, 'errore' => 'Accesso negato'], 403);
 
+/* la funzione "Invia mail" (invio a mano) dev'essere inclusa per questo utente */
+if (empty(predizione_flags($utente)['invio'])) {
+    predizione_json(['ok' => false, 'errore' => 'La funzione "Invia mail" non è inclusa in questo piano'], 403);
+}
+
 /* --- casella configurata? ---------------------------------------------- */
 $rec = predizione_utente_record($utente);
 $m   = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];

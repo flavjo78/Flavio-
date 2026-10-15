@@ -581,7 +581,7 @@
       <div class="tiles">
         <div class="tile" data-go="foto"><div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.5"/><path d="M21 16l-5-5-4 4-2-2-4 4"/></svg></div><div class="tx"><div class="tl">Imposta foto</div><div class="ts" id="tsFoto">—</div></div></div>
         <div class="tile" data-go="testomail"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 11h16M4 16h8"/><path d="M15 19l5-5 1.6 1.6-5 5H15z"/></svg></div><div class="tx"><div class="tl">Testo mail</div><div class="ts">oggetto e testo</div></div></div>
-        <div class="tile" data-go="invio"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
+        <div class="tile" data-go="invio" id="tileAuto"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M12 4v4M3 12v3M21 12v3"/><circle cx="9.5" cy="13" r=".6" fill="currentColor" stroke="none"/><circle cx="14.5" cy="13" r=".6" fill="currentColor" stroke="none"/></svg></div><div class="tx"><div class="tl">Autorisponditore</div><div class="ts" id="tsInvio">—</div></div></div>
         <div class="tile" data-go="ia" id="tileIa" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><path d="M15 6l3 3M14.5 6.5L5 16v3h3l9.5-9.5z"/><path d="M18.2 2.8l.5 1.5 1.5.5-1.5.5-.5 1.5-.5-1.5-1.5-.5 1.5-.5z"/><path d="M20.5 8.5l.35 1 1 .35-1 .35-.35 1-.35-1-1-.35 1-.35z"/></svg></div><div class="tx"><div class="tl">Foto magic</div><div class="ts">crea la Foto B</div></div></div>
         <div class="tile" data-go="casella" id="tileCasella" style="display:none"><div class="ic"><svg viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="2.5"/><path d="M5 9l7 5 7-5"/></svg></div><div class="tx"><div class="tl">Invia mail</div><div class="ts" id="tsCasella">a pochi indirizzi</div></div></div>
         <div class="tile" data-go="limiti"><div class="ic"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg></div><div class="tx"><div class="tl">Limiti</div><div class="ts" id="tsLimiti">—</div></div></div>
@@ -930,7 +930,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var API_BASE = './';
 
   // ---- utente + password (salvati solo su questo dispositivo) ----
-  var PW=''; var USER='001'; var FLAGS={mail:false,foto:false};
+  var PW=''; var USER='001'; var FLAGS={mail:false,foto:false,auto:false,invio:false};
   try { PW   = localStorage.getItem('pred_pw')   || ''; } catch(e){}
   try { USER = localStorage.getItem('pred_user') || '001'; } catch(e){}
 
@@ -1036,7 +1036,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(loginPw){ loginPw.value = PW; }
   function applyFlags(){
     // le voci NON attive restano VISIBILI ma in grigio (locked), non nascoste
-    var tc=$('tileCasella'); if(tc){ tc.style.display=''; tc.classList.toggle('locked', !FLAGS.mail); }
+    var tc=$('tileCasella'); if(tc){ tc.style.display=''; tc.classList.toggle('locked', !FLAGS.invio); }
+    var ta=$('tileAuto');    if(ta){ ta.classList.toggle('locked', !FLAGS.auto); }
     var ti=$('tileIa');      if(ti){ ti.style.display=''; ti.classList.toggle('locked', !FLAGS.foto); }
     // le sezioni interne restano comunque presenti; se la voce e' bloccata non si apre
     var m=$('secMail'); if(m) m.style.display = FLAGS.mail ? '' : 'none';
@@ -1062,7 +1063,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       .then(function(r){ return r.json(); })
       .then(function(j){
         if(!j || !j.ok){ toast((j&&j.errore)||'Accesso negato','err'); return; }
-        USER=u; PW=p; FLAGS=j.flags||{mail:false,foto:false};
+        USER=u; PW=p; FLAGS=j.flags||{mail:false,foto:false,auto:false,invio:false};
         try{ localStorage.setItem('pred_user',u); localStorage.setItem('pred_pw',p); }catch(e){}
         if(j.admin){ window.location.href='admin.html'; return; }   // amministratore
         if(loginView) loginView.classList.add('hidden');
@@ -1600,7 +1601,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     setView.scrollTop=0;
   }
   var LOCKSPIEGA={
-    casella:['Invia mail','mandare le mail dalla tua casella'],
+    casella:['Invia mail','mandare le mail a mano dalla tua casella'],
+    invio:['Autorisponditore','far rispondere il sistema in automatico'],
     ia:['Foto magic','creare la Foto B in automatico'],
     report:['Report','vedere chi apre la mail e chi scrive'],
     assist:['Assistente','creare un link per chi ti aiuta']

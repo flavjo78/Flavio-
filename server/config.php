@@ -214,7 +214,15 @@ function predizione_is_admin(string $u, ?string $pass): bool {
 function predizione_flags(string $u): array {
     $rec = predizione_utente_record($u);
     $f = ($rec && isset($rec['flags']) && is_array($rec['flags'])) ? $rec['flags'] : [];
-    return ['mail' => !empty($f['mail']), 'foto' => !empty($f['foto'])];
+    $mail = !empty($f['mail']);
+    // 'auto'  = Autorisponditore (risposta automatica); 'invio' = "Invia mail" (a mano).
+    // Se non impostati (utenti vecchi) valgono come 'mail': chi aveva la mail tiene entrambe.
+    return [
+        'mail'  => $mail,
+        'foto'  => !empty($f['foto']),
+        'auto'  => array_key_exists('auto',  $f) ? !empty($f['auto'])  : $mail,
+        'invio' => array_key_exists('invio', $f) ? !empty($f['invio']) : $mail,
+    ];
 }
 
 /* -------------------- ASSISTENTE DI SCENA (link temporaneo) ------------- */

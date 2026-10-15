@@ -3,7 +3,22 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 44 — sicurezza: password casella non più in chiaro; prima: AGG 43/43.1).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 45 — Autorisponditore e Invia mail come funzioni separate per utente; prima: AGG 44 sicurezza).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 45 — "Autorisponditore" e "Invia mail" funzioni separate attivabili per utente)
+> - **Due funzioni distinte al posto dell'unica "mail".** `flags` ora ha anche `auto` (Autorisponditore)
+>   e `invio` (Invia mail a mano), oltre a `mail`/`foto`. `config.php` `predizione_flags`: se `auto`/`invio`
+>   non sono impostati (utenti vecchi) valgono come `mail` → **nessuno perde funzioni**.
+> - **Pannello 000 (`admin.html`):** nella scheda utente, sezione gestione "Modi di invio inclusi" con due
+>   spunte **autorisponditore** e **invia mail** (salvate con `admin_flags`, che ora accetta `auto`/`invio`).
+> - **Regia (`regia-predizione.html`):** la tile **Autorisponditore** (`#tileAuto`) si blocca se `!auto`;
+>   la tile **Invia mail** (`#tileCasella`) si blocca se `!invio` (prima era legata a `mail`). FLAGS include auto/invio.
+> - **Blindatura server:** l'azione `autorisponditore` (stato.php) rifiuta l'accensione se `!auto`; `invia.php`
+>   rifiuta l'invio a mano se `!invio`.
+> - **config.php va caricato** (aggiunge solo le due funzioni; le password nel file sono residui NON usati
+>   — il login vero è in utenti.json — quindi ricaricarlo non cambia nessuna password viva).
+> - **Richiede:** caricare su Tophost `config.php` + `stato.php` + `invia.php` + `regia-predizione.html` +
+>   `admin.html` + `service-worker.js` (cache **v20**). Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 44 — SICUREZZA: password casella non più esposta + nuovo utente con mail di default)
 > - **La password della casella NON esce più nello stato pubblico.** `stato.php`: nuovo

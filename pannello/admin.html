@@ -725,7 +725,10 @@
     $('dManage').innerHTML=
       '<div class="row"><label class="chk"><input type="checkbox" id="mFlagMail" '+(s.flags.mail?'checked':'')+'> mail</label>'+
         '<label class="chk"><input type="checkbox" id="mFlagFoto" '+(s.flags.foto?'checked':'')+'> Foto magic</label>'+
-        '<label class="chk"><input type="checkbox" id="mReport" '+(s.report?'checked':'')+'> report</label>'+
+        '<label class="chk"><input type="checkbox" id="mReport" '+(s.report?'checked':'')+'> report</label></div>'+
+      '<div class="plinfo" style="margin-top:8px">Modi di invio inclusi</div>'+
+      '<div class="row"><label class="chk"><input type="checkbox" id="mFlagAuto" '+((s.flags&&s.flags.auto)?'checked':'')+'> autorisponditore</label>'+
+        '<label class="chk"><input type="checkbox" id="mFlagInvio" '+((s.flags&&s.flags.invio)?'checked':'')+'> invia mail</label>'+
         '<button class="btn" id="mSalvaFlags">Salva funzioni</button></div>'+
       '<div class="btns"><button class="btn" id="mAttiva">'+(s.attivo?'Sospendi':'Riattiva')+'</button>'+
         '<button class="btn danger" id="mDel">Elimina</button></div>'+
@@ -756,7 +759,7 @@
     function refresh(){ openUser(num); carica(); }
     function done(r,ok){ if(r.data&&r.data.ok){toast(ok,'ok');refresh();caricaOperazioni();}else toast((r.data&&r.data.errore)||'Errore','err'); }
     $('mSalvaFlags').onclick=function(){
-      call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0'}).then(function(r){
+      call('admin_flags',{numero:num,mail:$('mFlagMail').checked?'1':'0',foto:$('mFlagFoto').checked?'1':'0',auto:$('mFlagAuto').checked?'1':'0',invio:$('mFlagInvio').checked?'1':'0'}).then(function(r){
         call('admin_report',{numero:num,valore:$('mReport').checked?'1':'0'}).then(function(){ done(r,'Funzioni salvate'); });
       });
     };

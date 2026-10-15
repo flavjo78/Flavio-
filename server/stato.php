@@ -441,7 +441,15 @@ function predizione_admin(string $azione): void {
         case 'admin_flags':
             $num = predizione_pulisci_utente(p('numero'));
             if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
-            $utenti[$num]['flags'] = ['mail' => (p('mail') === '1'), 'foto' => (p('foto') === '1')];
+            // 'auto' e 'invio' arrivano dal pannello; se non arrivano (vecchio pannello)
+            // li allineo a 'mail' per non disattivarli di nascosto.
+            $fmail = (p('mail') === '1');
+            $utenti[$num]['flags'] = [
+                'mail'  => $fmail,
+                'foto'  => (p('foto') === '1'),
+                'auto'  => (p('auto')  !== null) ? (p('auto')  === '1') : $fmail,
+                'invio' => (p('invio') !== null) ? (p('invio') === '1') : $fmail,
+            ];
             predizione_utenti_scrivi($utenti);
             predizione_json(['ok' => true]);
 
@@ -982,7 +990,12 @@ switch ($azione) {
         // interruttore ON/OFF della risposta automatica (la Lambda lo legge a ogni giro):
         // OFF -> la Lambda si sveglia ma NON fa nulla; ON -> risponde a gioco attivo.
         $valore = strtoupper((string)p('valore'));
-        $stato['autorisponditore'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        $acceso = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        // la funzione "autorisponditore" dev'essere inclusa per questo utente
+        if ($acceso && empty(predizione_flags($utente)['auto'])) {
+            predizione_json(['ok' => false, 'errore' => 'Autorisponditore non incluso in questo piano'], 403);
+        }
+        $stato['autorisponditore'] = $acceso;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 
