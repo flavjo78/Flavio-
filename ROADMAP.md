@@ -72,17 +72,19 @@
 
 7. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
    arrivino in **Posta in arrivo** (non spam) e che i domini siano "caldi". Checklist:
-   - [ ] **mail-tester.com**: mandare 1 mail e leggere il **voto /10** (obiettivo ≥ 8). Da fare per:
-         (a) `abraka.it` (mail commerciali da `supporto@`), (b) il **dominio Mailgun** di ogni cliente (Palco).
-   - [ ] **MXToolbox blacklist**: controllare che dominio/IP **non** siano in liste nere (tutto verde).
-   - [ ] **SPF / DKIM / DMARC**: verificare che i record esistano e siano corretti (li segnala anche mail-tester).
-   - [ ] **Prova inbox reale**: inviare a **Gmail + Outlook/Hotmail + iCloud** e vedere se finiscono in
-         Posta in arrivo o in Spam.
-   - [ ] **Mailgun**: dominio **verde/verified**, controllare i **Logs** (consegnate vs spam/bounce) e
-         il **riscaldamento** (mandare poche alla volta all'inizio, poi salire).
-   - [ ] (Avanzato) **Google Postmaster Tools**: reputazione del dominio su Gmail (Alta/Media/Bassa).
-   - **Nota:** il "riscaldamento" è una reputazione, non un numero unico: si misura con questi strumenti
-     messi insieme. Va rifatto per OGNI nuovo dominio cliente usato con Palco.
+   - [x] **mail-tester.com** (15/10): **9/10** per `abraka.it` (da rifare per ogni dominio Mailgun cliente).
+         NB: il primo tentativo diede 4.9 solo perché la mail di prova era VUOTA (no oggetto/testo).
+   - [x] **MXToolbox blacklist** (15/10): **pulito**, non in liste nere (3 timeout ininfluenti).
+   - [x] **SPF / DMARC**: validi. **SPF** = `include:_spf.th.seeweb.it include:mailgun.org ?all`;
+         **DMARC** = `p=none` (va bene; `rua` punta ancora a Brevo → pulizia facoltativa).
+   - [x] **Prova inbox reale** (15/10): le mail arrivano in **Posta in arrivo**, NON in spam. ✅
+   - [ ] **DKIM su Tophost**: la firma DKIM manca sugli invii (selettore `s1` già in DNS). Attivarla in
+         cp.tophost.it o chiederlo all'assistenza → guadagna l'ultimo punto. (Non blocca: già a 9/10.)
+   - [ ] **Mailgun**: dominio **verde/verified**, controllare i **Logs** e il **riscaldamento**. Da rifare
+         per OGNI nuovo dominio cliente usato con Palco.
+   - [ ] (Avanzato, facoltativo) **Google Postmaster Tools**: reputazione del dominio su Gmail.
+   - [ ] (Sicurezza, più avanti) DMARC `p=none` → `quarantine`/`reject` SOLO dopo aver verificato che
+         TUTTI gli invii (Tophost + Mailgun) passino SPF/DKIM allineati (altrimenti blocci mail vere).
 
 ---
 
