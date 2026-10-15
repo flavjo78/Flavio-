@@ -49,6 +49,68 @@ function predizione_invio_modo($v): string {
     return 'casella'; // 'casella', 'smtp' (vecchio) o vuoto
 }
 
+/* ---- LUCCHETTO DEL ROBOTTINO (un solo turno alla volta) -----------------
+   Serve a chi NON può impostare "Concorrenza riservata = 1" su AWS: fa in
+   modo che UNA sola esecuzione della Lambda lavori per volta, così non
+   partono mai due risposte alla stessa mail (niente doppioni).
+
+   Come funziona: un unico file DATA_DIR/robot.lock con dentro {token, ts}.
+   - 'prendi'   : lo prende SOLO se è libero, scaduto (vecchio) o già suo.
+   - 'rinnova'  : aggiorna l'ora SOLO se il lucchetto è ancora suo.
+   - 'rilascia' : lo cancella SOLO se è suo.
+   Il token è un numero a caso che il robottino genera a ogni risveglio, così
+   un turno riconosce "il suo" lucchetto. Il TTL (durata) fa sì che, se una
+   esecuzione muore senza rilasciare, il lucchetto si liberi da solo dopo
+   qualche minuto (nessun blocco permanente).
+   L'operazione è ATOMICA: usa flock(LOCK_EX) attorno a leggi-decidi-scrivi,
+   così due robottini non possono prenderlo insieme. */
+function predizione_robot_lock(string $op, string $token, int $ttl): array {
+    if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0775, true); }
+    $file = DATA_DIR . '/robot.lock';
+    $fh = @fopen($file, 'c+');   // crea se manca, lettura+scrittura, NON tronca
+    if (!$fh) return ['ok' => false, 'errore' => 'lock non apribile'];
+    $esito = ['ok' => true, 'preso' => false, 'scade_tra' => 0];
+    if (flock($fh, LOCK_EX)) {
+        $raw = stream_get_contents($fh);
+        $cur = json_decode((string)$raw, true);
+        $now = time();
+        $occupato = is_array($cur) && !empty($cur['token'])
+                    && (($now - (int)($cur['ts'] ?? 0)) < $ttl);
+        $mio = $occupato && ((string)$cur['token'] === $token);
+
+        if ($op === 'rilascia') {
+            // libera solo se è mio (o se è già scaduto/vuoto, non importa)
+            if (!$occupato || $mio) {
+                ftruncate($fh, 0); rewind($fh); fwrite($fh, '');
+            }
+            $esito['preso'] = false;
+        } elseif ($op === 'rinnova') {
+            if ($mio) {
+                $dati = json_encode(['token' => $token, 'ts' => $now]);
+                ftruncate($fh, 0); rewind($fh); fwrite($fh, $dati);
+                $esito['preso'] = true;
+            } else {
+                // lucchetto perso (scaduto o preso da un altro): NON riprenderlo di nascosto
+                $esito['preso'] = false;
+                if ($occupato) $esito['scade_tra'] = $ttl - ($now - (int)$cur['ts']);
+            }
+        } else { // 'prendi' (default)
+            if (!$occupato || $mio) {
+                $dati = json_encode(['token' => $token, 'ts' => $now]);
+                ftruncate($fh, 0); rewind($fh); fwrite($fh, $dati);
+                $esito['preso'] = true;
+            } else {
+                $esito['preso'] = false;
+                $esito['scade_tra'] = $ttl - ($now - (int)$cur['ts']);
+            }
+        }
+        fflush($fh);
+        flock($fh, LOCK_UN);
+    }
+    fclose($fh);
+    return $esito;
+}
+
 /* Congela la rivelazione pronta nel file "after" della sessione $nid
    (sostituendo l'eventuale precedente) e la consuma. Cosi' l'ultima
    rivelazione caricata prima di "Cambia"/"Finisci" e' quella che resta. */
@@ -581,6 +643,21 @@ function predizione_admin(string $azione): void {
                 ];
             }
             predizione_json(['ok' => true, 'caselle' => $out]);
+
+        case 'admin_lock':
+            // LUCCHETTO: un solo turno del robottino alla volta (vedi
+            // predizione_robot_lock). Solo amministratore (già verificato).
+            //   lock_op = prendi | rinnova | rilascia   (default: prendi)
+            //   token   = numero a caso del turno
+            //   ttl     = durata in secondi (default 150)
+            $op  = (string)(p('lock_op') ?? 'prendi');
+            if (!in_array($op, ['prendi', 'rinnova', 'rilascia'], true)) $op = 'prendi';
+            $tok = substr((string)(p('token') ?? ''), 0, 64);
+            $ttl = (int)(p('ttl') ?? 150);
+            if ($ttl < 10)  $ttl = 10;
+            if ($ttl > 600) $ttl = 600;
+            if ($tok === '') predizione_json(['ok' => false, 'errore' => 'token mancante'], 400);
+            predizione_json(predizione_robot_lock($op, $tok, $ttl));
     }
 }
 

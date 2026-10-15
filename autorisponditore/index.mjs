@@ -180,6 +180,36 @@ async function caselleExtra() {
   }
 }
 
+/* ---- LUCCHETTO: un solo turno alla volta ----------------------------------
+   Sostituisce "Concorrenza riservata = 1" di AWS (che questo account non può
+   impostare). Prima di lavorare, il turno PRENDE il lucchetto su stato.php; se
+   è già di un altro turno vivo, questo esce subito (così non partono mai due
+   risposte alla stessa mail). Lo RINNOVA a ogni giro e lo RILASCIA alla fine.
+   Il token è un numero a caso di questo risveglio. Serve PANEL_ADMIN_PASS
+   (azione admin): senza, il lucchetto è disattivato (torna sempre "preso"). */
+const LOCK_TOKEN = String(Date.now()) + '-' + Math.random().toString(36).slice(2, 10);
+const LOCK_TTL   = 150;   // secondi: se un turno muore, il lucchetto si libera da solo
+async function lucchetto(op) {   // op = 'prendi' | 'rinnova' | 'rilascia'
+  if (!PANEL_ADMIN_PASS) return { ok: true, preso: true };   // lucchetto spento
+  try {
+    const b = new URLSearchParams();
+    b.set('azione', 'admin_lock');
+    b.set('utente', '000');
+    b.set('password', PANEL_ADMIN_PASS);
+    b.set('lock_op', op);
+    b.set('token', LOCK_TOKEN);
+    b.set('ttl', String(LOCK_TTL));
+    const r = await fetch(STATO_URL, { method: 'POST', body: b });
+    const j = await r.json();
+    return (j && typeof j.preso !== 'undefined') ? j : { ok: false, preso: false };
+  } catch (e) {
+    console.log('lucchetto', op, 'fallito:', e.message);
+    // In caso di rete ballerina: se stiamo PRENDENDO meglio NON partire
+    // (per non rischiare doppioni); per rinnova/rilascia non blocchiamo.
+    return { ok: false, preso: (op !== 'prendi') };
+  }
+}
+
 /* corpo HTML della risposta, con l'immagine dinamica (porta ?u=UTENTE) */
 function corpoHtml(utente, sessione, id, intro) {
   const src = `${IMAGE_URL_BASE}?u=${encodeURIComponent(utente)}&s=${encodeURIComponent(sessione)}&id=${encodeURIComponent(id)}`;
@@ -494,13 +524,28 @@ export const handler = async () => {
   // NB: con "Concorrenza riservata = 1" su AWS NON ci sono mai due esecuzioni
   // sovrapposte -> zero doppioni anche quando la ronda dura a lungo.
   const INIZIO = Date.now();
-  const PAUSA_MS = 5000;       // ~5 secondi tra una ronda e l'altra (quando è tutto svuotato)
+  const PAUSA_MS = 3000;       // ~3 secondi tra una ronda e l'altra (quando è tutto svuotato)
   const MAX_MS   = 110000;     // l'esecuzione lavora fino a ~110s (sotto il Timeout di 2-3 min).
-                               // Serve "Concorrenza riservata = 1" su AWS, altrimenti rischio doppioni.
+
+  // LUCCHETTO: prende il "permesso di lavorare". Se un altro turno è ancora
+  // vivo, questo esce SUBITO senza toccare la posta -> niente doppioni anche
+  // SENZA "Concorrenza riservata = 1" su AWS.
+  const perm = await lucchetto('prendi');
+  if (!perm.preso) {
+    console.log('LUCCHETTO occupato da un altro turno: esco (scade tra ~' + (perm.scade_tra || '?') + 's)');
+    return { saltato: true, motivo: 'lucchetto occupato' };
+  }
+
   let esiti = [];
   let alloc = new Map();       // utente -> quanti robottini spartiscono quella casella (default 1)
+  try {
   while (true) {
     esiti = await unGiro(alloc);
+
+    // rinnova il lucchetto a ogni giro: se lo abbiamo PERSO (scaduto o preso da
+    // un altro), fermiamoci per non sovrapporci.
+    const vivo = await lucchetto('rinnova');
+    if (!vivo.preso) { console.log('LUCCHETTO perso durante il turno: mi fermo'); break; }
 
     // Aggiorna la spartizione per il giro dopo: le caselle ancora PIENE (hanno
     // colpito il tetto) ricevono PIÙ robottini (raddoppio, fino a MAX_PARTI);
@@ -521,8 +566,13 @@ export const handler = async () => {
     const serveVeloce = esiti.some((e) => e && e.giro_veloce);   // c'è almeno uno show attivo?
     if (Date.now() - INIZIO > MAX_MS) break;                     // tempo finito -> esci (la sveglia dopo continua)
     if (backlog) continue;                                       // RAFFICA: riparti subito, niente pausa
-    if (serveVeloce) { await dormi(PAUSA_MS); continue; }        // RONDA: ricontrolla tra ~5s le mail nuove
+    if (serveVeloce) { await dormi(PAUSA_MS); continue; }        // RONDA: ricontrolla tra ~3s le mail nuove
     break;                                                       // RIPOSO: niente di attivo -> esci
+  }
+  } finally {
+    // rilascia SEMPRE il lucchetto: il prossimo turno può partire subito
+    // (e comunque, se qualcosa va storto, scade da solo dopo LOCK_TTL).
+    await lucchetto('rilascia');
   }
   console.log('ESITO', JSON.stringify(esiti));
   return { caselle: esiti };

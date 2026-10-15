@@ -3,7 +3,7 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prima: modello di vendita come autore + licenza d'uso, §8 e ROADMAP §8).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 38 — lucchetto lato server, vedi in cima; prima: "Correzioni recenti" 11 ottobre e modello di vendita come autore, §8 e ROADMAP §8).
 
 > ### ⚠️ Correzioni recenti (11 ottobre 2026) — leggere PRIMA del resto
 > Alcune parti più vecchie di questo documento citano ancora Brevo: sono **superate**.
@@ -38,6 +38,30 @@ Ultimo aggiornamento: 11 ottobre 2026 (vedi "Correzioni recenti" qui sotto; prim
 >   rifiuta, abbassare `MAX_PARTI`. Fare una PROVA reale prima di uno show grande.** Solo `index.mjs`.
 > - **Nota sul "turno successivo che aiuta":** incompatibile con Concorrenza=1 (un turno alla volta);
 >   l'aiuto avviene DENTRO il turno (fino a 10 robottini per casella), non tra turni.
+
+> ### Aggiunte 15 ottobre 2026 (AGG 38 — LUCCHETTO lato server: un turno alla volta SENZA concorrenza riservata)
+> - **Problema risolto:** l'account AWS non può impostare "Concorrenza riservata = 1" (il
+>   limite dell'account è 10 e AWS pretende che la concorrenza NON riservata resti ≥100 →
+>   impossibile). Senza quel "1" due esecuzioni potevano sovrapporsi (turno >60s + sveglia al
+>   minuto) → rischio doppioni. **Soluzione: un lucchetto su stato.php** (niente più bisogno di
+>   concorrenza riservata).
+> - **stato.php:** nuova azione admin `admin_lock` + helper `predizione_robot_lock($op,$token,$ttl)`.
+>   Un unico file `_dati/robot.lock` = `{token, ts}`. Operazioni: `prendi` (solo se libero, scaduto
+>   o già suo), `rinnova` (solo se è suo), `rilascia` (solo se è suo). **Atomico** con `flock(LOCK_EX)`
+>   attorno a leggi-decidi-scrivi → due robottini non lo prendono mai insieme. **TTL default 150s**:
+>   se un'esecuzione muore senza rilasciare, il lucchetto si libera da solo (nessun blocco eterno).
+> - **index.mjs (handler):** a ogni risveglio genera un `LOCK_TOKEN` casuale, PRENDE il lucchetto
+>   all'inizio (se occupato da un altro turno vivo → esce SUBITO, niente doppioni), lo RINNOVA a ogni
+>   giro (se lo perde → si ferma), lo RILASCIA alla fine (blocco `finally`). Se `PANEL_ADMIN_PASS`
+>   non è impostata, il lucchetto è disattivato (torna sempre "preso": comportamento vecchio).
+>   **Non serve più "Concorrenza riservata = 1" su AWS.**
+> - **Ronda portata a ~3s** (`PAUSA_MS=3000`): durante uno show attivo le mail nuove ricevono
+>   risposta in ~3 secondi. `MAX_MS=110000` invariato.
+> - **Comportamento a riposo:** se nessuno show è attivo il turno fa UN giro (~1-2s), vede che non
+>   c'è nulla ed esce subito (gratis). Le mail ai giochi SPENTI non vanno risposte comunque. La
+>   staffetta delle sveglie al minuto + lucchetto garantisce un solo turno alla volta; unico "buco"
+>   ~10s tra fine turno (110s) e sveglia utile (120s). **Richiede: caricare stato.php su Tophost E
+>   ri-deploy index.mjs su AWS.** Test: lucchetto verificato (mutua esclusione + TTL + atomicità flock).
 
 > ### Aggiunte 14 ottobre 2026 (AGG 36 — ronda ~5s + RAFFICA + 30 robottini)
 > - **Ronda ~5s** (`PAUSA_MS=5000`): durante uno show le mail nuove ricevono risposta in ~5s.
