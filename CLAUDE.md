@@ -16,6 +16,8 @@ Ultimo aggiornamento: 15 ottobre 2026 (AGG 43 — cambio username nel 000 + suff
 >   `mario.rossi` → `mario.rossi1` → `mario.rossi2` (prima era prefisso `1mario.rossi`).
 > - **Gmail "@gmail.com" automatico** nella guida (percorso Gmail): se scrivi solo il nome
 >   (`ilmiomagoshow`), l'app aggiunge da sola `@gmail.com` al salvataggio. Nota nel campo.
+>   **AGG 43.1:** il campo mostra `@gmail.com` come **suffisso fisso visibile e non modificabile**
+>   (si scrive solo la parte prima della @); al salvataggio si compone `nome@gmail.com`. SW **v18**.
 > - **Include anche AGG 42.1:** nella sezione "La tua casella" (Account) le etichette ora si
 >   ADATTANO all'indirizzo (Gmail → "Indirizzo Gmail"/"Password per le app 16 lettere";
 >   dominio → "Indirizzo email"/"Password della casella"), via `caselleLabels()`.
