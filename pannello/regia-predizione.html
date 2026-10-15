@@ -616,13 +616,14 @@
       <!-- La tua casella (spostata qui dentro) -->
       <div class="sec-title" style="font-size:11px;margin:16px 0 6px" id="accCasellaHead">La tua casella (per inviare)</div>
       <div id="accCasellaBox">
-        <div class="field"><label for="mailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
-        <div class="field"><label for="mailApp">Password per le app di Gmail (16 lettere)</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
+        <div class="field"><label for="mailEmail" id="lblMailEmail">Indirizzo Gmail</label><input type="email" id="mailEmail" placeholder="nometuo@gmail.com" autocomplete="off"></div>
+        <div class="field"><label for="mailApp" id="lblMailApp">Password per le app di Gmail (16 lettere)</label><input type="text" id="mailApp" placeholder="codice di 16 lettere da Google" autocomplete="off"></div>
         <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
         <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
         <button class="btn" id="provaMail" type="button" style="width:100%;margin-top:8px">Prova casella (manda una mail a te stesso)</button>
         <p class="hint" id="provaMsg"></p>
-        <p class="hint"><b>Attenzione:</b> questa è la <b>password per le app di Gmail</b> (16 lettere create su Google) — <b>NON</b> è la password con cui entri nel pannello. Serve la <b>verifica in due passaggi</b> su Google (così non dai la password vera).</p>
+        <p class="hint" id="noteGmail"><b>Attenzione:</b> questa è la <b>password per le app di Gmail</b> (16 lettere create su Google) — <b>NON</b> è la password con cui entri nel pannello. Serve la <b>verifica in due passaggi</b> su Google (così non dai la password vera).</p>
+        <p class="hint" id="noteDominio" style="display:none"><b>Nota:</b> è la <b>password della casella</b> del tuo dominio (quella dell'hosting), <b>NON</b> la password con cui entri nel pannello. Il nome d'accesso lo troviamo noi da soli.</p>
       </div>
 
       <!-- Cambia la password DI ACCESSO al pannello (diversa dalla password per le app di Gmail) -->
@@ -998,7 +999,22 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var mc=st.mail_cfg;
     if(mc){ [['mailEmail','user'],['mailApp','pass'],['mailFrom','from']].forEach(function(p){
       var el=$(p[0]); if(el && document.activeElement!==el && !el.value){ el.value=mc[p[1]]||''; }
-    }); }
+    }); caselleLabels(mc.tipo); }
+  }
+  // Cambia le ETICHETTE della "tua casella" in base al tipo (Gmail o dominio):
+  // Gmail -> "Indirizzo Gmail" + "Password per le app (16 lettere)" + nota Google.
+  // Dominio/altro -> "Indirizzo email" + "Password della casella" + nota dominio.
+  // Se non arriva un tipo, lo deduce dall'indirizzo scritto nel campo.
+  function caselleLabels(tipo){
+    var e=(($('mailEmail')&&$('mailEmail').value)||'').toLowerCase();
+    var dom=e.indexOf('@')>=0 ? e.split('@').pop() : '';
+    var gmail = tipo ? (tipo==='gmail')
+                     : (dom==='' || dom==='gmail.com' || dom==='googlemail.com');
+    var lE=$('lblMailEmail'), lA=$('lblMailApp'), nG=$('noteGmail'), nD=$('noteDominio');
+    if(lE) lE.textContent = gmail ? 'Indirizzo Gmail' : 'Indirizzo email';
+    if(lA) lA.textContent = gmail ? 'Password per le app di Gmail (16 lettere)' : 'Password della casella';
+    if(nG) nG.style.display = gmail ? '' : 'none';
+    if(nD) nD.style.display = gmail ? 'none' : '';
   }
   function getPw(){ return PW; }
   function getUser(){ return USER; }
@@ -1731,6 +1747,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(!e || !a){ toast('Inserisci email e password per app','err'); return; }
     comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');
   });
+  // mentre scrivi l'indirizzo, le etichette si adattano (Gmail o dominio)
+  var mEmailEl=$('mailEmail');
+  if(mEmailEl) mEmailEl.addEventListener('input', function(){ caselleLabels(); });
   // ---- Cambia la PASSWORD DI ACCESSO al pannello ----
   var spwBtn=$('savePw');
   if(spwBtn) spwBtn.addEventListener('click', function(){
