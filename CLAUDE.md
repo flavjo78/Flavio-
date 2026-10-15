@@ -14,7 +14,8 @@ Ultimo aggiornamento: 15 ottobre 2026 (AGG 39 — lotto pannello 000 + report + 
 >   di N mail (max 150) per collaudare il robottino, con credenziali **prese in automatico** dall'utente
 >   scelto (azione admin `admin_prova_invio`; invio in blocco `pred_smtp_invia_blocco` in smtp.php, UNA
 >   connessione → niente 504). Mittente ≠ destinatario (anti-loop). Il vecchio `prova-invio.php` sciolto
->   è stato RIMOSSO (ora è tutto nel pannello admin).
+>   è stato RIMOSSO (ora è tutto nel pannello admin). **Il client spezza l'invio in blocchi da 20**
+>   (richieste brevi) così anche 100 mail NON vanno in timeout sul server di Tophost.
 > - **Scheda utente (pannello 000):** nel titolo ora **provenienza + piano** (non più la password);
 >   la **password attuale** è accanto a "Cambia password d'accesso"; tasto **"Entra diretto ▶"** già
 >   presente (apre la Regia dell'utente in nuova scheda via `?u=&k=`). **Limiti modificabili a mano**

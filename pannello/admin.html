@@ -364,19 +364,36 @@
   }
   (function(){
     var b=$('tInvia'); if(!b) return;
+    var CHUNK=20;   // invia a blocchi piccoli: ogni richiesta finisce in pochi secondi (niente timeout)
     b.addEventListener('click', function(){
-      var mitt=$('tMitt').value, dest=($('tDest').value||'').trim(), n=$('tN').value||'20';
+      var mitt=$('tMitt').value, dest=($('tDest').value||'').trim(), n=parseInt($('tN').value,10)||20;
       if(!mitt){ toast('Scegli il mittente','err'); return; }
       if(!dest){ toast('Scrivi la casella del gioco','err'); return; }
-      $('tEsito').textContent='Invio in corso…'; b.disabled=true;
-      call('admin_prova_invio',{mitt:mitt,dest:dest,quante:n}).then(function(r){
+      if(n<1)n=1; if(n>150)n=150;
+      b.disabled=true;
+      var tot={inviate:0,errori:0,note:[]};
+      function inviaBlocco(restanti){
+        var q=Math.min(CHUNK,restanti);
+        $('tEsito').textContent='Invio in corso… '+tot.inviate+' / '+n;
+        return call('admin_prova_invio',{mitt:mitt,dest:dest,quante:q}).then(function(r){
+          if(!(r.data&&r.data.ok)) throw new Error((r.data&&r.data.errore)||'Errore');
+          tot.inviate+=(+r.data.inviate||0); tot.errori+=(+r.data.errori||0);
+          if(r.data.note&&r.data.note.length&&!tot.note.length) tot.note=r.data.note.slice(0,3);
+          restanti-=q;
+          if(restanti>0) return inviaBlocco(restanti);
+          return tot;
+        });
+      }
+      inviaBlocco(n).then(function(t){
         b.disabled=false;
-        if(r.data&&r.data.ok){
-          var msg='Inviate: '+r.data.inviate+' — Errori: '+r.data.errori;
-          if(r.data.note&&r.data.note.length) msg+=' · '+r.data.note.slice(0,3).join(' · ');
-          $('tEsito').textContent=msg; toast('Fatto','ok');
-        } else { $('tEsito').textContent=(r.data&&r.data.errore)||'Errore'; toast('Errore','err'); }
-      }).catch(function(){ b.disabled=false; $('tEsito').textContent='Server non raggiungibile'; });
+        var msg='Inviate: '+t.inviate+' — Errori: '+t.errori;
+        if(t.note&&t.note.length) msg+=' · '+t.note.join(' · ');
+        $('tEsito').textContent=msg; toast('Fatto','ok');
+      }).catch(function(e){
+        b.disabled=false;
+        $('tEsito').textContent='Fermato dopo '+tot.inviate+' inviate · '+(e&&e.message?e.message:'Server non raggiungibile');
+        toast('Interrotto','err');
+      });
     });
   })();
 
