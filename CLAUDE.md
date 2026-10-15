@@ -3,7 +3,21 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 41 — "Invia mail" login automatico; prima: AGG 40 report robottini).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 42 — guida: casella dominio + "Salta" + tipo casella nel 000; prima: AGG 41 login automatico).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 42 — guida primo accesso: casella di dominio, "Salta", tipo casella nel pannello 000)
+> - **Guida del primo accesso (`regia-predizione.html`):**
+>   - Tasto **"Salta per ora"** nella schermata iniziale (prima la guida restava obbligatoria finché
+>     non impostavi la casella). `data-act="salta"` → `gChiudi(true)` (non si riapre; la si rifà da Impostazioni).
+>   - Il percorso **"Un dominio mio"** ora **configura davvero la casella** (indirizzo + password della
+>     casella + nome mittente) e la salva con `mail_config` **`tipo:'altro'`**. Prima mandava solo
+>     all'assistenza. Il nome d'accesso lo trova il login automatico (AGG 41). Il percorso Gmail salva `tipo:'gmail'`.
+> - **Tipo casella nel pannello 000 (`admin.html`):** nel sottotitolo di ogni utente ora compare
+>   **📧 Gmail / 🏠 Altra / ✉️ —** (da `casella_tipo`). `stato.php`: nuovo helper `predizione_casella_tipo`
+>   (usa il `tipo` salvato, altrimenti lo DEDUCE dal dominio dell'indirizzo), esposto in `admin_utenti`
+>   (`casella_tipo`) e in `predizione_mail_cfg` (`tipo`).
+> - **Richiede:** caricare su Tophost `stato.php`, `invia.php` (AGG 41), `regia-predizione.html`,
+>   `admin.html`, `service-worker.js` (cache **v14**). Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 41 — "Invia mail" a mano: login automatico casella di dominio)
 > - **Bug trovato:** il tasto "Invia mail" (`invia.php`) faceva login SMTP con l'indirizzo

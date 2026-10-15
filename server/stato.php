@@ -279,7 +279,18 @@ function predizione_mail_cfg(string $u): array {
     $rec = predizione_utente_record($u);
     $m = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];
     return ['user' => (string)($m['user'] ?? ''), 'pass' => (string)($m['pass'] ?? ''),
-            'from' => (string)($m['from'] ?? ''), 'login' => (string)($m['login'] ?? '')];
+            'from' => (string)($m['from'] ?? ''), 'login' => (string)($m['login'] ?? ''),
+            'tipo' => predizione_casella_tipo($m)];
+}
+/* Che tipo di casella usa l'utente: 'gmail' | 'altro' | '' (nessuna casella).
+   Usa il 'tipo' salvato; se manca (utenti vecchi) lo deduce dall'indirizzo. */
+function predizione_casella_tipo(array $m): string {
+    $t = strtolower((string)($m['tipo'] ?? ''));
+    if ($t === 'gmail' || $t === 'altro') return $t;
+    $user = (string)($m['user'] ?? '');
+    if ($user === '') return '';
+    $d = strtolower(substr(strrchr($user, '@') ?: '', 1));
+    return ($d === 'gmail.com' || $d === 'googlemail.com') ? 'gmail' : 'altro';
 }
 
 /* ---- AZIONI AMMINISTRATORE (comandate dal pannello Admin, utente 000) --- */
@@ -302,6 +313,7 @@ function predizione_admin(string $azione): void {
                     'attivo'         => !empty($rec['attivo']),
                     'flags'          => predizione_flags((string)$num),
                     'mail_impostata' => predizione_mail_impostata((string)$num),
+                    'casella_tipo'   => predizione_casella_tipo(isset($rec['mail']) ? (array)$rec['mail'] : []), // gmail|altro|''
                     'pass'           => (string)($rec['pass'] ?? ''),
                     'fase'           => $sess['fase'] ?? 'spento',
                     'sessione'       => (int)($st['sessione_corrente'] ?? 0),

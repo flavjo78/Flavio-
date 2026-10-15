@@ -1954,6 +1954,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
          +'<div style="margin-top:10px"><span class="n">2</span><b>Mail del gioco</b> — quella da cui partono le foto. Meglio una dedicata solo allo spettacolo.</div>'
        +'</div>'
        +'<button class="gbtn primary" data-g="confemail">Cominciamo →</button>'
+       +'<button class="gbtn ghost" data-act="salta" style="margin-top:10px">Salta per ora</button>'
+       +'<p class="hint" style="text-align:center;margin-top:8px">Potrai rifare la guida quando vuoi da <b>Impostazioni</b>.</p>'
        +'</div>';
     }
     else if(gScreen==='confemail'){
@@ -2041,12 +2043,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     else if(gScreen==='domain'){
       gSetSteps(0);
       h='<div class="gcard">'
-       +'<h2 class="gt">Hai un dominio tuo: ottimo</h2>'
-       +'<p class="glead">Con un dominio tuo puoi usare il livello <b>"Palco"</b> per i grandi invii (centinaia di mail).</p>'
-       +gPhone('<div class="gglyph">🌐</div><div class="row"><span class="lab">posta@mioshow.it</span></div><div class="bar sm" style="margin:10px auto 0"></div>','La tua mail finisce col TUO dominio')
-       +'<div class="gsay"><span class="n">i</span>La parte tecnica la prepariamo <b>noi</b> per te (poche righe da incollare una volta sola). Serve la nostra assistenza e i tempi sono un po\' più lunghi.</div>'
-       +gSupport('Scrivici e ti attiviamo il "Palco"')
-       +'<button class="gbtn primary" data-act="entra">Ho capito, entra nel pannello</button>'
+       +'<h2 class="gt">La casella del tuo dominio</h2>'
+       +'<p class="glead">Scrivi l\'<b>indirizzo</b> e la <b>password della casella</b> del tuo dominio (es. <b>io@tuodominio.it</b>). Il nome con cui si entra lo troviamo <b>noi da soli</b>.</p>'
+       +'<div class="gfield"><label>Indirizzo email del gioco</label><input id="gDomMail" type="email" placeholder="posta@tuodominio.it" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false"></div>'
+       +'<div class="gfield"><label>Password della casella</label><input id="gDomPass" type="text" placeholder="la password della casella" autocomplete="off"><div class="help">È la password della casella email (quella del tuo hosting), non quella del pannello.</div></div>'
+       +'<div class="gfield"><label>Nome mittente (facoltativo)</label><input id="gDomFrom" type="text" placeholder="Il Mio Show"></div>'
+       +'<button class="gbtn primary" data-act="saveCasellaDom">Salva la casella del gioco</button>'
+       +'<div class="gsay" style="margin-top:14px"><span class="n">i</span>Per i <b>grandi invii</b> (centinaia di mail) c\'è il livello <b>"Palco"</b>: quello lo attiviamo noi, scrivici.</div>'
+       +gSupport('Scrivici per il "Palco"')
        +'<button class="gbtn ghost" data-g="g1">In realtà uso una Gmail →</button>'
        +'<button class="gbtn ghost" data-g="choose" style="margin-top:14px">← Indietro</button>'
        +'</div>';
@@ -2082,6 +2086,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var act=e.target.closest('[data-act]'); if(!act) return;
     var a=act.getAttribute('data-act');
     if(a==='entra' || a==='fine'){ gChiudi(true); return; }
+    if(a==='salta'){ gChiudi(true); toast('Guida saltata. La ritrovi in Impostazioni.','ok'); return; }
     if(a==='saveEmail'){
       var v=(($('gEmailIn')&&$('gEmailIn').value)||'').trim();
       if(!v || v.indexOf('@')<1){ toast('Scrivi una mail valida','err'); return; }
@@ -2100,11 +2105,25 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(!m || m.indexOf('@')<1){ toast('Scrivi la Gmail del gioco','err'); return; }
       if(p.length<12){ toast('Incolla le 16 lettere (le trovi al passo 3)','err'); return; }
       act.disabled=true; var o2=act.textContent; act.textContent='Collego…';
-      apiAzione('mail_config',{email:m, app_password:p, from:f}).then(function(r){
+      apiAzione('mail_config',{email:m, app_password:p, from:f, tipo:'gmail'}).then(function(r){
         act.disabled=false; act.textContent=o2;
         if(r.data && r.data.ok){ gOkSet(true); toast('Casella collegata ✓','ok'); gGo('done'); }
         else toast((r.data&&r.data.errore)||'Non collegata','err');
       }).catch(function(){ act.disabled=false; act.textContent=o2; toast('Server non raggiungibile','err'); });
+      return;
+    }
+    if(a==='saveCasellaDom'){
+      var dm=(($('gDomMail')&&$('gDomMail').value)||'').trim();
+      var dp=(($('gDomPass')&&$('gDomPass').value)||'').trim();
+      var df=(($('gDomFrom')&&$('gDomFrom').value)||'').trim();
+      if(!dm || dm.indexOf('@')<1){ toast('Scrivi l\'indirizzo del gioco','err'); return; }
+      if(dp.length<3){ toast('Scrivi la password della casella','err'); return; }
+      act.disabled=true; var o3=act.textContent; act.textContent='Collego…';
+      apiAzione('mail_config',{email:dm, app_password:dp, from:df, tipo:'altro'}).then(function(r){
+        act.disabled=false; act.textContent=o3;
+        if(r.data && r.data.ok){ gOkSet(true); toast('Casella collegata ✓','ok'); gGo('done'); }
+        else toast((r.data&&r.data.errore)||'Non collegata','err');
+      }).catch(function(){ act.disabled=false; act.textContent=o3; toast('Server non raggiungibile','err'); });
       return;
     }
   });

@@ -454,7 +454,8 @@
     fe.innerHTML='<option value="">Tutte le provenienze</option>'+Object.keys(et).sort().map(function(p){return '<option>'+esc(p)+'</option>';}).join('');
   }
   function urow(u){
-    var sub=(u.nome?esc(u.nome)+' · ':'')+(u.email?esc(u.email)+' · ':'')+'piano '+esc(u.piano||'Foyer')+(u.fonte?(' · '+esc(u.fonte)):'');
+    var ctip=(u.casella_tipo==='gmail')?'📧 Gmail':((u.casella_tipo==='altro')?'🏠 Altra':'✉️ —');
+    var sub=(u.nome?esc(u.nome)+' · ':'')+(u.email?esc(u.email)+' · ':'')+'piano '+esc(u.piano||'Foyer')+(u.fonte?(' · '+esc(u.fonte)):'')+' · '+ctip;
     return '<div class="urow" data-u="'+esc(u.numero)+'"><span class="n">'+esc(u.numero)+'</span>'+
       '<span class="info"><span class="t">'+(u.nome?esc(u.nome):('Utente '+esc(u.numero)))+'</span><span class="s">'+sub+'</span></span>'+
       fasePill(u.fase)+'<span class="arr">›</span></div>';
