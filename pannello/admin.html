@@ -242,11 +242,12 @@
 
       <!-- ===== TEST (invio prova) ===== -->
       <section class="view" id="v-test" style="display:none">
-        <div class="legend">Riempie una casella di tante mail <b>non lette</b>, per collaudare il robottino (fino a 150). Le credenziali del mittente le prende <b>in automatico</b> dall'utente scelto. Mittente e destinatario devono essere <b>diversi</b>. Le risposte del robottino torneranno alla casella del mittente.</div>
+        <div class="legend">Riempie una casella di tante mail <b>non lette</b>, per collaudare il robottino. Le credenziali le prende <b>in automatico</b> dalle caselle scelte. Scegli <b>una o più</b> caselle mittenti: il totale viene <b>diviso fra loro</b> (così nessuna Gmail viene frenata). Mittenti e destinatario devono essere <b>diversi</b>.</div>
         <div class="card">
-          <div class="field"><label for="tMitt">Spedisci dalla casella di (utente)</label><select id="tMitt"></select></div>
+          <div class="field"><label>Spedisci da queste caselle (spunta una o più)</label><div id="tMittList" style="display:flex;flex-direction:column;gap:6px;margin-top:4px"></div></div>
           <div class="field"><label for="tDest">Casella del gioco da riempire (destinatario)</label><input type="text" id="tDest" placeholder="es. io@abraka.it"></div>
-          <div class="field"><label for="tN">Quante mail (max 150 — la prima volta prova con 20)</label><input type="number" id="tN" min="1" max="150" value="20"></div>
+          <div class="field"><label for="tN">Quante mail in tutto (max 300)</label><input type="number" id="tN" min="1" max="300" value="20"></div>
+          <div class="field"><label for="tMax">Massimo per casella (consigliato 50, per non far frenare Gmail)</label><input type="number" id="tMax" min="1" max="150" value="50"></div>
           <div class="btns"><button class="btn gold" id="tInvia">Invia le mail di prova</button></div>
           <div id="tEsito" class="small" style="margin-top:10px"></div>
         </div>
@@ -355,38 +356,47 @@
 
   /* ---------- TEST (invio prova) ---------- */
   function popolaTest(){
-    var sel=$('tMitt'); if(!sel) return;
+    var box=$('tMittList'); if(!box) return;
     if(!UT.length){ carica(); setTimeout(popolaTest,700); return; }
     var have=UT.filter(function(u){ return !u.admin && u.mail_impostata; });
-    sel.innerHTML = have.length
-      ? have.map(function(u){ return '<option value="'+esc(u.numero)+'">'+esc(u.numero)+(u.nome?(' · '+esc(u.nome)):'')+'</option>'; }).join('')
-      : '<option value="">(nessun utente con casella configurata)</option>';
+    box.innerHTML = have.length
+      ? have.map(function(u){ return '<label class="chk"><input type="checkbox" class="tmchk" value="'+esc(u.numero)+'"> '+esc(u.numero)+(u.nome?(' · '+esc(u.nome)):'')+'</label>'; }).join('')
+      : '<span class="small">(nessun utente con casella configurata)</span>';
   }
   (function(){
     var b=$('tInvia'); if(!b) return;
-    var CHUNK=20;   // invia a blocchi piccoli: ogni richiesta finisce in pochi secondi (niente timeout)
+    var CHUNK=20;   // ogni richiesta al server resta breve (niente timeout)
     b.addEventListener('click', function(){
-      var mitt=$('tMitt').value, dest=($('tDest').value||'').trim(), n=parseInt($('tN').value,10)||20;
-      if(!mitt){ toast('Scegli il mittente','err'); return; }
+      var senders=[]; document.querySelectorAll('#tMittList .tmchk:checked').forEach(function(c){ senders.push(c.value); });
+      var dest=($('tDest').value||'').trim();
+      var n=parseInt($('tN').value,10)||20, maxPer=parseInt($('tMax').value,10)||50;
+      if(!senders.length){ toast('Spunta almeno una casella mittente','err'); return; }
       if(!dest){ toast('Scrivi la casella del gioco','err'); return; }
-      if(n<1)n=1; if(n>150)n=150;
+      if(n<1)n=1; if(n>300)n=300; if(maxPer<1)maxPer=1;
+      // costruisci i "lavori": riempi casella per casella (max maxPer ciascuna), a blocchi di CHUNK
+      var restante=n, jobs=[];
+      for(var i=0;i<senders.length && restante>0;i++){
+        var cap=Math.min(maxPer,restante); restante-=cap;
+        while(cap>0){ var q=Math.min(CHUNK,cap); jobs.push({mitt:senders[i],q:q}); cap-=q; }
+      }
+      var capienza=senders.length*maxPer, nReale=Math.min(n,capienza);
       b.disabled=true;
-      var tot={inviate:0,errori:0,note:[]};
-      function inviaBlocco(restanti){
-        var q=Math.min(CHUNK,restanti);
-        $('tEsito').textContent='Invio in corso… '+tot.inviate+' / '+n;
-        return call('admin_prova_invio',{mitt:mitt,dest:dest,quante:q}).then(function(r){
+      var tot={inviate:0,errori:0,note:[]}, ji=0;
+      function prossimo(){
+        if(ji>=jobs.length) return Promise.resolve(tot);
+        var job=jobs[ji++];
+        $('tEsito').textContent='Invio in corso… '+tot.inviate+' / '+nReale;
+        return call('admin_prova_invio',{mitt:job.mitt,dest:dest,quante:job.q}).then(function(r){
           if(!(r.data&&r.data.ok)) throw new Error((r.data&&r.data.errore)||'Errore');
           tot.inviate+=(+r.data.inviate||0); tot.errori+=(+r.data.errori||0);
-          if(r.data.note&&r.data.note.length&&!tot.note.length) tot.note=r.data.note.slice(0,3);
-          restanti-=q;
-          if(restanti>0) return inviaBlocco(restanti);
-          return tot;
+          if(r.data.note&&r.data.note.length&&tot.note.length<3) tot.note=tot.note.concat(r.data.note).slice(0,3);
+          return prossimo();
         });
       }
-      inviaBlocco(n).then(function(t){
+      prossimo().then(function(t){
         b.disabled=false;
-        var msg='Inviate: '+t.inviate+' — Errori: '+t.errori;
+        var msg='Inviate: '+t.inviate+' — Errori: '+t.errori+' (da '+senders.length+' caselle)';
+        if(n>capienza) msg+=' · richieste '+n+' ma il massimo con queste caselle è '+capienza;
         if(t.note&&t.note.length) msg+=' · '+t.note.join(' · ');
         $('tEsito').textContent=msg; toast('Fatto','ok');
       }).catch(function(e){
