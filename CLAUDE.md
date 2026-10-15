@@ -3,7 +3,22 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 40 — report robottini; prima: AGG 39 pannello 000 + report + mobile).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 41 — "Invia mail" login automatico; prima: AGG 40 report robottini).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 41 — "Invia mail" a mano: login automatico casella di dominio)
+> - **Bug trovato:** il tasto "Invia mail" (`invia.php`) faceva login SMTP con l'indirizzo
+>   completo (`io@abraka.it`), ma le caselle di **dominio** su Tophost entrano col **nome della
+>   mailbox** = la parte dopo la @ (`abraka.it`) → "login casella fallito (465)". (Il robottino
+>   invece funziona perché nelle env usa `IMAP_USER=abraka.it`.)
+> - **Fix (solo Tophost, niente app, niente AWS):** `invia.php` ora prova i login **in ordine
+>   automatico**: 1) un `login` impostato a mano (se c'è); 2) l'**indirizzo intero** (giusto per
+>   Gmail); 3) la **parte dopo la @** (giusto per le caselle di dominio). Appena uno entra, lo
+>   riusa per gli invii successivi (helper `iv_invia_con_login`). `stato.php`
+>   (`predizione_mail_da_richiesta` + `predizione_mail_cfg`) accetta/espone un campo
+>   facoltativo `login` (override manuale), per ora non mostrato nell'app.
+> - **Da fare (facoltativo):** scelta "Gmail / Altra casella" nell'app con etichette giuste
+>   (oggi dicono sempre "Gmail"): migliora solo le scritte, il login funziona già da solo.
+> - **Richiede:** caricare SOLO `stato.php` + `invia.php` su Tophost.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 40 — report: colonna Robottino + robottini/tempo)
 > - **Report:** nuova colonna **"Robottino"** (numero della fetta che ha risposto a quella mail:

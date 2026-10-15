@@ -18,6 +18,23 @@ const PRED_IMG_BASE  = 'https://www.abraka.it/predizione/image.php';  // SEMPRE 
 
 function iv_p(string $k): string { $v = $_POST[$k] ?? $_GET[$k] ?? ''; return is_string($v) ? trim($v) : ''; }
 
+/* Spedisce provando i vari nomi di login finche' uno entra (vedi $logins piu'
+   sotto). Ritorna il login che ha FUNZIONATO (stringa) oppure null se nessuno
+   e' entrato; in $err mette l'ultimo errore. */
+function iv_invia_con_login(string $host, int $port, array $logins, string $pass,
+                            string $from, string $fromName, string $to,
+                            string $subject, string $body, ?string &$err): ?string {
+    $err = null;
+    foreach ($logins as $u) {
+        $e = null;
+        if (pred_smtp_send($host, $port, $u, $pass, $from, $fromName, $to, $subject, $body, $e)) {
+            return $u;
+        }
+        $err = $e;
+    }
+    return null;
+}
+
 $utente = predizione_set_utente(iv_p('utente') ?: iv_p('u'));
 $stato  = predizione_leggi_stato();
 
@@ -37,6 +54,19 @@ $cFrom = (string)($m['from'] ?? '');
 if ($cUser === '' || $cPass === '') {
     predizione_json(['ok' => false, 'errore' => 'Prima imposta la tua casella (email + password per app)'], 400);
 }
+// NOMI DI LOGIN DA PROVARE (in ordine). Alcune caselle entrano con l'INDIRIZZO
+// completo (Gmail: mario@gmail.com), altre con il NOME DELLA MAILBOX = la parte
+// DOPO la @ (Tophost: io@abraka.it -> abraka.it). Proviamo prima l'indirizzo
+// completo; se l'accesso fallisce, riproviamo AUTOMATICAMENTE con la parte dopo
+// la @. Cosi' funziona sia Gmail sia le caselle di dominio, senza che l'utente
+// scriva nulla. (Un 'login' impostato a mano, se c'e', ha la precedenza.)
+$cLogin = (string)($m['login'] ?? '');
+$logins = [];
+if ($cLogin !== '') $logins[] = $cLogin;
+$logins[] = $cUser;
+$posAt = strpos($cUser, '@');
+if ($posAt !== false) { $dom = substr($cUser, $posAt + 1); if ($dom !== '') $logins[] = $dom; }
+$logins = array_values(array_unique(array_filter($logins)));
 
 /* --- PROVA CASELLA: manda una mail di test a te stesso e dice l'errore esatto.
        Serve per capire se la Gmail (password per app) funziona: è lo STESSO
@@ -48,11 +78,11 @@ if (iv_p('azione') === 'prova') {
            . '<p>Prova casella <b>PREDIZIONE</b>.</p>'
            . '<p>Se leggi questa mail, la tua casella <b>' . htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8')
            . '</b> invia correttamente: la risposta automatica potrà partire.</p></div>';
-    $okProva = pred_smtp_send($ph, $pp, $cUser, $cPass, $cUser, $cFrom, $cUser, 'Prova casella — PREDIZIONE', $pbody, $perr);
+    $usato = iv_invia_con_login($ph, $pp, $logins, $cPass, $cUser, $cFrom, $cUser, 'Prova casella — PREDIZIONE', $pbody, $perr);
     predizione_json([
-        'ok'      => $okProva,
+        'ok'      => $usato !== null,
         'dove'    => $cUser,
-        'errore'  => $okProva ? null : $perr,
+        'errore'  => $usato !== null ? null : $perr,
     ]);
 }
 
@@ -84,6 +114,7 @@ $testoHtml = nl2br(htmlspecialchars($testo, ENT_QUOTES, 'UTF-8'));
 
 /* --- invio uno per uno ------------------------------------------------- */
 $inviate = 0; $errori = [];
+$loginOk = null;   // il login che ha funzionato col primo invio: lo riuso per i successivi (veloce)
 foreach ($dest as $to) {
     $id  = 'm' . substr(hash('sha256', $to . '|' . microtime(true) . '|' . random_int(0, 1e9)), 0, 14);
     $img = PRED_IMG_BASE . '?u=' . rawurlencode($utente) . '&s=' . $sid . '&id=' . $id;
@@ -92,7 +123,11 @@ foreach ($dest as $to) {
           . '<p><img src="' . htmlspecialchars($img, ENT_QUOTES, 'UTF-8') . '" width="500" '
           . 'style="display:block;max-width:100%;border:0" alt=""></p></div>';
     $err = null;
-    if (pred_smtp_send($host, $port, $cUser, $cPass, $cUser, $cFrom, $to, $oggetto, $body, $err)) {
+    // se un login ha gia' funzionato, uso solo quello; altrimenti provo la lista
+    $tent  = ($loginOk !== null) ? [$loginOk] : $logins;
+    $usato = iv_invia_con_login($host, $port, $tent, $cPass, $cUser, $cFrom, $to, $oggetto, $body, $err);
+    if ($usato !== null) {
+        $loginOk = $usato;
         $inviate++;
     } else {
         $errori[] = ['to' => $to, 'err' => $err];

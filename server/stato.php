@@ -278,7 +278,8 @@ function predizione_mail_impostata(string $u): bool {
 function predizione_mail_cfg(string $u): array {
     $rec = predizione_utente_record($u);
     $m = ($rec && isset($rec['mail'])) ? (array)$rec['mail'] : [];
-    return ['user' => (string)($m['user'] ?? ''), 'pass' => (string)($m['pass'] ?? ''), 'from' => (string)($m['from'] ?? '')];
+    return ['user' => (string)($m['user'] ?? ''), 'pass' => (string)($m['pass'] ?? ''),
+            'from' => (string)($m['from'] ?? ''), 'login' => (string)($m['login'] ?? '')];
 }
 
 /* ---- AZIONI AMMINISTRATORE (comandate dal pannello Admin, utente 000) --- */
@@ -716,10 +717,25 @@ function predizione_mail_da_richiesta(): array {
     $email   = substr((string)(p('email') ?? ''), 0, 160);
     $apppass = substr((string)(p('app_password') ?? ''), 0, 200);
     $from    = substr((string)(p('from') ?? ''), 0, 160);
+    // 'login' = nome con cui si entra nella casella, SE diverso dall'indirizzo.
+    // Serve per le caselle (es. Tophost) dove il login e' il nome della MAILBOX
+    // (es. "abraka.it") e non l'indirizzo completo ("io@abraka.it"). Per Gmail
+    // si lascia vuoto (login = indirizzo). Se vuoto, si usa l'indirizzo.
+    $login   = substr((string)(p('login') ?? ''), 0, 160);
+    // 'tipo' = che genere di casella: 'gmail' oppure 'altro' (casella di dominio,
+    // es. Tophost). Serve solo per mostrare le scritte giuste nell'app e per far
+    // vedere nel pannello 000 che tipo di casella usa ogni utente. Se non arriva,
+    // lo deduciamo dall'indirizzo (dominio gmail.com -> gmail, altrimenti altro).
+    $tipo    = strtolower(substr((string)(p('tipo') ?? ''), 0, 10));
+    if ($tipo !== 'gmail' && $tipo !== 'altro') {
+        $dom  = strtolower(substr(strrchr($email, '@') ?: '', 1));
+        $tipo = ($dom === 'gmail.com' || $dom === 'googlemail.com') ? 'gmail' : 'altro';
+    }
     return [
         'imap_host' => 'imap.gmail.com', 'imap_port' => 993,
         'smtp_host' => 'smtp.gmail.com', 'smtp_port' => 587,
         'user' => $email, 'pass' => $apppass,
+        'login' => $login, 'tipo' => $tipo,
         'from' => ($from !== '' ? $from : $email),
     ];
 }
