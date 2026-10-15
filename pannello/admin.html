@@ -143,6 +143,7 @@
     <button class="navitem" data-view="accessi"><span class="ic"><svg viewBox="0 0 24 24"><circle cx="8" cy="12" r="3.6"/><path d="M11.6 12H21M18 12v3M15 12v2.4"/></svg></span> Password d'accesso</button>
     <button class="navitem" data-view="operazioni"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 012-2h3.5l2 2H19a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg></span> Operazioni</button>
     <button class="navitem" data-view="test"><span class="ic"><svg viewBox="0 0 24 24"><path d="M4 4h16v4l-6 7v5l-4-2v-3L4 8z"/></svg></span> Test (invio prova)</button>
+    <button class="navitem" data-view="prompt"><span class="ic"><svg viewBox="0 0 24 24"><path d="M3 17.5V21h3.5L18 9.5 14.5 6z"/><path d="M14.5 6L18 9.5"/><path d="M4 13c3-1 5-3 6-6"/></svg></span> Caligrafia Foto magic</button>
     <div class="sep"></div>
     <a class="navitem" href="regia-predizione.html" style="text-decoration:none"><span class="ic"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></span> Vai alla Regia</a>
   </nav>
@@ -254,6 +255,22 @@
         </div>
       </section>
 
+      <!-- ===== CALIGRAFIA FOTO MAGIC (prompt IA) ===== -->
+      <section class="view" id="v-prompt" style="display:none">
+        <div class="legend">È il <b>testo</b> (prompt) che diciamo all'intelligenza artificiale per scrivere a mano la frase sul foglio della <b>Foto magic</b>. Puoi <b>sceglierne uno</b> tra quelli salvati, <b>modificarlo</b> o <b>crearne di nuovi</b>. La parola speciale <b>{FRASE}</b> viene sostituita in automatico con la frase vera (dove va scritta). Vale per <b>tutti</b>.</div>
+        <div class="card">
+          <div class="plinfo">Prompt salvati (scegli quello attivo)</div>
+          <div id="prList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
+          <div class="btns"><button class="btn" id="prNuovo">+ Nuovo prompt</button></div>
+          <div class="sep"></div>
+          <div class="plinfo">Modifica il prompt selezionato</div>
+          <div class="field"><label for="prNome">Nome</label><input type="text" id="prNome" placeholder="es. Pennarello nero"></div>
+          <div class="field"><label for="prTesto">Testo del prompt (usa <b>{FRASE}</b> dove va la frase)</label><textarea id="prTesto" rows="10" style="width:100%;font-size:13px"></textarea></div>
+          <div class="btns"><button class="btn gold" id="prSalva">Salva</button><button class="btn" id="prDefault">Ripristina il predefinito in questo prompt</button><button class="btn danger" id="prElimina">Elimina questo prompt</button></div>
+          <div class="small" style="opacity:.7;margin-top:8px">Nota: il prompt <b>attivo</b> è quello che userà la Foto magic per tutti. Se cancelli {FRASE}, la frase viene aggiunta in fondo lo stesso.</div>
+        </div>
+      </section>
+
       <!-- ===== SCHEDA UTENTE ===== -->
       <section class="view" id="v-detail" style="display:none">
         <button class="back" id="dBack">← Torna agli utenti</button>
@@ -324,13 +341,14 @@
   }
 
   /* ---------- NAVIGAZIONE ---------- */
-  var TITOLI={nuovo:'Nuovo utente',ordini:'Ordini',utenti:'Utenti',listino:'Listino',storico:'Storico piani',accessi:'Password d\'accesso',operazioni:'Operazioni',test:'Test (invio prova)',detail:'Scheda utente'};
+  var TITOLI={nuovo:'Nuovo utente',ordini:'Ordini',utenti:'Utenti',listino:'Listino',storico:'Storico piani',accessi:'Password d\'accesso',operazioni:'Operazioni',test:'Test (invio prova)',prompt:'Caligrafia Foto magic',detail:'Scheda utente'};
   function showView(v){
     VIEW=v;
     document.querySelectorAll('.view').forEach(function(s){ s.style.display='none'; });
     var el=$('v-'+v); if(el) el.style.display='';
     if(v==='storico') caricaStorico();
     if(v==='test') popolaTest();
+    if(v==='prompt') caricaPrompt();
     $('topTitle').textContent=TITOLI[v]||'';
     document.querySelectorAll('.navitem[data-view]').forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-view')===v); });
     if(window.innerWidth<980) closeNav();
@@ -354,6 +372,61 @@
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   }
   function mostraLogin(){ $('adminBody').classList.add('hidden'); $('adminLogin').classList.remove('hidden'); }
+
+  /* ---------- CALIGRAFIA FOTO MAGIC (prompt IA) ---------- */
+  var PR={attivo:'',lista:[]}, PRDEF='', prSel='';
+  function caricaPrompt(){
+    call('admin_prompt_ia',{}).then(function(r){
+      if(!(r.data&&r.data.ok)){ toast('Errore nel leggere i prompt','err'); return; }
+      PR=r.data.prompt||{attivo:'',lista:[]}; PRDEF=r.data['default']||'';
+      if(!PR.lista||!PR.lista.length){ PR={attivo:'default',lista:[{id:'default',nome:'Predefinito',testo:PRDEF}]}; }
+      prSel=PR.attivo||PR.lista[0].id; renderPrompt();
+    });
+  }
+  function prItem(id){ for(var i=0;i<PR.lista.length;i++){ if(PR.lista[i].id===id) return PR.lista[i]; } return null; }
+  function riempiEditor(){ var it=prItem(prSel)||PR.lista[0]; if(!it) return;
+    if($('prNome')) $('prNome').value=it.nome||''; if($('prTesto')) $('prTesto').value=it.testo||''; }
+  function renderPrompt(){
+    var box=$('prList'); if(!box) return;
+    box.innerHTML=PR.lista.map(function(p){
+      var att=(p.id===PR.attivo), sel=(p.id===prSel);
+      return '<div class="srow" style="'+(sel?'border:1px solid var(--gold)':'')+'">'+
+        '<label class="chk" style="margin:0"><input type="radio" name="prAtt" value="'+esc(p.id)+'" '+(att?'checked':'')+'> attivo</label>'+
+        '<span class="d" style="flex:1">'+esc(p.nome||p.id)+(att?' · <b style="color:var(--gold)">in uso</b>':'')+'</span>'+
+        '<button class="btn" data-pred="'+esc(p.id)+'">modifica</button></div>';
+    }).join('');
+    document.querySelectorAll('#prList input[name="prAtt"]').forEach(function(rb){
+      rb.addEventListener('change', function(){ PR.attivo=rb.value; salvaPrompt(true); });
+    });
+    document.querySelectorAll('#prList [data-pred]').forEach(function(b){
+      b.addEventListener('click', function(){ prSel=b.getAttribute('data-pred'); renderPrompt(); });
+    });
+    riempiEditor();
+  }
+  function salvaPrompt(silenzioso){
+    call('admin_prompt_ia_salva',{dati:JSON.stringify(PR)}).then(function(r){
+      if(r.data&&r.data.ok){ PR=r.data.prompt||PR; if(!silenzioso) toast('Salvato','ok'); renderPrompt(); }
+      else toast((r.data&&r.data.errore)||'Errore','err');
+    });
+  }
+  (function(){
+    if($('prNuovo')) $('prNuovo').addEventListener('click', function(){
+      var id='p'+Date.now().toString(36); PR.lista.push({id:id,nome:'Nuovo prompt',testo:PRDEF||''}); prSel=id; renderPrompt();
+    });
+    if($('prSalva')) $('prSalva').addEventListener('click', function(){
+      var it=prItem(prSel); if(!it){ toast('Seleziona un prompt','err'); return; }
+      it.nome=($('prNome').value||'').trim()||it.id; it.testo=($('prTesto').value||'').trim();
+      if(!it.testo){ toast('Il testo non può essere vuoto','err'); return; }
+      salvaPrompt(false);
+    });
+    if($('prDefault')) $('prDefault').addEventListener('click', function(){ if($('prTesto')) $('prTesto').value=PRDEF; });
+    if($('prElimina')) $('prElimina').addEventListener('click', function(){
+      if(PR.lista.length<=1){ toast('Deve restare almeno un prompt','err'); return; }
+      if(!confirm('Eliminare questo prompt?')) return;
+      PR.lista=PR.lista.filter(function(p){ return p.id!==prSel; });
+      if(PR.attivo===prSel) PR.attivo=PR.lista[0].id; prSel=PR.lista[0].id; salvaPrompt(false);
+    });
+  })();
 
   /* ---------- TEST (invio prova) ---------- */
   function popolaTest(){

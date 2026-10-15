@@ -568,6 +568,34 @@ function predizione_admin(string $azione): void {
             // archivio delle operazioni admin (attiva/sospendi/elimina/crea), con data
             predizione_json(['ok' => true, 'operazioni' => predizione_operazioni_leggi(300)]);
 
+        case 'admin_prompt_ia':   // CALIGRAFIA FOTO MAGIC: legge l'elenco prompt + quello attivo + il predefinito
+            predizione_json(['ok' => true,
+                'prompt'  => predizione_prompts_ia_leggi(),
+                'default' => predizione_prompt_ia_default(),
+            ]);
+
+        case 'admin_prompt_ia_salva':   // salva l'elenco prompt + quale è attivo
+            $d = json_decode((string)(p('dati') ?? ''), true);
+            if (!is_array($d) || empty($d['lista']) || !is_array($d['lista'])) {
+                predizione_json(['ok' => false, 'errore' => 'Dati non validi'], 400);
+            }
+            $lista = [];
+            foreach ($d['lista'] as $pr) {
+                if (!is_array($pr)) continue;
+                $pid   = preg_replace('/[^a-z0-9._-]/', '', strtolower((string)($pr['id'] ?? '')));
+                $pnome = trim((string)($pr['nome'] ?? ''));
+                $ptest = trim((string)($pr['testo'] ?? ''));
+                if ($pid === '' || $ptest === '') continue;   // scarta righe vuote
+                if ($pnome === '') $pnome = $pid;
+                $lista[] = ['id' => substr($pid, 0, 40), 'nome' => substr($pnome, 0, 80), 'testo' => substr($ptest, 0, 6000)];
+            }
+            if (!$lista) predizione_json(['ok' => false, 'errore' => 'Serve almeno un prompt valido'], 400);
+            $attivo = preg_replace('/[^a-z0-9._-]/', '', strtolower((string)($d['attivo'] ?? '')));
+            $ids = array_column($lista, 'id');
+            if (!in_array($attivo, $ids, true)) $attivo = $lista[0]['id'];
+            predizione_prompts_ia_scrivi(['attivo' => $attivo, 'lista' => $lista]);
+            predizione_json(['ok' => true, 'prompt' => predizione_prompts_ia_leggi()]);
+
         case 'admin_listino':
             // legge il LISTINO effettivo (piani + extra + prezzo accesso) per l'editor.
             $piani = [];

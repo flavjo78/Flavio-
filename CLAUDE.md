@@ -3,7 +3,20 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 45 — Autorisponditore e Invia mail come funzioni separate per utente; prima: AGG 44 sicurezza).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 46 — "Caligrafia Foto magic": prompt IA modificabile dal pannello 000; prima: AGG 45).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 46 — "Caligrafia Foto magic": il prompt dell'IA è modificabile dal pannello 000)
+> - **Nuova voce di menù "Caligrafia Foto magic" nel pannello 000 (`admin.html`).** Mostra l'elenco dei
+>   prompt salvati con uno **attivo** (radio), permette di **modificarlo**, **crearne di nuovi** e
+>   **sceglierne uno**. Nel testo la parola **{FRASE}** viene sostituita a runtime con la frase vera.
+> - **Il prompt NON è più cablato.** `config.php`: `predizione_prompt_ia_default()` (la ricetta di prima,
+>   con `{FRASE}` dove andava la frase) + `predizione_prompts_ia_leggi/scrivi` (archivio `_dati/prompts_ia.json`:
+>   `{attivo, lista:[{id,nome,testo}]}`) + `predizione_prompt_ia_attivo()`. `genera_ia.php` usa il prompt
+>   attivo e sostituisce `{FRASE}` (se manca, aggiunge la frase in coda). **Se il file non c'è, vale il
+>   predefinito → comportamento invariato.**
+> - **stato.php:** `admin_prompt_ia` (legge elenco+attivo+predefinito) e `admin_prompt_ia_salva` (salva).
+> - **Richiede:** caricare su Tophost `config.php` + `stato.php` + `genera_ia.php` + `admin.html`.
+>   (Nel pacchetto ci sono anche gli altri file dell'AGG 45: ricaricarli non fa danno.) Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 45 — "Autorisponditore" e "Invia mail" funzioni separate attivabili per utente)
 > - **Due funzioni distinte al posto dell'unica "mail".** `flags` ora ha anche `auto` (Autorisponditore)

@@ -95,19 +95,13 @@ if (count($righe) <= 1) {
         "Scrivi esattamente queste parole, ogni voce una sola volta, SENZA trattini, numeri, " .
         "puntini o altri simboli davanti.";
 }
-$prompt =
-"Modifica l'immagine allegata mantenendo tutto il resto (posa, mano, dita, sfondo) " .
-"completamente invariato, senza aggiungere alcun oggetto come penne o altro. $istruzioneFrase " .
-"Lascia del tutto visibili e scoperte le dita che tengono la carta. Scrivi esclusivamente le " .
-"parole indicate, senza virgolette, parentesi o altri simboli.\n" .
-"La grafia deve essere un corsivo quotidiano, veloce, informale e imperfetto (non scolastico " .
-"o calligrafico), come un appunto frettoloso. Lettere collegate in modo rapido, altezze " .
-"irregolari e spontanee, la scritta tende a stringersi verso la fine della riga.\n" .
-"Penna a sfera blu (stile Bic) con inchiostro non uniforme: tratti leggermente sbiaditi, " .
-"micro-interruzioni e piccoli accumuli di inchiostro tipici della scrittura a mano su carta. " .
-"Nessun allineamento perfetto: la scritta pende o si curva leggermente in modo naturale. " .
-"La scritta si integra con la stessa grana, luce, ombra e leggera sfocatura dell'immagine " .
-"originale, come se fosse parte originaria della foto.";
+/* Prompt ATTIVO scelto dal pannello 000 (o il predefinito). La parola {FRASE}
+   viene sostituita con l'istruzione che contiene la frase vera; se nel modello
+   manca {FRASE}, l'istruzione viene aggiunta in coda (così funziona comunque). */
+$template = predizione_prompt_ia_attivo();
+$prompt = (strpos($template, '{FRASE}') !== false)
+    ? str_replace('{FRASE}', $istruzioneFrase, $template)
+    : ($template . "\n" . $istruzioneFrase);
 
 /* ---- chiamata a Gemini -------------------------------------------------- */
 $payload = [

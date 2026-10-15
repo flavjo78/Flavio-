@@ -225,6 +225,56 @@ function predizione_flags(string $u): array {
     ];
 }
 
+/* -------------------- PROMPT "CALIGRAFIA" FOTO MAGIC --------------------- */
+/* Il prompt (ricetta) che genera_ia.php manda all'IA per scrivere la frase a
+   mano sul foglio. La parola speciale {FRASE} viene sostituita a runtime con
+   l'istruzione che contiene la frase vera (singola riga o elenco). L'admin puo'
+   salvarne di nuovi e sceglierne uno attivo dal pannello 000 (_dati/prompts_ia.json).
+   Se non c'e' nulla di salvato, vale questo predefinito (comportamento invariato). */
+function predizione_prompt_ia_default(): string {
+    return
+    "Modifica l'immagine allegata mantenendo tutto il resto (posa, mano, dita, sfondo) " .
+    "completamente invariato, senza aggiungere alcun oggetto come penne o altro. {FRASE} " .
+    "Lascia del tutto visibili e scoperte le dita che tengono la carta. Scrivi esclusivamente le " .
+    "parole indicate, senza virgolette, parentesi o altri simboli.\n" .
+    "La grafia deve essere un corsivo quotidiano, veloce, informale e imperfetto (non scolastico " .
+    "o calligrafico), come un appunto frettoloso. Lettere collegate in modo rapido, altezze " .
+    "irregolari e spontanee, la scritta tende a stringersi verso la fine della riga.\n" .
+    "Penna a sfera blu (stile Bic) con inchiostro non uniforme: tratti leggermente sbiaditi, " .
+    "micro-interruzioni e piccoli accumuli di inchiostro tipici della scrittura a mano su carta. " .
+    "Nessun allineamento perfetto: la scritta pende o si curva leggermente in modo naturale. " .
+    "La scritta si integra con la stessa grana, luce, ombra e leggera sfocatura dell'immagine " .
+    "originale, come se fosse parte originaria della foto.";
+}
+function predizione_prompts_ia_file(): string { return DATA_DIR . '/prompts_ia.json'; }
+function predizione_prompts_ia_leggi(): array {
+    $f = predizione_prompts_ia_file();
+    $d = is_file($f) ? json_decode((string)@file_get_contents($f), true) : null;
+    if (!is_array($d) || empty($d['lista']) || !is_array($d['lista'])) {
+        $d = ['attivo' => 'default', 'lista' => [
+            ['id' => 'default', 'nome' => 'Penna Bic blu (predefinito)', 'testo' => predizione_prompt_ia_default()],
+        ]];
+    }
+    if (empty($d['attivo'])) { $d['attivo'] = (string)($d['lista'][0]['id'] ?? 'default'); }
+    return $d;
+}
+function predizione_prompts_ia_scrivi(array $d): bool {
+    if (!is_dir(DATA_DIR)) { @mkdir(DATA_DIR, 0775, true); }
+    $json = json_encode($d, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+    return @file_put_contents(predizione_prompts_ia_file(), $json, LOCK_EX) !== false;
+}
+/* ritorna il TESTO del prompt attivo (o il predefinito se qualcosa manca) */
+function predizione_prompt_ia_attivo(): string {
+    $d = predizione_prompts_ia_leggi();
+    foreach ($d['lista'] as $p) {
+        if ((string)($p['id'] ?? '') === (string)$d['attivo']) {
+            $t = trim((string)($p['testo'] ?? ''));
+            if ($t !== '') return $t;
+        }
+    }
+    return predizione_prompt_ia_default();
+}
+
 /* -------------------- ASSISTENTE DI SCENA (link temporaneo) ------------- */
 /* Il performer crea un "lasciapassare" (token) salvato nello stato dell'utente.
    Vale finche' e' presente: lo si cancella alla fine della sessione ("Finisci")
