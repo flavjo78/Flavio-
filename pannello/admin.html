@@ -164,9 +164,10 @@
           <div class="field"><label for="nNum">Nome utente (es. 004 oppure mario.rossi)</label><input type="text" id="nNum" placeholder="004"></div>
           <div class="field"><label for="nPw">Password</label><input type="text" id="nPw" placeholder="aaa"></div>
           <div class="row" style="margin-top:10px">
-            <label class="chk"><input type="checkbox" id="nMail"> funzione mail</label>
+            <label class="chk"><input type="checkbox" id="nMail" checked> funzione mail</label>
             <label class="chk"><input type="checkbox" id="nFoto"> strumento foto</label>
           </div>
+          <div class="small" style="opacity:.7;margin-top:4px">Senza <b>funzione mail</b> l'utente non ha casella né guida di configurazione: tienila attiva per un utente normale.</div>
           <div class="btns"><button class="btn gold" id="nCrea">Crea utente</button></div>
         </div>
       </section>
@@ -798,7 +799,7 @@
     var num=($('nNum').value||'').trim();
     if(!num){toast('Scrivi il nome utente','err');return;}
     call('admin_crea',{numero:num, pw:($('nPw').value||'').trim(), mail:$('nMail').checked?'1':'0', foto:$('nFoto').checked?'1':'0'})
-      .then(function(r){ if(r.data&&r.data.ok){ toast('Utente creato','ok'); $('nNum').value='';$('nPw').value='';$('nMail').checked=false;$('nFoto').checked=false; carica(); showView('utenti'); } else toast((r.data&&r.data.errore)||'Errore','err'); });
+      .then(function(r){ if(r.data&&r.data.ok){ toast('Utente creato','ok'); $('nNum').value='';$('nPw').value='';$('nMail').checked=true;$('nFoto').checked=false; carica(); showView('utenti'); } else toast((r.data&&r.data.errore)||'Errore','err'); });
   });
 
   /* ---------- LOGIN ---------- */

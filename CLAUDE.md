@@ -3,7 +3,22 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 43 — cambio username nel 000 + suffisso + Gmail @auto; prima: AGG 42/42.1 guida+casella).
+Ultimo aggiornamento: 15 ottobre 2026 (AGG 44 — sicurezza: password casella non più in chiaro; prima: AGG 43/43.1).
+
+> ### Aggiunte 15 ottobre 2026 (AGG 44 — SICUREZZA: password casella non più esposta + nuovo utente con mail di default)
+> - **La password della casella NON esce più nello stato pubblico.** `stato.php`: nuovo
+>   `predizione_mail_cfg_pubblica()` (svuota `pass`, aggiunge `pass_impostata` true/false) usato in
+>   `predizione_stato_pubblico`. Prima `stato.php?azione=stato` (senza password) restituiva la password
+>   della casella in chiaro → chiunque poteva leggerla. **Risolto.** (`admin_scheda`, dietro login admin,
+>   continua a mostrarla all'amministratore.)
+> - **Salvataggio casella senza riscrivere la password.** `mail_config`: se il campo password è vuoto,
+>   TIENE quella già salvata (non la cancella). In `regia-predizione.html` il campo password non viene più
+>   pre-riempito con la password vera: mostra "•••••• già impostata — lascia vuoto per tenerla"
+>   (`g_passImpostata`); "Salva casella" accetta il campo vuoto se c'è già una password.
+> - **Nuovo utente (pannello 000) con "funzione mail" ATTIVA di default** (`admin.html`): senza quel
+>   flag l'utente non ha casella né guida di configurazione (era fonte di confusione). Aggiunta nota.
+> - **Richiede:** caricare su Tophost `stato.php` + `regia-predizione.html` + `admin.html` +
+>   `service-worker.js` (cache **v19**). Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 43 — cambio username nel pannello 000, suffisso nei nomi doppi, Gmail "@" automatico)
 > - **Cambio USERNAME dal pannello 000 (`admin.html` + `stato.php`).** Nuova azione `admin_rinomina`:
