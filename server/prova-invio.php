@@ -34,7 +34,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
     $from = pv('mitt_from') ?: $mitt;                    // indirizzo mostrato come mittente
     $n    = (int) pv('quante', '20');
 
-    if ($pw !== PRED_ADMIN_PASS) {
+    if (!predizione_is_admin('000', $pw)) {   // la VERA password del 000 (da utenti.json), non quella di fabbrica
         $msgTop = 'Password amministratore errata.';
     } elseif ($dest === '' || $mitt === '' || $mpas === '') {
         $msgTop = 'Compila: casella del gioco, casella di prova e password per app.';
