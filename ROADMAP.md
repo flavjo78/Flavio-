@@ -79,6 +79,10 @@
 3. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
 4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
 5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
+   - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (contesto + domande
+         fiscali + privacy/GDPR + cosa portare). **Da fare:** portarlo al commercialista e avere le risposte.
+   - [ ] In base alle risposte: scegliere ricevuta senza partita IVA **oppure** piano B (Paddle).
+   - [ ] **Pagine privacy + termini** sul sito (le scriviamo dopo la conferma del commercialista).
 
 6. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
    arrivino in **Posta in arrivo** (non spam) e che i domini siano "caldi". Checklist:
