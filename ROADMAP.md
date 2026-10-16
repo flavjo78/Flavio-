@@ -75,12 +75,11 @@
 2. **Pagamento AUTOMATICO (webhook).** Oggi segni "pagato" a mano nel 000 e parte l'attivazione.
    Fase 2: il sistema di pagamento (Stripe/Paddle/PayPal) conferma da solo → utente creato e mail
    inviata senza intervento.
-3. **Foto magic — lista di previsioni** (più righe, una per previsione, con metodo incrementale).
-4. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
-5. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
-6. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
+3. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
+4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
+5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
 
-7. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
+6. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
    arrivino in **Posta in arrivo** (non spam) e che i domini siano "caldi". Checklist:
    - [x] **mail-tester.com** (15/10): **9/10** per `abraka.it` (da rifare per ogni dominio Mailgun cliente).
          NB: il primo tentativo diede 4.9 solo perché la mail di prova era VUOTA (no oggetto/testo).
