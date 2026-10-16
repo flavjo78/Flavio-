@@ -689,8 +689,12 @@ identità, finte prove, imitazione di brand), va fermata: esce dall'ambito di qu
   con limiti d'uso; gli extra sono **"estensioni della licenza"** (più invii, più sessioni, utenza Assistente,
   funzione Report). **Mai** chiamarli "assistenza" o "servizio", in nessuna pagina, mail o ricevuta;
 - niente IVA e niente fattura: si emette una **ricevuta** numerata per anno (bollo 2 € se > 77,47 €);
-- l'autore **non** tocca partita IVA né ATECO: i redditi vanno a parte (quadro RL). Tutto da confermare
-  con il commercialista; se non conferma, piano B = Paddle (ROADMAP §7).
+- **inquadramento fiscale DA DECIDERE col commercialista (aggiornato 16 ott): l'autore HA GIÀ una
+  partita IVA** (per un'altra attività). Due vie aperte: (A) **integrare** questa attività nella partita
+  IVA esistente (eventuale codice ATECO software/diritto d'autore, trattamento IVA, coefficiente se
+  forfettario) — spesso più semplice; (B) tenerla **fuori** come reddito diverso/occasionale (quadro RL,
+  ricevuta). Piano C se nessuna conviene: **Paddle** (venditore ufficiale che fattura lui). Domande pronte:
+  `guide/domande-commercialista.html`. (La vecchia nota "l'autore non ha partita IVA" è superata.)
 
 **Il contratto.** `guide/licenza-uso.html` (+ `.txt`), bozza v1.0: 12 articoli, foro di Lecce, i vincoli
 etici del §6 sono obblighi del cliente (art. 5), foto B conservate per sempre e foto A cancellabili dopo

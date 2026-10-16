@@ -79,9 +79,11 @@
 3. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
 4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
 5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
-   - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (contesto + domande
-         fiscali + privacy/GDPR + cosa portare). **Da fare:** portarlo al commercialista e avere le risposte.
-   - [ ] In base alle risposte: scegliere ricevuta senza partita IVA **oppure** piano B (Paddle).
+   - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (chiaro+scuro,
+         stampabile). **NOVITÀ (16 ott): l'autore HA GIÀ una partita IVA** → il foglio ora copre due vie:
+         (A) **integrare** l'attività nella partita IVA esistente; (B) tenerla fuori (reddito diverso/ricevuta).
+   - [ ] Portarlo al commercialista con **regime + codice ATECO** riempiti e avere le risposte.
+   - [ ] In base alle risposte: integrare in partita IVA **oppure** ricevuta occasionale **oppure** piano C (Paddle).
    - [ ] **Pagine privacy + termini** sul sito (le scriviamo dopo la conferma del commercialista).
 
 6. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
