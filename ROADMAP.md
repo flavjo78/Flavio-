@@ -58,8 +58,9 @@
 
 - **Sito + acquisto online**: i file ci sono nel progetto. Verificare che siano **caricati su
   abraka.it** e che il giro "visita → codice → biglietteria → ordine → mail" funzioni dal vivo.
-- **Caselle `supporto@abraka.it` e `accesso@abraka.it`**: usate dal codice (mail d'ordine, benvenuto,
-  richieste d'accesso). Verificare che siano **create su Tophost** e che le mail partano davvero.
+- **Caselle `supporto@abraka.it` e `accesso@abraka.it`**: ✅ **CREATE su Tophost** (confermato dall'autore,
+  16 ott) — restano permanenti. `supporto@` = mail commerciali (ordini, benvenuto, ricevute); `accesso@` =
+  richieste d'accesso. Resta solo da fare **una prova reale** che le mail partano davvero da `supporto@`.
 - **Mail di benvenuto / ricevuta PDF**: codice pronto; fare **una prova reale** di un ordine completo.
 - **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
   migrazione è stata fatta o va ancora eseguita.
