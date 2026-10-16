@@ -85,7 +85,11 @@
          GIÀ una partita IVA** (consulenza) → il foglio punta soprattutto a **integrare** le vendite del
          software in quella partita IVA (eventuale ATECO software); in alternativa reddito diverso o Paddle.
    - [ ] Portarlo al commercialista con **regime + codice ATECO** riempiti e avere le risposte.
-   - [ ] In base alle risposte: integrare in partita IVA **oppure** ricevuta occasionale **oppure** piano C (Paddle).
+   - [ ] **Approfondimento in corso** (ricerca in chat separata) sulle DUE strade: (A) integrare le vendite
+         software nella **partita IVA esistente (regime ordinario, consulenza)**; (B) via **diritto d'autore /
+         opera dell'ingegno** (limiti e interazione con la partita IVA già attiva) + metodi di pagamento
+         (incl. Paddle). Volume iniziale piccolo (1º anno sotto i 1.000 €).
+   - [ ] In base alle risposte: integrare in partita IVA **oppure** diritto d'autore **oppure** piano Paddle.
    - [ ] **Pagine privacy + termini** sul sito (le scriviamo dopo la conferma del commercialista).
 
 6. **VERIFICHE DI CONSEGNA + "riscaldamento" (DA FARE davvero).** Controllare che le mail
