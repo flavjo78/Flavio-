@@ -80,8 +80,10 @@
 4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
 5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
    - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (chiaro+scuro,
-         stampabile). **NOVITÀ (16 ott): l'autore HA GIÀ una partita IVA** → il foglio ora copre due vie:
-         (A) **integrare** l'attività nella partita IVA esistente; (B) tenerla fuori (reddito diverso/ricevuta).
+         stampabile, **versione GENERICA**: descrive solo "software web a licenza/abbonamento", SENZA il
+         contesto da palco/mentalismo — scelta dell'autore per non rivelare la professione). **L'autore HA
+         GIÀ una partita IVA** (consulenza) → il foglio punta soprattutto a **integrare** le vendite del
+         software in quella partita IVA (eventuale ATECO software); in alternativa reddito diverso o Paddle.
    - [ ] Portarlo al commercialista con **regime + codice ATECO** riempiti e avere le risposte.
    - [ ] In base alle risposte: integrare in partita IVA **oppure** ricevuta occasionale **oppure** piano C (Paddle).
    - [ ] **Pagine privacy + termini** sul sito (le scriviamo dopo la conferma del commercialista).
