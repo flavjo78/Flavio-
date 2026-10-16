@@ -56,12 +56,13 @@
 
 ## 🟡 DA CONFERMARE INSIEME (fatto nel codice, ma: è ONLINE? funziona dal vivo?)
 
-- **Sito + acquisto online**: i file ci sono nel progetto. Verificare che siano **caricati su
-  abraka.it** e che il giro "visita → codice → biglietteria → ordine → mail" funzioni dal vivo.
-- **Caselle `supporto@abraka.it` e `accesso@abraka.it`**: ✅ **CREATE su Tophost** (confermato dall'autore,
-  16 ott) — restano permanenti. `supporto@` = mail commerciali (ordini, benvenuto, ricevute); `accesso@` =
-  richieste d'accesso. Resta solo da fare **una prova reale** che le mail partano davvero da `supporto@`.
-- **Mail di benvenuto / ricevuta PDF**: codice pronto; fare **una prova reale** di un ordine completo.
+- **Ordine online completo**: ✅ **PROVATO dall'autore (16 ott) e FUNZIONA** — il giro
+  "visita → codice → biglietteria → ordine → mail" gira, con mail di benvenuto + ricevuta PDF che
+  arrivano da `supporto@`. **Tenuto in lista di proposito:** l'autore vuole **rivedere con calma
+  tutto il processo** — ma è solo questione di **TESTI / cosa c'è scritto** (pagine, mail, ricevuta),
+  non di farlo funzionare.
+- **Caselle `supporto@abraka.it` e `accesso@abraka.it`**: ✅ **create e funzionanti** (le mail d'ordine
+  partono da `supporto@`). `accesso@` = richieste d'accesso dal sito.
 - **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
   migrazione è stata fatta o va ancora eseguita.
 - **Contatore Palco**: sistemare il conteggio "Mail inviate/ricevute" in modo Palco (in corso).
