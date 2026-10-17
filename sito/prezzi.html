@@ -160,7 +160,7 @@
     if(p.sessioni_giorno>0) li.push(nf(p.sessioni_giorno)+(p.sessioni_giorno===1?' sessione':' sessioni')+' al giorno + '+nf(p.sessioni_mese)+' al mese');
     else li.push(nf(p.sessioni_mese)+' sessioni al mese');
     // mail
-    var mail=nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' ('+nf(p.mail_giorno)+' al giorno)'):'');
+    var mail=nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' (max '+nf(p.mail_giorno)+' al giorno)'):'');
     if(p.grandi_invii) mail+=' + invii grandi';
     li.push(mail);
     // foto mensili + omaggio

@@ -3,7 +3,19 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 53 — editor: "limiti inclusi" chiari vs omaggio; Report/Assistente nel listino con prezzo; prima: AGG 52).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 54 — Mail = limiti (al mese, max al giorno) vs Sessioni = si sommano (al giorno + al mese); frasi uguali sul sito; prima: AGG 53).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 54 — significato corretto dei due numeri per servizio)
+> - **Due significati diversi, etichette diverse per servizio (`admin.html`):**
+>   - **Mail = LIMITI:** riquadro "limite mail" con **al mese** + **max / giorno** (es. 500 al mese, max 100
+>     al giorno: il giorno è un TETTO).
+>   - **Sessioni = SI SOMMANO:** riquadro "sessioni incluse (si sommano)" con **al giorno** `+` **al mese**
+>     (es. 1 al giorno + 5 al mese: il giorno è una BASE, il mese un BONUS).
+>   - **Foto magic:** "foto incluse" → **al mese**. Ogni riquadro ha una nota-esempio sotto.
+> - **Stesse frasi sul sito** (`prezzi.html` e `acquista.html`): mail → "500 mail al mese (max 100 al giorno)";
+>   sessioni → "1 al giorno + 5 al mese" (come nel primo html `prezzi-predizione.html`).
+> - Nessun cambio ai dati: solo etichette/frasi più chiare. **Richiede:** `predizione/` → `admin.html`;
+>   radice → `prezzi.html`, `acquista.html`. (Nel bundle anche piani.php/stato.php dell'AGG 53.) Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 53 — limiti chiari nell'editor + Report/Assistente nel confronto costi)
 > - **Chiarezza "limiti vs omaggio" (`admin.html`):** nella riga di ogni servizio i campi **al giorno / al mese**

@@ -229,6 +229,8 @@
           .lz-lim{display:inline-flex;flex-direction:column;gap:4px;border:1px solid var(--line-2);border-radius:10px;padding:5px 9px 7px;background:rgba(236,224,201,.03)}
           .lz-lim-t{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold)}
           .lz-lim-row{display:flex;gap:10px;align-items:flex-end}
+          .lz-lim-n{font-size:9px;color:var(--faint);margin-top:1px}
+          .lz-plus{color:var(--gold);font-weight:800;font-size:17px;align-self:center;padding-bottom:4px}
           .lz-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin:12px 0 6px}
           .lz-ut{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-bottom:6px;flex-wrap:wrap}
           .lz-ut .lz-ic{background:var(--surface)}
@@ -661,9 +663,10 @@
     return '<div class="lz-row'+(on?'':' off')+'">'+lzSw(on)+lzIc(ic)+
       '<div class="lz-nm">'+nome+'</div><div class="lz-fields">'+fieldsHtml+'</div></div>';
   }
-  // gruppo "limiti inclusi nel piano" (racchiude i campi tetto giorno/mese)
-  function lzLim(fieldsHtml){
-    return '<span class="lz-lim"><span class="lz-lim-t">limiti inclusi nel piano</span><span class="lz-lim-row">'+fieldsHtml+'</span></span>';
+  // gruppo riquadrato con titolo e nota (per i limiti/inclusi di un servizio)
+  function lzLim2(title,fieldsHtml,note){
+    return '<span class="lz-lim"><span class="lz-lim-t">'+title+'</span><span class="lz-lim-row">'+fieldsHtml+'</span>'+
+      (note?'<span class="lz-lim-n">'+note+'</span>':'')+'</span>';
   }
   function num(id,v){ return '<input type="number" min="0" id="'+id+'" value="'+(v||0)+'">'; }
   function swOn(el){ return el&&el.classList.contains('on'); }
@@ -697,20 +700,26 @@
                  '<div class="edline"><label>Mese — si <b>paga</b> €</label>'+num('ep_'+idx+'_prezzo_mese',p.prezzo_mese)+'</div>';
       var mailOm=omQty(p,'mail'), sessOm=omQty(p,'sessioni'), fotoOm=omQty(p,'foto_ia');
       var righe=
+        // MAIL = limiti: X al mese, con un MASSIMO di Y al giorno
         lzRowMulti('mail','Mail',mailOn,
           lzMini('ep_'+idx+'_om_mail','🎁 omaggio',mailOm,mailOn,true)+
-          lzLim(
-            lzMini('ep_'+idx+'_mail_giorno','max / giorno',p.mail_giorno,mailOn)+
-            lzMini('ep_'+idx+'_mail_mese','inclusi / mese',p.mail_mese,mailOn)))+
+          lzLim2('limite mail',
+            lzMini('ep_'+idx+'_mail_mese','al mese',p.mail_mese,mailOn)+
+            lzMini('ep_'+idx+'_mail_giorno','max / giorno',p.mail_giorno,mailOn),
+            'es. 500 al mese, max 100 al giorno'))+
+        // FOTO = incluse al mese
         lzRowMulti('foto_ia','Foto magic',fotoOn,
           lzMini('ep_'+idx+'_om_foto','🎁 omaggio',fotoOm,fotoOn,true)+
-          lzLim(
-            lzMini('ep_'+idx+'_foto_ia_mese','inclusi / mese',p.foto_ia_mese,fotoOn)))+
+          lzLim2('foto incluse',
+            lzMini('ep_'+idx+'_foto_ia_mese','al mese',p.foto_ia_mese,fotoOn),''))+
+        // SESSIONI = si sommano: X al giorno + Y al mese
         lzRowMulti('sessioni','Sessioni',sessOn,
           lzMini('ep_'+idx+'_om_sessioni','🎁 omaggio',sessOm,sessOn,true)+
-          lzLim(
-            lzMini('ep_'+idx+'_sessioni_giorno','max / giorno',p.sessioni_giorno,sessOn)+
-            lzMini('ep_'+idx+'_sessioni_mese','inclusi / mese',p.sessioni_mese,sessOn)))+
+          lzLim2('sessioni incluse (si sommano)',
+            lzMini('ep_'+idx+'_sessioni_giorno','al giorno',p.sessioni_giorno,sessOn)+
+            '<span class="lz-plus">+</span>'+
+            lzMini('ep_'+idx+'_sessioni_mese','al mese',p.sessioni_mese,sessOn),
+            'es. 1 al giorno + 5 al mese'))+
         '<div class="lz-row'+(assOn?'':' off')+'">'+lzSw(assOn)+lzIc('assistente')+
           '<div class="lz-nm">Assistente di scena<small>al mese</small></div>'+
           '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+((!assOn||ill)?' disabled':'')+'>'+
