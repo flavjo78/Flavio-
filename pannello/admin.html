@@ -627,12 +627,27 @@
     if(!acc || !acc.length){ $('apList').innerHTML='<div class="small">—</div>'; return; }
     $('apList').innerHTML=acc.map(function(a){
       var lett=a.lettera?('<span class="d" style="color:var(--gold);font-weight:800">lettera «'+esc(a.lettera)+'»</span>'):'';
-      var azione=a.base?'<span class="small" style="opacity:.6">base</span>':'<button class="btn danger" data-del="'+esc(a.password)+'">Elimina</button>';
-      return '<div class="srow"><b>'+esc(a.password)+'</b><span class="d">→ '+esc(a.etichetta)+'</span>'+lett+azione+'</div>';
+      var azione;
+      if(a.base){
+        azione = a.off
+          ? '<span class="small" style="color:var(--stop);margin-right:8px">disattivata</span><button class="btn" data-base-on="1">Ripristina</button>'
+          : '<span class="small" style="opacity:.6;margin-right:8px">base</span><button class="btn danger" data-base-off="1">Elimina</button>';
+      } else {
+        azione = '<button class="btn danger" data-del="'+esc(a.password)+'">Elimina</button>';
+      }
+      var pwTxt = (a.base && a.off) ? '<b style="text-decoration:line-through;opacity:.6">'+esc(a.password)+'</b>' : '<b>'+esc(a.password)+'</b>';
+      return '<div class="srow">'+pwTxt+'<span class="d">→ '+esc(a.etichetta)+'</span>'+lett+azione+'</div>';
     }).join('');
     document.querySelectorAll('#apList [data-del]').forEach(function(b){
       b.onclick=function(){ if(!confirm('Eliminare la password '+b.getAttribute('data-del')+'?'))return;
         call('admin_accesso_elimina',{pw_accesso:b.getAttribute('data-del')}).then(function(){ toast('Eliminata','ok'); caricaAccessi(); }); };
+    });
+    document.querySelectorAll('#apList [data-base-off]').forEach(function(b){
+      b.onclick=function(){ if(!confirm('Disattivare la base «aaa»? Dopo, chi prova a entrare con «aaa» NON passa più.'))return;
+        call('admin_accesso_base',{attiva:'0'}).then(function(){ toast('Base «aaa» disattivata','ok'); caricaAccessi(); }); };
+    });
+    document.querySelectorAll('#apList [data-base-on]').forEach(function(b){
+      b.onclick=function(){ call('admin_accesso_base',{attiva:'1'}).then(function(){ toast('Base «aaa» riattivata','ok'); caricaAccessi(); }); };
     });
   }
   function caricaAccessi(){ call('admin_accessi').then(function(r){ if(r.data&&r.data.ok) renderAccessi(r.data.accessi||[], r.data.base||'aaa'); }).catch(function(){}); }

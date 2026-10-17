@@ -3,7 +3,16 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 55 — tasti "Salva" e "Vedi prezzi" in alto a destra nel Listino; prima: AGG 54).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 56 — la base d'accesso "aaa" ora è disattivabile/ripristinabile dal pannello; prima: AGG 55).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 56 — disattivare la base d'accesso "aaa")
+> - **La base "aaa" (provenienza "diretto") è disattivabile.** Nuovo marcatore `_dati/accesso_base_off`
+>   (`config.php`: `predizione_accesso_base_off()` / `predizione_accesso_base_set()`). Se disattivata,
+>   `predizione_accesso_etichetta('aaa')` → null → sul sito "aaa" NON è più una password valida.
+> - **Pannello 000 → Password d'accesso (`admin.html` + `stato.php`):** la riga "aaa" ora ha **Elimina**
+>   (disattiva) e, quando è spenta, mostra **"disattivata"** + **Ripristina**. `admin_accessi` espone `off`/
+>   `base_off`; `admin_accesso_elimina` con pw=base la disattiva; nuova azione `admin_accesso_base` (attiva 1/0).
+> - **Richiede:** `predizione/` → `config.php`, `stato.php`, `admin.html`. (Nel bundle anche i file AGG 51→55.) Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 55 — Salva + Vedi prezzi in cima all'editor Listino)
 > - **Barra in alto (`admin.html`):** nella vista **Listino** ora accanto ad "Aggiorna" compaiono

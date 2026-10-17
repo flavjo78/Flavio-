@@ -465,13 +465,15 @@ function predizione_admin(string $azione): void {
         case 'admin_accessi':   // elenco password d'accesso (provenienza) + LETTERA per il numero ordine
             $acc = predizione_accessi_leggi();
             $out = [];
-            // la base "aaa" (diretto) sempre in cima, lettera 'a'
-            $out[] = ['password' => PRED_ACCESSO_BASE, 'etichetta' => 'diretto', 'lettera' => 'a', 'creato' => 0, 'base' => true];
+            // la base "aaa" (diretto) sempre in cima, lettera 'a' (puo' essere disattivata)
+            $out[] = ['password' => PRED_ACCESSO_BASE, 'etichetta' => 'diretto', 'lettera' => 'a', 'creato' => 0,
+                      'base' => true, 'off' => predizione_accesso_base_off()];
             foreach ($acc as $pw => $info) {
                 $out[] = ['password' => (string)$pw, 'etichetta' => (string)($info['etichetta'] ?? ''),
                           'lettera' => (string)($info['lettera'] ?? ''), 'creato' => (int)($info['creato'] ?? 0)];
             }
-            predizione_json(['ok' => true, 'accessi' => $out, 'base' => PRED_ACCESSO_BASE]);
+            predizione_json(['ok' => true, 'accessi' => $out, 'base' => PRED_ACCESSO_BASE,
+                             'base_off' => predizione_accesso_base_off()]);
 
         case 'admin_accesso_crea':
             // NB: il campo si chiama 'pw_accesso' (non 'password', che è la password admin)
@@ -491,10 +493,19 @@ function predizione_admin(string $azione): void {
 
         case 'admin_accesso_elimina':
             $pw  = (string)(p('pw_accesso') ?? '');
+            if ($pw === PRED_ACCESSO_BASE) {   // la base non si cancella: si DISATTIVA
+                predizione_accesso_base_set(true);
+                predizione_json(['ok' => true, 'base_off' => true]);
+            }
             $acc = predizione_accessi_leggi();
             unset($acc[$pw]);
             predizione_accessi_scrivi($acc);
             predizione_json(['ok' => true]);
+
+        case 'admin_accesso_base':   // attiva/disattiva la base "aaa"
+            $att = (p('attiva') === '1' || p('attiva') === 'true' || p('attiva') === 1 || p('attiva') === true);
+            predizione_accesso_base_set(!$att);   // attiva=1 -> non spenta
+            predizione_json(['ok' => true, 'base_off' => predizione_accesso_base_off()]);
 
         case 'admin_password':
             $num = predizione_pulisci_utente(p('numero'));

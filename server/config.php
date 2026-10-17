@@ -417,7 +417,15 @@ function predizione_pulisci_foto_base(array &$stato): void {
    base "aaa", l'autore puo' crearne altre, ognuna con un'ETICHETTA (es. gruppo1):
    chi si iscrive con quella password si porta l'etichetta nell'anagrafica.
    Archivio in _dati/accessi.json: { "QQQ": {"etichetta":"gruppo1","creato":...}, ... } */
-const PRED_ACCESSO_BASE = 'aaa';   // password base, sempre valida (provenienza "diretto")
+const PRED_ACCESSO_BASE = 'aaa';   // password base (provenienza "diretto"); disattivabile dal pannello
+/* La base "aaa" puo' essere DISATTIVATA dall'admin (file marcatore in _dati). Se
+   disattivata, "aaa" NON e' piu' una password d'accesso valida sul sito. */
+function predizione_accesso_base_off(): bool { return is_file(DATA_DIR . '/accesso_base_off'); }
+function predizione_accesso_base_set(bool $off): void {
+    $f = DATA_DIR . '/accesso_base_off';
+    if ($off) { if (!is_dir(DATA_DIR)) @mkdir(DATA_DIR, 0775, true); @file_put_contents($f, '1'); }
+    else { @unlink($f); }
+}
 function predizione_accessi_file(): string { return DATA_DIR . '/accessi.json'; }
 function predizione_accessi_leggi(): array {
     $f = predizione_accessi_file();
@@ -434,7 +442,7 @@ function predizione_accessi_scrivi(array $a): bool {
 function predizione_accesso_etichetta(?string $password): ?string {
     $p = trim((string)$password);
     if ($p === '') return null;
-    if (hash_equals(PRED_ACCESSO_BASE, $p)) return 'diretto';
+    if (!predizione_accesso_base_off() && hash_equals(PRED_ACCESSO_BASE, $p)) return 'diretto';
     $a = predizione_accessi_leggi();
     foreach ($a as $pw => $info) {
         if (hash_equals((string)$pw, $p)) return (string)($info['etichetta'] ?? $pw);
