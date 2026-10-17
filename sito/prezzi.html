@@ -195,7 +195,12 @@
       if(feat) h+='<div class="badge">Più scelto</div>';
       h+='<div class="pname">'+esc(p.nome)+'</div><div class="ptag">'+(PTAG[p.nome]||'')+'</div>';
       if(gratis){
-        h+='<div class="price"><span class="amt">0</span><span class="per">€ / mese</span></div><div class="yr">incluso con l\'accesso</div>';
+        var pm = pienoAnno>0 ? (Math.round(pienoAnno/12*100)/100) : pienoMese;
+        if(pm>0){
+          h+='<div class="price"><span class="old">'+it(pm)+' €</span><span class="amt" style="color:var(--gold-ink);font-size:30px">gratis</span></div><div class="yr">100% di sconto · incluso con l\'accesso</div>';
+        } else {
+          h+='<div class="price"><span class="amt">0</span><span class="per">€ / mese</span></div><div class="yr">incluso con l\'accesso</div>';
+        }
       } else {
         h+='<div class="price"><span class="barr"></span><span class="amt">'+it(perm)+'</span><span class="per">€ / mese</span></div><div class="yr">'+it(p.prezzo_anno)+' € / anno · fatturato una volta</div>';
       }

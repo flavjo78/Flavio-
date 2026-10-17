@@ -162,7 +162,7 @@
     var prezzo;
     // prezzo PIENO barrato (solo se maggiore di quello che si paga)
     var barr = (pieno && pieno>pz) ? '<span style="text-decoration:line-through;color:#8a8070;font-size:12px;margin-right:6px">'+money(pieno)+'</span>' : '';
-    if(pz<=0){ prezzo='<span class="pzm">'+(val===''?'—':'incluso')+'</span>'; }
+    if(pz<=0){ prezzo='<span class="pzm">'+(val===''?'—':(pieno&&pieno>0?(barr+'gratis'):'incluso'))+'</span>'; }
     else if(dur==='anno'){
       var pm=Math.round(pz/12*100)/100;   // es. 96/12 = 8 €/mese
       prezzo='<span class="pzm">'+barr+money(pm)+'<span class="per">/mese</span></span><span class="pzy">'+money(pz)+' all\'anno</span>';
