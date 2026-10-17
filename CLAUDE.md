@@ -3,7 +3,14 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 57 — pagina prezzi: righe allineate uguali per tutti i piani; prima: AGG 56).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 58 — ritocchi pagina prezzi: niente "nessun omaggio", Palco mail "nessun limite giornaliero"; prima: AGG 57).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 58 — ritocchi confronto prezzi)
+> - **`prezzi.html`:** riga omaggio assente → ora è un **spaziatore invisibile** (niente più scritta
+>   "nessun omaggio di benvenuto"), così "Invii grandi" resta allineato anche nel Foyer.
+> - **Mail senza tetto giornaliero** → scritta **"(nessun limite giornaliero)"** (es. Palco "3500 mail al
+>   mese (nessun limite giornaliero)"; vale anche per Foyer).
+> - **Richiede:** radice del sito → `prezzi.html`. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 57 — confronto piani con righe fisse allineate)
 > - **`prezzi.html` `feats()` riscritta:** ogni piano mostra SEMPRE le stesse 7 righe nello stesso ordine

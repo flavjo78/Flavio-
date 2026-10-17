@@ -160,14 +160,14 @@
     // 1) Sessioni
     if(p.sessioni_giorno>0) li.push(['◆', nf(p.sessioni_giorno)+(p.sessioni_giorno===1?' sessione':' sessioni')+' al giorno + '+nf(p.sessioni_mese)+' al mese', false]);
     else li.push(['◆', nf(p.sessioni_mese)+' sessioni al mese', false]);
-    // 2) Mail
-    li.push(['◆', nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' (max '+nf(p.mail_giorno)+' al giorno)'):''), false]);
+    // 2) Mail (se non c'è tetto giornaliero lo diciamo)
+    li.push(['◆', nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' (max '+nf(p.mail_giorno)+' al giorno)'):' (nessun limite giornaliero)'), false]);
     // 3) Foto magic al mese
     if(p.foto_ia_mese>0) li.push(['◆', nf(p.foto_ia_mese)+' Foto magic al mese', false]);
     else li.push(['○', 'niente Foto magic al mese', true]);
-    // 4) Omaggio di benvenuto
+    // 4) Omaggio di benvenuto: se non c'è -> riga INVISIBILE (tiene l'allineamento, senza scritta)
     if(p.omaggio && p.omaggio.length) li.push(['🎁', p.omaggio.map(function(o){return esc(o.label);}).join(' · ')+' (benvenuto)', false]);
-    else li.push(['○', 'nessun omaggio di benvenuto', true]);
+    else li.push(['', '', false, true]);
     // 5) Assistente
     li.push(p.assistente ? ['◆','Assistente incluso', false] : ['○','Assistente a pagamento', true]);
     // 6) Report
@@ -175,6 +175,7 @@
     // 7) Invii grandi (Palco)
     li.push(p.grandi_invii ? ['◆','Invii grandi (Palco)', false] : ['○','Invii grandi non inclusi', true]);
     return li.map(function(x){
+      if(x[3]) return '<li style="visibility:hidden">·</li>';   // spaziatore invisibile
       return '<li'+(x[2]?' class="muted"':'')+'><span class="tick"'+(x[2]?' style="color:var(--dim)"':'')+'>'+x[0]+'</span> '+x[1]+'</li>';
     }).join('');
   }
