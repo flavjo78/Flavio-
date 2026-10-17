@@ -300,6 +300,7 @@ if ($azione === 'listino') {
                     'mesi' => (int)($e['mesi'] ?? 1), 'data' => (string)($e['data'] ?? '')];
     }
     predizione_json(['ok' => true, 'accesso' => predizione_accesso_prezzo(), 'accesso_pieno' => predizione_accesso_pieno(),
+                     'accesso_anni' => predizione_accesso_anni(),
                      'piani' => $piani, 'extra' => $extra]);
 }
 

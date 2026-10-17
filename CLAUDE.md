@@ -29,10 +29,16 @@ Ultimo aggiornamento: 17 ottobre 2026 (AGG 62 — grafico cronologia nella sched
 > - **Guida primo accesso: "metti l'icona sul telefono".** Alla fine della guida (`regia-predizione.html`)
 >   nuovo passo che chiede **iPhone o Android** e spiega come salvare l'app in home (Safari → Condividi →
 >   "Aggiungi a Home"; Chrome → ⋮ → "Aggiungi a schermata Home"). Service-worker **v23**.
-> - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `invia.php`, `genera_ia.php`,
->   `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice del sito** → `prezzi.html`,
->   `acquista.html` (fix "gratis" dell'AGG 61, che non avevi ancora caricato). Niente AWS. **Dopo il
->   caricamento provare un invio reale** (è cambiato l'include di invia.php/genera_ia.php).
+> - **Durata accesso (anni) nel LISTINO.** Nuovo campo editor "Accesso — durata (anni validi)" + `accesso_anni`
+>   nel listino (`piani.php` `predizione_accesso_anni()`, default `PRED_ACCESSO_ANNI=4`); `predizione_applica_piano`
+>   usa quel valore per i nuovi accessi. Esposto in `stato.php` (admin_listino) e `ordine.php` (listino pubblico).
+> - **Editor estensioni più ordinato.** La riga estensione (`lzExtraRow` in `admin.html`) è ora una **card a due
+>   righe** (sopra: nome/tipo/qta/€; sotto: riquadro "Scadenza: consumabile entro N mesi · oppure entro il [data]")
+>   → niente più "a capo" brutto.
+> - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `ordine.php`, `invia.php`,
+>   `genera_ia.php`, `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice del sito** →
+>   `prezzi.html`, `acquista.html` (fix "gratis" dell'AGG 61, che non avevi ancora caricato). Niente AWS.
+>   **Dopo il caricamento provare un invio reale** (è cambiato l'include di invia.php/genera_ia.php).
 
 > ### Aggiunte 17 ottobre 2026 (AGG 61 — fix sconto 100% "gratis")
 > - **Piano con prezzo pieno > 0 e prezzo pagato = 0** ora mostra sul sito il prezzo pieno **barrato** +

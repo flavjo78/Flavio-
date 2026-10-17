@@ -258,6 +258,14 @@
           .lz-ut input[type=text]{flex:1;min-width:120px}
           .lz-ut input[type=number]{width:70px}
           .lz-ut select{min-width:96px}
+          /* estensioni: card su DUE righe ordinate (niente a-capo brutto) */
+          .lz-ut.lz-ext{flex-direction:column;align-items:stretch;flex-wrap:nowrap;gap:7px}
+          .lz-ut.lz-ext .lz-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+          .lz-ut.lz-ext .lz-scad{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:6px 9px}
+          .lz-ut.lz-ext .lz-scad .lz-lab{font-size:11px;color:var(--ink-dim);letter-spacing:.06em}
+          .lz-ut.lz-ext .ut-mesi{width:52px}
+          .lz-ut.lz-ext .ut-data{flex:0 0 auto}
+          .lz-ut.lz-ext .lz-del{margin-left:auto}
           .lz-del{background:none;border:none;color:var(--stop);font-size:17px;cursor:pointer}
           .lz-add{width:100%;background:var(--surface-2);border:1px dashed var(--line-2);color:var(--gold);border-radius:10px;padding:9px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:2px}
           .lz-seg{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
@@ -267,7 +275,8 @@
         <div class="legend">Qui imposti i <b>piani</b> che si vedono sul sito abraka e in acquisto. I 4 nomi restano fissi. L'<b>interruttore</b> a sinistra di ogni icona accende/spegne la funzione (inclusa/esclusa). Il <b>prezzo pieno</b> serve solo per mostrare lo sconto barrato: lascialo uguale al prezzo pagato se non c'è sconto. Se cambi un piano, <b>chi è già abbonato tiene il piano vecchio fino alla scadenza</b>.</div>
         <div class="card">
           <div class="edline"><label>Accesso — prezzo <b>pieno</b> (barrato) €</label><input type="number" id="edAccessoPieno" min="0"></div>
-          <div class="edline"><label>Accesso — prezzo che si <b>paga</b> (una tantum, 4 anni) €</label><input type="number" id="edAccesso" min="0"></div>
+          <div class="edline"><label>Accesso — prezzo che si <b>paga</b> (una tantum) €</label><input type="number" id="edAccesso" min="0"></div>
+          <div class="edline"><label>Accesso — <b>durata</b> (anni validi)</label><input type="number" id="edAccessoAnni" min="1" step="1"></div>
         </div>
         <h2>Piani</h2>
         <div id="edPiani"></div>
@@ -752,6 +761,7 @@
     LIS=l;
     $('edAccesso').value=l.accesso||0;
     $('edAccessoPieno').value=(l.accesso_pieno!=null?l.accesso_pieno:l.accesso)||0;
+    $('edAccessoAnni').value=l.accesso_anni||4;
     var box=$('edPiani'); box.innerHTML='';
     l.piani.forEach(function(p,idx){
       var mailOn=!(p.flags&&p.flags.mail===false);
@@ -850,16 +860,23 @@
   window.lzSegPick=function(btn,which){ var seg=btn.closest('.lz-seg'); seg.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); var w=btn.closest('.lz-ut-ric'); if(w) w.setAttribute('data-ric',which?'mese':'una_tantum'); };
   function lzExtraRow(e){
     e=e||{code:'',tipo:'mail',label:'',qta:1,prezzo:0,mesi:1,data:''};
-    var d=document.createElement('div'); d.className='lz-ut'; d.setAttribute('data-code',esc(e.code||''));
-    d.innerHTML=lzIc(e.tipo)+
-      '<input type="text" class="ut-label" placeholder="Nome (es. +200 mail)" value="'+esc(e.label||'')+'">'+
-      lzTipoSel(e.tipo||'mail')+
-      '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(e.qta||1)+'">'+
-      '<span style="font-size:11px;color:var(--faint)">€</span><input type="number" min="0" step="0.5" class="ut-prezzo" value="'+(e.prezzo||0)+'">'+
-      '<span style="font-size:11px;color:var(--faint)" title="per quanti mesi è consumabile dall\'acquisto (0 = senza scadenza)">consumabile in</span>'+
-      '<input type="number" min="0" class="ut-mesi" value="'+(e.mesi!=null?e.mesi:1)+'" style="width:46px"><span style="font-size:11px;color:var(--faint)">mesi · o entro il</span>'+
-      '<input type="date" class="ut-data" value="'+esc(e.data||'')+'" title="scadenza a data fissa (vince sui mesi)">'+
-      '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>';
+    var d=document.createElement('div'); d.className='lz-ut lz-ext'; d.setAttribute('data-code',esc(e.code||''));
+    d.innerHTML=
+      '<div class="lz-row">'+
+        lzIc(e.tipo)+
+        '<input type="text" class="ut-label" placeholder="Nome (es. +200 mail)" value="'+esc(e.label||'')+'">'+
+        lzTipoSel(e.tipo||'mail')+
+        '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(e.qta||1)+'">'+
+        '<span style="font-size:11px;color:var(--faint)">€</span><input type="number" min="0" step="0.5" class="ut-prezzo" value="'+(e.prezzo||0)+'">'+
+      '</div>'+
+      '<div class="lz-row lz-scad">'+
+        '<span class="lz-lab">Scadenza: consumabile entro</span>'+
+        '<input type="number" min="0" class="ut-mesi" value="'+(e.mesi!=null?e.mesi:1)+'">'+
+        '<span class="lz-lab">mesi · oppure entro il</span>'+
+        '<input type="date" class="ut-data" value="'+esc(e.data||'')+'" title="scadenza a data fissa (vince sui mesi)">'+
+        '<span class="lz-lab">(0 mesi = senza scadenza)</span>'+
+        '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>'+
+      '</div>';
     return d;
   }
   function slug(s){ s=(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); return s||('x_'+Date.now()); }
@@ -884,7 +901,7 @@
   }
   $('edSalva').addEventListener('click', function(){
     if(!LIS)return;
-    var out={accesso:parseInt($('edAccesso').value||'0',10), accesso_pieno:parseInt($('edAccessoPieno').value||'0',10), piani:{}, extra:{}};
+    var out={accesso:parseInt($('edAccesso').value||'0',10), accesso_pieno:parseInt($('edAccessoPieno').value||'0',10), accesso_anni:Math.max(1,parseInt($('edAccessoAnni').value||'4',10)), piani:{}, extra:{}};
     LIS.piani.forEach(function(p,idx){
       var nome=$('ep_'+idx+'_nome').value;
       var mailOn=swOn($('edPiani').querySelector('[data-plan="'+idx+'"] .lz-row .lz-sw')); // prima riga = mail

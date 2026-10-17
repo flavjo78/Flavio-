@@ -101,20 +101,32 @@
   i 4 piani (al giorno/al mese, foto, omaggio 🎁, prezzo pieno barrato), estensioni (una tantum / al mese).
   L'editor del pannello 000 è la "fonte della verità": cambi lì e la pagina si aggiorna. *(acquista.html già
   dinamica da AGG 48.)* Resta eventuale: la vecchia `guide/prezzi-predizione.html` è solo un bozzetto, non serve.
+- 🟣 **Pagina prezzi/estensioni — DA RIVEDERE INSIEME** (richiesta autore 17 ott): testi e impaginazione
+  della vetrina e della presentazione delle estensioni vanno guardati insieme con calma (è questione di
+  "cosa c'è scritto" e layout, non di funzionamento).
+- ✅ **Durata accesso (anni) nel listino — FATTO (AGG 62)**: gli anni di validità dell'accesso (default 4)
+  si impostano nell'editor Listino (campo "Accesso — durata (anni validi)") e i nuovi ordini li usano.
 
 ---
 
 ## 🔴 DA FARE DAVVERO
 
-1. **Mailgun → piano a pagamento.** Ora sei sul Free = **100 mail/giorno**: basta per provare, NON
-   per uno show vero (150-500). Prima di un evento reale serve un piano (Basic ~10.000/mese). ⭐
-2. **Pagamento AUTOMATICO (webhook).** Oggi segni "pagato" a mano nel 000 e parte l'attivazione.
-   Fase 2: il sistema di pagamento (Stripe/Paddle/PayPal) conferma da solo → utente creato e mail
-   inviata senza intervento.
-3. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
-4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
+### ⭐ URGENTI (le due cose che contano adesso)
+- **A. Pagamento AUTOMATICO (webhook).** Oggi segni "pagato" a mano nel 000 e parte l'attivazione.
+  Fase 2: il sistema di pagamento (Stripe/Paddle/PayPal) conferma da solo → utente creato e mail
+  inviata senza intervento.
+- **B. Conferma FINALE col commercialista.** Chiudere l'inquadramento fiscale (vedi punto 5): portare
+  al commercialista il foglio `guide/domande-commercialista.html` con regime + ATECO e avere la risposta
+  definitiva (integrare nella partita IVA esistente, oppure diritto d'autore / Paddle). Finché non è
+  confermato, le ricevute e i testi legali restano "bozza".
 
-4-bis. **Filtro aperture "foto A" più preciso (idea, NON urgente).** Oggi scarta le aperture di servizio
+### ⏳ Da fare in più (NON urgenti)
+1. **Mailgun → piano a pagamento.** Ora sei sul Free = **100 mail/giorno**: basta per provare, NON
+   per uno show vero (150-500). Prima di un evento reale serve un piano (Basic ~10.000/mese).
+2. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
+3. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
+
+3-bis. **Filtro aperture "foto A" più preciso (idea, NON urgente).** Oggi scarta le aperture di servizio
    SOLO a TEMPO (`PRED_APERTURA_GRACE = 15s` in config.php: primi 15s dall'arrivo + debounce). Rischio:
    una persona VERA che apre entro 15s dall'arrivo viene scartata per sbaglio. **Miglioria:** riconoscere
    il robot di Gmail dal NOME (`GoogleImageProxy`, già usato in `report.php` → "Gmail (anteprima)") e
@@ -122,7 +134,8 @@
    firma). Così non si perde nessun umano veloce su Gmail. Facoltativo: aggiungere nel report la misura
    "il robot di Gmail ha scaricato dopo N secondi dall'arrivo" per vedere il dato vero degli show.
    **Per ora resta 15s (scelta dell'autore: meglio la rete di sicurezza).**
-5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
+4. **Parte legale/fiscale** (NON tecnica): la **conferma finale** col commercialista è in URGENTE (B qui sopra);
+   qui restano i materiali e le pagine privacy/termini da scrivere DOPO quella conferma.
    - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (chiaro+scuro,
          stampabile, **versione GENERICA**: descrive solo "software web a licenza/abbonamento", SENZA il
          contesto da palco/mentalismo — scelta dell'autore per non rivelare la professione). **L'autore HA

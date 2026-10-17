@@ -165,6 +165,13 @@ function predizione_accesso_pieno(): int {
     $pieno = isset($lis['accesso_pieno']) ? max(0, (int)$lis['accesso_pieno']) : (int)PRED_ACCESSO_PIENO;
     return $pieno > $pagato ? $pieno : $pagato;
 }
+/* Durata dell'accesso in ANNI (editor puo' cambiarla; altrimenti la costante).
+   Usata quando si attiva un NUOVO accesso (predizione_applica_piano). */
+function predizione_accesso_anni(): int {
+    $lis = predizione_listino_leggi();
+    $a = isset($lis['accesso_anni']) ? (int)$lis['accesso_anni'] : (int)PRED_ACCESSO_ANNI;
+    return max(1, $a);
+}
 
 /* ---- VERSIONI dei piani (storico) -------------------------------------
    Ogni volta che l'autore cambia un piano, la versione AUMENTA e la vecchia
@@ -287,7 +294,7 @@ function predizione_applica_piano(array &$rec, string $piano, string $durata = '
 
     // accesso 4 anni: si imposta solo se non c'e' gia'
     if (empty($rec['accesso_scadenza'])) {
-        $rec['accesso_scadenza'] = time() + PRED_ACCESSO_ANNI * 31557600;
+        $rec['accesso_scadenza'] = time() + predizione_accesso_anni() * 31557600;
     }
 }
 

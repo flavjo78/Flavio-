@@ -626,6 +626,7 @@ function predizione_admin(string $azione): void {
                 'piani' => $piani, 'extra' => $extra,
                 'accesso' => predizione_accesso_prezzo(),
                 'accesso_pieno' => predizione_accesso_pieno(),
+                'accesso_anni' => predizione_accesso_anni(),
                 'nomi_base' => predizione_piani_nomi_base(),
             ]]);
 
@@ -653,8 +654,9 @@ function predizione_admin(string $azione): void {
             $correnti = predizione_piani();   // definizioni attualmente in vigore (per confronto)
             $accessoN = max(0, (int)($in['accesso'] ?? predizione_accesso_prezzo()));
             $accessoP = max(0, (int)($in['accesso_pieno'] ?? 0)); if ($accessoP < $accessoN) $accessoP = $accessoN;
+            $accessoA = max(1, (int)($in['accesso_anni'] ?? predizione_accesso_anni()));
             $nuovo = ['piani' => [], 'extra' => [], 'accesso' => $accessoN, 'accesso_pieno' => $accessoP,
-                      'versioni' => $versioni, 'storico' => $storico];
+                      'accesso_anni' => $accessoA, 'versioni' => $versioni, 'storico' => $storico];
             // piani
             $pin = is_array($in['piani'] ?? null) ? $in['piani'] : [];
             $def = predizione_piani_default();
