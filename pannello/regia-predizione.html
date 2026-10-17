@@ -863,6 +863,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </div>
   </div>
 
+  <!-- BANNER scadenza accesso (4 anni): promemoria o blocco -->
+  <div id="accBox" style="display:none;position:fixed;left:0;right:0;bottom:0;z-index:55;padding:11px 14px calc(11px + env(safe-area-inset-bottom));font-size:14px;font-weight:700;text-align:center;line-height:1.4"></div>
+
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 </div>
@@ -1183,6 +1186,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     phaseLine.textContent=frase;
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
     if(typeof aggiornaSicurezza==='function') aggiornaSicurezza(st);
+    if(typeof aggiornaAccesso==='function') aggiornaAccesso(st);
 
     setModoUI(st.invio_modo);
     var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : 'Palco'; }
@@ -1320,6 +1324,22 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // la sessione è avviata da troppe ore, con tasti "Sì, continua" / "Non avvisarmi".
   function sicDurata(sec){ sec=Math.max(0,sec|0); var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60);
     if(h>0) return h+'h'+(m>0?(' '+m+'m'):''); if(m>0) return m+' minuti'; return sec+' secondi'; }
+  function aggiornaAccesso(st){
+    var box=$('accBox'); if(!box) return;
+    var a=(st && st.accesso) ? st.accesso : null;
+    if(!a || !a.scad){ box.style.display='none'; return; }
+    if(a.scaduto){
+      box.style.display='block'; box.style.background='#7a1f14'; box.style.color='#ffdbcf';
+      box.innerHTML='⚠ Accesso scaduto — l\'app è in pausa. Per riattivarla scrivi a <u>supporto@abraka.it</u>.';
+      return;
+    }
+    if(a.promemoria){
+      box.style.display='block'; box.style.background='#3a2e12'; box.style.color='#f0d79a';
+      box.innerHTML='⏳ Il tuo accesso scade fra '+a.giorni+' giorni. Per rinnovare: <u>supporto@abraka.it</u>';
+      return;
+    }
+    box.style.display='none';
+  }
   function aggiornaSicurezza(st){
     var box=$('sicBox'); if(!box) return;
     var s=(st && st.sicurezza) ? st.sicurezza : null;
@@ -1966,6 +1986,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   function gMail(){ return '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>'; }
   function gGlobe(){ return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>'; }
   function gDots(){ return '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>'; }
+  function gApple(){ return '<svg viewBox="0 0 24 24"><path d="M16 13c0 3 2 4 2 4-.3.9-1 2.3-1.8 3.2-.7.8-1.4 1.6-2.5 1.6s-1.4-.6-2.6-.6-1.6.6-2.6.6-1.8-.8-2.5-1.7C4 18.7 3 16 3 13.4 3 10.4 5 9 7 9c1.1 0 2 .7 2.7.7.6 0 1.7-.8 2.9-.8.5 0 2.3.1 3.4 1.6-.1.1-2 .9-2 2.5z"/><path d="M14 6c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z"/></svg>'; }
+  function gRobot(){ return '<svg viewBox="0 0 24 24"><rect x="5" y="9" width="14" height="10" rx="3"/><path d="M8 9 6 5M16 9l2-4"/><circle cx="9.5" cy="13.5" r="1"/><circle cx="14.5" cy="13.5" r="1"/></svg>'; }
   function gSupport(t){ return '<div class="gsupport"><b>'+t+'</b><br><br><a href="mailto:supporto@abraka.it">supporto@abraka.it</a></div>'; }
   function gNav(back,next,lbl){
     var s='<div class="grow2">';
@@ -2100,7 +2122,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
        +'<p class="glead">Per questo tipo di mail ti diamo una mano noi: serve la nostra assistenza e un po\' più di tempo, poi è tutto pronto.</p>'
        +gPhone('<div class="gglyph">💬</div><div class="bar sm" style="margin:0 auto"></div><div class="bar xs" style="margin:6px auto"></div>','Ti seguiamo noi, passo per passo')
        +gSupport('Scrivici: ti guidiamo noi')
-       +'<button class="gbtn primary" data-act="entra">Ho capito, entra nel pannello</button>'
+       +'<button class="gbtn primary" data-g="installa">Ho capito, metti l\'icona sul telefono →</button>'
        +'<button class="gbtn ghost" data-g="g1">In realtà uso una Gmail →</button>'
        +'<button class="gbtn ghost" data-g="choose" style="margin-top:14px">← Indietro</button>'
        +'</div>';
@@ -2112,7 +2134,49 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
        +'<h2 class="gt">Tutto pronto!</h2>'
        +'<p class="glead">La mail del gioco è collegata. Ora puoi <b>avviare il gioco</b> e rispondere agli spettatori con la foto.</p>'
        +(gEmail?('<div class="gsay gcenter"><b>'+gEsc(gEmail)+'</b><br>mail di comunicazione confermata ✓</div>'):'')
-       +'<button class="gbtn primary" data-act="fine">Entra nella Regia →</button>'
+       +'<button class="gbtn primary" data-g="installa">Un\'ultima cosa: l\'icona sul telefono →</button>'
+       +'<button class="gbtn ghost" data-act="fine" style="margin-top:10px">Salta, entra nella Regia</button>'
+       +'</div>';
+    }
+    else if(gScreen==='installa'){
+      gSetSteps(0);
+      h='<div class="gcard">'
+       +'<p class="gcenter"><span class="gpill">Icona sul telefono</span></p>'
+       +'<h2 class="gt">Mettiti l\'app sullo schermo</h2>'
+       +'<p class="glead">Così la apri con un tocco, come le altre app, senza riscrivere l\'indirizzo ogni volta. Che telefono hai?</p>'
+       +gChoice('inst_iphone','iPhone (Apple)','Si installa da Safari, col tasto Condividi.',gApple())
+       +gChoice('inst_android','Android (Samsung, Xiaomi, Huawei…)','Si installa da Chrome, dal menù ⋮.',gRobot())
+       +'<button class="gbtn ghost" data-act="fine" style="margin-top:14px">Lo faccio dopo, entra nella Regia</button>'
+       +'</div>';
+    }
+    else if(gScreen==='inst_iphone'){
+      gSetSteps(0);
+      h='<div class="gcard">'
+       +'<p class="gcenter"><span class="gpill">iPhone · Safari</span></p>'
+       +'<h2 class="gt">Aggiungi l\'icona (iPhone)</h2>'
+       +'<div class="gsay" style="text-align:left">'
+         +'<div><span class="n">1</span>Apri questa pagina con <b>Safari</b> (il browser di Apple).</div>'
+         +'<div style="margin-top:10px"><span class="n">2</span>In basso '+gTocca()+' il tasto <b>Condividi</b> (il quadrato con la freccia che va in su ⬆️).</div>'
+         +'<div style="margin-top:10px"><span class="n">3</span>Scorri le voci e '+gTocca()+' <b>«Aggiungi a Home»</b> (o «Aggiungi alla schermata Home»).</div>'
+         +'<div style="margin-top:10px"><span class="n">4</span>In alto a destra '+gTocca()+' <b>«Aggiungi»</b>. Fatto: l\'icona è sullo schermo.</div>'
+       +'</div>'
+       +'<button class="gbtn primary" data-act="fine" style="margin-top:14px">Ho capito, entra nella Regia →</button>'
+       +'<button class="gbtn ghost" data-g="installa">← Indietro</button>'
+       +'</div>';
+    }
+    else if(gScreen==='inst_android'){
+      gSetSteps(0);
+      h='<div class="gcard">'
+       +'<p class="gcenter"><span class="gpill">Android · Chrome</span></p>'
+       +'<h2 class="gt">Aggiungi l\'icona (Android)</h2>'
+       +'<div class="gsay" style="text-align:left">'
+         +'<div><span class="n">1</span>Apri questa pagina con <b>Chrome</b> (il browser di Google).</div>'
+         +'<div style="margin-top:10px"><span class="n">2</span>In alto a destra '+gTocca()+' i <b>tre puntini</b> (⋮).</div>'
+         +'<div style="margin-top:10px"><span class="n">3</span>'+gTocca()+' <b>«Aggiungi a schermata Home»</b> (a volte scritto «Installa app»).</div>'
+         +'<div style="margin-top:10px"><span class="n">4</span>Conferma con <b>«Aggiungi»</b>. Fatto: l\'icona è sullo schermo.</div>'
+       +'</div>'
+       +'<button class="gbtn primary" data-act="fine" style="margin-top:14px">Ho capito, entra nella Regia →</button>'
+       +'<button class="gbtn ghost" data-g="installa">← Indietro</button>'
        +'</div>';
     }
     gBody.innerHTML=h;

@@ -3,7 +3,40 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 60 — accessori = "secchiello separato" (si consumano, non si ricaricano) + scadenza in mesi o data; prima: AGG 59).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 62 — grafico cronologia nella scheda utente + scadenza accesso 4 anni modificabile/blocco/promemoria + guida "icona sul telefono"; include il fix "gratis" dell'AGG 61).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 62 — grafici cronologia + scadenza accesso + guida icona telefono)
+> - **Grafico cronologia nella scheda utente (pannello 000 → `admin.html`).** Nella sezione "Cronologia e
+>   grafici" ora c'è, oltre alla lista acquisti, un pannello di **grafici nel tempo**: Acquisti (barre, €),
+>   Mail / Sessioni / Foto magic **che restano** (linee), ciascuno **richiudibile** (tocca il titolo) e con la
+>   **somma del periodo nel titolo** (acquisti = totale €; gli altri = quantità consumate/usate/create).
+>   Selettore **periodo** in alto: **Mese** (30 gg) · **Anno** (365 gg) · **Periodo** (da/a a scelta).
+>   Nuovo endpoint `admin_cronologia` (stato.php): acquisti con data+importo da `vendite.csv` + serie dei
+>   `movimenti` (ts/delta) per tipo + quanto RESTA adesso (piano del mese non consumato + crediti non scaduti);
+>   la linea "che restano" è ricostruita camminando a ritroso dai movimenti e ancorata al valore attuale.
+> - **Scadenza ACCESSO all'app (4 anni) ora MODIFICABILE + blocco + promemoria.**
+>   - `piani.php`: helper `predizione_accesso_scad/scaduto/info` (+ `PRED_ACCESSO_PROMEMORIA_GG=30`) e
+>     `predizione_accesso_promemoria_forse` (invia UNA mail "fra poco scade" a `email_comunicazione`, flag
+>     `accesso_promemoria_inviato`). `config.php`: mailer `predizione_mail_semplice` (mail() da supporto@).
+>   - **Blocco alla scadenza:** `stato.php` rifiuta le azioni operative (avvia/cambia/rispondi/autorisponditore/
+>     invio/proroga/sicurezza) se l'accesso è scaduto; `invia.php` e `genera_ia.php` idem (e ora includono
+>     `piani.php` — risolve anche un `predizione_consuma` senza include). Stato pubblico espone `accesso`
+>     (scad/scaduto/giorni/promemoria) → la **Regia** mostra un banner oro (promemoria) o rosso (scaduto).
+>   - **Promemoria automatico:** `admin_caselle` (che la Lambda chiama ~ogni minuto) scorre TUTTI gli utenti
+>     e invia il promemoria dovuto (una volta sola) → funziona anche ad app chiusa, senza cron.
+>   - **Editor:** `admin.html` scheda utente → riga stato accesso + campo data + tasti "Salva scadenza",
+>     "Rinnova 4 anni", "Non scade" (azione admin `admin_accesso_scad`).
+> - **Guida primo accesso: "metti l'icona sul telefono".** Alla fine della guida (`regia-predizione.html`)
+>   nuovo passo che chiede **iPhone o Android** e spiega come salvare l'app in home (Safari → Condividi →
+>   "Aggiungi a Home"; Chrome → ⋮ → "Aggiungi a schermata Home"). Service-worker **v23**.
+> - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `invia.php`, `genera_ia.php`,
+>   `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice del sito** → `prezzi.html`,
+>   `acquista.html` (fix "gratis" dell'AGG 61, che non avevi ancora caricato). Niente AWS. **Dopo il
+>   caricamento provare un invio reale** (è cambiato l'include di invia.php/genera_ia.php).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 61 — fix sconto 100% "gratis")
+> - **Piano con prezzo pieno > 0 e prezzo pagato = 0** ora mostra sul sito il prezzo pieno **barrato** +
+>   scritta **"gratis"** + **"100% di sconto"** (`prezzi.html` e `acquista.html`). Prima non appariva lo sconto.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 60 — crediti accessori come SECCHIELLO SEPARATO + scadenza mesi/data)
 > - **Consumo corretto (secchiello separato).** Nuova `predizione_consuma($stato,$tipo,$n)` (piani.php) al

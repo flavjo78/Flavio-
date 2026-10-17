@@ -70,6 +70,17 @@
 - **AGG 60 — ACCESSORI = "secchiello separato"**: i crediti comprati si **consumano davvero** (prima il
   piano del mese, poi i crediti) e **NON si ricaricano** col ripristino; **scadenza in mesi o data precisa**
   impostabile nell'editor. *(Dopo il deploy, fare una prova d'invio reale: è cambiato il conteggio consumi.)*
+- **AGG 61**: fix **sconto 100% "gratis"** — piano con prezzo pieno > 0 e pagato = 0 → sul sito prezzo
+  pieno barrato + "gratis" + "100% di sconto".
+- **AGG 62 — GRAFICI + SCADENZA ACCESSO + ICONA TELEFONO**:
+  - scheda utente (000): **grafici nel tempo** (acquisti € a barre; mail/sessioni/Foto magic "che restano"
+    a linee), **richiudibili**, con **somma del periodo nel titolo**, e selettore **Mese/Anno/Periodo**
+    (endpoint `admin_cronologia`).
+  - **scadenza accesso (4 anni) modificabile** dal 000 (data / "rinnova 4 anni" / "non scade"); alla scadenza
+    **tutte le funzioni si bloccano** (server) e la Regia mostra **banner "accesso scaduto"**; **promemoria
+    un mese prima** in app (banner oro) + **mail automatica** (una sola, via giro del robottino).
+  - guida primo accesso: passo finale **"metti l'icona sul telefono"** (iPhone/Android). Service-worker v23.
+  *(Dopo il deploy, prova d'invio reale: invia.php/genera_ia.php ora includono piani.php.)*
 
 ---
 
@@ -82,8 +93,8 @@
   non di farlo funzionare.
 - **Caselle `supporto@abraka.it` e `accesso@abraka.it`**: ✅ **create e funzionanti** (le mail d'ordine
   partono da `supporto@`). `accesso@` = richieste d'accesso dal sito.
-- **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
-  migrazione è stata fatta o va ancora eseguita.
+- ✅ **Archiviazione `_dati` ordinata** — **FATTO (17 ott)**: eseguito `migra_001.php`, 122 file di 001
+  spostati in `_dati/u001/` (con backup di `stato.json`); i vecchi link `image.php` continuano a funzionare.
 - ✅ **Contatore Palco**: confermato dall'autore (17 ott) che il conteggio "Mail inviate/ricevute" in modo Palco **va bene**.
 - ✅ **Vetrina `prezzi.html` dinamica — FATTO (AGG 51)**: la pagina vetrina ora legge il listino dall'editor
   (endpoint `ordine.php?azione=listino`) e si costruisce da sola: accesso con prezzo pieno barrato + promo,

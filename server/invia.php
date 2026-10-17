@@ -11,6 +11,7 @@
    ========================================================================= */
 
 require_once __DIR__ . '/config.php';
+require_once __DIR__ . '/piani.php';   // limiti/consumo + scadenza accesso
 require_once __DIR__ . '/smtp.php';
 
 const PRED_INVIO_MAX = 10;               // massimo indirizzi per invio manuale
@@ -48,6 +49,13 @@ if (!$ok) predizione_json(['ok' => false, 'errore' => 'Accesso negato'], 403);
 /* la funzione "Invia mail" (invio a mano) dev'essere inclusa per questo utente */
 if (empty(predizione_flags($utente)['invio'])) {
     predizione_json(['ok' => false, 'errore' => 'La funzione "Invia mail" non è inclusa in questo piano'], 403);
+}
+
+/* --- accesso scaduto? (4 anni): invio bloccato finche' non si rinnova ---- */
+$recAcc = predizione_utente_record($utente);
+if ($recAcc && function_exists('predizione_accesso_scaduto') && predizione_accesso_scaduto($recAcc)) {
+    predizione_json(['ok' => false, 'scaduto' => true,
+        'errore' => 'Accesso scaduto: rinnova l\'accesso per inviare (supporto@abraka.it).'], 403);
 }
 
 /* --- casella configurata? ---------------------------------------------- */

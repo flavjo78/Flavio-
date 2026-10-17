@@ -291,6 +291,47 @@ function predizione_applica_piano(array &$rec, string $piano, string $durata = '
     }
 }
 
+/* ---- Scadenza ACCESSO all'app (4 anni, modificabile dall'admin) -------- */
+/* Trascorsi i 4 anni (o la data impostata a mano) l'accesso scade: TUTTE le
+   funzioni operative si bloccano finché non si rinnova (contatore a parte).
+   Un mese prima parte un promemoria (in app + una mail automatica, una sola). */
+const PRED_ACCESSO_PROMEMORIA_GG = 30;   // promemoria quando mancano <= 30 giorni
+
+function predizione_accesso_scad(array $rec): int { return (int)($rec['accesso_scadenza'] ?? 0); }
+function predizione_accesso_scaduto(array $rec): bool {
+    $s = predizione_accesso_scad($rec);
+    return $s > 0 && time() > $s;
+}
+/* Riepilogo per app/pannello: scad, scaduto, giorni che mancano, promemoria. */
+function predizione_accesso_info(array $rec): array {
+    $s = predizione_accesso_scad($rec); $now = time();
+    $scaduto = $s > 0 && $now > $s;
+    $gg = ($s > 0) ? (int)ceil(($s - $now) / 86400) : null;
+    $prom = ($s > 0 && !$scaduto && $gg !== null && $gg <= PRED_ACCESSO_PROMEMORIA_GG);
+    return ['scad' => $s, 'scaduto' => $scaduto, 'giorni' => $gg, 'promemoria' => $prom];
+}
+/* Invia (UNA sola volta) la mail di promemoria "fra poco scade l'accesso".
+   Ritorna true se ha modificato $rec (il chiamante deve salvare). */
+function predizione_accesso_promemoria_forse(array &$rec): bool {
+    $info = predizione_accesso_info($rec);
+    if (!$info['promemoria']) return false;                 // non nella finestra
+    if (!empty($rec['accesso_promemoria_inviato'])) return false;  // gia' inviata
+    $to = trim((string)($rec['email_comunicazione'] ?? ''));
+    $gg = max(0, (int)$info['giorni']);
+    $quando = date('d/m/Y', (int)$info['scad']);
+    if ($to !== '' && function_exists('predizione_mail_semplice')) {
+        $nome = trim((string)($rec['nome'] ?? ''));
+        $corpo = ($nome !== '' ? "Ciao $nome,\n\n" : "Ciao,\n\n")
+               . "fra circa $gg giorni (il $quando) scadra' il tuo accesso all'app PREDIZIONE.\n\n"
+               . "Quando scade, le funzioni dell'app si mettono in pausa finche' non rinnovi l'accesso.\n"
+               . "Per rinnovare, o se hai domande, scrivici a supporto@abraka.it.\n\n"
+               . "Un saluto,\nabraka — supporto@abraka.it";
+        predizione_mail_semplice($to, 'Il tuo accesso a PREDIZIONE scade fra poco', $corpo);
+    }
+    $rec['accesso_promemoria_inviato'] = time();            // segna: inviata (anche senza email, per non ritentare)
+    return true;
+}
+
 /* ---- Crediti extra (con scadenza facoltativa) ------------------------- */
 /* $tipo: 'mail' | 'foto_ia' | 'sessioni'. $scad: timestamp o 0 = senza scadenza. */
 function predizione_aggiungi_crediti(array &$rec, string $tipo, int $qta, int $scad = 0): void {

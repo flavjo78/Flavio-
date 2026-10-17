@@ -50,6 +50,25 @@
   .srow{display:flex;align-items:center;gap:10px;font-size:13px;padding:9px 0;border-bottom:1px solid var(--line)}
   .srow:last-child{border:none}.srow .d{flex:1;color:var(--ink-dim)}
   .plinfo{font-size:12px;color:var(--ink-dim);margin-bottom:6px}.plinfo b{color:var(--gold)}
+  /* ----- grafici cronologia (scheda utente) ----- */
+  .gfiltri{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+  .gfiltri .lab{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin-right:2px}
+  .rbtn{background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink-dim);font-family:inherit;font-size:12.5px;font-weight:700;padding:6px 13px;border-radius:999px;cursor:pointer}
+  .rbtn.on{background:var(--gold);color:#231a0c;border-color:transparent}
+  .gper{display:none;gap:6px;align-items:center}.gper.on{display:inline-flex}
+  .gcard{background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  .ghd{display:flex;align-items:center;gap:9px;padding:11px 13px;cursor:pointer;user-select:none}
+  .ghd .gdot{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+  .ghd .gnm{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .ghd .gtot{margin-left:auto;font-family:Georgia,serif;font-size:16px}
+  .ghd .garr{color:var(--faint);transition:transform .15s;margin-left:6px;font-size:12px}
+  .gcard.closed .garr{transform:rotate(-90deg)}
+  .gbody{padding:0 12px 12px}.gcard.closed .gbody{display:none}
+  .gcs{color:var(--faint);font-size:11px;margin-bottom:4px}
+  .gcard svg{display:block;width:100%;height:auto;overflow:visible}
+  .gaxlab{fill:var(--faint);font-size:10px}.ggrid{stroke:var(--line);stroke-width:1}.gval{fill:var(--ink);font-size:10px;font-weight:700}
+  .gvuoto{color:var(--faint);font-size:12px;text-align:center;padding:14px}
+  .gtip{position:fixed;pointer-events:none;background:var(--surface-2);border:1px solid var(--line-2);border-radius:8px;padding:6px 9px;font-size:12px;color:var(--ink);opacity:0;transition:opacity .1s;box-shadow:0 8px 24px rgba(0,0,0,.5);z-index:70;white-space:nowrap}
   .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
   .toast.show{opacity:1}.toast.err{background:var(--stop-soft);color:var(--stop);border-color:transparent}.toast.ok{background:var(--good-soft);color:var(--good);border-color:transparent}
   .hidden{display:none}
@@ -328,8 +347,21 @@
           <button class="acc-h" data-acc="piano"><span>Piano e limiti</span><span class="chev">▸</span></button>
           <div class="acc-b" id="accPiano"><div class="card" id="dPiano"></div></div>
 
-          <button class="acc-h" data-acc="acq"><span>Cronologia acquisti</span><span class="chev">▸</span></button>
-          <div class="acc-b" id="accAcq"><div class="card" id="dAcq"><div class="small">—</div></div></div>
+          <button class="acc-h" data-acc="acq"><span>Cronologia e grafici</span><span class="chev">▸</span></button>
+          <div class="acc-b" id="accAcq">
+            <div class="card">
+              <div class="plinfo">Nel tempo: acquisti e consumi di questo utente</div>
+              <div class="gfiltri">
+                <span class="lab">Periodo</span>
+                <button class="rbtn" data-r="mese">Mese</button>
+                <button class="rbtn on" data-r="anno">Anno</button>
+                <button class="rbtn" data-r="periodo">Periodo</button>
+                <span class="gper" id="gPer"><input type="date" id="gDa"> <span style="color:var(--faint)">→</span> <input type="date" id="gA"></span>
+              </div>
+              <div id="gCards"></div>
+            </div>
+            <div class="card" id="dAcq"><div class="small">—</div></div>
+          </div>
 
           <button class="acc-h" data-acc="sess"><span>Sessioni (cronologia)</span><span class="chev">▸</span></button>
           <div class="acc-b" id="accSess"><div class="card" id="dSess"></div></div>
@@ -343,6 +375,7 @@
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="gtip" id="gTip"></div>
 
 <script>
 (function(){
@@ -360,6 +393,12 @@
   function fdata(ts){ if(!ts)return '—'; try{var d=new Date(ts*1000);return d.toLocaleDateString('it-IT')+' '+d.toLocaleTimeString('it-IT',{hour:'2-digit',minute:'2-digit'});}catch(e){return '—';} }
   function fgiorno(ts){ if(!ts)return '—'; try{return new Date(ts*1000).toLocaleDateString('it-IT');}catch(e){return '—';} }
   function assLbl(n){ n=+n||0; return n<0?'illimitato':(n===0?'non incluso':(n+' / mese')); }
+  function accStatoHtml(info){
+    if(!info||!info.scad) return '<div class="small" style="opacity:.7">L\'accesso non ha scadenza.</div>';
+    if(info.scaduto) return '<div class="small" style="color:var(--stop);font-weight:700">⚠ ACCESSO SCADUTO — le funzioni dell\'app sono in pausa finché non si rinnova.</div>';
+    if(info.promemoria) return '<div class="small" style="color:var(--gold);font-weight:700">⏳ Scade fra '+info.giorni+' giorni (promemoria mail già previsto).</div>';
+    return '<div class="small" style="color:var(--good)">✓ Attivo · mancano '+info.giorni+' giorni.</div>';
+  }
   function creditRow(t,label){ return '<div class="crow"><span class="cl">'+label+'</span>'+
     '<input id="cq_'+t+'" type="number" min="1" placeholder="q.tà" style="width:66px">'+
     '<input id="cs_'+t+'" type="date" title="scadenza (facoltativa)">'+
@@ -911,8 +950,130 @@
       if(!(r.data&&r.data.ok)){ toast((r.data&&r.data.errore)||'Errore','err'); return; }
       CUR=r.data.scheda; renderDetail(CUR); showView('detail'); accCloseAll();
       call('admin_acquisti',{numero:num}).then(function(a){ renderAcquisti((a.data&&a.data.acquisti)||[]); });
+      call('admin_cronologia',{numero:num}).then(function(a){ graficoCarica((a.data)||{}); });
     });
   }
+
+  /* ---------- GRAFICI cronologia (acquisti + consumi) ---------- */
+  var GMESI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+  var GRANGE='anno', GDATA=null, GCLOSED={}, gTip=$('gTip');
+  function gMoney(n){ return (Math.round(n*100)/100).toString().replace('.',',')+' €'; }
+  function gNf(n){ return Math.round(n).toLocaleString('it-IT'); }
+  function graficoCarica(d){
+    var ora=d.ora||Date.now(), serie=d.serie||{};
+    // costruisce la linea "quante ne restano" camminando a ritroso dai movimenti
+    function lineaResta(s){
+      var mov=(s&&s.mov)||[], resta=(s&&s.resta)||0;
+      mov=mov.slice().sort(function(a,b){return a.ts-b.ts;});
+      var somma=mov.reduce(function(a,m){return a+(m.delta||0);},0);
+      var start=resta-somma, run=start, pts=[];
+      if(mov.length) pts.push({ts:mov[0].ts-1, v:Math.max(0,start)});
+      mov.forEach(function(m){ run+=(m.delta||0); pts.push({ts:m.ts, v:Math.max(0,run)}); });
+      pts.push({ts:ora, v:Math.max(0,resta)});
+      return pts;
+    }
+    function consumi(s){ return ((s&&s.mov)||[]).filter(function(m){return (m.delta||0)<0;}).map(function(m){return {ts:m.ts,q:-m.delta};}); }
+    GDATA={ ora:ora,
+      acquisti:{ tipo:'bar', nome:'Acquisti', color:'var(--gold)', note:'ogni barra = un acquisto, altezza = importo',
+        punti:(d.acquisti||[]).slice().sort(function(a,b){return a.ts-b.ts;}) },
+      mail:{ tipo:'line', nome:'Mail che restano', color:'var(--good)', consumate:'consumate',
+        note:'scende quando invii · risale al rinnovo e quando compri crediti', punti:lineaResta(serie.mail), consumi:consumi(serie.mail) },
+      sessioni:{ tipo:'line', nome:'Sessioni che restano', color:'#6fc2d4', consumate:'usate',
+        note:'nel titolo: sessioni usate nel periodo', punti:lineaResta(serie.sessioni), consumi:consumi(serie.sessioni) },
+      foto:{ tipo:'line', nome:'Foto magic che restano', color:'#b596e0', consumate:'create',
+        note:'nel titolo: Foto magic create nel periodo', punti:lineaResta(serie.foto_ia), consumi:consumi(serie.foto_ia) }
+    };
+    // default periodo = ultimi 30gg / 365 via tasti; campi data del "periodo"
+    var da=$('gDa'), a=$('gA'); if(da&&!da.value){ da.value=new Date(ora-365*864e5).toISOString().slice(0,10); } if(a&&!a.value){ a.value=new Date(ora).toISOString().slice(0,10); }
+    graficoRender();
+  }
+  function gBounds(){
+    var ora=(GDATA&&GDATA.ora)||Date.now();
+    if(GRANGE==='mese') return [ora-30*864e5, ora];
+    if(GRANGE==='anno') return [ora-365*864e5, ora];
+    var da=$('gDa').value, a=$('gA').value;
+    var t0=da?new Date(da).getTime():(ora-365*864e5), t1=a?new Date(a).getTime()+864e5:ora;
+    return [Math.min(t0,t1), Math.max(t0,t1)];
+  }
+  var GW=760,GH=140,gpL=42,gpR=12,gpT=12,gpB=22;
+  function gX(ts,t0,t1){ return gpL+(ts-t0)/((t1-t0)||1)*(GW-gpL-gpR); }
+  function gAxX(t0,t1){ var s='',span=t1-t0,n=Math.min(6,Math.max(3,Math.round(span/(30*864e5))));
+    for(var i=0;i<=n;i++){ var ts=t0+span*i/n,px=gX(ts,t0,t1),dd=new Date(ts);
+      s+='<line class="ggrid" x1="'+px+'" y1="'+gpT+'" x2="'+px+'" y2="'+(GH-gpB)+'"/>';
+      s+='<text class="gaxlab" x="'+px+'" y="'+(GH-6)+'" text-anchor="middle">'+dd.getDate()+' '+GMESI[dd.getMonth()]+'</text>'; }
+    return s; }
+  function gAxY(max){ var s=''; for(var i=0;i<=3;i++){ var v=Math.round(max*i/3),py=(GH-gpB)-v/(max||1)*(GH-gpT-gpB);
+    s+='<line class="ggrid" x1="'+gpL+'" y1="'+py+'" x2="'+(GW-gpR)+'" y2="'+py+'"/>';
+    s+='<text class="gaxlab" x="'+(gpL-6)+'" y="'+(py+3)+'" text-anchor="end">'+gNf(v)+'</text>'; } return s; }
+  function gHover(el,html){ el.addEventListener('mousemove',function(e){ gTip.innerHTML=html; gTip.style.left=(e.clientX+12)+'px'; gTip.style.top=(e.clientY+12)+'px'; gTip.style.opacity=1; });
+    el.addEventListener('mouseleave',function(){ gTip.style.opacity=0; }); }
+  // ritaglia una linea al periodo mantenendo i bordi (valore all'inizio/fine finestra)
+  function gClip(pts,t0,t1){
+    if(!pts.length) return [];
+    var inw=pts.filter(function(p){return p.ts>=t0&&p.ts<=t1;});
+    var before=null,after=null;
+    pts.forEach(function(p){ if(p.ts<t0) before=p; if(p.ts>t1&&after===null) after=p; });
+    var out=[];
+    if(before) out.push({ts:t0,v:before.v});
+    else if(inw.length && inw[0].ts>t0) out.push({ts:t0,v:inw[0].v});
+    out=out.concat(inw);
+    var last=inw.length?inw[inw.length-1]:before;
+    if(last && last.ts<t1) out.push({ts:t1,v:(after?last.v:last.v)});
+    return out;
+  }
+  function gDrawBar(svg,pts,t0,t1){
+    var vis=pts.filter(function(p){return p.ts>=t0&&p.ts<=t1;});
+    var max=Math.max.apply(null,vis.map(function(p){return p.v;}).concat([1]))*1.28;
+    var s=gAxX(t0,t1)+gAxY(max);
+    vis.forEach(function(a){ var px=gX(a.ts,t0,t1),h=a.v/max*(GH-gpT-gpB),py=(GH-gpB)-h;
+      s+='<rect x="'+(px-6)+'" y="'+py+'" width="12" height="'+Math.max(2,h)+'" rx="4" fill="var(--gold)"></rect>';
+      s+='<text class="gval" x="'+px+'" y="'+(py-4)+'" text-anchor="middle">'+gMoney(a.v)+'</text>'; });
+    svg.innerHTML=s;
+    svg.querySelectorAll('rect').forEach(function(r,i){ gHover(r,'<b>'+(vis[i].lab||'acquisto')+'</b><br>'+gMoney(vis[i].v)); });
+  }
+  function gDrawLine(svg,pts,color,t0,t1){
+    var cl=gClip(pts,t0,t1);
+    if(cl.length<2){ svg.outerHTML='<div class="gvuoto">Nessun dato in questo periodo</div>'; return; }
+    var max=Math.max.apply(null,cl.map(function(p){return p.v;}).concat([1]))*1.12;
+    var s=gAxX(t0,t1)+gAxY(max);
+    var xy=cl.map(function(d){ return gX(d.ts,t0,t1)+','+((GH-gpB)-d.v/max*(GH-gpT-gpB)); });
+    s+='<polygon points="'+gpL+','+(GH-gpB)+' '+xy.join(' ')+' '+gX(cl[cl.length-1].ts,t0,t1)+','+(GH-gpB)+'" fill="'+color+'" opacity="0.12"/>';
+    s+='<polyline points="'+xy.join(' ')+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>';
+    cl.forEach(function(d){ var px=gX(d.ts,t0,t1),py=(GH-gpB)-d.v/max*(GH-gpT-gpB);
+      s+='<circle cx="'+px+'" cy="'+py+'" r="3" fill="'+color+'" stroke="var(--surface-2)" stroke-width="1.5"/>'; });
+    svg.innerHTML=s;
+    svg.querySelectorAll('circle').forEach(function(c,i){ var d=new Date(cl[i].ts); gHover(c,'<b>'+gNf(cl[i].v)+'</b> rimaste<br>'+d.getDate()+' '+GMESI[d.getMonth()]); });
+  }
+  function graficoRender(){
+    if(!GDATA) return;
+    var b=gBounds(),t0=b[0],t1=b[1],box=$('gCards'); box.innerHTML='';
+    ['acquisti','mail','sessioni','foto'].forEach(function(key){
+      var m=GDATA[key]; if(!m) return;
+      var totTxt;
+      if(key==='acquisti'){ var tot=m.punti.filter(function(p){return p.ts>=t0&&p.ts<=t1;}).reduce(function(a,p){return a+p.v;},0); totTxt='totale '+gMoney(tot); }
+      else { var cons=(m.consumi||[]).filter(function(c){return c.ts>=t0&&c.ts<=t1;}).reduce(function(a,c){return a+c.q;},0); totTxt=m.consumate+' '+gNf(cons); }
+      var card=document.createElement('div'); card.className='gcard'+(GCLOSED[key]?' closed':'');
+      card.innerHTML='<div class="ghd"><span class="gdot" style="background:'+m.color+'"></span>'+
+        '<span class="gnm">'+m.nome+'</span><span class="gtot" style="color:'+m.color+'">'+totTxt+'</span>'+
+        '<span class="garr">▾</span></div>'+
+        '<div class="gbody"><div class="gcs">'+m.note+'</div><svg viewBox="0 0 '+GW+' '+GH+'"></svg></div>';
+      box.appendChild(card);
+      card.querySelector('.ghd').addEventListener('click',function(){ GCLOSED[key]=!GCLOSED[key]; card.classList.toggle('closed'); if(!GCLOSED[key]) gDisegna(card,key,t0,t1); });
+      if(!GCLOSED[key]) gDisegna(card,key,t0,t1);
+    });
+  }
+  function gDisegna(card,key,t0,t1){
+    var svg=card.querySelector('svg'), m=GDATA[key];
+    if(m.tipo==='bar'){ if(!m.punti.filter(function(p){return p.ts>=t0&&p.ts<=t1;}).length){ svg.outerHTML='<div class="gvuoto">Nessun acquisto in questo periodo</div>'; return; } gDrawBar(svg,m.punti,t0,t1); }
+    else gDrawLine(svg,m.punti,m.color,t0,t1);
+  }
+  document.querySelectorAll('.gfiltri .rbtn').forEach(function(b){ b.addEventListener('click',function(){
+    GRANGE=b.getAttribute('data-r');
+    document.querySelectorAll('.gfiltri .rbtn').forEach(function(x){x.classList.toggle('on',x===b);});
+    $('gPer').classList.toggle('on',GRANGE==='periodo'); graficoRender();
+  }); });
+  if($('gDa')) $('gDa').addEventListener('change',graficoRender);
+  if($('gA')) $('gA').addEventListener('change',graficoRender);
   $('dBack').addEventListener('click', function(){ showView('utenti'); });
 
   /* ---------- fisarmonica scheda utente (default tutte chiuse) ---------- */
@@ -986,7 +1147,13 @@
     $('dPiano').innerHTML=
       '<div class="kv"><span>Piano</span><b style="color:var(--gold)">'+esc(s.piano||'Foyer')+(s.piano_versione?(' · versione '+('0'+s.piano_versione).slice(-2)):'')+'</b></div>'+
       '<div class="kv"><span>Abbonamento scade il</span><b>'+(s.piano_scad?fgiorno(s.piano_scad):'incluso (non scade)')+'</b></div>'+
-      '<div class="kv"><span>Accesso valido fino al</span><b>'+fgiorno(s.accesso_scad)+'</b></div>'+
+      '<div class="kv"><span>Accesso valido fino al</span><b>'+(s.accesso_scad?fgiorno(s.accesso_scad):'non scade')+'</b></div>'+
+      accStatoHtml(s.accesso_info)+
+      '<div class="field" style="margin-top:6px"><label class="small" for="mAccData">Cambia scadenza accesso (vuoto = non scade)</label>'+
+        '<input type="date" id="mAccData" value="'+(s.accesso_scad?new Date(s.accesso_scad*1000).toISOString().slice(0,10):'')+'"></div>'+
+      '<div class="btns"><button class="btn" id="mAccSalva">Salva scadenza</button>'+
+        '<button class="btn" id="mAccRinnova">Rinnova 4 anni</button>'+
+        '<button class="btn" id="mAccMai">Non scade</button></div>'+
       '<div class="sep"></div>'+
       '<div class="plinfo">Compreso nel piano (al mese)</div>'+
       '<div class="kv"><span>Mail</span><b>'+(lim.mail_mese||0)+' / mese'+((lim.mail_giorno)?(' · max '+lim.mail_giorno+'/giorno'):'')+'</b></div>'+
@@ -1009,6 +1176,12 @@
       }).join('');
     }
     renderManage(s);
+    // scadenza accesso (editor nella sezione Piano e limiti)
+    var num=s.numero;
+    function accDone(r){ if(r.data&&r.data.ok){ toast('Scadenza aggiornata','ok'); openUser(num); caricaOperazioni(); } else toast((r.data&&r.data.errore)||'Errore','err'); }
+    if($('mAccSalva')) $('mAccSalva').onclick=function(){ call('admin_accesso_scad',{numero:num,data:$('mAccData').value||'0'}).then(accDone); };
+    if($('mAccRinnova')) $('mAccRinnova').onclick=function(){ call('admin_accesso_scad',{numero:num,anni:4}).then(accDone); };
+    if($('mAccMai')) $('mAccMai').onclick=function(){ call('admin_accesso_scad',{numero:num,data:'0'}).then(accDone); };
   }
 
   function renderManage(s){

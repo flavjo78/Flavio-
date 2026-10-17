@@ -17,6 +17,7 @@
    ========================================================================= */
 
 require __DIR__ . '/config.php';
+require_once __DIR__ . '/piani.php';   // consumo + scadenza accesso
 header('Cache-Control: no-store');
 @set_time_limit(180);
 
@@ -38,6 +39,11 @@ if (!$autorizzato) {
 }
 if (empty(predizione_flags($utente)['foto'])) {
     predizione_json(['ok' => false, 'errore' => 'Funzione foto non abilitata per questo utente'], 403);
+}
+$recAcc = predizione_utente_record($utente);
+if ($recAcc && function_exists('predizione_accesso_scaduto') && predizione_accesso_scaduto($recAcc)) {
+    predizione_json(['ok' => false, 'scaduto' => true,
+        'errore' => 'Accesso scaduto: rinnova l\'accesso per creare Foto magic (supporto@abraka.it).'], 403);
 }
 
 /* ---- frase da scrivere -------------------------------------------------- */

@@ -380,6 +380,15 @@ function predizione_movimento(array &$stato, string $tipo, int $delta, string $n
     }
 }
 
+/* ---- Mailer SEMPLICE (per promemoria automatici dal backend) ----------- */
+/* Usa la mail() di PHP, mittente supporto@abraka.it. Non blocca mai nulla. */
+function predizione_mail_semplice(string $to, string $oggetto, string $corpo, string $da = 'supporto@abraka.it'): bool {
+    $to = trim($to);
+    if ($to === '' || !filter_var($to, FILTER_VALIDATE_EMAIL)) return false;
+    $headers = "From: $da\r\nContent-Type: text/plain; charset=UTF-8\r\n";
+    return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $corpo, $headers);
+}
+
 /* ---- Archivio OPERAZIONI admin (attiva / sospendi / elimina / crea) ----- */
 /* Registro globale in _dati/operazioni.jsonl: serve all'admin per ricordare
    cosa ha fatto e quando (le righe non si cancellano quando elimini un utente). */

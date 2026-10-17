@@ -251,6 +251,7 @@ function predizione_stato_pubblico(array $s): array {
         'rispondi_manuale' => !empty($s['rispondi_manuale']),   // "tasto Rispondi" attivo?
         'rispondi_ok'      => !empty($s['rispondi_ok']),        // via libera gia' dato in questa sessione?
         'sicurezza'        => predizione_sicurezza($s),         // tappe anti-dimenticanza (pop-up Regia)
+        'accesso'          => predizione_accesso_info(predizione_utente_record(predizione_utente()) ?: []),  // scadenza accesso 4 anni (banner/blocco)
     ];
 }
 
@@ -380,6 +381,7 @@ function predizione_admin(string $azione): void {
                 'piano'    => (string)($rec['piano'] ?? 'Foyer'),
                 'piano_versione' => isset($rec['piano_versione']) ? (int)$rec['piano_versione'] : null,
                 'accesso_scad' => (int)($rec['accesso_scadenza'] ?? 0),
+                'accesso_info' => predizione_accesso_info(is_array($rec) ? $rec : []),  // scaduto/giorni/promemoria
                 'piano_scad'   => (int)($rec['piano_scadenza'] ?? 0),
                 'fonte'    => (string)($rec['fonte'] ?? ''),                 // provenienza (etichetta)
                 'report_extra' => array_key_exists('report_extra', $rec) ? (bool)$rec['report_extra'] : null,
@@ -710,12 +712,68 @@ function predizione_admin(string $azione): void {
             $out = array_reverse($out);  // dal piu' recente
             predizione_json(['ok' => true, 'acquisti' => $out]);
 
+        case 'admin_cronologia':
+            // Dati per il GRAFICO della scheda utente: acquisti (data+importo) +
+            // serie dei consumi/crediti (mail/foto/sessioni) dallo storico movimenti,
+            // piu' quanto RESTA adesso di ciascun tipo (per ricostruire la linea).
+            $num = predizione_pulisci_utente(p('numero'));
+            if ($num === '') predizione_json(['ok' => false, 'errore' => 'utente mancante'], 400);
+            $utenti = predizione_utenti_leggi();
+            $rec = (isset($utenti[$num]) && is_array($utenti[$num])) ? $utenti[$num] : [];
+            // --- acquisti (ts in millisecondi + importo + etichetta) ---
+            $acq = [];
+            $file = predizione_vendite_file();
+            if (is_file($file) && ($fh = @fopen($file, 'r'))) {
+                fgetcsv($fh);  // intestazione
+                while (($r = fgetcsv($fh)) !== false) {
+                    if (($r[2] ?? '') !== $num) continue;   // colonna utente
+                    $ts = @strtotime((string)($r[0] ?? '')); if (!$ts) $ts = 0;
+                    $lab = trim((string)($r[5] ?? '') . ((($r[6] ?? '') !== '') ? ' (' . $r[6] . ')' : ''));
+                    $acq[] = ['ts' => $ts * 1000, 'v' => (float)($r[7] ?? 0), 'lab' => ($lab !== '' ? $lab : 'acquisto')];
+                }
+                fclose($fh);
+            }
+            // --- stato dell'utente: movimenti + uso del mese ---
+            $prevU = predizione_utente();
+            predizione_set_utente($num);
+            $st = predizione_leggi_stato();
+            predizione_uso_mese($st);
+            $uso = (isset($st['uso']) && is_array($st['uso'])) ? $st['uso'] : [];
+            $mov = (isset($st['movimenti']) && is_array($st['movimenti'])) ? $st['movimenti'] : [];
+            predizione_set_utente($prevU);
+            $lim = predizione_limiti_utente($rec);
+            // --- serie per tipo: quanto RESTA ora + lista movimenti (ts+delta) ---
+            $serie = [];
+            foreach ([['mail', 'mail_mese'], ['foto_ia', 'foto_ia_mese'], ['sessioni', 'sessioni_mese']] as $pr) {
+                $tipo = $pr[0]; $capKey = $pr[1];
+                $cap = (int)($lim[$capKey] ?? 0); $usato = (int)($uso[$tipo] ?? 0);
+                $resta = max(0, $cap - $usato) + predizione_crediti_disponibili($rec, $tipo);
+                $m = [];
+                foreach ($mov as $mm) {
+                    if (($mm['tipo'] ?? '') !== $tipo) continue;
+                    $m[] = ['ts' => ((int)($mm['ts'] ?? 0)) * 1000, 'delta' => (int)($mm['delta'] ?? 0)];
+                }
+                $serie[$tipo] = ['resta' => $resta, 'mov' => $m];
+            }
+            predizione_json(['ok' => true, 'acquisti' => $acq, 'serie' => $serie, 'ora' => time() * 1000]);
+
         case 'admin_caselle':
             // Elenco delle caselle configurate, per l'autorisponditore MULTI-CASELLA.
             // Esclude 000 (admin) e 001 (usa la casella "di casa" via variabili d'ambiente
             // nella Lambda), gli utenti non attivi e quelli senza casella impostata.
             // Restituisce credenziali IMAP/SMTP + stato del gioco di ciascun utente, cosi'
             // la Lambda non deve fare altre chiamate. SOLO amministratore (gia' verificato).
+            // PROMEMORIA SCADENZA ACCESSO (automatico): il robottino chiama questa
+            // azione ~ogni minuto, cosi' il promemoria "fra un mese scade l'accesso"
+            // parte da solo anche ad app chiusa. Inviato UNA sola volta per utente.
+            $cambiati = false;
+            foreach ($utenti as $num => $rec) {
+                if ($num === '000' || $num === '001') continue;
+                if (!is_array($rec)) continue;
+                if (predizione_accesso_promemoria_forse($rec)) { $utenti[$num] = $rec; $cambiati = true; }
+            }
+            if ($cambiati) predizione_utenti_scrivi($utenti);
+
             $out = [];
             foreach ($utenti as $num => $rec) {
                 if ($num === '000' || $num === '001') continue;
@@ -797,6 +855,28 @@ function predizione_admin(string $azione): void {
             $utenti[$num]['piano_dati'] = predizione_piano_normalizza($base);
             predizione_utenti_scrivi($utenti);
             predizione_json(['ok' => true, 'limiti' => predizione_limiti_utente($utenti[$num])]);
+
+        case 'admin_accesso_scad':
+            // Modifica la SCADENZA dell'accesso all'app (4 anni di default).
+            // 'data' = 'YYYY-MM-DD' (fine giornata); 'anni' = rinnova di N anni da oggi;
+            // vuoto/0 = "non scade". Azzera anche il flag del promemoria gia' inviato.
+            $num = predizione_pulisci_utente(p('numero'));
+            if (!isset($utenti[$num])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $data = trim((string)(p('data') ?? ''));
+            $anni = p('anni');
+            if ($anni !== null && $anni !== '') {
+                $utenti[$num]['accesso_scadenza'] = time() + max(0, (int)$anni) * 31557600;
+            } elseif ($data === '' || $data === '0') {
+                $utenti[$num]['accesso_scadenza'] = 0;   // non scade
+            } else {
+                $ts = @strtotime($data . ' 23:59:59');
+                if (!$ts) predizione_json(['ok' => false, 'errore' => 'Data non valida (usa AAAA-MM-GG)'], 400);
+                $utenti[$num]['accesso_scadenza'] = (int)$ts;
+            }
+            unset($utenti[$num]['accesso_promemoria_inviato']);   // potra' ri-avvisare per la nuova scadenza
+            predizione_utenti_scrivi($utenti);
+            predizione_log_operazione('accesso_scad', $num, 'scadenza accesso aggiornata');
+            predizione_json(['ok' => true, 'accesso_info' => predizione_accesso_info($utenti[$num])]);
 
         case 'admin_prova_invio':
             // TEST del robottino: riempie una casella di tante mail. Usa le credenziali
@@ -906,6 +986,19 @@ $accessoOk = predizione_auth($utente, $password)
     || (in_array($azione, $AZIONI_ASSISTENTE, true) && predizione_assistente_valido($stato, $assistTok));
 if (!$accessoOk) {
     predizione_json(['ok' => false, 'errore' => 'Password errata'], 401);
+}
+
+/* ---- ACCESSO SCADUTO: blocca le funzioni operative (gioco + invii) ------
+   Dopo i 4 anni (o la data impostata) l'app si mette in pausa: non si avvia
+   un gioco, non si invia, non si accende il robottino, finché non si rinnova.
+   Restano possibili la lettura, il Mio account e la configurazione casella. */
+$recAttuale = predizione_utente_record($utente);
+if ($recAttuale && predizione_accesso_scaduto($recAttuale)) {
+    $AZIONI_BLOCCATE_SCAD = ['avvia', 'cambia', 'rispondi', 'autorisponditore', 'invio', 'proroga', 'sicurezza'];
+    if (in_array($azione, $AZIONI_BLOCCATE_SCAD, true)) {
+        predizione_json(['ok' => false, 'scaduto' => true,
+            'errore' => 'Accesso scaduto. Per continuare a usare l\'app devi rinnovare l\'accesso: scrivici a supporto@abraka.it.'], 403);
+    }
 }
 
 switch ($azione) {

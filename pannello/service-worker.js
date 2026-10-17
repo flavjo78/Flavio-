@@ -3,7 +3,7 @@
    e farlo aprire anche senza rete (offline). Mette in cache i file
    del pannello alla prima apertura e li ripropone quando serve. */
 
-const CACHE = 'regia-predizione-v22';
+const CACHE = 'regia-predizione-v23';
 const ASSETS = [
   './regia-predizione.html',
   './manifest.json',
