@@ -3,7 +3,22 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 58 — ritocchi pagina prezzi: niente "nessun omaggio", Palco mail "nessun limite giornaliero"; prima: AGG 57).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 59 — righe prezzi allineate; accessori con scadenza (30 gg default, modificabile); licenza senza banner "bozza"; prima: AGG 58).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 59 — allineamento prezzi + accessori a scadenza + licenza)
+> - **Allineamento pagina prezzi (`prezzi.html`):** righe feature con **altezza fissa** (2 righe) e `.yr`
+>   a 2 righe → le voci dei 4 piani sono sulla stessa linea anche quando il testo va a capo (su telefono
+>   l'altezza fissa si disattiva, i piani si impilano).
+> - **Accessori con SCADENZA.** Gli extra acquistati ora si aggiungono come **crediti** che **NON si
+>   ricaricano** ogni mese e **scadono dopo N giorni** dall'accredito (default **30**, campo `giorni` per
+>   extra, 0 = senza scadenza). `piani.php`: extra con `giorni`; `predizione_applica_extra_ordine` imposta
+>   `scad = now + giorni*86400` (i crediti con `scad` sono già esclusi quando scaduti). Editor (`admin.html`):
+>   campo **"valido gg"** per ogni estensione. Pagina prezzi + carrello: nota "valgono 30 giorni, non si
+>   ricaricano" e, per gli extra con durata diversa, "· valido N gg". (Report resta un interruttore, senza scadenza.)
+> - **Licenza (`guide/licenza-uso.html`):** tolto il banner rosso "Bozza di lavoro / da far verificare al
+>   commercialista" in cima.
+> - **Richiede:** `predizione/` → `piani.php`, `stato.php`, `ordine.php`, `admin.html`; radice → `prezzi.html`,
+>   `acquista.html`; (facolt.) `guide/licenza-uso.html` nel sito. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 58 — ritocchi confronto prezzi)
 > - **`prezzi.html`:** riga omaggio assente → ora è un **spaziatore invisibile** (niente più scritta

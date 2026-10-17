@@ -683,7 +683,7 @@ function predizione_admin(string $azione): void {
                 if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
                 $nuovo['extra'][$code] = ['prezzo' => max(0, (float)($e['prezzo'] ?? 0)), 'tipo' => $tipo,
                                           'qta' => max(1, (int)($e['qta'] ?? 1)), 'label' => substr((string)($e['label'] ?? $code), 0, 60),
-                                          'ricorrenza' => $ric];
+                                          'ricorrenza' => $ric, 'giorni' => max(0, (int)($e['giorni'] ?? 30))];
             }
             if (!predizione_listino_scrivi($nuovo)) predizione_json(['ok' => false, 'errore' => 'Salvataggio non riuscito (permessi _dati?)'], 500);
             predizione_log_operazione('listino', '000', 'listino aggiornato');

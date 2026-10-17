@@ -297,7 +297,8 @@ if ($azione === 'listino') {
     foreach (predizione_extra() as $code => $e) {
         $extra[] = ['code' => $code, 'label' => (string)$e['label'], 'prezzo' => (float)$e['prezzo'],
                     'tipo' => (string)($e['tipo'] ?? 'mail'),
-                    'ricorrenza' => (string)($e['ricorrenza'] ?? 'una_tantum')];
+                    'ricorrenza' => (string)($e['ricorrenza'] ?? 'una_tantum'),
+                    'giorni' => (int)($e['giorni'] ?? 30)];
     }
     predizione_json(['ok' => true, 'accesso' => predizione_accesso_prezzo(), 'accesso_pieno' => predizione_accesso_pieno(),
                      'piani' => $piani, 'extra' => $extra]);

@@ -203,12 +203,12 @@ function predizione_prezzo_piano(string $piano, string $durata): int {
 /* ---- Extra a la carte (estensioni della licenza) — VALORI DI FABBRICA -- */
 function predizione_extra_default(): array {
     return [
-        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',       'qta' => 200,  'label' => '+200 mail',             'ricorrenza' => 'una_tantum'],
-        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',    'qta' => 10,   'label' => '10 foto con IA',        'ricorrenza' => 'una_tantum'],
-        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni',   'qta' => 5,    'label' => '5 sessioni',            'ricorrenza' => 'una_tantum'],
-        'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'ricorrenza' => 'mese'],
-        'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'ricorrenza' => 'mese'],
-        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'ricorrenza' => 'una_tantum'],
+        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',       'qta' => 200,  'label' => '+200 mail',             'ricorrenza' => 'una_tantum', 'giorni' => 30],
+        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',    'qta' => 10,   'label' => '10 foto con IA',        'ricorrenza' => 'una_tantum', 'giorni' => 30],
+        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni',   'qta' => 5,    'label' => '5 sessioni',            'ricorrenza' => 'una_tantum', 'giorni' => 30],
+        'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'ricorrenza' => 'mese',       'giorni' => 30],
+        'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'ricorrenza' => 'mese',       'giorni' => 30],
+        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'ricorrenza' => 'una_tantum', 'giorni' => 30],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
@@ -230,6 +230,7 @@ function predizione_extra(): array {
             'qta'        => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
             'label'      => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
             'ricorrenza' => $ric,                                 // 'una_tantum' | 'mese'
+            'giorni'     => max(0, (int)($e['giorni'] ?? ($def[$code]['giorni'] ?? 30))), // validità in giorni (0 = senza scadenza)
         ];
     }
     return $out;
@@ -249,6 +250,7 @@ function predizione_extra_catalogo(string $piano = ''): array {
                 $cat['pt_' . strtolower($piano) . '_' . $ix] = [
                     'prezzo' => (float)$u['prezzo'], 'tipo' => (string)$u['tipo'],
                     'qta' => (int)$u['qta'], 'label' => (string)$u['label'], 'ricorrenza' => 'una_tantum',
+                    'giorni' => 30,
                 ];
             }
         }
@@ -494,7 +496,10 @@ function predizione_applica_extra_ordine(array &$rec, array $extra, string $pian
         if ($qta <= 0 || !isset($cat[$code])) continue;
         $e = $cat[$code];
         if (($e['tipo'] ?? '') === 'report') { $rec['report_extra'] = true; continue; } // Report: attiva la funzione
-        predizione_aggiungi_crediti($rec, $e['tipo'], (int)$e['qta'] * $qta, 0);
+        // gli accessori acquistati valgono N giorni dall'accredito (default 30); 0 = senza scadenza
+        $giorni = (int)($e['giorni'] ?? 30);
+        $scad   = $giorni > 0 ? (time() + $giorni * 86400) : 0;
+        predizione_aggiungi_crediti($rec, $e['tipo'], (int)$e['qta'] * $qta, $scad);
     }
 }
 
