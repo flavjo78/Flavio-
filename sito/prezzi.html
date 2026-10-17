@@ -115,7 +115,7 @@
   <div class="grid" id="grid"></div>
 
   <h2>Aggiungi quando ti serve</h2>
-  <p class="sub">Crediti e estensioni acquistabili dentro l'app, senza cambiare piano.<br><span style="font-size:12.5px">Gli accessori <b>valgono 30 giorni</b> dall'acquisto (salvo la durata diversa indicata) e <b>non si ricaricano</b> ogni mese.</span></p>
+  <p class="sub">Crediti e estensioni acquistabili dentro l'app, senza cambiare piano.<br><span style="font-size:12.5px">Sono un <b>credito a parte</b>: si consumano quando finisci quelli del piano, <b>non si ricaricano</b> ogni mese e valgono per il <b>periodo indicato</b> (di norma 1 mese) dall'acquisto.</span></p>
   <div class="extras" id="extras"></div>
 
   <div class="foot" id="foot">
@@ -135,6 +135,7 @@
   function it(n){ n=Math.round((+n||0)*100)/100; var s=n.toString().replace('.',','); return s; }
   function nf(n){ return (+n||0).toLocaleString('it-IT'); }
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+  function ggmmaa(d){ var m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(d||''); return m?(m[3]+'/'+m[2]+'/'+m[1]):esc(d); }
 
   fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','listino');return f;})()})
     .then(function(r){return r.json();}).then(function(d){
@@ -207,13 +208,11 @@
   function renderExtra(){
     var box=document.getElementById('extras'); var h='';
     (DATA.extra||[]).forEach(function(e){
-      var tail=(e.ricorrenza==='mese')?' / mese':'';
       var val='';
-      if(e.ricorrenza!=='mese'){
-        if(e.giorni===0) val=' <span style="color:var(--dim);font-size:12px">· senza scadenza</span>';
-        else if(e.giorni && e.giorni!==30) val=' <span style="color:var(--dim);font-size:12px">· valido '+e.giorni+' gg</span>';
-      }
-      h+='<div class="extra"><span class="lbl">'+esc(e.label)+val+'</span><span class="amt">'+it(e.prezzo)+' €'+tail+'</span></div>';
+      if(e.data) val=' <span style="color:var(--dim);font-size:12px">· entro il '+ggmmaa(e.data)+'</span>';
+      else if(e.mesi===0) val=' <span style="color:var(--dim);font-size:12px">· senza scadenza</span>';
+      else if(e.mesi) val=' <span style="color:var(--dim);font-size:12px">· consumabile in '+e.mesi+(e.mesi===1?' mese':' mesi')+'</span>';
+      h+='<div class="extra"><span class="lbl">'+esc(e.label)+val+'</span><span class="amt">'+it(e.prezzo)+' €</span></div>';
     });
     box.innerHTML=h || '<p style="grid-column:1/-1;text-align:center;color:var(--dim)">Nessuna estensione per ora.</p>';
   }

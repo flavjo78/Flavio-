@@ -3,7 +3,26 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 59 — righe prezzi allineate; accessori con scadenza (30 gg default, modificabile); licenza senza banner "bozza"; prima: AGG 58).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 60 — accessori = "secchiello separato" (si consumano, non si ricaricano) + scadenza in mesi o data; prima: AGG 59).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 60 — crediti accessori come SECCHIELLO SEPARATO + scadenza mesi/data)
+> - **Consumo corretto (secchiello separato).** Nuova `predizione_consuma($stato,$tipo,$n)` (piani.php) al
+>   posto di `predizione_uso_incr` nei 4 punti di consumo (invia.php, genera_ia.php, stato.php sessioni +
+>   mail_report): prima si consuma il **tetto mensile del piano** (contatore `uso`, si azzera ogni mese),
+>   l'ECCEDENZA si **scala dai crediti** acquistati (`predizione_scala_crediti`, consuma prima quelli che
+>   scadono prima). Così i crediti **si svuotano davvero** e **NON si ricaricano** col ripristino del piano.
+>   (Il contatore `uso[$tipo]` ora è solo-piano, capato al tetto; i contatori giornalieri contano tutto.)
+> - **Scadenza accessori in MESI o DATA fissa.** Nell'editor estensioni (admin.html) via la scelta "una
+>   tantum/al mese" e "valido gg": ora **"consumabile in N mesi"** + **"o entro il [data]"** (la data vince).
+>   Modello extra: `mesi` (0 = senza scadenza) + `data` ('YYYY-MM-DD'). `predizione_applica_extra_ordine`
+>   calcola `scad` = data fissa oppure now + N mesi. piani.php/stato.php/ordine.php aggiornati; i crediti con
+>   `scad` passato sono già esclusi (disponibili/consumo).
+> - **Sito** (prezzi.html + acquista.html): gli accessori mostrano "· consumabile in N mesi" / "· entro il
+>   GG/MM/AAAA" / "· senza scadenza"; nota "credito a parte, non si ricarica". Tolto il vecchio "/mese".
+> - **Nota:** Report comprato attiva la funzione (resta, senza scadenza automatica, per ora).
+> - **Richiede:** `predizione/` → `piani.php`, `stato.php`, `ordine.php`, `invia.php`, `genera_ia.php`,
+>   `admin.html`; radice → `prezzi.html`, `acquista.html`. **Provare un invio reale** dopo il caricamento
+>   (è cambiato il consumo). Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 59 — allineamento prezzi + accessori a scadenza + licenza)
 > - **Allineamento pagina prezzi (`prezzi.html`):** righe feature con **altezza fissa** (2 righe) e `.yr`

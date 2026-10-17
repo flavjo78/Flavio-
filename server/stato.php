@@ -679,11 +679,11 @@ function predizione_admin(string $azione): void {
                 if ($code === '' || !is_array($e)) continue;
                 $tipo = (string)($e['tipo'] ?? 'mail');
                 if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente', 'report'], true)) $tipo = 'mail';
-                $ric = (string)($e['ricorrenza'] ?? 'una_tantum');
-                if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
+                $dataE = (string)($e['data'] ?? '');
+                if ($dataE !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataE)) $dataE = '';
                 $nuovo['extra'][$code] = ['prezzo' => max(0, (float)($e['prezzo'] ?? 0)), 'tipo' => $tipo,
                                           'qta' => max(1, (int)($e['qta'] ?? 1)), 'label' => substr((string)($e['label'] ?? $code), 0, 60),
-                                          'ricorrenza' => $ric, 'giorni' => max(0, (int)($e['giorni'] ?? 30))];
+                                          'mesi' => max(0, (int)($e['mesi'] ?? 1)), 'data' => $dataE];
             }
             if (!predizione_listino_scrivi($nuovo)) predizione_json(['ok' => false, 'errore' => 'Salvataggio non riuscito (permessi _dati?)'], 500);
             predizione_log_operazione('listino', '000', 'listino aggiornato');
@@ -967,7 +967,7 @@ switch ($azione) {
         $stato['mail_ricevute'] = 0;
         $stato['mail_inviate']  = 0;
         predizione_pulisci_foto_base($stato);   // la sezione IA riparte pulita
-        predizione_uso_incr($stato, 'sessioni', 1);   // consumo mensile: una sessione in piu'
+        predizione_consuma($stato, 'sessioni', 1);   // consumo: prima il piano del mese, poi i crediti
         predizione_diario($stato, $nid, 'avvia');     // storia della sessione (per il report)
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
@@ -1215,7 +1215,7 @@ switch ($azione) {
         // solo le INVIATE e il consumo mensile delle mail.
         $inv = max(0, (int)p('inviate'));
         $stato['mail_inviate']  = (int)($stato['mail_inviate']  ?? 0) + $inv;
-        if ($inv > 0) predizione_uso_incr($stato, 'mail', $inv);   // consumo mensile mail
+        if ($inv > 0) predizione_consuma($stato, 'mail', $inv);   // consumo: prima il piano del mese, poi i crediti
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 

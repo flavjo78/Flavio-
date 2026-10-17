@@ -142,7 +142,7 @@ foreach ($dest as $to) {
 /* --- consumo mensile + conteggio sessione ------------------------------ */
 if ($inviate > 0) {
     $stato['mail_inviate'] = (int)($stato['mail_inviate'] ?? 0) + $inviate;
-    predizione_uso_incr($stato, 'mail', $inviate);
+    predizione_consuma($stato, 'mail', $inviate);
     predizione_scrivi_stato($stato);
 }
 

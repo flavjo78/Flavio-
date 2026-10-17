@@ -203,12 +203,14 @@ function predizione_prezzo_piano(string $piano, string $durata): int {
 /* ---- Extra a la carte (estensioni della licenza) — VALORI DI FABBRICA -- */
 function predizione_extra_default(): array {
     return [
-        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',       'qta' => 200,  'label' => '+200 mail',             'ricorrenza' => 'una_tantum', 'giorni' => 30],
-        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',    'qta' => 10,   'label' => '10 foto con IA',        'ricorrenza' => 'una_tantum', 'giorni' => 30],
-        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni',   'qta' => 5,    'label' => '5 sessioni',            'ricorrenza' => 'una_tantum', 'giorni' => 30],
-        'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'ricorrenza' => 'mese',       'giorni' => 30],
-        'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'ricorrenza' => 'mese',       'giorni' => 30],
-        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'ricorrenza' => 'una_tantum', 'giorni' => 30],
+        // 'mesi' = per quanti mesi è consumabile l'accessore (0 = senza scadenza).
+        // 'data' = scadenza a DATA fissa 'YYYY-MM-DD' (se presente, vince su 'mesi').
+        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',       'qta' => 200,  'label' => '+200 mail',             'mesi' => 1, 'data' => ''],
+        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',    'qta' => 10,   'label' => '10 foto con IA',        'mesi' => 1, 'data' => ''],
+        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni',   'qta' => 5,    'label' => '5 sessioni',            'mesi' => 1, 'data' => ''],
+        'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'mesi' => 1, 'data' => ''],
+        'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'mesi' => 1, 'data' => ''],
+        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'mesi' => 1, 'data' => ''],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
@@ -222,15 +224,15 @@ function predizione_extra(): array {
         if (!is_array($e)) continue;
         $tipo = (string)($e['tipo'] ?? ($def[$code]['tipo'] ?? 'mail'));
         if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente', 'report'], true)) $tipo = 'mail';
-        $ric = (string)($e['ricorrenza'] ?? ($def[$code]['ricorrenza'] ?? 'una_tantum'));
-        if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
+        $data = (string)($e['data'] ?? ($def[$code]['data'] ?? ''));
+        if ($data !== '' && !preg_match('/^\d{4}-\d{2}-\d{2}$/', $data)) $data = '';   // solo YYYY-MM-DD
         $out[$code] = [
-            'prezzo'     => max(0, (float)($e['prezzo'] ?? ($def[$code]['prezzo'] ?? 0))),
-            'tipo'       => $tipo,
-            'qta'        => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
-            'label'      => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
-            'ricorrenza' => $ric,                                 // 'una_tantum' | 'mese'
-            'giorni'     => max(0, (int)($e['giorni'] ?? ($def[$code]['giorni'] ?? 30))), // validità in giorni (0 = senza scadenza)
+            'prezzo' => max(0, (float)($e['prezzo'] ?? ($def[$code]['prezzo'] ?? 0))),
+            'tipo'   => $tipo,
+            'qta'    => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
+            'label'  => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
+            'mesi'   => max(0, (int)($e['mesi'] ?? ($def[$code]['mesi'] ?? 1))),       // mesi di validità (0 = senza scadenza)
+            'data'   => $data,                                                         // scadenza a data fissa (vince su mesi)
         ];
     }
     return $out;
@@ -249,8 +251,8 @@ function predizione_extra_catalogo(string $piano = ''): array {
             foreach (($piani[$piano]['una_tantum'] ?? []) as $ix => $u) {
                 $cat['pt_' . strtolower($piano) . '_' . $ix] = [
                     'prezzo' => (float)$u['prezzo'], 'tipo' => (string)$u['tipo'],
-                    'qta' => (int)$u['qta'], 'label' => (string)$u['label'], 'ricorrenza' => 'una_tantum',
-                    'giorni' => 30,
+                    'qta' => (int)$u['qta'], 'label' => (string)$u['label'],
+                    'mesi' => 1, 'data' => '',
                 ];
             }
         }
@@ -306,6 +308,71 @@ function predizione_crediti_disponibili(array $rec, string $tipo): int {
         $tot += (int)($c['qta'] ?? 0);
     }
     return $tot;
+}
+
+/* Scala n unità dai CREDITI validi (non scaduti) di quel tipo, consumando PRIMA
+   quelli che scadono prima. Modifica $rec['crediti'] (toglie quelli a 0).
+   Ritorna quante unità ha davvero scalato (può essere < n se i crediti finiscono). */
+function predizione_scala_crediti(array &$rec, string $tipo, int $n): int {
+    if ($n <= 0 || empty($rec['crediti']) || !is_array($rec['crediti'])) return 0;
+    $now = time(); $fatto = 0;
+    $ord = array_keys($rec['crediti']);
+    usort($ord, function ($a, $b) use ($rec) {
+        $sa = (int)($rec['crediti'][$a]['scad'] ?? 0); $sb = (int)($rec['crediti'][$b]['scad'] ?? 0);
+        $sa = $sa ?: PHP_INT_MAX; $sb = $sb ?: PHP_INT_MAX;   // "senza scadenza" va consumato per ultimo
+        return $sa <=> $sb;
+    });
+    foreach ($ord as $i) {
+        if ($fatto >= $n) break;
+        if (($rec['crediti'][$i]['tipo'] ?? '') !== $tipo) continue;
+        $sc = (int)($rec['crediti'][$i]['scad'] ?? 0);
+        if ($sc && $now > $sc) continue;                     // scaduto: non si usa
+        $disp = (int)($rec['crediti'][$i]['qta'] ?? 0);
+        if ($disp <= 0) continue;
+        $p = min($disp, $n - $fatto);
+        $rec['crediti'][$i]['qta'] = $disp - $p;
+        $fatto += $p;
+    }
+    $rec['crediti'] = array_values(array_filter($rec['crediti'], function ($c) { return (int)($c['qta'] ?? 0) > 0; }));
+    return $fatto;
+}
+
+/* CONSUMO corretto (secchiello separato). Prima si consuma il tetto MENSILE del
+   piano (contatore 'uso', che si azzera ogni mese); l'ECCEDENZA si scala dai
+   CREDITI acquistati, che così si svuotano davvero e NON si ricaricano col mese.
+   Va usata al posto di predizione_uso_incr nei punti di consumo (mail/foto/sessioni). */
+function predizione_consuma(array &$stato, string $tipo, int $n = 1): void {
+    if ($n <= 0) return;
+    predizione_uso_mese($stato);
+    if (!isset($stato['uso']) || !is_array($stato['uso'])) $stato['uso'] = [];
+    $u = predizione_utente();
+    $utenti = predizione_utenti_leggi();
+    $rec = (isset($utenti[$u]) && is_array($utenti[$u])) ? $utenti[$u] : null;
+    // tetto mensile del piano per questo tipo
+    $capMese = 0;
+    if ($rec !== null) {
+        $lim = predizione_limiti_utente($rec);
+        if ($tipo === 'mail')          $capMese = (int)$lim['mail_mese'];
+        elseif ($tipo === 'foto_ia')   $capMese = (int)$lim['foto_ia_mese'];
+        elseif ($tipo === 'sessioni')  $capMese = (int)$lim['sessioni_mese'];
+    }
+    $usato   = (int)($stato['uso'][$tipo] ?? 0);
+    $daPiano = max(0, min($n, $capMese - $usato));
+    $daCrediti = $n - $daPiano;
+    // conta nel piano (mensile) SOLO la parte coperta dal piano
+    if (array_key_exists($tipo, $stato['uso'])) $stato['uso'][$tipo] = $usato + $daPiano;
+    else $stato['uso'][$tipo] = $daPiano;
+    // contatori GIORNALIERI: tutto il consumo (piano + crediti)
+    if ($tipo === 'mail')     $stato['uso']['mail_oggi']     = (int)($stato['uso']['mail_oggi'] ?? 0) + $n;
+    if ($tipo === 'sessioni') $stato['uso']['sessioni_oggi'] = (int)($stato['uso']['sessioni_oggi'] ?? 0) + $n;
+    // storico movimento (tutto il consumo)
+    predizione_movimento($stato, $tipo, -abs($n), 'uso');
+    // eccedenza oltre il piano -> scala dai crediti (secchiello) e salva l'utente
+    if ($daCrediti > 0 && $rec !== null) {
+        predizione_scala_crediti($rec, $tipo, $daCrediti);
+        $utenti[$u] = $rec;
+        predizione_utenti_scrivi($utenti);
+    }
 }
 
 /* Riepilogo limiti+crediti per l'app (Mio account / I miei limiti). */
@@ -496,9 +563,14 @@ function predizione_applica_extra_ordine(array &$rec, array $extra, string $pian
         if ($qta <= 0 || !isset($cat[$code])) continue;
         $e = $cat[$code];
         if (($e['tipo'] ?? '') === 'report') { $rec['report_extra'] = true; continue; } // Report: attiva la funzione
-        // gli accessori acquistati valgono N giorni dall'accredito (default 30); 0 = senza scadenza
-        $giorni = (int)($e['giorni'] ?? 30);
-        $scad   = $giorni > 0 ? (time() + $giorni * 86400) : 0;
+        // scadenza dell'accessore: data fissa se indicata, altrimenti N mesi dall'accredito (0 = senza scadenza)
+        $dataS = (string)($e['data'] ?? '');
+        if ($dataS !== '' && preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataS)) {
+            $scad = (int)strtotime($dataS . ' 23:59:59');
+        } else {
+            $mesi = (int)($e['mesi'] ?? 1);
+            $scad = $mesi > 0 ? (int)strtotime('+' . $mesi . ' months') : 0;
+        }
         predizione_aggiungi_crediti($rec, $e['tipo'], (int)$e['qta'] * $qta, $scad);
     }
 }

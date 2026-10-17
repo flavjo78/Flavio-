@@ -810,15 +810,16 @@
   }
   window.lzSegPick=function(btn,which){ var seg=btn.closest('.lz-seg'); seg.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); var w=btn.closest('.lz-ut-ric'); if(w) w.setAttribute('data-ric',which?'mese':'una_tantum'); };
   function lzExtraRow(e){
-    e=e||{code:'',tipo:'mail',label:'',qta:1,prezzo:0,ricorrenza:'una_tantum',giorni:30};
+    e=e||{code:'',tipo:'mail',label:'',qta:1,prezzo:0,mesi:1,data:''};
     var d=document.createElement('div'); d.className='lz-ut'; d.setAttribute('data-code',esc(e.code||''));
     d.innerHTML=lzIc(e.tipo)+
       '<input type="text" class="ut-label" placeholder="Nome (es. +200 mail)" value="'+esc(e.label||'')+'">'+
       lzTipoSel(e.tipo||'mail')+
       '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(e.qta||1)+'">'+
       '<span style="font-size:11px;color:var(--faint)">€</span><input type="number" min="0" step="0.5" class="ut-prezzo" value="'+(e.prezzo||0)+'">'+
-      '<span style="font-size:11px;color:var(--faint)" title="validità in giorni dall\'acquisto (0 = senza scadenza)">valido gg</span><input type="number" min="0" class="ut-giorni" value="'+(e.giorni!=null?e.giorni:30)+'">'+
-      '<span class="lz-ut-ric" data-ric="'+((e.ricorrenza==='mese')?'mese':'una_tantum')+'">'+lzRicSeg(e.ricorrenza)+'</span>'+
+      '<span style="font-size:11px;color:var(--faint)" title="per quanti mesi è consumabile dall\'acquisto (0 = senza scadenza)">consumabile in</span>'+
+      '<input type="number" min="0" class="ut-mesi" value="'+(e.mesi!=null?e.mesi:1)+'" style="width:46px"><span style="font-size:11px;color:var(--faint)">mesi · o entro il</span>'+
+      '<input type="date" class="ut-data" value="'+esc(e.data||'')+'" title="scadenza a data fissa (vince sui mesi)">'+
       '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>';
     return d;
   }
@@ -870,10 +871,10 @@
     $('edExtra').querySelectorAll('.lz-ut').forEach(function(r){
       var lab=(r.querySelector('.ut-label').value||'').trim(); if(!lab) return;
       var code=r.getAttribute('data-code')||''; if(!code) code=slug(lab);
-      var ricEl=r.querySelector('.lz-ut-ric'); var ric=(ricEl&&ricEl.getAttribute('data-ric')==='mese')?'mese':'una_tantum';
-      var gg=r.querySelector('.ut-giorni'); var giorni=gg?Math.max(0,+gg.value||0):30;
+      var me=r.querySelector('.ut-mesi'); var mesi=me?Math.max(0,+me.value||0):1;
+      var da=r.querySelector('.ut-data'); var data=da?(da.value||''):'';
       out.extra[code]={ label:lab, tipo:r.querySelector('.ut-tipo').value,
-        qta:Math.max(1,+r.querySelector('.ut-qta').value||1), prezzo:Math.max(0,+r.querySelector('.ut-prezzo').value||0), ricorrenza:ric, giorni:giorni };
+        qta:Math.max(1,+r.querySelector('.ut-qta').value||1), prezzo:Math.max(0,+r.querySelector('.ut-prezzo').value||0), mesi:mesi, data:data };
     });
     call('admin_listino_salva',{dati:JSON.stringify(out)}).then(function(r){
       if(r.data&&r.data.ok){ toast('Listino salvato','ok'); caricaListino(); caricaOperazioni(); }
