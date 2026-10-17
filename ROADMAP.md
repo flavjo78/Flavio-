@@ -84,7 +84,7 @@
   partono da `supporto@`). `accesso@` = richieste d'accesso dal sito.
 - **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
   migrazione è stata fatta o va ancora eseguita.
-- **Contatore Palco**: sistemare il conteggio "Mail inviate/ricevute" in modo Palco (in corso).
+- ✅ **Contatore Palco**: confermato dall'autore (17 ott) che il conteggio "Mail inviate/ricevute" in modo Palco **va bene**.
 - ✅ **Vetrina `prezzi.html` dinamica — FATTO (AGG 51)**: la pagina vetrina ora legge il listino dall'editor
   (endpoint `ordine.php?azione=listino`) e si costruisce da sola: accesso con prezzo pieno barrato + promo,
   i 4 piani (al giorno/al mese, foto, omaggio 🎁, prezzo pieno barrato), estensioni (una tantum / al mese).
@@ -102,6 +102,15 @@
    inviata senza intervento.
 3. **Uscire dalla sandbox SES** (opzionale: Mailgun copre già i grandi volumi).
 4. **Prova reale "stress"** dello split su uno show grande vero (tante connessioni su una casella piena).
+
+4-bis. **Filtro aperture "foto A" più preciso (idea, NON urgente).** Oggi scarta le aperture di servizio
+   SOLO a TEMPO (`PRED_APERTURA_GRACE = 15s` in config.php: primi 15s dall'arrivo + debounce). Rischio:
+   una persona VERA che apre entro 15s dall'arrivo viene scartata per sbaglio. **Miglioria:** riconoscere
+   il robot di Gmail dal NOME (`GoogleImageProxy`, già usato in `report.php` → "Gmail (anteprima)") e
+   scartare QUELLO, **tenendo i 15s come rete di sicurezza** (il nome potrebbe cambiare, e Apple Mail non si
+   firma). Così non si perde nessun umano veloce su Gmail. Facoltativo: aggiungere nel report la misura
+   "il robot di Gmail ha scaricato dopo N secondi dall'arrivo" per vedere il dato vero degli show.
+   **Per ora resta 15s (scelta dell'autore: meglio la rete di sicurezza).**
 5. **Parte legale/fiscale** (NON tecnica): commercialista (ricevute/redditi), pagine privacy/termini sul sito.
    - [x] **Foglio domande per il commercialista** pronto: `guide/domande-commercialista.html` (chiaro+scuro,
          stampabile, **versione GENERICA**: descrive solo "software web a licenza/abbonamento", SENZA il
