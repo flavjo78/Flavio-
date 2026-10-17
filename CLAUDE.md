@@ -3,7 +3,17 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 50 — Omaggio di benvenuto per piano (Foyer = 10 foto una volta sola) + coerenza coi piani; prima: AGG 49).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 51 — pagina VETRINA `prezzi.html` resa DINAMICA: legge il listino dall'editor; prima: AGG 50).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 51 — vetrina `prezzi.html` dinamica dall'editor)
+> - **`sito/prezzi.html` non è più scritta a mano:** ora fa `fetch` dell'endpoint `ordine.php?azione=listino`
+>   e costruisce da sola accesso (con prezzo pieno barrato + promo %), i 4 piani (sessioni al giorno+mese,
+>   mail al mese+giorno, foto, **omaggio 🎁**, assistente/report/Palco, prezzo pieno barrato) e le estensioni
+>   (con "/ mese" per quelle ricorrenti). L'interruttore Annuale/Mensile funziona sui dati dinamici.
+> - **Fonte della verità = l'editor del pannello 000:** cambi i piani lì e la pagina prezzi si aggiorna da sola.
+>   Niente più disallineamento. (La pagina "scegli" `acquista.html` era già dinamica da AGG 48.)
+> - Retro-compatibile: se un campo manca, usa valori di ripiego; se l'endpoint non risponde, messaggio gentile.
+> - **Richiede:** caricare SOLO `prezzi.html` nella **radice del sito**. Niente AWS, niente altri file.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 50 — Omaggio di benvenuto per piano + coerenza listino)
 > - **Omaggio di benvenuto (una volta sola) per piano.** Nel modello piano nuovo campo `omaggio`

@@ -73,12 +73,11 @@
 - **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
   migrazione è stata fatta o va ancora eseguita.
 - **Contatore Palco**: sistemare il conteggio "Mail inviate/ricevute" in modo Palco (in corso).
-- **Vetrina `prezzi.html` dinamica** ⭐ (confermato dall'autore come PROSSIMO passo): oggi i prezzi/extra
-  della pagina vetrina (`prezzi.html` / `prezzi-predizione.html`) sono ancora **scritti a mano**. La pagina
-  "scegli" (`acquista.html`) è già dinamica dal listino; la vetrina va resa dinamica **interrogando l'editor**
-  (endpoint listino) → l'editor del pannello 000 è la "fonte della verità", la pagina si aggiorna da sola.
-  Include: prezzo pieno barrato, al giorno/al mese, omaggio di benvenuto, estensioni una tantum/al mese.
-  *(AGG 48 ha fatto editor + "scegli"; AGG 50 ha aggiunto l'omaggio di benvenuto per piano.)*
+- ✅ **Vetrina `prezzi.html` dinamica — FATTO (AGG 51)**: la pagina vetrina ora legge il listino dall'editor
+  (endpoint `ordine.php?azione=listino`) e si costruisce da sola: accesso con prezzo pieno barrato + promo,
+  i 4 piani (al giorno/al mese, foto, omaggio 🎁, prezzo pieno barrato), estensioni (una tantum / al mese).
+  L'editor del pannello 000 è la "fonte della verità": cambi lì e la pagina si aggiorna. *(acquista.html già
+  dinamica da AGG 48.)* Resta eventuale: la vecchia `guide/prezzi-predizione.html` è solo un bozzetto, non serve.
 
 ---
 

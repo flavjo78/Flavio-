@@ -66,6 +66,8 @@
   .price{display:flex;align-items:baseline;gap:4px;font-variant-numeric:tabular-nums}
   .price .amt{font-family:var(--display);font-weight:700;font-size:38px;line-height:1;color:var(--fg)}
   .price .per{color:var(--dim);font-size:14px}
+  .price .old{color:var(--dim);text-decoration:line-through;text-decoration-color:var(--stop);font-weight:700;font-size:20px;align-self:center}
+  .price .barr{display:inline-flex}
   .yr{color:var(--gold-ink);font-size:13px;font-weight:600;margin-top:5px;min-height:18px}
   ul.feats{list-style:none;margin:16px 0 18px;padding:0;display:flex;flex-direction:column;gap:9px;flex:1}
   ul.feats li{display:flex;gap:9px;align-items:flex-start;font-size:14.5px}
@@ -97,8 +99,7 @@
     <p class="lede">L'effetto di mentalismo via email: lo spettatore riceve una foto che si trasforma nella tua rivelazione quando lo decidi tu.</p>
   </header>
 
-  <div class="access">
-    <b><span class="old">105 €</span>Accesso all'app · 25 €<span class="promo">PROMO −76%</span></b>
+  <div class="access" id="access">
     <span>una volta, valido <b style="font-size:14px">4 anni</b> — poi scegli il livello qui sotto.</span>
   </div>
 
@@ -110,108 +111,123 @@
     <div class="saveline" id="saveline">Prezzo annuale: paghi una volta e risparmi rispetto al mese singolo.</div>
   </div>
 
-  <div class="grid">
-
-    <!-- Foyer -->
-    <div class="plan">
-      <div class="pname">Foyer</div>
-      <div class="ptag">Per iniziare</div>
-      <div class="price"><span class="amt">0</span><span class="per">€ / mese</span></div>
-      <div class="yr">incluso con l'accesso</div>
-      <ul class="feats">
-        <li><span class="tick">◆</span> 12 sessioni al mese</li>
-        <li><span class="tick">◆</span> 85 mail al mese</li>
-        <li><span class="tick">◆</span> 10 foto con IA in omaggio</li>
-        <li><span class="muted">○ Assistente e Report a pagamento</span></li>
-      </ul>
-      <a class="cta" href="#">Inizia gratis</a>
-    </div>
-
-    <!-- Quinte -->
-    <div class="plan" data-perm="5,5" data-month="15" data-year="66" data-save="114">
-      <div class="pname">Quinte</div>
-      <div class="ptag">Eventi piccoli</div>
-      <div class="price"><span class="amt">5,5</span><span class="per">€ / mese</span></div>
-      <div class="yr">66 € / anno · fatturato una volta</div>
-      <ul class="feats">
-        <li><span class="tick">◆</span> 1 sessione al giorno + 5 al mese</li>
-        <li><span class="tick">◆</span> 500 mail al mese (100 al giorno)</li>
-        <li><span class="tick">◆</span> 15 foto con IA al mese</li>
-        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
-      </ul>
-      <a class="cta" href="#">Accedi</a>
-    </div>
-
-    <!-- Sipario (in evidenza) -->
-    <div class="plan feat" data-perm="8" data-month="30" data-year="96" data-save="264">
-      <div class="badge">Più scelto</div>
-      <div class="pname">Sipario</div>
-      <div class="ptag">Eventi medi</div>
-      <div class="price"><span class="amt">8</span><span class="per">€ / mese</span></div>
-      <div class="yr">96 € / anno · fatturato una volta</div>
-      <ul class="feats">
-        <li><span class="tick">◆</span> 2 sessioni al giorno + 10 al mese</li>
-        <li><span class="tick">◆</span> 1.500 mail al mese (150 al giorno)</li>
-        <li><span class="tick">◆</span> 30 foto con IA al mese</li>
-        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
-      </ul>
-      <a class="cta" href="#">Accedi</a>
-    </div>
-
-    <!-- Palco -->
-    <div class="plan" data-perm="19" data-month="58" data-year="228" data-save="468">
-      <div class="pname">Palco</div>
-      <div class="ptag">Grandi eventi</div>
-      <div class="price"><span class="amt">19</span><span class="per">€ / mese</span></div>
-      <div class="yr">228 € / anno · fatturato una volta</div>
-      <ul class="feats">
-        <li><span class="tick">◆</span> 3 sessioni al giorno + 15 al mese</li>
-        <li><span class="tick">◆</span> 3.500 mail al mese + invii grandi</li>
-        <li><span class="tick">◆</span> 100 foto con IA al mese</li>
-        <li><span class="tick">◆</span> Assistente e Report inclusi</li>
-      </ul>
-      <a class="cta" href="#">Accedi</a>
-    </div>
-
-  </div>
+  <div class="grid" id="grid"></div>
 
   <h2>Aggiungi quando ti serve</h2>
-  <p class="sub">Crediti e extra acquistabili dentro l'app, senza cambiare piano.</p>
-  <div class="extras">
-    <div class="extra"><span class="lbl">+200 mail</span><span class="amt">1 €</span></div>
-    <div class="extra"><span class="lbl">10 foto con IA</span><span class="amt">2,50 €</span></div>
-    <div class="extra"><span class="lbl">5 sessioni</span><span class="amt">2 €</span></div>
-    <div class="extra"><span class="lbl">Assistente Duo</span><span class="amt">2 € / 30 gg</span></div>
-    <div class="extra"><span class="lbl">Report sessione</span><span class="amt">1 € / 30 gg</span></div>
-    <div class="extra"><span class="lbl">5.000 mail (Palco)</span><span class="amt">7 €</span></div>
-  </div>
+  <p class="sub">Crediti e estensioni acquistabili dentro l'app, senza cambiare piano.</p>
+  <div class="extras" id="extras"></div>
 
-  <div class="foot">
-    Predizione · listino di anteprima — Versione 2, 11 ottobre 2026. Accesso all'app 25 € valido 4 anni.
+  <div class="foot" id="foot">
+    Predizione · listino aggiornato in automatico. Accesso all'app valido 4 anni.
     <br>I prezzi possono variare; chi ha già acquistato mantiene le proprie condizioni.
   </div>
 
 </div>
 
 <script>
+  // ===== Pagina prezzi DINAMICA: legge il listino dall'editor (pannello 000) =====
+  var ORDINE_URL='/predizione/ordine.php';
+  var DATA=null, MODE='anno';
+  // sottotitoli per piano (solo estetici)
+  var PTAG={Foyer:'Per iniziare', Quinte:'Eventi piccoli', Sipario:'Eventi medi', Palco:'Grandi eventi'};
+
+  function it(n){ n=Math.round((+n||0)*100)/100; var s=n.toString().replace('.',','); return s; }
+  function nf(n){ return (+n||0).toLocaleString('it-IT'); }
+  function esc(s){ return (s==null?'':String(s)).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+
+  fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','listino');return f;})()})
+    .then(function(r){return r.json();}).then(function(d){
+      if(!d||!d.ok){ fail(); return; }
+      DATA=d; renderAccess(); renderPiani(); renderExtra(); setMode('anno');
+    }).catch(fail);
+
+  function fail(){ document.getElementById('grid').innerHTML='<p style="grid-column:1/-1;text-align:center;color:var(--dim)">Listino non disponibile in questo momento. Riprova tra poco.</p>'; }
+
+  function renderAccess(){
+    var a=DATA.accesso||0, pieno=DATA.accesso_pieno||a;
+    var h='<b>';
+    if(pieno>a){ var sc=Math.round((1-a/pieno)*100); h+='<span class="old">'+it(pieno)+' €</span>'; }
+    h+='Accesso all\'app · '+it(a)+' €';
+    if(pieno>a){ h+='<span class="promo">PROMO −'+sc+'%</span>'; }
+    h+='</b><span>una volta, valido <b style="font-size:14px">4 anni</b> — poi scegli il livello qui sotto.</span>';
+    document.getElementById('access').innerHTML=h;
+  }
+
+  // costruisce le voci "incluso" di un piano
+  function feats(p){
+    var li=[];
+    // sessioni
+    if(p.sessioni_giorno>0) li.push(nf(p.sessioni_giorno)+(p.sessioni_giorno===1?' sessione':' sessioni')+' al giorno + '+nf(p.sessioni_mese)+' al mese');
+    else li.push(nf(p.sessioni_mese)+' sessioni al mese');
+    // mail
+    var mail=nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' ('+nf(p.mail_giorno)+' al giorno)'):'');
+    if(p.grandi_invii) mail+=' + invii grandi';
+    li.push(mail);
+    // foto mensili + omaggio
+    if(p.foto_ia_mese>0) li.push(nf(p.foto_ia_mese)+' Foto magic al mese');
+    (p.omaggio||[]).forEach(function(o){ li.push('🎁 '+esc(o.label)+' (benvenuto)'); });
+    // assistente + report
+    var ar=[]; if(p.assistente) ar.push('Assistente'); if(p.report) ar.push('Report');
+    if(ar.length===2) li.push('Assistente e Report inclusi');
+    else if(ar.length===1) li.push(ar[0]+' incluso');
+    var out=li.map(function(t){return '<li><span class="tick">◆</span> '+t+'</li>';}).join('');
+    if(ar.length===0) out+='<li><span class="muted">○ Assistente e Report a pagamento</span></li>';
+    return out;
+  }
+
+  function renderPiani(){
+    var box=document.getElementById('grid'); var h='';
+    (DATA.piani||[]).forEach(function(p){
+      var feat=(p.nome==='Sipario');
+      var gratis=(p.prezzo_anno<=0 && p.prezzo_mese<=0);
+      var perm=Math.round(p.prezzo_anno/12*100)/100;
+      var save=Math.max(0, (p.prezzo_mese*12)-p.prezzo_anno);
+      var pienoAnno=p.prezzo_anno_pieno||p.prezzo_anno, pienoMese=p.prezzo_mese_pieno||p.prezzo_mese;
+      h+='<div class="plan'+(feat?' feat':'')+'"'+(gratis?'':' data-perm="'+it(perm)+'" data-month="'+it(p.prezzo_mese)+'" data-year="'+it(p.prezzo_anno)+'" data-save="'+it(save)+'"'
+            +' data-pieno-perm="'+it(Math.round(pienoAnno/12*100)/100)+'" data-pieno-month="'+it(pienoMese)+'" data-pieno-year="'+it(pienoAnno)+'"')+'>';
+      if(feat) h+='<div class="badge">Più scelto</div>';
+      h+='<div class="pname">'+esc(p.nome)+'</div><div class="ptag">'+(PTAG[p.nome]||'')+'</div>';
+      if(gratis){
+        h+='<div class="price"><span class="amt">0</span><span class="per">€ / mese</span></div><div class="yr">incluso con l\'accesso</div>';
+      } else {
+        h+='<div class="price"><span class="barr"></span><span class="amt">'+it(perm)+'</span><span class="per">€ / mese</span></div><div class="yr">'+it(p.prezzo_anno)+' € / anno · fatturato una volta</div>';
+      }
+      h+='<ul class="feats">'+feats(p)+'</ul>';
+      h+='<a class="cta" href="index.html">'+(gratis?'Inizia gratis':'Accedi')+'</a></div>';
+    });
+    box.innerHTML=h;
+  }
+
+  function renderExtra(){
+    var box=document.getElementById('extras'); var h='';
+    (DATA.extra||[]).forEach(function(e){
+      var tail=(e.ricorrenza==='mese')?' / mese':'';
+      h+='<div class="extra"><span class="lbl">'+esc(e.label)+'</span><span class="amt">'+it(e.prezzo)+' €'+tail+'</span></div>';
+    });
+    box.innerHTML=h || '<p style="grid-column:1/-1;text-align:center;color:var(--dim)">Nessuna estensione per ora.</p>';
+  }
+
   function setMode(mode){
+    MODE=mode;
     document.querySelectorAll('#toggle button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-mode')===mode); });
     document.querySelectorAll('.plan[data-year]').forEach(function(p){
-      var perm=p.getAttribute('data-perm'), month=p.getAttribute('data-month'), year=p.getAttribute('data-year'), save=p.getAttribute('data-save');
-      var amt=p.querySelector('.amt'), per=p.querySelector('.per'), yr=p.querySelector('.yr');
+      var month=p.getAttribute('data-month'), year=p.getAttribute('data-year'), save=p.getAttribute('data-save'), perm=p.getAttribute('data-perm');
+      var amt=p.querySelector('.amt'), per=p.querySelector('.per'), yr=p.querySelector('.yr'), barr=p.querySelector('.barr');
+      var pPerm=p.getAttribute('data-pieno-perm'), pMonth=p.getAttribute('data-pieno-month');
       if(mode==='anno'){
         amt.textContent=perm; per.textContent='€ / mese';
         yr.innerHTML=year+' € / anno · fatturato una volta';
+        if(barr) barr.innerHTML = (parseFloat((pPerm||'0').replace(',','.'))>parseFloat((perm||'0').replace(',','.'))) ? ('<span class="old">'+pPerm+' €</span>') : '';
       }else{
         amt.textContent=month; per.textContent='€ / mese';
         yr.innerHTML='oppure <b>'+year+' €/anno</b> · risparmi '+save+' €';
+        if(barr) barr.innerHTML = (parseFloat((pMonth||'0').replace(',','.'))>parseFloat((month||'0').replace(',','.'))) ? ('<span class="old">'+pMonth+' €</span>') : '';
       }
     });
     document.getElementById('saveline').textContent = (mode==='anno')
       ? 'Prezzo annuale: il mese mostrato è la quota dell’anno (paghi una volta).'
       : 'Mese singolo: comodo per provare. Con l’annuale risparmi molto.';
   }
-  setMode('anno');
 </script>
 </body>
 </html>
