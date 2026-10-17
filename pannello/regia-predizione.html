@@ -647,7 +647,7 @@
       <p class="hint" id="limGiorno"></p>
       <p class="hint">Barre del <b>mese in corso</b>: <b style="color:var(--good)">verde</b> ok · <b style="color:var(--gold)">giallo</b> quasi finito · <b style="color:var(--stop)">rosso</b> esaurito. I <b>crediti extra</b> si sommano al limite. Tocca una barra per lo <b>storico</b>.</p>
       <button class="btn primary" id="buyBtn" type="button" style="width:100%;margin-top:8px">Acquista crediti / Cambia piano</button>
-      <a id="guidaLink" href="#" target="_blank" style="display:block;text-align:center;color:var(--gold);font-size:13px;font-weight:700;margin-top:12px;text-decoration:none">📄 Prezzi e guida agli acquisti</a>
+      <a id="guidaLink" href="#" target="_blank" style="display:block;text-align:center;color:var(--gold);font-size:13px;font-weight:700;margin-top:12px;text-decoration:none">📄 Prezzi e confronto dei piani</a>
     </section>
 
     <section class="sp" data-sp="invio" aria-label="Modo di invio">
@@ -1627,12 +1627,12 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       goSP(t.getAttribute('data-go'));
     });
   });
-  // link "Prezzi e guida agli acquisti" (sta sul sito, radice /guide/)
+  // link "Prezzi e confronto dei piani" -> pagina prezzi del sito (radice)
   (function(){
     var g=$('guidaLink'); if(!g) return;
     var dir=location.href.split('?')[0].replace(/[^/]*$/,'');      // .../predizione/
     var root=dir.replace(/predizione\/$/,'');                      // .../ (radice sito)
-    g.setAttribute('href', root+'guide/guida-acquisti.html');
+    g.setAttribute('href', root+'prezzi.html');
   })();
   // "occhio": quando apri le foto con l'occhio, il tasto indietro ti riporta
   // DIRETTAMENTE al gioco (non al menu delle impostazioni).

@@ -3,7 +3,16 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 48 — Listino arricchito: prezzo pieno/sconto, interruttori incluso/escluso, icone, estensioni una tantum/al mese, una tantum per piano; prima: AGG 47).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 49 — link "Prezzi" corretto: puntava alla guida hosting, ora apre il confronto piani; prima: AGG 48).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 49 — link "Prezzi" → confronto piani, non la guida hosting)
+> - **Bug:** il link "Prezzi e guida agli acquisti" (Regia → Limiti, e `acquista.html`) apriva
+>   `guide/guida-acquisti.html` = la vecchia guida su **dominio/hosting/invio**, non il **confronto dei piani**.
+> - **Fix:** ora punta a **`prezzi.html`** (radice del sito, già online = confronto dei 4 piani) ed etichetta
+>   cambiata in "Prezzi e confronto dei piani". `regia-predizione.html` (SW **v22**) + `sito/acquista.html`.
+> - Nota: così il link funziona subito (prezzi.html è già online); la cartella `guide/` dell'AGG 47 non serve
+>   più per questo link (resta utile solo se vuoi tenere online la guida hosting a parte).
+> - **Richiede:** in `predizione/` → `regia-predizione.html`, `service-worker.js`; nella radice → `acquista.html`.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 48 — Listino: prezzo pieno+sconto, interruttori, icone, una tantum per piano)
 > - **Prezzo PIENO (barrato) facoltativo** per accesso e per ogni piano (anno+mese). Se uguale o minore
