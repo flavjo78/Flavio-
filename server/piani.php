@@ -30,7 +30,10 @@ function predizione_piani_default(): array {
             'mail_mese' => 85,    'mail_giorno' => 0,    'foto_ia_mese' => 0,
             'sessioni_mese' => 12,'sessioni_giorno' => 0,
             'assistente' => 0,    'report' => false,     'grandi_invii' => false,
-            'flags' => ['mail' => true, 'foto' => false],
+            // 10 Foto magic in OMAGGIO una volta sola (benvenuto): la funzione foto
+            // resta attiva per usarle, ma il credito mensile ricorrente e' 0.
+            'flags' => ['mail' => true, 'foto' => true],
+            'omaggio' => [['label' => '10 Foto magic in omaggio', 'tipo' => 'foto_ia', 'qta' => 10]],
         ],
         'Quinte' => [
             'prezzo_anno' => 66,  'prezzo_mese' => 15,
@@ -90,6 +93,7 @@ function predizione_piano_normalizza(array $p, array $base = []): array {
         'report'         => (bool)$g('report', false),
         'grandi_invii'   => (bool)$g('grandi_invii', false),
         'una_tantum'     => predizione_una_tantum_normalizza($g('una_tantum', [])), // estensioni una tantum di questo piano
+        'omaggio'        => predizione_una_tantum_normalizza($g('omaggio', [])),    // regalo di benvenuto (una volta sola)
         'flags'          => ['mail' => !empty($flags['mail']), 'foto' => !empty($flags['foto'])],
     ];
 }
@@ -470,6 +474,16 @@ function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): s
    Idempotente: se l'ordine ha gia' un utente, non ne crea un altro.
    ========================================================================= */
 /* Applica gli EXTRA di un ordine (pacchetti mail/foto/sessioni) a un utente. */
+/* Regala i crediti di BENVENUTO del piano (una volta sola), es. Foyer = 10 foto. */
+function predizione_applica_omaggio(array &$rec, string $piano): void {
+    $piani = predizione_piani();
+    if (!isset($piani[$piano])) return;
+    foreach (($piani[$piano]['omaggio'] ?? []) as $o) {
+        $tipo = (string)($o['tipo'] ?? ''); $qta = (int)($o['qta'] ?? 0);
+        if ($tipo !== '' && $qta > 0) predizione_aggiungi_crediti($rec, $tipo, $qta, 0);
+    }
+}
+
 function predizione_applica_extra_ordine(array &$rec, array $extra, string $piano = ''): void {
     $cat = predizione_extra_catalogo($piano);
     foreach ($extra as $code => $qta) {
@@ -535,6 +549,7 @@ function predizione_attiva_ordine(array &$ordine): array {
         'creato' => date('c'),
     ];
     predizione_applica_piano($rec, $piano, $ordine['durata'] ?? 'anno', (int)($ordine['quante'] ?? 1));
+    predizione_applica_omaggio($rec, $piano);   // regalo di benvenuto (una volta sola)
     predizione_applica_extra_ordine($rec, $extra, $piano);
 
     $utenti[$u] = $rec;

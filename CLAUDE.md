@@ -3,7 +3,21 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 49 — link "Prezzi" corretto: puntava alla guida hosting, ora apre il confronto piani; prima: AGG 48).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 50 — Omaggio di benvenuto per piano (Foyer = 10 foto una volta sola) + coerenza coi piani; prima: AGG 49).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 50 — Omaggio di benvenuto per piano + coerenza listino)
+> - **Omaggio di benvenuto (una volta sola) per piano.** Nel modello piano nuovo campo `omaggio`
+>   (stessa forma di `una_tantum`: label/tipo/qta, SENZA prezzo = gratis). Foyer di fabbrica ha
+>   **10 Foto magic in omaggio** (coerente con `guide/prezzi-predizione.html`): `flags.foto` resta attiva
+>   ma il credito mensile ricorrente è 0. `piani.php`: `predizione_applica_omaggio($rec,$piano)` regala i
+>   crediti UNA volta, chiamata SOLO per i **nuovi** utenti in `attiva_ordine` (non su rinnovi/upgrade).
+> - **Editor (`admin.html`):** per ogni piano sezione **"Omaggio di benvenuto (una volta sola)"** (aggiungi/
+>   togli voci, "gratis") oltre alle "Una tantum (acquistabili)". I campi **al mese** e **al giorno** di Mail e
+>   Sessioni erano già presenti (sotto ogni funzione) — restano.
+> - **`ordine.php` (listino):** espone `omaggio` per piano. **`acquista.html`:** mostra l'omaggio nel piano (🎁).
+> - **Da fare (confermato con l'autore):** la pagina VETRINA `prezzi.html`/`prezzi-predizione.html` diventerà
+>   **dinamica** leggendo dall'editor (endpoint listino), così "consiglio agli acquisti" = sempre allineato.
+> - **Richiede:** in `predizione/` → `piani.php`, `ordine.php`, `admin.html`; nella radice → `acquista.html`. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 49 — link "Prezzi" → confronto piani, non la guida hosting)
 > - **Bug:** il link "Prezzi e guida agli acquisti" (Regia → Limiti, e `acquista.html`) apriva

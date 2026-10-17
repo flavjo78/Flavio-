@@ -137,7 +137,8 @@
   function dSess(p){ return (p.sessioni_giorno>0) ? (ses(p.sessioni_giorno)+' al giorno + '+nf(p.sessioni_mese)+' al mese') : (ses(p.sessioni_mese)+' al mese'); }
   function dMail(p){ return (p.mail_giorno>0) ? (nf(p.mail_mese)+' mail al mese ('+nf(p.mail_giorno)+' al giorno)') : (nf(p.mail_mese)+' mail al mese'); }
   function dFoto(p){ return (p.foto_ia_mese>0) ? (nf(p.foto_ia_mese)+' Foto magic al mese') : 'niente Foto magic'; }
-  function descr(p){ return dSess(p)+'<br>'+dMail(p)+'<br>'+dFoto(p)+(p.grandi_invii?'<br>invii grandi (Palco)':'')+(p.report?'<br>Report incluso':''); }
+  function dOm(p){ if(!p.omaggio||!p.omaggio.length) return ''; return '<br>'+p.omaggio.map(function(o){return '🎁 '+o.label+' (benvenuto)';}).join('<br>'); }
+  function descr(p){ return dSess(p)+'<br>'+dMail(p)+'<br>'+dFoto(p)+(p.grandi_invii?'<br>invii grandi (Palco)':'')+(p.report?'<br>Report incluso':'')+dOm(p); }
 
   function renderPiani(){
     var box=document.getElementById('piani'); var h='';

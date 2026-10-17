@@ -280,6 +280,10 @@ if ($azione === 'listino') {
             $ut[] = ['code' => 'pt_' . strtolower($nome) . '_' . $ix, 'label' => (string)$u['label'],
                      'tipo' => (string)$u['tipo'], 'qta' => (int)$u['qta'], 'prezzo' => (float)$u['prezzo']];
         }
+        $om = [];
+        foreach (($p['omaggio'] ?? []) as $o) {
+            $om[] = ['label' => (string)$o['label'], 'tipo' => (string)$o['tipo'], 'qta' => (int)$o['qta']];
+        }
         $piani[] = ['nome' => $nome, 'prezzo_anno' => (int)$p['prezzo_anno'], 'prezzo_mese' => (int)$p['prezzo_mese'],
                     'prezzo_anno_pieno' => (int)($p['prezzo_anno_pieno'] ?? $p['prezzo_anno']),
                     'prezzo_mese_pieno' => (int)($p['prezzo_mese_pieno'] ?? $p['prezzo_mese']),
@@ -287,7 +291,7 @@ if ($azione === 'listino') {
                     'foto_ia_mese' => (int)$p['foto_ia_mese'], 'sessioni_mese' => (int)$p['sessioni_mese'],
                     'sessioni_giorno' => (int)($p['sessioni_giorno'] ?? 0),
                     'assistente' => (bool)$p['assistente'], 'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report'],
-                    'una_tantum' => $ut];
+                    'una_tantum' => $ut, 'omaggio' => $om];
     }
     $extra = [];
     foreach (predizione_extra() as $code => $e) {

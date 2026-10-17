@@ -683,9 +683,11 @@
           '<label class="chk" style="white-space:nowrap;margin-left:6px"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+(assOn?'':' disabled')+' onchange="var n=this.closest(\'.lz-row\').querySelector(\'#ep_'+idx+'_assist_num\'); if(n) n.disabled=this.checked"> illim.</label></div>'+
         lzRowBool(idx,'report','report','Report',!!p.report)+
         lzRowBool(idx,'grandi','palco','Palco (grandi invii)',!!p.grandi_invii);
-      // una tantum di questo piano
+      // omaggio di benvenuto (una volta sola) + una tantum di questo piano
       var utList=(p.una_tantum||[]);
-      var ut='<div class="lz-sub">Una tantum di questo piano</div><div id="ut_'+idx+'"></div>'+
+      var ut='<div class="lz-sub">Omaggio di benvenuto (una volta sola)</div><div id="om_'+idx+'"></div>'+
+             '<button class="lz-add" type="button" onclick="lzOmAdd('+idx+')">＋ Aggiungi omaggio</button>'+
+             '<div class="lz-sub">Una tantum di questo piano (acquistabili)</div><div id="ut_'+idx+'"></div>'+
              '<button class="lz-add" type="button" onclick="lzUtAdd('+idx+')">＋ Aggiungi una tantum</button>';
       var verLab=('0'+(p.versione||1)).slice(-2);
       var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
@@ -693,6 +695,8 @@
         '<span class="pill rev">versione '+verLab+'</span></div>'+
         '<input type="hidden" id="ep_'+idx+'_nome" value="'+esc(p.nome)+'">'+prezzi+righe+ut;
       box.appendChild(d);
+      var omb=d.querySelector('#om_'+idx);
+      (p.omaggio||[]).forEach(function(o){ omb.appendChild(lzOmRow(o)); });
       var utb=d.querySelector('#ut_'+idx);
       utList.forEach(function(u){ utb.appendChild(lzUtRow(u)); });
     });
@@ -720,6 +724,19 @@
     return d;
   }
   window.lzUtAdd=function(idx){ var c=$('ut_'+idx); if(c) c.appendChild(lzUtRow()); };
+  // --- omaggio di benvenuto (riga, GRATIS: senza prezzo) ---
+  function lzOmRow(o){
+    o=o||{tipo:'foto_ia',label:'',qta:1};
+    var d=document.createElement('div'); d.className='lz-ut lz-om';
+    d.innerHTML=lzIc(o.tipo)+
+      '<input type="text" class="ut-label" placeholder="Nome (es. 10 foto in omaggio)" value="'+esc(o.label||'')+'">'+
+      lzTipoSel(o.tipo||'foto_ia')+
+      '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(o.qta||1)+'">'+
+      '<span style="font-size:11px;color:var(--good);font-weight:700">gratis</span>'+
+      '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>';
+    return d;
+  }
+  window.lzOmAdd=function(idx){ var c=$('om_'+idx); if(c) c.appendChild(lzOmRow()); };
   // --- estensione globale (riga) ---
   function lzRicSeg(ric){
     return '<span class="lz-seg"><button type="button" class="'+(ric!=='mese'?'on':'')+'" onclick="lzSegPick(this,0)">una tantum</button>'+
@@ -751,6 +768,14 @@
     });
     return out;
   }
+  function readOm(container){   // omaggio: senza prezzo (è gratis)
+    var out=[]; if(!container) return out;
+    container.querySelectorAll('.lz-ut').forEach(function(r){
+      var lab=(r.querySelector('.ut-label').value||'').trim(); if(!lab) return;
+      out.push({ label:lab, tipo:r.querySelector('.ut-tipo').value, qta:Math.max(1,+r.querySelector('.ut-qta').value||1) });
+    });
+    return out;
+  }
   $('edSalva').addEventListener('click', function(){
     if(!LIS)return;
     var out={accesso:parseInt($('edAccesso').value||'0',10), accesso_pieno:parseInt($('edAccessoPieno').value||'0',10), piani:{}, extra:{}};
@@ -772,6 +797,7 @@
         assistente: on(3) ? (assIll ? -1 : assN) : 0,
         report: on(4), grandi_invii: on(5),
         una_tantum: readUt($('ut_'+idx)),
+        omaggio: readOm($('om_'+idx)),
         flags:{ mail: on(0), foto: on(1) }
       };
     });
