@@ -17,6 +17,7 @@ require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/pdf.php';   // generatore PDF per la ricevuta
 
 const PRED_ACCESSO_PREZZO = 25;     // euro, una tantum (DEFAULT; l'editor puo' cambiarlo)
+const PRED_ACCESSO_PIENO  = 105;    // prezzo pieno "barrato" di default (promo -76%); l'editor puo' cambiarlo
 const PRED_ACCESSO_ANNI   = 4;      // durata accesso
 
 /* ---- Definizione PREDEFINITA dei piani (prezzi e limiti inclusi) -------
@@ -161,7 +162,7 @@ function predizione_accesso_prezzo(): int {
 function predizione_accesso_pieno(): int {
     $lis = predizione_listino_leggi();
     $pagato = predizione_accesso_prezzo();
-    $pieno = isset($lis['accesso_pieno']) ? max(0, (int)$lis['accesso_pieno']) : 0;
+    $pieno = isset($lis['accesso_pieno']) ? max(0, (int)$lis['accesso_pieno']) : (int)PRED_ACCESSO_PIENO;
     return $pieno > $pagato ? $pieno : $pagato;
 }
 

@@ -221,6 +221,11 @@
           .lz-sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint);transition:.15s}
           .lz-sw.on{background:var(--good-soft);border-color:transparent}.lz-sw.on i{left:18px;background:var(--good)}
           .lz-stato{font-size:11px;font-weight:700;min-width:58px;text-align:right}.lz-stato.inc{color:var(--good)}.lz-stato.esc{color:var(--stop)}
+          .lz-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+          .lz-mini{display:inline-flex;flex-direction:column;gap:2px}
+          .lz-mini label{font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim)}
+          .lz-mini input{width:68px}
+          .lz-mini.ut label{color:var(--good)}
           .lz-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin:12px 0 6px}
           .lz-ut{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-bottom:6px;flex-wrap:wrap}
           .lz-ut .lz-ic{background:var(--surface)}
@@ -637,10 +642,22 @@
   window.lzToggle=function(el){
     var row=el.closest('.lz-row'); var on=!el.classList.contains('on');
     el.classList.toggle('on',on); if(row){ row.classList.toggle('off',!on);
-      var inp=row.querySelector('input[type=number]'); if(inp) inp.disabled=!on;
+      row.querySelectorAll('input[type=number]').forEach(function(inp){ inp.disabled=!on; });
       var ck=row.querySelector('input[type=checkbox]'); if(ck) ck.disabled=!on;
       var st=row.querySelector('.lz-stato'); if(st){ st.textContent=on?'incluso':'escluso'; st.className='lz-stato '+(on?'inc':'esc'); } }
   };
+  // quantità in omaggio di un certo tipo (dalla lista omaggio del piano)
+  function omQty(p,tipo){ var q=0; (p.omaggio||[]).forEach(function(o){ if(o.tipo===tipo) q+=(+o.qta||0); }); return q; }
+  // campo piccolo etichettato (una tantum / al giorno / al mese)
+  function lzMini(id,lab,val,on,isUt){
+    return '<span class="lz-mini'+(isUt?' ut':'')+'"><label>'+lab+'</label>'+
+      '<input type="number" min="0" id="'+id+'" value="'+(val||0)+'"'+(on?'':' disabled')+'></span>';
+  }
+  // riga servizio con interruttore + icona + nome + piu' campi quantità
+  function lzRowMulti(ic,nome,on,fieldsHtml){
+    return '<div class="lz-row'+(on?'':' off')+'">'+lzSw(on)+lzIc(ic)+
+      '<div class="lz-nm">'+nome+'</div><div class="lz-fields">'+fieldsHtml+'</div></div>';
+  }
   function num(id,v){ return '<input type="number" min="0" id="'+id+'" value="'+(v||0)+'">'; }
   function swOn(el){ return el&&el.classList.contains('on'); }
   // riga funzione: interruttore + icona + nome + (numero o stato)
@@ -671,32 +688,35 @@
                  '<div class="edline"><label>Anno — si <b>paga</b> €</label>'+num('ep_'+idx+'_prezzo_anno',p.prezzo_anno)+'</div>'+
                  '<div class="edline"><label>Mese — <b>pieno</b> (barrato) €</label>'+num('ep_'+idx+'_prezzo_mese_pieno',pM)+'</div>'+
                  '<div class="edline"><label>Mese — si <b>paga</b> €</label>'+num('ep_'+idx+'_prezzo_mese',p.prezzo_mese)+'</div>';
+      var mailOm=omQty(p,'mail'), sessOm=omQty(p,'sessioni'), fotoOm=omQty(p,'foto_ia');
       var righe=
-        lzRowNum(idx,'mail_mese','mail','Mail','al mese',p.mail_mese,mailOn)+
-        '<div class="edline" style="padding-left:39px"><label>Mail al giorno (0 = senza limite)</label>'+num('ep_'+idx+'_mail_giorno',p.mail_giorno)+'</div>'+
-        lzRowNum(idx,'foto_ia_mese','foto_ia','Foto magic','al mese',p.foto_ia_mese,fotoOn)+
-        lzRowNum(idx,'sessioni_mese','sessioni','Sessioni','al mese',p.sessioni_mese,sessOn)+
-        '<div class="edline" style="padding-left:39px"><label>Sessioni al giorno (0 = senza limite)</label>'+num('ep_'+idx+'_sessioni_giorno',p.sessioni_giorno)+'</div>'+
+        lzRowMulti('mail','Mail',mailOn,
+          lzMini('ep_'+idx+'_om_mail','una tantum',mailOm,mailOn,true)+
+          lzMini('ep_'+idx+'_mail_giorno','al giorno',p.mail_giorno,mailOn)+
+          lzMini('ep_'+idx+'_mail_mese','al mese',p.mail_mese,mailOn))+
+        lzRowMulti('foto_ia','Foto magic',fotoOn,
+          lzMini('ep_'+idx+'_om_foto','una tantum',fotoOm,fotoOn,true)+
+          lzMini('ep_'+idx+'_foto_ia_mese','al mese',p.foto_ia_mese,fotoOn))+
+        lzRowMulti('sessioni','Sessioni',sessOn,
+          lzMini('ep_'+idx+'_om_sessioni','una tantum',sessOm,sessOn,true)+
+          lzMini('ep_'+idx+'_sessioni_giorno','al giorno',p.sessioni_giorno,sessOn)+
+          lzMini('ep_'+idx+'_sessioni_mese','al mese',p.sessioni_mese,sessOn))+
         '<div class="lz-row'+(assOn?'':' off')+'">'+lzSw(assOn)+lzIc('assistente')+
           '<div class="lz-nm">Assistente di scena<small>al mese</small></div>'+
           '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+((!assOn||ill)?' disabled':'')+'>'+
           '<label class="chk" style="white-space:nowrap;margin-left:6px"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+(assOn?'':' disabled')+' onchange="var n=this.closest(\'.lz-row\').querySelector(\'#ep_'+idx+'_assist_num\'); if(n) n.disabled=this.checked"> illim.</label></div>'+
         lzRowBool(idx,'report','report','Report',!!p.report)+
         lzRowBool(idx,'grandi','palco','Palco (grandi invii)',!!p.grandi_invii);
-      // omaggio di benvenuto (una volta sola) + una tantum di questo piano
+      // estensioni acquistabili di questo piano (il regalo "una tantum" è nei campi dei servizi qui sopra)
       var utList=(p.una_tantum||[]);
-      var ut='<div class="lz-sub">Omaggio di benvenuto (una volta sola)</div><div id="om_'+idx+'"></div>'+
-             '<button class="lz-add" type="button" onclick="lzOmAdd('+idx+')">＋ Aggiungi omaggio</button>'+
-             '<div class="lz-sub">Una tantum di questo piano (acquistabili)</div><div id="ut_'+idx+'"></div>'+
-             '<button class="lz-add" type="button" onclick="lzUtAdd('+idx+')">＋ Aggiungi una tantum</button>';
+      var ut='<div class="lz-sub">Estensioni acquistabili di questo piano (una tantum / al mese)</div><div id="ut_'+idx+'"></div>'+
+             '<button class="lz-add" type="button" onclick="lzUtAdd('+idx+')">＋ Aggiungi estensione</button>';
       var verLab=('0'+(p.versione||1)).slice(-2);
       var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
       d.innerHTML='<div class="row" style="justify-content:space-between"><b style="color:var(--gold);font-family:Georgia,serif;font-size:19px">'+esc(p.nome)+'</b>'+
         '<span class="pill rev">versione '+verLab+'</span></div>'+
         '<input type="hidden" id="ep_'+idx+'_nome" value="'+esc(p.nome)+'">'+prezzi+righe+ut;
       box.appendChild(d);
-      var omb=d.querySelector('#om_'+idx);
-      (p.omaggio||[]).forEach(function(o){ omb.appendChild(lzOmRow(o)); });
       var utb=d.querySelector('#ut_'+idx);
       utList.forEach(function(u){ utb.appendChild(lzUtRow(u)); });
     });
@@ -768,12 +788,11 @@
     });
     return out;
   }
-  function readOm(container){   // omaggio: senza prezzo (è gratis)
-    var out=[]; if(!container) return out;
-    container.querySelectorAll('.lz-ut').forEach(function(r){
-      var lab=(r.querySelector('.ut-label').value||'').trim(); if(!lab) return;
-      out.push({ label:lab, tipo:r.querySelector('.ut-tipo').value, qta:Math.max(1,+r.querySelector('.ut-qta').value||1) });
-    });
+  // omaggio di benvenuto costruito dai campi "una tantum" dei servizi (mail/sessioni/foto)
+  function buildOm(idx){
+    var out=[];
+    function add(fid,tipo,nome){ var el=$('ep_'+idx+'_'+fid); var q=el?Math.max(0,+el.value||0):0; if(q>0) out.push({label:q+' '+nome+' in omaggio', tipo:tipo, qta:q}); }
+    add('om_mail','mail','mail'); add('om_sessioni','sessioni','sessioni'); add('om_foto','foto_ia','Foto magic');
     return out;
   }
   $('edSalva').addEventListener('click', function(){
@@ -797,7 +816,7 @@
         assistente: on(3) ? (assIll ? -1 : assN) : 0,
         report: on(4), grandi_invii: on(5),
         una_tantum: readUt($('ut_'+idx)),
-        omaggio: readOm($('om_'+idx)),
+        omaggio: buildOm(idx),
         flags:{ mail: on(0), foto: on(1) }
       };
     });

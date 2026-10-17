@@ -3,7 +3,19 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 51 — pagina VETRINA `prezzi.html` resa DINAMICA: legge il listino dall'editor; prima: AGG 50).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 52 — editor: ogni servizio su una riga con una tantum/giorno/mese; accesso pieno 105 di default; include AGG 51; prima: AGG 50).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 52 — editor a righe unificate (una tantum/giorno/mese) + default dall'html)
+> - **Editor listino (`admin.html`): ogni servizio su UNA riga** con interruttore + icona + i campi quantità
+>   **una tantum** (= omaggio di benvenuto) · **al giorno** · **al mese**. Mail e Sessioni hanno tutti e tre;
+>   Foto magic ha "una tantum" + "al mese" (la foto non ha tetto giornaliero nel sistema). L'omaggio NON è più
+>   una sezione separata: si imposta nel campo "una tantum" del servizio (al salvataggio si ricompone la lista
+>   `omaggio`). Restano Assistente/Report/Palco con interruttore e le "Estensioni acquistabili di questo piano".
+> - **Valori iniziali dall'html prezzi:** `piani.php` nuova costante `PRED_ACCESSO_PIENO=105` → l'accesso di
+>   default mostra **105 → 25 (PROMO −76%)** come nella pagina `prezzi-predizione.html`. Gli altri numeri dei
+>   piani erano già allineati all'html. (L'editor resta la fonte: si può cambiare tutto da lì.)
+> - **Include AGG 51** (vetrina `prezzi.html` dinamica).
+> - **Richiede:** in `predizione/` → `piani.php`, `admin.html`; nella radice del sito → `prezzi.html`. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 51 — vetrina `prezzi.html` dinamica dall'editor)
 > - **`sito/prezzi.html` non è più scritta a mano:** ora fa `fetch` dell'endpoint `ordine.php?azione=listino`
