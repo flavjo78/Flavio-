@@ -376,7 +376,7 @@ function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): s
 
     $pdf->text(60, $y, 11, 'Cliente: ' . trim(($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '')), true); $y += 15;
     $pdf->text(60, $y, 10, 'Email: ' . ($o['mail'] ?? '')); $y += 14;
-    $pdf->text(60, $y, 10, 'Utente: ' . $utente . '   Ordine: ' . ($o['id'] ?? '')); $y += 24;
+    $pdf->text(60, $y, 10, 'Utente: ' . $utente . '   Ordine: ' . ($o['codice'] ?? $o['id'] ?? '')); $y += 24;
 
     // righe
     $pdf->text(60, $y, 10, 'Descrizione', true); $pdf->text(470, $y, 10, 'Importo', true); $y += 6;

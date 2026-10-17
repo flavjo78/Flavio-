@@ -251,7 +251,16 @@
     var b=this; if(b.disabled) return; b.disabled=true; var old=b.textContent; b.textContent='Invio in corso…';
     var fd=new FormData(); fd.append('azione','richiesta'); fd.append('mail',em); fd.append('chi',chi); fd.append('gioco',GAMES[i][1]);
     fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-      if(d && d.ok){ b.textContent='✓ Richiesta inviata'; alert('Richiesta inviata! Ti abbiamo mandato una conferma via email (controlla anche lo spam). Ti rispondiamo presto.'); }
+      if(d && d.ok){
+        askOv.classList.remove('on'); codeOv.classList.add('on');   // torna alla schermata Password (dopo il video 1)
+        b.disabled=false; b.textContent=old; document.getElementById('chiSei').value='';
+        var tt=document.createElement('div');
+        tt.textContent='✓ Richiesta inviata';
+        tt.style.cssText='position:fixed;top:18px;left:50%;transform:translateX(-50%);z-index:60;background:#1b1712;border:1px solid rgba(231,201,131,.5);color:#e7c983;padding:12px 20px;border-radius:12px;font-size:14px;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:opacity .4s';
+        document.body.appendChild(tt);
+        setTimeout(function(){tt.style.opacity='0';},1800);
+        setTimeout(function(){if(tt.parentNode)tt.parentNode.removeChild(tt);},2300);
+      }
       else { b.disabled=false; b.textContent=old; alert((d&&d.errore)||'Non è stato possibile inviare, riprova.'); }
     }).catch(function(){ b.disabled=false; b.textContent=old; alert('Server non raggiungibile, riprova tra poco.'); });
   };

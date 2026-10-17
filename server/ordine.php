@@ -134,7 +134,7 @@ if (strpos($azione, 'admin_') === 0) {
                    . "==============================================\n"
                    . "AL PRIMO ACCESSO L'APP TI FA DA GUIDA\n"
                    . "==============================================\n"
-                   . "Non devi capire nulla da solo: la prima volta che entri (o finche' non\n"
+                   . "La prima volta che entri (o finche' non\n"
                    . "hai collegato la mail del gioco) l'app si trasforma in una GUIDA passo-passo\n"
                    . "che ti accompagna, dal telefono o dal computer, fino alla fine.\n\n"
                    . "- Con una mail GMAIL: e' tutto gia' COLLAUDATO e si fa in pochi minuti, in\n"

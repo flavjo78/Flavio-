@@ -3,7 +3,22 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 15 ottobre 2026 (AGG 46 — "Caligrafia Foto magic": prompt IA modificabile dal pannello 000; prima: AGG 45).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 47 — correzioni: codice ordine nella ricevuta, mail benvenuto, icona Foto magic, cartella guide mancante, form richiesta accesso; prima: AGG 46).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 47 — correzioni ricevuta/mail/icona + link guida + form accesso)
+> - **Ricevuta PDF: codice ordine mascherato.** `piani.php` (ricevuta) ora stampa `$o['codice']`
+>   (es. `p90a0`) invece del numero interno `PRD-0009`. Così l'allegato della mail di benvenuto
+>   porta il codice "giusto" (quello che il cliente usa come causale). Nessun'altra logica cambiata.
+> - **Mail di benvenuto:** tolta la frase iniziale "Non devi capire nulla da solo:" (`ordine.php`).
+> - **Icona "Foto magic"** nella Regia cambiata (fotocamera + scintille, fusione delle vecchie
+>   proposte 2+6). Solo `regia-predizione.html`; service-worker a **v21**.
+> - **Cartella `guide/` MANCANTE sul server.** Il link "Prezzi e guida agli acquisti" dava 404
+>   perché `www.abraka.it/guide/` non esisteva (il codice puntava giusto, mancava solo il file).
+>   Va caricata la cartella `guide/` nella **radice del sito**. Nessuna modifica al codice.
+> - **Form "Richiedi l'accesso" (sito `index.html`):** dopo l'invio compare per un attimo il
+>   messaggio "Richiesta inviata" e si torna da soli alla schermata Password (via l'alert bloccante).
+> - **Richiede:** caricare in `predizione/` → `piani.php`, `ordine.php`, `regia-predizione.html`,
+>   `service-worker.js`; nella **radice del sito** → `index.html` + cartella `guide/`. Niente AWS.
 
 > ### Aggiunte 15 ottobre 2026 (AGG 46 — "Caligrafia Foto magic": il prompt dell'IA è modificabile dal pannello 000)
 > - **Nuova voce di menù "Caligrafia Foto magic" nel pannello 000 (`admin.html`).** Mostra l'elenco dei
