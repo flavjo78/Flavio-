@@ -146,25 +146,39 @@
     piani.forEach(function(p){
       if(p.nome==='Foyer' && esistente) return; // Foyer è il base, non lo "ricompra"
       var pz = (dur==='mese')? p.prezzo_mese : p.prezzo_anno;
-      h+=rowPlan(p.nome, p.nome, descr(p), pz);
+      var pieno = (dur==='mese')? (p.prezzo_mese_pieno||p.prezzo_mese) : (p.prezzo_anno_pieno||p.prezzo_anno);
+      h+=rowPlan(p.nome, p.nome, descr(p), pz, pieno);
     });
     box.innerHTML=h;
-    box.querySelectorAll('.opt').forEach(function(o){ o.onclick=function(){ curPlan=o.getAttribute('data-p'); renderPiani(); calc(); }; });
+    box.querySelectorAll('.opt').forEach(function(o){ o.onclick=function(){ curPlan=o.getAttribute('data-p'); renderPiani(); renderExtra(); calc(); }; });
     // default
     if(curPlan==='' && !esistente && piani.length){ curPlan='Foyer'; }
   }
-  function rowPlan(val,titolo,sub,pz){
+  function rowPlan(val,titolo,sub,pz,pieno){
     var sel = (val===curPlan)?' sel':'';
     var prezzo;
+    // prezzo PIENO barrato (solo se maggiore di quello che si paga)
+    var barr = (pieno && pieno>pz) ? '<span style="text-decoration:line-through;color:#8a8070;font-size:12px;margin-right:6px">'+money(pieno)+'</span>' : '';
     if(pz<=0){ prezzo='<span class="pzm">'+(val===''?'—':'incluso')+'</span>'; }
     else if(dur==='anno'){
       var pm=Math.round(pz/12*100)/100;   // es. 96/12 = 8 €/mese
-      prezzo='<span class="pzm">'+money(pm)+'<span class="per">/mese</span></span><span class="pzy">'+money(pz)+' all\'anno</span>';
+      prezzo='<span class="pzm">'+barr+money(pm)+'<span class="per">/mese</span></span><span class="pzy">'+money(pz)+' all\'anno</span>';
     } else {
-      prezzo='<span class="pzm">'+money(pz)+'<span class="per">/mese</span></span>';
+      prezzo='<span class="pzm">'+barr+money(pz)+'<span class="per">/mese</span></span>';
     }
     return '<div class="opt'+sel+'" data-p="'+val+'" style="align-items:flex-start"><span><span class="t">'+titolo+'</span><span class="d">'+sub+'</span></span><span class="pz col">'+prezzo+'</span></div>';
   }
+  // icone per gli extra / una tantum (stile semplice, inline)
+  var SITEIC={
+    mail:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+    foto_ia:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="9.5" width="12" height="9" rx="2"/><path d="M5.5 9.5l1-1.6h3.5l1 1.6"/><circle cx="8.5" cy="14" r="2.7"/><path d="M18.8 3l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/></svg>',
+    sessioni:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16v12H4z"/><path d="M4 10h16M8 6v4M13 6v4"/></svg>',
+    assistente:'<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>'
+  };
+  function siteIc(t){ return '<span style="color:#e7c983;vertical-align:middle;margin-right:6px">'+(SITEIC[t]||SITEIC.mail)+'</span>'; }
+  // una tantum del piano scelto (voci aggiuntive specifiche di quel piano)
+  function planUnaTantum(){ if(!curPlan) return []; var p=piani.filter(function(x){return x.nome===curPlan;})[0]; return (p&&p.una_tantum)||[]; }
+  function allExtras(){ return extra.concat(planUnaTantum()); }
   function renderConfronto(){
     var box=document.getElementById('confronto');
     var cols=piani.slice();
@@ -185,9 +199,10 @@
   }
   function renderExtra(){
     var box=document.getElementById('extra');
-    box.innerHTML=extra.map(function(e){
+    box.innerHTML=allExtras().map(function(e){
       var q=qty[e.code]||0;
-      return '<div class="qrow"><span><span class="t">'+e.label+'</span><br><span class="s">'+money(e.prezzo)+' cad.</span></span>'+
+      var ric=(e.ricorrenza==='mese')?' <span style="color:#e7c983">· al mese</span>':'';
+      return '<div class="qrow"><span>'+siteIc(e.tipo)+'<span class="t">'+e.label+'</span><br><span class="s">'+money(e.prezzo)+' cad.'+ric+'</span></span>'+
         '<span class="stepper"><button data-m="'+e.code+'">−</button><b id="q_'+e.code+'">'+q+'</b><button data-p="'+e.code+'">+</button></span></div>';
     }).join('');
     box.querySelectorAll('[data-p]').forEach(function(b){ b.onclick=function(){ var c=b.getAttribute('data-p'); qty[c]=(qty[c]||0)+1; document.getElementById('q_'+c).textContent=qty[c]; calc(); }; });
@@ -198,7 +213,7 @@
     var p=piani.filter(function(x){return x.nome===curPlan;})[0]; if(!p) return 0;
     return (dur==='mese')?p.prezzo_mese:p.prezzo_anno;
   }
-  function costoExtra(){ var t=0; extra.forEach(function(e){ t+=(qty[e.code]||0)*e.prezzo; }); return t; }
+  function costoExtra(){ var t=0; allExtras().forEach(function(e){ t+=(qty[e.code]||0)*e.prezzo; }); return t; }
   function calc(){
     var t=prezzoPiano()+costoExtra();
     if(!esistente) t+=accesso;   // nuovo cliente: accesso 25 €
@@ -209,7 +224,7 @@
   document.querySelectorAll('#canSeg button').forEach(function(b){ b.onclick=function(){ canale=b.getAttribute('data-can'); document.querySelectorAll('#canSeg button').forEach(function(x){x.classList.toggle('on',x===b);}); }; });
 
   document.getElementById('pay').onclick=function(){
-    var extraMap={}; extra.forEach(function(e){ if(qty[e.code]>0) extraMap[e.code]=qty[e.code]; });
+    var extraMap={}; allExtras().forEach(function(e){ if(qty[e.code]>0) extraMap[e.code]=qty[e.code]; });
     if(curPlan==='' && Object.keys(extraMap).length===0){ alert('Scegli un piano o almeno un extra.'); return; }
     var fd=new FormData();
     fd.append('azione','crea');

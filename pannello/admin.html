@@ -209,14 +209,40 @@
 
       <!-- ===== LISTINO (editor) ===== -->
       <section class="view" id="v-listino" style="display:none">
-        <div class="legend">Qui imposti i <b>piani</b> che si vedono sul sito abraka e in acquisto. I 4 nomi restano fissi. Se cambi un piano, <b>chi è già abbonato tiene il piano vecchio fino alla scadenza</b>; al rinnovo passa a quello nuovo.</div>
+        <style>
+          .lz-ic{flex:0 0 30px;width:30px;height:30px;border-radius:8px;background:var(--surface-2);display:grid;place-items:center}
+          .lz-ic svg{width:18px;height:18px;stroke:var(--gold);fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+          .lz-row{display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--line)}
+          .lz-row:last-child{border:none}
+          .lz-row.off{opacity:.42} .lz-row.off .lz-ic svg{stroke:var(--faint)}
+          .lz-nm{flex:1;font-size:13.5px;min-width:0}.lz-nm small{display:block;color:var(--faint);font-size:11px}
+          .lz-row input[type=number]{width:92px}
+          .lz-sw{flex:0 0 auto;width:38px;height:22px;border-radius:999px;background:var(--surface-2);border:1px solid var(--line-2);position:relative;cursor:pointer}
+          .lz-sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint);transition:.15s}
+          .lz-sw.on{background:var(--good-soft);border-color:transparent}.lz-sw.on i{left:18px;background:var(--good)}
+          .lz-stato{font-size:11px;font-weight:700;min-width:58px;text-align:right}.lz-stato.inc{color:var(--good)}.lz-stato.esc{color:var(--stop)}
+          .lz-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin:12px 0 6px}
+          .lz-ut{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-bottom:6px;flex-wrap:wrap}
+          .lz-ut .lz-ic{background:var(--surface)}
+          .lz-ut input[type=text]{flex:1;min-width:120px}
+          .lz-ut input[type=number]{width:70px}
+          .lz-ut select{min-width:96px}
+          .lz-del{background:none;border:none;color:var(--stop);font-size:17px;cursor:pointer}
+          .lz-add{width:100%;background:var(--surface-2);border:1px dashed var(--line-2);color:var(--gold);border-radius:10px;padding:9px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:2px}
+          .lz-seg{display:inline-flex;border:1px solid var(--line-2);border-radius:8px;overflow:hidden}
+          .lz-seg button{background:var(--surface-2);border:none;color:var(--ink-dim);font-family:inherit;font-size:11px;font-weight:700;padding:6px 9px;cursor:pointer}
+          .lz-seg button.on{background:var(--gold);color:#231a0c}
+        </style>
+        <div class="legend">Qui imposti i <b>piani</b> che si vedono sul sito abraka e in acquisto. I 4 nomi restano fissi. L'<b>interruttore</b> a sinistra di ogni icona accende/spegne la funzione (inclusa/esclusa). Il <b>prezzo pieno</b> serve solo per mostrare lo sconto barrato: lascialo uguale al prezzo pagato se non c'è sconto. Se cambi un piano, <b>chi è già abbonato tiene il piano vecchio fino alla scadenza</b>.</div>
         <div class="card">
-          <div class="edline"><label>Prezzo <b>accesso</b> (una tantum, 4 anni) €</label><input type="number" id="edAccesso" min="0"></div>
+          <div class="edline"><label>Accesso — prezzo <b>pieno</b> (barrato) €</label><input type="number" id="edAccessoPieno" min="0"></div>
+          <div class="edline"><label>Accesso — prezzo che si <b>paga</b> (una tantum, 4 anni) €</label><input type="number" id="edAccesso" min="0"></div>
         </div>
         <h2>Piani</h2>
         <div id="edPiani"></div>
-        <h2>Extra (estensioni)</h2>
+        <h2>Estensioni (valide per tutti)</h2>
         <div id="edExtra"></div>
+        <button class="lz-add" id="edAddExtra" type="button">＋ Aggiungi estensione</button>
         <div class="btns"><button class="btn gold" id="edSalva">Salva listino</button><button class="btn" id="edRipristina">Ricarica</button></div>
       </section>
 
@@ -598,64 +624,163 @@
   });
 
   /* ---------- LISTINO (editor) ---------- */
-  function numField(id,val){ return '<input type="number" min="0" id="'+id+'" value="'+(val||0)+'">'; }
+  var LZICON={
+    mail:'<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>',
+    foto_ia:'<svg viewBox="0 0 24 24"><rect x="2.5" y="9.5" width="12" height="9" rx="2"/><path d="M5.5 9.5l1-1.6h3.5l1 1.6"/><circle cx="8.5" cy="14" r="2.7"/><path d="M18.8 3l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7z"/><path d="M14.5 7.5l.35 1 1 .35-1 .35-.35 1-.35-1-1-.35 1-.35z"/></svg>',
+    sessioni:'<svg viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M4 10h16M8 6v4M13 6v4"/></svg>',
+    assistente:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6"/></svg>',
+    report:'<svg viewBox="0 0 24 24"><path d="M4 20V4M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="14" width="3" height="3"/></svg>',
+    palco:'<svg viewBox="0 0 24 24"><path d="M12 13v8"/><circle cx="12" cy="11" r="1.6"/><path d="M8 7a5 5 0 0 0 0 8M16 7a5 5 0 0 1 0 8M5.5 4.5a9 9 0 0 0 0 13M18.5 4.5a9 9 0 0 1 0 13"/></svg>'
+  };
+  function lzIc(t){ return '<div class="lz-ic">'+(LZICON[t]||LZICON.mail)+'</div>'; }
+  function lzSw(on){ return '<div class="lz-sw'+(on?' on':'')+'" onclick="lzToggle(this)"><i></i></div>'; }
+  window.lzToggle=function(el){
+    var row=el.closest('.lz-row'); var on=!el.classList.contains('on');
+    el.classList.toggle('on',on); if(row){ row.classList.toggle('off',!on);
+      var inp=row.querySelector('input[type=number]'); if(inp) inp.disabled=!on;
+      var ck=row.querySelector('input[type=checkbox]'); if(ck) ck.disabled=!on;
+      var st=row.querySelector('.lz-stato'); if(st){ st.textContent=on?'incluso':'escluso'; st.className='lz-stato '+(on?'inc':'esc'); } }
+  };
+  function num(id,v){ return '<input type="number" min="0" id="'+id+'" value="'+(v||0)+'">'; }
+  function swOn(el){ return el&&el.classList.contains('on'); }
+  // riga funzione: interruttore + icona + nome + (numero o stato)
+  function lzRowNum(idx,key,ic,nome,sub,val,on){
+    return '<div class="lz-row'+(on?'':' off')+'">'+lzSw(on)+lzIc(ic)+
+      '<div class="lz-nm">'+nome+(sub?'<small>'+sub+'</small>':'')+'</div>'+
+      '<input type="number" min="0" id="ep_'+idx+'_'+key+'" value="'+(val||0)+'"'+(on?'':' disabled')+'></div>';
+  }
+  function lzRowBool(idx,key,ic,nome,on){
+    return '<div class="lz-row'+(on?'':' off')+'">'+lzSw(on)+lzIc(ic)+
+      '<div class="lz-nm">'+nome+'</div>'+
+      '<input type="hidden" id="ep_'+idx+'_'+key+'" value="'+(on?1:0)+'">'+
+      '<span class="lz-stato '+(on?'inc':'esc')+'">'+(on?'incluso':'escluso')+'</span></div>';
+  }
   function renderListino(l){
     LIS=l;
     $('edAccesso').value=l.accesso||0;
-    var CAMPI=[
-      ['prezzo_anno','Prezzo annuale €'],['prezzo_mese','Prezzo mensile €'],
-      ['sessioni_giorno','Sessioni al giorno (0 = senza limite)'],['sessioni_mese','Sessioni al mese'],
-      ['mail_mese','Mail al mese'],['mail_giorno','Mail al giorno (0 = senza limite)'],
-      ['foto_ia_mese','Foto magic al mese']
-    ];
+    $('edAccessoPieno').value=(l.accesso_pieno!=null?l.accesso_pieno:l.accesso)||0;
     var box=$('edPiani'); box.innerHTML='';
     l.piani.forEach(function(p,idx){
-      var base=(l.nomi_base||[]).indexOf(p.nome)>=0;
-      var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
-      var righe=CAMPI.map(function(c){ return '<div class="edline"><label>'+c[1]+'</label>'+numField('ep_'+idx+'_'+c[0], p[c[0]])+'</div>'; }).join('');
-      var ill=(p.assistente===-1);
-      var flags='<div class="edline"><label>Assistente di scena — al mese (0 = non disponibile)</label>'+
-                  '<span style="display:flex;gap:8px;align-items:center">'+
-                    '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+(ill?' disabled':'')+'>'+
-                    '<label class="chk" style="white-space:nowrap"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+' onchange="this.closest(\'.edline\').querySelector(\'input[type=number]\').disabled=this.checked"> illimitato</label>'+
-                  '</span></div>'+
-                '<div class="edline"><label>Report</label><input type="checkbox" id="ep_'+idx+'_report" '+(p.report?'checked':'')+'></div>'+
-                '<div class="edline"><label>Palco (grandi invii)</label><input type="checkbox" id="ep_'+idx+'_grandi" '+(p.grandi_invii?'checked':'')+'></div>';
+      var mailOn=!(p.flags&&p.flags.mail===false);
+      var fotoOn=(p.foto_ia_mese>0)||(p.flags&&p.flags.foto);
+      var sessOn=(p.sessioni_mese>0);
+      var assOn=(p.assistente!=0); var ill=(p.assistente===-1);
+      var pA=(p.prezzo_anno_pieno!=null?p.prezzo_anno_pieno:p.prezzo_anno);
+      var pM=(p.prezzo_mese_pieno!=null?p.prezzo_mese_pieno:p.prezzo_mese);
+      var prezzi='<div class="edline"><label>Anno — <b>pieno</b> (barrato) €</label>'+num('ep_'+idx+'_prezzo_anno_pieno',pA)+'</div>'+
+                 '<div class="edline"><label>Anno — si <b>paga</b> €</label>'+num('ep_'+idx+'_prezzo_anno',p.prezzo_anno)+'</div>'+
+                 '<div class="edline"><label>Mese — <b>pieno</b> (barrato) €</label>'+num('ep_'+idx+'_prezzo_mese_pieno',pM)+'</div>'+
+                 '<div class="edline"><label>Mese — si <b>paga</b> €</label>'+num('ep_'+idx+'_prezzo_mese',p.prezzo_mese)+'</div>';
+      var righe=
+        lzRowNum(idx,'mail_mese','mail','Mail','al mese',p.mail_mese,mailOn)+
+        '<div class="edline" style="padding-left:39px"><label>Mail al giorno (0 = senza limite)</label>'+num('ep_'+idx+'_mail_giorno',p.mail_giorno)+'</div>'+
+        lzRowNum(idx,'foto_ia_mese','foto_ia','Foto magic','al mese',p.foto_ia_mese,fotoOn)+
+        lzRowNum(idx,'sessioni_mese','sessioni','Sessioni','al mese',p.sessioni_mese,sessOn)+
+        '<div class="edline" style="padding-left:39px"><label>Sessioni al giorno (0 = senza limite)</label>'+num('ep_'+idx+'_sessioni_giorno',p.sessioni_giorno)+'</div>'+
+        '<div class="lz-row'+(assOn?'':' off')+'">'+lzSw(assOn)+lzIc('assistente')+
+          '<div class="lz-nm">Assistente di scena<small>al mese</small></div>'+
+          '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+((!assOn||ill)?' disabled':'')+'>'+
+          '<label class="chk" style="white-space:nowrap;margin-left:6px"><input type="checkbox" id="ep_'+idx+'_assist_ill" '+(ill?'checked':'')+(assOn?'':' disabled')+' onchange="var n=this.closest(\'.lz-row\').querySelector(\'#ep_'+idx+'_assist_num\'); if(n) n.disabled=this.checked"> illim.</label></div>'+
+        lzRowBool(idx,'report','report','Report',!!p.report)+
+        lzRowBool(idx,'grandi','palco','Palco (grandi invii)',!!p.grandi_invii);
+      // una tantum di questo piano
+      var utList=(p.una_tantum||[]);
+      var ut='<div class="lz-sub">Una tantum di questo piano</div><div id="ut_'+idx+'"></div>'+
+             '<button class="lz-add" type="button" onclick="lzUtAdd('+idx+')">＋ Aggiungi una tantum</button>';
       var verLab=('0'+(p.versione||1)).slice(-2);
+      var d=document.createElement('div'); d.className='card'; d.setAttribute('data-plan',idx);
       d.innerHTML='<div class="row" style="justify-content:space-between"><b style="color:var(--gold);font-family:Georgia,serif;font-size:19px">'+esc(p.nome)+'</b>'+
         '<span class="pill rev">versione '+verLab+'</span></div>'+
-        '<input type="hidden" id="ep_'+idx+'_nome" value="'+esc(p.nome)+'">'+righe+flags;
+        '<input type="hidden" id="ep_'+idx+'_nome" value="'+esc(p.nome)+'">'+prezzi+righe+ut;
       box.appendChild(d);
+      var utb=d.querySelector('#ut_'+idx);
+      utList.forEach(function(u){ utb.appendChild(lzUtRow(u)); });
     });
+    // estensioni globali
+    EX=(l.extra||[]).slice();
     var ex=$('edExtra'); ex.innerHTML='';
-    l.extra.forEach(function(e,idx){
-      var d=document.createElement('div'); d.className='card'; d.setAttribute('data-extra',idx);
-      d.innerHTML='<input type="hidden" id="ex_'+idx+'_code" value="'+esc(e.code)+'"><input type="hidden" id="ex_'+idx+'_tipo" value="'+esc(e.tipo)+'">'+
-        '<div class="edline"><label>Nome (es. +200 mail)</label><input type="text" id="ex_'+idx+'_label" value="'+esc(e.label)+'" style="width:160px"></div>'+
-        '<div class="edline"><label>Prezzo €</label><input type="number" min="0" step="0.5" id="ex_'+idx+'_prezzo" value="'+e.prezzo+'"></div>'+
-        '<div class="edline"><label>Quantità ('+esc(e.tipo)+')</label><input type="number" min="1" id="ex_'+idx+'_qta" value="'+e.qta+'"></div>';
-      ex.appendChild(d);
-    });
+    EX.forEach(function(e){ ex.appendChild(lzExtraRow(e)); });
   }
+  // --- una tantum (riga) ---
+  function lzTipoSel(sel){
+    var opts=[['mail','Mail'],['foto_ia','Foto magic'],['sessioni','Sessioni'],['assistente','Assistente']];
+    return '<select class="ut-tipo" onchange="lzUtIcon(this)">'+opts.map(function(o){
+      return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select>';
+  }
+  window.lzUtIcon=function(selEl){ var row=selEl.closest('.lz-ut'); var ic=row&&row.querySelector('.lz-ic'); if(ic) ic.innerHTML=(LZICON[selEl.value]||LZICON.mail); };
+  function lzUtRow(u){
+    u=u||{tipo:'mail',label:'',qta:1,prezzo:0};
+    var d=document.createElement('div'); d.className='lz-ut';
+    d.innerHTML=lzIc(u.tipo)+
+      '<input type="text" class="ut-label" placeholder="Nome (es. 5 foto in più)" value="'+esc(u.label||'')+'">'+
+      lzTipoSel(u.tipo||'mail')+
+      '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(u.qta||1)+'">'+
+      '<span style="font-size:11px;color:var(--faint)">€</span><input type="number" min="0" step="0.5" class="ut-prezzo" value="'+(u.prezzo||0)+'">'+
+      '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>';
+    return d;
+  }
+  window.lzUtAdd=function(idx){ var c=$('ut_'+idx); if(c) c.appendChild(lzUtRow()); };
+  // --- estensione globale (riga) ---
+  function lzRicSeg(ric){
+    return '<span class="lz-seg"><button type="button" class="'+(ric!=='mese'?'on':'')+'" onclick="lzSegPick(this,0)">una tantum</button>'+
+           '<button type="button" class="'+(ric==='mese'?'on':'')+'" onclick="lzSegPick(this,1)">al mese</button></span>';
+  }
+  window.lzSegPick=function(btn,which){ var seg=btn.closest('.lz-seg'); seg.querySelectorAll('button').forEach(function(b){b.classList.remove('on');}); btn.classList.add('on'); var w=btn.closest('.lz-ut-ric'); if(w) w.setAttribute('data-ric',which?'mese':'una_tantum'); };
+  function lzExtraRow(e){
+    e=e||{code:'',tipo:'mail',label:'',qta:1,prezzo:0,ricorrenza:'una_tantum'};
+    var d=document.createElement('div'); d.className='lz-ut'; d.setAttribute('data-code',esc(e.code||''));
+    d.innerHTML=lzIc(e.tipo)+
+      '<input type="text" class="ut-label" placeholder="Nome (es. +200 mail)" value="'+esc(e.label||'')+'">'+
+      lzTipoSel(e.tipo||'mail')+
+      '<span style="font-size:11px;color:var(--faint)">qta</span><input type="number" min="1" class="ut-qta" value="'+(e.qta||1)+'">'+
+      '<span style="font-size:11px;color:var(--faint)">€</span><input type="number" min="0" step="0.5" class="ut-prezzo" value="'+(e.prezzo||0)+'">'+
+      '<span class="lz-ut-ric" data-ric="'+((e.ricorrenza==='mese')?'mese':'una_tantum')+'">'+lzRicSeg(e.ricorrenza)+'</span>'+
+      '<button class="lz-del" type="button" onclick="this.closest(\'.lz-ut\').remove()">✕</button>';
+    return d;
+  }
+  function slug(s){ s=(s||'').toLowerCase().replace(/[^a-z0-9]+/g,'_').replace(/^_+|_+$/g,''); return s||('x_'+Date.now()); }
   function caricaListino(){ call('admin_listino').then(function(r){ if(r.data&&r.data.ok) renderListino(r.data.listino); else toast('Errore listino','err'); }); }
   $('edRipristina').addEventListener('click', caricaListino);
+  $('edAddExtra').addEventListener('click', function(){ $('edExtra').appendChild(lzExtraRow()); });
+  function readUt(container){
+    var out=[]; if(!container) return out;
+    container.querySelectorAll('.lz-ut').forEach(function(r){
+      var lab=(r.querySelector('.ut-label').value||'').trim(); if(!lab) return;
+      out.push({ label:lab, tipo:r.querySelector('.ut-tipo').value,
+        qta:Math.max(1,+r.querySelector('.ut-qta').value||1), prezzo:Math.max(0,+r.querySelector('.ut-prezzo').value||0) });
+    });
+    return out;
+  }
   $('edSalva').addEventListener('click', function(){
     if(!LIS)return;
-    var out={accesso:parseInt($('edAccesso').value||'0',10), piani:{}, extra:{}};
+    var out={accesso:parseInt($('edAccesso').value||'0',10), accesso_pieno:parseInt($('edAccessoPieno').value||'0',10), piani:{}, extra:{}};
     LIS.piani.forEach(function(p,idx){
       var nome=$('ep_'+idx+'_nome').value;
+      var mailOn=swOn($('edPiani').querySelector('[data-plan="'+idx+'"] .lz-row .lz-sw')); // prima riga = mail
+      // leggo gli interruttori per funzione cercando le righe
+      var rows=$('edPiani').querySelector('[data-plan="'+idx+'"]').querySelectorAll('.lz-row');
+      // ordine righe: 0 mail, 1 foto, 2 sessioni, 3 assistente, 4 report, 5 palco
+      function on(k){ return rows[k]&&rows[k].querySelector('.lz-sw').classList.contains('on'); }
+      var fotoN=+$('ep_'+idx+'_foto_ia_mese').value||0;
+      var assIll=$('ep_'+idx+'_assist_ill').checked, assN=Math.max(0,+$('ep_'+idx+'_assist_num').value||0);
       out.piani[nome]={
         prezzo_anno:+$('ep_'+idx+'_prezzo_anno').value||0, prezzo_mese:+$('ep_'+idx+'_prezzo_mese').value||0,
+        prezzo_anno_pieno:+$('ep_'+idx+'_prezzo_anno_pieno').value||0, prezzo_mese_pieno:+$('ep_'+idx+'_prezzo_mese_pieno').value||0,
         mail_mese:+$('ep_'+idx+'_mail_mese').value||0, mail_giorno:+$('ep_'+idx+'_mail_giorno').value||0,
-        foto_ia_mese:+$('ep_'+idx+'_foto_ia_mese').value||0, sessioni_mese:+$('ep_'+idx+'_sessioni_mese').value||0,
+        foto_ia_mese: on(1)? fotoN : 0, sessioni_mese: on(2)? (+$('ep_'+idx+'_sessioni_mese').value||0) : 0,
         sessioni_giorno:+$('ep_'+idx+'_sessioni_giorno').value||0,
-        assistente:($('ep_'+idx+'_assist_ill').checked ? -1 : (Math.max(0,+$('ep_'+idx+'_assist_num').value||0))), report:$('ep_'+idx+'_report').checked,
-        grandi_invii:$('ep_'+idx+'_grandi').checked, flags:{mail:true,foto:(+$('ep_'+idx+'_foto_ia_mese').value||0)>0}
+        assistente: on(3) ? (assIll ? -1 : assN) : 0,
+        report: on(4), grandi_invii: on(5),
+        una_tantum: readUt($('ut_'+idx)),
+        flags:{ mail: on(0), foto: on(1) }
       };
     });
-    LIS.extra.forEach(function(e,idx){
-      out.extra[$('ex_'+idx+'_code').value]={ label:$('ex_'+idx+'_label').value, prezzo:+$('ex_'+idx+'_prezzo').value||0,
-        tipo:$('ex_'+idx+'_tipo').value, qta:+$('ex_'+idx+'_qta').value||1 };
+    $('edExtra').querySelectorAll('.lz-ut').forEach(function(r){
+      var lab=(r.querySelector('.ut-label').value||'').trim(); if(!lab) return;
+      var code=r.getAttribute('data-code')||''; if(!code) code=slug(lab);
+      var ricEl=r.querySelector('.lz-ut-ric'); var ric=(ricEl&&ricEl.getAttribute('data-ric')==='mese')?'mese':'una_tantum';
+      out.extra[code]={ label:lab, tipo:r.querySelector('.ut-tipo').value,
+        qta:Math.max(1,+r.querySelector('.ut-qta').value||1), prezzo:Math.max(0,+r.querySelector('.ut-prezzo').value||0), ricorrenza:ric };
     });
     call('admin_listino_salva',{dati:JSON.stringify(out)}).then(function(r){
       if(r.data&&r.data.ok){ toast('Listino salvato','ok'); caricaListino(); caricaOperazioni(); }

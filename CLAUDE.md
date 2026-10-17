@@ -3,7 +3,30 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 47 — correzioni: codice ordine nella ricevuta, mail benvenuto, icona Foto magic, cartella guide mancante, form richiesta accesso; prima: AGG 46).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 48 — Listino arricchito: prezzo pieno/sconto, interruttori incluso/escluso, icone, estensioni una tantum/al mese, una tantum per piano; prima: AGG 47).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 48 — Listino: prezzo pieno+sconto, interruttori, icone, una tantum per piano)
+> - **Prezzo PIENO (barrato) facoltativo** per accesso e per ogni piano (anno+mese). Se uguale o minore
+>   del prezzo pagato → nessuno sconto (niente barrato). `piani.php`: `prezzo_anno_pieno`/`prezzo_mese_pieno`
+>   nel normalizza (default = prezzo pagato) + `predizione_accesso_pieno()`. Esposti in `ordine.php` (listino)
+>   e `stato.php` (admin_listino). Sul sito `acquista.html` appare il prezzo pieno barrato sopra quello pagato.
+> - **Interruttore incluso/escluso** per OGNI funzione di OGNI piano nell'editor (`admin.html`): mail, Foto magic,
+>   sessioni, assistente, report, Palco — con ICONA a fianco. Spegnere = funzione esclusa (valore a 0/false).
+>   Gli stati partono dallo stato attuale del piano → **nessun valore cambia** se non tocchi gli interruttori.
+> - **Estensioni (extra) editabili** con scelta **una tantum / al mese** e tipo (mail/foto_ia/sessioni/assistente).
+>   `piani.php` `predizione_extra`: campo `ricorrenza` ('una_tantum'|'mese'), tipo 'assistente' ammesso.
+>   Pulsante "Aggiungi estensione" per crearne di nuove (codice generato dal nome).
+> - **Una tantum PER PIANO**: ogni piano può avere voci una tantum sue (`una_tantum` nel piano). Nel carrello
+>   (`acquista.html`) compaiono come aggiunte quando scegli quel piano (codici `pt_<piano>_<indice>`).
+>   `predizione_extra_catalogo($piano)` unisce estensioni globali + una tantum del piano → usato sia per il
+>   PREZZO sia per l'applicazione dei crediti (restano coerenti). `predizione_applica_extra_ordine` accetta il piano.
+> - **Icone** su tutte le voci (editor pannello + pagina "scegli" del sito).
+> - **NON cambiati** prezzi/limiti/modalità dei piani esistenti: tutte le aggiunte sono additive e retro-compatibili.
+> - **Da fare (nota):** la pagina vetrina `prezzi.html` è ancora scritta a mano (numeri fissi) → va resa
+>   dinamica come `acquista.html` in un secondo momento. Il "al mese" delle estensioni oggi aggiunge i crediti
+>   una volta (non è ancora un addebito ricorrente automatico).
+> - **Richiede:** caricare in `predizione/` → `piani.php`, `ordine.php`, `stato.php`, `admin.html`; nella
+>   radice del sito → `acquista.html`. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 47 — correzioni ricevuta/mail/icona + link guida + form accesso)
 > - **Ricevuta PDF: codice ordine mascherato.** `piani.php` (ricevuta) ora stampa `$o['codice']`

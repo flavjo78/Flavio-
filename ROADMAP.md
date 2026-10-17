@@ -42,7 +42,7 @@
   pagamento (bonifico/PayPal/Satispay), mail al cliente + `supporto@` + autore, **mail di benvenuto
   con password** e **ricevuta PDF**. Attivazione utente (`attiva_ordine`).
 
-**Rifiniture e robustezza (AGG 41→46, 15 ottobre sera)**
+**Rifiniture e robustezza (AGG 41→48, 15-17 ottobre)**
 - **Invio a mano "Invia mail"** funziona anche con caselle di **dominio** (login automatico, AGG 41).
 - **Guida primo accesso**: tasto **"Salta"**, percorso **"dominio mio"** che configura davvero la casella,
   Gmail con **@gmail.com** già scritto, etichette che si adattano (Gmail/dominio) (AGG 42/43).
@@ -51,6 +51,13 @@
 - **SICUREZZA**: la **password della casella non è più leggibile** nella risposta pubblica del server (AGG 44).
 - **"Autorisponditore" e "Invia mail" sono funzioni SEPARATE**, attivabili per utente dal pannello 000 (AGG 45).
 - **"Caligrafia Foto magic"**: il **prompt dell'IA** è modificabile/creabile e selezionabile dal pannello 000 (AGG 46).
+- **AGG 47**: ricevuta PDF col **codice ordine** (es. p90a0, non PRD-0009); mail benvenuto ritoccata; **nuova icona
+  Foto magic**; **cartella `guide/`** da caricare nella radice del sito (link guida era 404); form "richiedi accesso"
+  con messaggio "Richiesta inviata" + ritorno alla schermata Password.
+- **AGG 48 — LISTINO arricchito**: **prezzo pieno (barrato) + sconto** per accesso e piani (anno/mese);
+  **interruttore incluso/escluso** per ogni funzione di ogni piano con **icone**; **estensioni una tantum / al mese**
+  (anche tipo assistente); **una tantum per singolo piano** (compaiono nel carrello "scegli"). Tutto additivo,
+  i piani esistenti non cambiano. *(Resta da rendere dinamica la vetrina `prezzi.html` — vedi 🟡.)*
 
 ---
 
@@ -66,6 +73,9 @@
 - **Archiviazione `_dati` ordinata** (anche 001 dentro `u001/`): c'è `migra_001.php`; verificare se la
   migrazione è stata fatta o va ancora eseguita.
 - **Contatore Palco**: sistemare il conteggio "Mail inviate/ricevute" in modo Palco (in corso).
+- **Vetrina `prezzi.html` dinamica**: oggi i prezzi/extra della pagina vetrina sono ancora **scritti a mano**.
+  La pagina "scegli" (`acquista.html`) è già dinamica dal listino; va resa dinamica anche la vetrina
+  (così niente più disallineamento quando cambi il listino dal pannello). *(AGG 48 ha fatto editor + "scegli".)*
 
 ---
 

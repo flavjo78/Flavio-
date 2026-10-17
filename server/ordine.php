@@ -274,17 +274,29 @@ if ($azione === 'richiesta') {
 if ($azione === 'listino') {
     $piani = [];
     foreach (predizione_piani() as $nome => $p) {
+        // una tantum di questo piano: codici stabili pt_<piano>_<indice> (per il carrello)
+        $ut = [];
+        foreach (($p['una_tantum'] ?? []) as $ix => $u) {
+            $ut[] = ['code' => 'pt_' . strtolower($nome) . '_' . $ix, 'label' => (string)$u['label'],
+                     'tipo' => (string)$u['tipo'], 'qta' => (int)$u['qta'], 'prezzo' => (float)$u['prezzo']];
+        }
         $piani[] = ['nome' => $nome, 'prezzo_anno' => (int)$p['prezzo_anno'], 'prezzo_mese' => (int)$p['prezzo_mese'],
+                    'prezzo_anno_pieno' => (int)($p['prezzo_anno_pieno'] ?? $p['prezzo_anno']),
+                    'prezzo_mese_pieno' => (int)($p['prezzo_mese_pieno'] ?? $p['prezzo_mese']),
                     'mail_mese' => (int)$p['mail_mese'], 'mail_giorno' => (int)($p['mail_giorno'] ?? 0),
                     'foto_ia_mese' => (int)$p['foto_ia_mese'], 'sessioni_mese' => (int)$p['sessioni_mese'],
                     'sessioni_giorno' => (int)($p['sessioni_giorno'] ?? 0),
-                    'assistente' => (bool)$p['assistente'], 'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report']];
+                    'assistente' => (bool)$p['assistente'], 'grandi_invii' => (bool)$p['grandi_invii'], 'report' => (bool)$p['report'],
+                    'una_tantum' => $ut];
     }
     $extra = [];
     foreach (predizione_extra() as $code => $e) {
-        $extra[] = ['code' => $code, 'label' => (string)$e['label'], 'prezzo' => (float)$e['prezzo']];
+        $extra[] = ['code' => $code, 'label' => (string)$e['label'], 'prezzo' => (float)$e['prezzo'],
+                    'tipo' => (string)($e['tipo'] ?? 'mail'),
+                    'ricorrenza' => (string)($e['ricorrenza'] ?? 'una_tantum')];
     }
-    predizione_json(['ok' => true, 'accesso' => predizione_accesso_prezzo(), 'piani' => $piani, 'extra' => $extra]);
+    predizione_json(['ok' => true, 'accesso' => predizione_accesso_prezzo(), 'accesso_pieno' => predizione_accesso_pieno(),
+                     'piani' => $piani, 'extra' => $extra]);
 }
 
 /* ===== PASSWORD D'ACCESSO del gioco (pubblico): valida e ritorna l'etichetta */
@@ -336,7 +348,7 @@ if ($azione === 'crea') {
     // EXTRA (carrello): mappa {codice: quantita'} in JSON
     $extra = []; $extraRaw = ord_p('extra');
     if ($extraRaw !== '') { $tmp = json_decode($extraRaw, true); if (is_array($tmp)) foreach ($tmp as $k => $v) { $q = max(0, (int)$v); if ($q > 0) $extra[(string)$k] = $q; } }
-    $cat = predizione_extra(); $extraCost = 0.0;
+    $cat = predizione_extra_catalogo($piano); $extraCost = 0.0;
     foreach ($extra as $code => $q) { if (isset($cat[$code])) $extraCost += (float)$cat[$code]['prezzo'] * $q; }
 
     // CLIENTE GIA' ATTIVO (upgrade/extra dal pannello): niente accesso 25 €

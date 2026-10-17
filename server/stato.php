@@ -606,11 +606,13 @@ function predizione_admin(string $azione): void {
             $extra = [];
             foreach (predizione_extra() as $code => $e) {
                 $extra[] = ['code' => (string)$code, 'label' => (string)$e['label'],
-                            'prezzo' => (float)$e['prezzo'], 'tipo' => (string)$e['tipo'], 'qta' => (int)$e['qta']];
+                            'prezzo' => (float)$e['prezzo'], 'tipo' => (string)$e['tipo'], 'qta' => (int)$e['qta'],
+                            'ricorrenza' => (string)($e['ricorrenza'] ?? 'una_tantum')];
             }
             predizione_json(['ok' => true, 'listino' => [
                 'piani' => $piani, 'extra' => $extra,
                 'accesso' => predizione_accesso_prezzo(),
+                'accesso_pieno' => predizione_accesso_pieno(),
                 'nomi_base' => predizione_piani_nomi_base(),
             ]]);
 
@@ -636,7 +638,9 @@ function predizione_admin(string $azione): void {
             $versioni = is_array($old['versioni'] ?? null) ? $old['versioni'] : [];
             $storico  = is_array($old['storico'] ?? null)  ? $old['storico']  : [];
             $correnti = predizione_piani();   // definizioni attualmente in vigore (per confronto)
-            $nuovo = ['piani' => [], 'extra' => [], 'accesso' => max(0, (int)($in['accesso'] ?? predizione_accesso_prezzo())),
+            $accessoN = max(0, (int)($in['accesso'] ?? predizione_accesso_prezzo()));
+            $accessoP = max(0, (int)($in['accesso_pieno'] ?? 0)); if ($accessoP < $accessoN) $accessoP = $accessoN;
+            $nuovo = ['piani' => [], 'extra' => [], 'accesso' => $accessoN, 'accesso_pieno' => $accessoP,
                       'versioni' => $versioni, 'storico' => $storico];
             // piani
             $pin = is_array($in['piani'] ?? null) ? $in['piani'] : [];
@@ -663,9 +667,12 @@ function predizione_admin(string $azione): void {
                 $code = preg_replace('/[^a-z0-9_]/', '', strtolower((string)$code));
                 if ($code === '' || !is_array($e)) continue;
                 $tipo = (string)($e['tipo'] ?? 'mail');
-                if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true)) $tipo = 'mail';
+                if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true)) $tipo = 'mail';
+                $ric = (string)($e['ricorrenza'] ?? 'una_tantum');
+                if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
                 $nuovo['extra'][$code] = ['prezzo' => max(0, (float)($e['prezzo'] ?? 0)), 'tipo' => $tipo,
-                                          'qta' => max(1, (int)($e['qta'] ?? 1)), 'label' => substr((string)($e['label'] ?? $code), 0, 60)];
+                                          'qta' => max(1, (int)($e['qta'] ?? 1)), 'label' => substr((string)($e['label'] ?? $code), 0, 60),
+                                          'ricorrenza' => $ric];
             }
             if (!predizione_listino_scrivi($nuovo)) predizione_json(['ok' => false, 'errore' => 'Salvataggio non riuscito (permessi _dati?)'], 500);
             predizione_log_operazione('listino', '000', 'listino aggiornato');

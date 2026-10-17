@@ -70,9 +70,17 @@ function predizione_piano_normalizza(array $p, array $base = []): array {
     $ass = $g('assistente', 0);
     if (is_bool($ass)) $ass = $ass ? -1 : 0;
     $ass = (int)$ass; if ($ass < -1) $ass = -1;
+    $prezzoAnno = max(0, (int)$g('prezzo_anno', 0));
+    $prezzoMese = max(0, (int)$g('prezzo_mese', 0));
+    // PREZZO PIENO (barrato) facoltativo: se mancante o <= prezzo pagato vale
+    // il prezzo pagato stesso (= nessuno sconto, niente barrato sul sito).
+    $pienoAnno = max(0, (int)$g('prezzo_anno_pieno', 0)); if ($pienoAnno < $prezzoAnno) $pienoAnno = $prezzoAnno;
+    $pienoMese = max(0, (int)$g('prezzo_mese_pieno', 0)); if ($pienoMese < $prezzoMese) $pienoMese = $prezzoMese;
     return [
-        'prezzo_anno'    => max(0, (int)$g('prezzo_anno', 0)),
-        'prezzo_mese'    => max(0, (int)$g('prezzo_mese', 0)),
+        'prezzo_anno'    => $prezzoAnno,
+        'prezzo_mese'    => $prezzoMese,
+        'prezzo_anno_pieno' => $pienoAnno,                         // barrato (>= prezzo_anno)
+        'prezzo_mese_pieno' => $pienoMese,                         // barrato (>= prezzo_mese)
         'mail_mese'      => max(0, (int)$g('mail_mese', 0)),
         'mail_giorno'    => max(0, (int)$g('mail_giorno', 0)),     // 0 = nessun limite giornaliero
         'foto_ia_mese'   => max(0, (int)$g('foto_ia_mese', 0)),
@@ -81,8 +89,31 @@ function predizione_piano_normalizza(array $p, array $base = []): array {
         'assistente'     => $ass,                                  // int: 0 no, -1 illimitato, N quota
         'report'         => (bool)$g('report', false),
         'grandi_invii'   => (bool)$g('grandi_invii', false),
+        'una_tantum'     => predizione_una_tantum_normalizza($g('una_tantum', [])), // estensioni una tantum di questo piano
         'flags'          => ['mail' => !empty($flags['mail']), 'foto' => !empty($flags['foto'])],
     ];
+}
+
+/* Normalizza la lista "una tantum" di un piano: ogni voce = {label, tipo, qta,
+   prezzo}. tipo in mail|foto_ia|sessioni|assistente. Lista vuota = niente (nessun
+   cambiamento rispetto a prima). Restituisce sempre un array (anche vuoto). */
+function predizione_una_tantum_normalizza($lista): array {
+    if (!is_array($lista)) return [];
+    $out = [];
+    foreach ($lista as $v) {
+        if (!is_array($v)) continue;
+        $tipo = (string)($v['tipo'] ?? 'mail');
+        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true)) $tipo = 'mail';
+        $label = trim((string)($v['label'] ?? ''));
+        if ($label === '') continue;
+        $out[] = [
+            'label'  => $label,
+            'tipo'   => $tipo,
+            'qta'    => max(1, (int)($v['qta'] ?? 1)),
+            'prezzo' => max(0, (float)($v['prezzo'] ?? 0)),
+        ];
+    }
+    return $out;
 }
 
 /* ---- LISTINO su file (modificabile dall'editor del pannello 000) ------- */
@@ -120,6 +151,14 @@ function predizione_piani(): array {
 function predizione_accesso_prezzo(): int {
     $lis = predizione_listino_leggi();
     return isset($lis['accesso']) ? max(0, (int)$lis['accesso']) : (int)PRED_ACCESSO_PREZZO;
+}
+/* Prezzo PIENO (barrato) dell'accesso: facoltativo. Se mancante o <= prezzo
+   pagato vale il prezzo pagato (= nessuno sconto, niente barrato). */
+function predizione_accesso_pieno(): int {
+    $lis = predizione_listino_leggi();
+    $pagato = predizione_accesso_prezzo();
+    $pieno = isset($lis['accesso_pieno']) ? max(0, (int)$lis['accesso_pieno']) : 0;
+    return $pieno > $pagato ? $pieno : $pagato;
 }
 
 /* ---- VERSIONI dei piani (storico) -------------------------------------
@@ -159,10 +198,10 @@ function predizione_prezzo_piano(string $piano, string $durata): int {
 /* ---- Extra a la carte (estensioni della licenza) — VALORI DI FABBRICA -- */
 function predizione_extra_default(): array {
     return [
-        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',     'qta' => 200,  'label' => '+200 mail'],
-        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',  'qta' => 10,   'label' => '10 foto con IA'],
-        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni', 'qta' => 5,    'label' => '5 sessioni'],
-        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',     'qta' => 5000, 'label' => '5.000 mail (Palco)'],
+        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',     'qta' => 200,  'label' => '+200 mail',          'ricorrenza' => 'una_tantum'],
+        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',  'qta' => 10,   'label' => '10 foto con IA',      'ricorrenza' => 'una_tantum'],
+        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni', 'qta' => 5,    'label' => '5 sessioni',         'ricorrenza' => 'una_tantum'],
+        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',     'qta' => 5000, 'label' => '5.000 mail (Palco)', 'ricorrenza' => 'una_tantum'],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
@@ -175,15 +214,39 @@ function predizione_extra(): array {
         $code = (string)$code;
         if (!is_array($e)) continue;
         $tipo = (string)($e['tipo'] ?? ($def[$code]['tipo'] ?? 'mail'));
-        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni'], true)) $tipo = 'mail';
+        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true)) $tipo = 'mail';
+        $ric = (string)($e['ricorrenza'] ?? ($def[$code]['ricorrenza'] ?? 'una_tantum'));
+        if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
         $out[$code] = [
-            'prezzo' => max(0, (float)($e['prezzo'] ?? ($def[$code]['prezzo'] ?? 0))),
-            'tipo'   => $tipo,
-            'qta'    => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
-            'label'  => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
+            'prezzo'     => max(0, (float)($e['prezzo'] ?? ($def[$code]['prezzo'] ?? 0))),
+            'tipo'       => $tipo,
+            'qta'        => max(1, (int)($e['qta'] ?? ($def[$code]['qta'] ?? 1))),
+            'label'      => (string)($e['label'] ?? ($def[$code]['label'] ?? $code)),
+            'ricorrenza' => $ric,                                 // 'una_tantum' | 'mese'
         ];
     }
     return $out;
+}
+
+/* Catalogo extra COMPLETO per un ordine: gli extra globali + (se indicato un
+   piano) le "una tantum" di quel piano, con codici stabili pt_<piano>_<indice>.
+   Usato sia per il PREZZO sia per l'APPLICAZIONE dei crediti, così i due
+   restano sempre coerenti. */
+function predizione_extra_catalogo(string $piano = ''): array {
+    $cat = predizione_extra();
+    $piano = trim($piano);
+    if ($piano !== '') {
+        $piani = predizione_piani();
+        if (isset($piani[$piano])) {
+            foreach (($piani[$piano]['una_tantum'] ?? []) as $ix => $u) {
+                $cat['pt_' . strtolower($piano) . '_' . $ix] = [
+                    'prezzo' => (float)$u['prezzo'], 'tipo' => (string)$u['tipo'],
+                    'qta' => (int)$u['qta'], 'label' => (string)$u['label'], 'ricorrenza' => 'una_tantum',
+                ];
+            }
+        }
+    }
+    return $cat;
 }
 
 /* ---- Applica un piano a un record utente (crea/estende abbonamento) ---- */
@@ -407,8 +470,8 @@ function predizione_ricevuta_scrivi(array $o, string $utente, string $numero): s
    Idempotente: se l'ordine ha gia' un utente, non ne crea un altro.
    ========================================================================= */
 /* Applica gli EXTRA di un ordine (pacchetti mail/foto/sessioni) a un utente. */
-function predizione_applica_extra_ordine(array &$rec, array $extra): void {
-    $cat = predizione_extra();
+function predizione_applica_extra_ordine(array &$rec, array $extra, string $piano = ''): void {
+    $cat = predizione_extra_catalogo($piano);
     foreach ($extra as $code => $qta) {
         $qta = max(0, (int)$qta);
         if ($qta <= 0 || !isset($cat[$code])) continue;
@@ -443,7 +506,7 @@ function predizione_attiva_ordine(array &$ordine): array {
     $esistente = (string)($ordine['utente_esistente'] ?? '');
     if ($esistente !== '' && isset($utenti[$esistente])) {
         if (($ordine['piano'] ?? '') !== '') predizione_applica_piano($utenti[$esistente], $piano, $ordine['durata'] ?? 'anno', (int)($ordine['quante'] ?? 1));
-        predizione_applica_extra_ordine($utenti[$esistente], $extra);
+        predizione_applica_extra_ordine($utenti[$esistente], $extra, $piano);
         predizione_utenti_scrivi($utenti);
         $ricNum  = predizione_ricevuta_numero();
         $ricFile = predizione_ricevuta_scrivi($ordine, $esistente, $ricNum);
@@ -472,7 +535,7 @@ function predizione_attiva_ordine(array &$ordine): array {
         'creato' => date('c'),
     ];
     predizione_applica_piano($rec, $piano, $ordine['durata'] ?? 'anno', (int)($ordine['quante'] ?? 1));
-    predizione_applica_extra_ordine($rec, $extra);
+    predizione_applica_extra_ordine($rec, $extra, $piano);
 
     $utenti[$u] = $rec;
     predizione_utenti_scrivi($utenti);
