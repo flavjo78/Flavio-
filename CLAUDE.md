@@ -3,7 +3,13 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 54 — Mail = limiti (al mese, max al giorno) vs Sessioni = si sommano (al giorno + al mese); frasi uguali sul sito; prima: AGG 53).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 55 — tasti "Salva" e "Vedi prezzi" in alto a destra nel Listino; prima: AGG 54).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 55 — Salva + Vedi prezzi in cima all'editor Listino)
+> - **Barra in alto (`admin.html`):** nella vista **Listino** ora accanto ad "Aggiorna" compaiono
+>   **"Salva"** (oro, salva il listino = come il tasto in fondo) e **"Vedi prezzi ↗"** (apre la pagina
+>   prezzi del sito in una nuova scheda, URL calcolato dalla radice). Si mostrano solo in Listino.
+> - **Richiede:** `predizione/` → `admin.html`. (Nel bundle anche i file degli AGG 51→54.) Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 54 — significato corretto dei due numeri per servizio)
 > - **Due significati diversi, etichette diverse per servizio (`admin.html`):**

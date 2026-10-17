@@ -153,6 +153,8 @@
       <button class="burger" id="burger">☰</button>
       <span class="ttl" id="topTitle">Ordini</span>
       <span class="sp"></span>
+      <a class="btn hidden" id="topPrezzi" target="_blank" rel="noopener">Vedi prezzi ↗</a>
+      <button class="btn gold hidden" id="topSalva">Salva</button>
       <button class="btn" id="refreshAll">Aggiorna</button>
     </div>
 
@@ -386,6 +388,15 @@
     if(v==='test') popolaTest();
     if(v==='prompt') caricaPrompt();
     $('topTitle').textContent=TITOLI[v]||'';
+    // tasti in alto a destra solo nella vista Listino: Salva + Vedi prezzi
+    var isLis=(v==='listino');
+    $('topSalva').classList.toggle('hidden', !isLis);
+    $('topPrezzi').classList.toggle('hidden', !isLis);
+    if(isLis){
+      var dir=location.href.split('?')[0].replace(/[^/]*$/,'');   // .../predizione/
+      var root=dir.replace(/predizione\/$/,'');                   // radice sito
+      $('topPrezzi').setAttribute('href', root+'prezzi.html');
+    }
     document.querySelectorAll('.navitem[data-view]').forEach(function(b){ b.classList.toggle('sel', b.getAttribute('data-view')===v); });
     if(window.innerWidth<980) closeNav();
     window.scrollTo(0,0);
@@ -396,6 +407,7 @@
   $('burger').addEventListener('click', toggleNav);
   $('backdrop').addEventListener('click', closeNav);
   document.querySelectorAll('.navitem[data-view]').forEach(function(b){ b.addEventListener('click',function(){ showView(b.getAttribute('data-view')); }); });
+  $('topSalva').addEventListener('click', function(){ var b=$('edSalva'); if(b) b.click(); });
   $('refreshAll').addEventListener('click', function(){ carica(); caricaOrdini(); caricaOperazioni(); caricaAccessi(); if(VIEW==='listino') caricaListino(); toast('Aggiornato','ok'); });
 
   /* ---------- CARICAMENTO INIZIALE ---------- */
