@@ -1,7 +1,7 @@
 # PREDIZIONE — Roadmap (stato reale)
 
-> Aggiornata il **15 ottobre 2026 (sera)** dallo stato VERO del codice e dal
-> registro "AGG 12 → 46" in `CLAUDE.md`.
+> Aggiornata il **17 ottobre 2026** dallo stato VERO del codice e dal
+> registro "AGG 12 → 60" in `CLAUDE.md`.
 >
 > Legenda: ✅ fatto e funzionante · 🟡 fatto nel codice, da confermare se è ONLINE
 > o da collaudare dal vivo · 🔴 da fare davvero.
@@ -42,7 +42,7 @@
   pagamento (bonifico/PayPal/Satispay), mail al cliente + `supporto@` + autore, **mail di benvenuto
   con password** e **ricevuta PDF**. Attivazione utente (`attiva_ordine`).
 
-**Rifiniture e robustezza (AGG 41→48, 15-17 ottobre)**
+**Rifiniture e robustezza (AGG 41→60, 15-17 ottobre)**
 - **Invio a mano "Invia mail"** funziona anche con caselle di **dominio** (login automatico, AGG 41).
 - **Guida primo accesso**: tasto **"Salta"**, percorso **"dominio mio"** che configura davvero la casella,
   Gmail con **@gmail.com** già scritto, etichette che si adattano (Gmail/dominio) (AGG 42/43).
@@ -55,9 +55,21 @@
   Foto magic**; **cartella `guide/`** da caricare nella radice del sito (link guida era 404); form "richiedi accesso"
   con messaggio "Richiesta inviata" + ritorno alla schermata Password.
 - **AGG 48 — LISTINO arricchito**: **prezzo pieno (barrato) + sconto** per accesso e piani (anno/mese);
-  **interruttore incluso/escluso** per ogni funzione di ogni piano con **icone**; **estensioni una tantum / al mese**
-  (anche tipo assistente); **una tantum per singolo piano** (compaiono nel carrello "scegli"). Tutto additivo,
-  i piani esistenti non cambiano. *(Resta da rendere dinamica la vetrina `prezzi.html` — vedi 🟡.)*
+  **interruttore incluso/escluso** per ogni funzione di ogni piano con **icone**; **estensioni**;
+  **una tantum per singolo piano** (compaiono nel carrello "scegli"). Tutto additivo, i piani esistenti non cambiano.
+- **AGG 49**: link "Prezzi" → ora apre il **confronto piani** (`prezzi.html`), non più la guida hosting.
+- **AGG 50**: **omaggio di benvenuto per piano** (Foyer = 10 Foto magic una volta sola), regalato ai nuovi utenti.
+- **AGG 51**: **vetrina `prezzi.html` DINAMICA** — legge il listino dall'editor (vedi 🟡, fatto).
+- **AGG 52–54**: editor a **righe unificate** per servizio (omaggio · al giorno · al mese), con significato
+  corretto (Mail = **limiti** "al mese, max al giorno"; Sessioni = **si sommano** "al giorno + al mese");
+  stesse frasi sul sito; accesso di default **105 → 25 (promo)**.
+- **AGG 55**: tasti **Salva** e **Vedi prezzi** in cima all'editor Listino.
+- **AGG 56**: la base d'accesso **"aaa"** si può **disattivare/ripristinare** dal pannello.
+- **AGG 57–58**: pagina prezzi con **righe allineate** per tutti i piani (le voci mancanti in grigio).
+- **AGG 59**: **licenza** senza il banner rosso "bozza/commercialista".
+- **AGG 60 — ACCESSORI = "secchiello separato"**: i crediti comprati si **consumano davvero** (prima il
+  piano del mese, poi i crediti) e **NON si ricaricano** col ripristino; **scadenza in mesi o data precisa**
+  impostabile nell'editor. *(Dopo il deploy, fare una prova d'invio reale: è cambiato il conteggio consumi.)*
 
 ---
 
