@@ -154,25 +154,29 @@
   }
 
   // costruisce le voci "incluso" di un piano
+  // righe SEMPRE nello stesso ordine per tutti i piani (le mancanti in grigio) -> colonne allineate
   function feats(p){
-    var li=[];
-    // sessioni
-    if(p.sessioni_giorno>0) li.push(nf(p.sessioni_giorno)+(p.sessioni_giorno===1?' sessione':' sessioni')+' al giorno + '+nf(p.sessioni_mese)+' al mese');
-    else li.push(nf(p.sessioni_mese)+' sessioni al mese');
-    // mail
-    var mail=nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' (max '+nf(p.mail_giorno)+' al giorno)'):'');
-    if(p.grandi_invii) mail+=' + invii grandi';
-    li.push(mail);
-    // foto mensili + omaggio
-    if(p.foto_ia_mese>0) li.push(nf(p.foto_ia_mese)+' Foto magic al mese');
-    (p.omaggio||[]).forEach(function(o){ li.push('🎁 '+esc(o.label)+' (benvenuto)'); });
-    // assistente + report
-    var ar=[]; if(p.assistente) ar.push('Assistente'); if(p.report) ar.push('Report');
-    if(ar.length===2) li.push('Assistente e Report inclusi');
-    else if(ar.length===1) li.push(ar[0]+' incluso');
-    var out=li.map(function(t){return '<li><span class="tick">◆</span> '+t+'</li>';}).join('');
-    if(ar.length===0) out+='<li><span class="muted">○ Assistente e Report a pagamento</span></li>';
-    return out;
+    var li=[];  // [segno, testo, muted?]
+    // 1) Sessioni
+    if(p.sessioni_giorno>0) li.push(['◆', nf(p.sessioni_giorno)+(p.sessioni_giorno===1?' sessione':' sessioni')+' al giorno + '+nf(p.sessioni_mese)+' al mese', false]);
+    else li.push(['◆', nf(p.sessioni_mese)+' sessioni al mese', false]);
+    // 2) Mail
+    li.push(['◆', nf(p.mail_mese)+' mail al mese'+(p.mail_giorno>0?(' (max '+nf(p.mail_giorno)+' al giorno)'):''), false]);
+    // 3) Foto magic al mese
+    if(p.foto_ia_mese>0) li.push(['◆', nf(p.foto_ia_mese)+' Foto magic al mese', false]);
+    else li.push(['○', 'niente Foto magic al mese', true]);
+    // 4) Omaggio di benvenuto
+    if(p.omaggio && p.omaggio.length) li.push(['🎁', p.omaggio.map(function(o){return esc(o.label);}).join(' · ')+' (benvenuto)', false]);
+    else li.push(['○', 'nessun omaggio di benvenuto', true]);
+    // 5) Assistente
+    li.push(p.assistente ? ['◆','Assistente incluso', false] : ['○','Assistente a pagamento', true]);
+    // 6) Report
+    li.push(p.report ? ['◆','Report incluso', false] : ['○','Report a pagamento', true]);
+    // 7) Invii grandi (Palco)
+    li.push(p.grandi_invii ? ['◆','Invii grandi (Palco)', false] : ['○','Invii grandi non inclusi', true]);
+    return li.map(function(x){
+      return '<li'+(x[2]?' class="muted"':'')+'><span class="tick"'+(x[2]?' style="color:var(--dim)"':'')+'>'+x[0]+'</span> '+x[1]+'</li>';
+    }).join('');
   }
 
   function renderPiani(){

@@ -3,7 +3,16 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 56 — la base d'accesso "aaa" ora è disattivabile/ripristinabile dal pannello; prima: AGG 55).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 57 — pagina prezzi: righe allineate uguali per tutti i piani; prima: AGG 56).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 57 — confronto piani con righe fisse allineate)
+> - **`prezzi.html` `feats()` riscritta:** ogni piano mostra SEMPRE le stesse 7 righe nello stesso ordine
+>   (Sessioni · Mail · Foto magic al mese · 🎁 Omaggio · Assistente · Report · Invii grandi/Palco). Le voci
+>   NON incluse compaiono comunque, **in grigio** ("non incluso" / "a pagamento") → colonne allineate e confrontabili.
+>   Prima: Report/Assistente su una riga unica, omaggio solo dove c'era, Palco attaccato alla mail → righe sfalsate.
+> - **Omaggi (editor):** già ora ogni piano ha il campo 🎁 omaggio per mail/foto/sessioni (stesse voci, quantità
+>   0 dove non c'è) → invariato, è già uniforme.
+> - **Richiede:** radice del sito → `prezzi.html`. (Nel bundle anche i file AGG 51→56.) Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 56 — disattivare la base d'accesso "aaa")
 > - **La base "aaa" (provenienza "diretto") è disattivabile.** Nuovo marcatore `_dati/accesso_base_off`
