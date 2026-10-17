@@ -3,7 +3,20 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 52 — editor: ogni servizio su una riga con una tantum/giorno/mese; accesso pieno 105 di default; include AGG 51; prima: AGG 50).
+Ultimo aggiornamento: 17 ottobre 2026 (AGG 53 — editor: "limiti inclusi" chiari vs omaggio; Report/Assistente nel listino con prezzo; prima: AGG 52).
+
+> ### Aggiunte 17 ottobre 2026 (AGG 53 — limiti chiari nell'editor + Report/Assistente nel confronto costi)
+> - **Chiarezza "limiti vs omaggio" (`admin.html`):** nella riga di ogni servizio i campi **al giorno / al mese**
+>   sono ora racchiusi in un riquadro **"limiti inclusi nel piano"** (tetto: "max / giorno", "inclusi / mese");
+>   il campo **🎁 omaggio** (una tantum) resta a parte. Così non si confonde il limite con un'aggiunta.
+> - **Report e Assistente nel listino/confronto costi:** `piani.php` extra di fabbrica ora includono
+>   **"Assistente di scena" 2 €/mese** (tipo assistente) e **"Report sessione" 1 €/mese** (tipo `report`).
+>   Nuovo tipo extra `report`: comprarlo ATTIVA la funzione (`report_extra=true`) invece di dare crediti
+>   (`predizione_applica_extra_ordine`). Whitelist aggiornata in `piani.php` e `stato.php`; opzione "Report"
+>   aggiunta al menù tipo dell'editor; icona report sul sito.
+> - **Prezzo barrato (confermato):** se nel piano il prezzo "si paga" è PIÙ BASSO del "pieno", sul sito il
+>   pieno appare **barrato** con lo sconto; se sono uguali, niente barrato. (Il "pieno" dev'essere il numero più alto.)
+> - **Richiede:** in `predizione/` → `piani.php`, `stato.php`, `admin.html`; nella radice → `acquista.html`, `prezzi.html`. Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 52 — editor a righe unificate (una tantum/giorno/mese) + default dall'html)
 > - **Editor listino (`admin.html`): ogni servizio su UNA riga** con interruttore + icona + i campi quantità

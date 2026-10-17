@@ -221,11 +221,14 @@
           .lz-sw i{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--faint);transition:.15s}
           .lz-sw.on{background:var(--good-soft);border-color:transparent}.lz-sw.on i{left:18px;background:var(--good)}
           .lz-stato{font-size:11px;font-weight:700;min-width:58px;text-align:right}.lz-stato.inc{color:var(--good)}.lz-stato.esc{color:var(--stop)}
-          .lz-fields{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+          .lz-fields{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
           .lz-mini{display:inline-flex;flex-direction:column;gap:2px}
           .lz-mini label{font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-dim)}
-          .lz-mini input{width:68px}
+          .lz-mini input{width:66px}
           .lz-mini.ut label{color:var(--good)}
+          .lz-lim{display:inline-flex;flex-direction:column;gap:4px;border:1px solid var(--line-2);border-radius:10px;padding:5px 9px 7px;background:rgba(236,224,201,.03)}
+          .lz-lim-t{font-size:9px;letter-spacing:.09em;text-transform:uppercase;color:var(--gold)}
+          .lz-lim-row{display:flex;gap:10px;align-items:flex-end}
           .lz-sub{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-dim);margin:12px 0 6px}
           .lz-ut{display:flex;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--line-2);border-radius:10px;padding:8px 10px;margin-bottom:6px;flex-wrap:wrap}
           .lz-ut .lz-ic{background:var(--surface)}
@@ -658,6 +661,10 @@
     return '<div class="lz-row'+(on?'':' off')+'">'+lzSw(on)+lzIc(ic)+
       '<div class="lz-nm">'+nome+'</div><div class="lz-fields">'+fieldsHtml+'</div></div>';
   }
+  // gruppo "limiti inclusi nel piano" (racchiude i campi tetto giorno/mese)
+  function lzLim(fieldsHtml){
+    return '<span class="lz-lim"><span class="lz-lim-t">limiti inclusi nel piano</span><span class="lz-lim-row">'+fieldsHtml+'</span></span>';
+  }
   function num(id,v){ return '<input type="number" min="0" id="'+id+'" value="'+(v||0)+'">'; }
   function swOn(el){ return el&&el.classList.contains('on'); }
   // riga funzione: interruttore + icona + nome + (numero o stato)
@@ -691,16 +698,19 @@
       var mailOm=omQty(p,'mail'), sessOm=omQty(p,'sessioni'), fotoOm=omQty(p,'foto_ia');
       var righe=
         lzRowMulti('mail','Mail',mailOn,
-          lzMini('ep_'+idx+'_om_mail','una tantum',mailOm,mailOn,true)+
-          lzMini('ep_'+idx+'_mail_giorno','al giorno',p.mail_giorno,mailOn)+
-          lzMini('ep_'+idx+'_mail_mese','al mese',p.mail_mese,mailOn))+
+          lzMini('ep_'+idx+'_om_mail','🎁 omaggio',mailOm,mailOn,true)+
+          lzLim(
+            lzMini('ep_'+idx+'_mail_giorno','max / giorno',p.mail_giorno,mailOn)+
+            lzMini('ep_'+idx+'_mail_mese','inclusi / mese',p.mail_mese,mailOn)))+
         lzRowMulti('foto_ia','Foto magic',fotoOn,
-          lzMini('ep_'+idx+'_om_foto','una tantum',fotoOm,fotoOn,true)+
-          lzMini('ep_'+idx+'_foto_ia_mese','al mese',p.foto_ia_mese,fotoOn))+
+          lzMini('ep_'+idx+'_om_foto','🎁 omaggio',fotoOm,fotoOn,true)+
+          lzLim(
+            lzMini('ep_'+idx+'_foto_ia_mese','inclusi / mese',p.foto_ia_mese,fotoOn)))+
         lzRowMulti('sessioni','Sessioni',sessOn,
-          lzMini('ep_'+idx+'_om_sessioni','una tantum',sessOm,sessOn,true)+
-          lzMini('ep_'+idx+'_sessioni_giorno','al giorno',p.sessioni_giorno,sessOn)+
-          lzMini('ep_'+idx+'_sessioni_mese','al mese',p.sessioni_mese,sessOn))+
+          lzMini('ep_'+idx+'_om_sessioni','🎁 omaggio',sessOm,sessOn,true)+
+          lzLim(
+            lzMini('ep_'+idx+'_sessioni_giorno','max / giorno',p.sessioni_giorno,sessOn)+
+            lzMini('ep_'+idx+'_sessioni_mese','inclusi / mese',p.sessioni_mese,sessOn)))+
         '<div class="lz-row'+(assOn?'':' off')+'">'+lzSw(assOn)+lzIc('assistente')+
           '<div class="lz-nm">Assistente di scena<small>al mese</small></div>'+
           '<input type="number" min="0" id="ep_'+idx+'_assist_num" value="'+(p.assistente>0?p.assistente:0)+'" style="width:72px"'+((!assOn||ill)?' disabled':'')+'>'+
@@ -727,7 +737,7 @@
   }
   // --- una tantum (riga) ---
   function lzTipoSel(sel){
-    var opts=[['mail','Mail'],['foto_ia','Foto magic'],['sessioni','Sessioni'],['assistente','Assistente']];
+    var opts=[['mail','Mail'],['foto_ia','Foto magic'],['sessioni','Sessioni'],['assistente','Assistente'],['report','Report']];
     return '<select class="ut-tipo" onchange="lzUtIcon(this)">'+opts.map(function(o){
       return '<option value="'+o[0]+'"'+(o[0]===sel?' selected':'')+'>'+o[1]+'</option>'; }).join('')+'</select>';
   }

@@ -667,7 +667,7 @@ function predizione_admin(string $azione): void {
                 $code = preg_replace('/[^a-z0-9_]/', '', strtolower((string)$code));
                 if ($code === '' || !is_array($e)) continue;
                 $tipo = (string)($e['tipo'] ?? 'mail');
-                if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true)) $tipo = 'mail';
+                if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente', 'report'], true)) $tipo = 'mail';
                 $ric = (string)($e['ricorrenza'] ?? 'una_tantum');
                 if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
                 $nuovo['extra'][$code] = ['prezzo' => max(0, (float)($e['prezzo'] ?? 0)), 'tipo' => $tipo,

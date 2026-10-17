@@ -203,10 +203,12 @@ function predizione_prezzo_piano(string $piano, string $durata): int {
 /* ---- Extra a la carte (estensioni della licenza) — VALORI DI FABBRICA -- */
 function predizione_extra_default(): array {
     return [
-        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',     'qta' => 200,  'label' => '+200 mail',          'ricorrenza' => 'una_tantum'],
-        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',  'qta' => 10,   'label' => '10 foto con IA',      'ricorrenza' => 'una_tantum'],
-        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni', 'qta' => 5,    'label' => '5 sessioni',         'ricorrenza' => 'una_tantum'],
-        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',     'qta' => 5000, 'label' => '5.000 mail (Palco)', 'ricorrenza' => 'una_tantum'],
+        'mail_200'   => ['prezzo' => 1,   'tipo' => 'mail',       'qta' => 200,  'label' => '+200 mail',             'ricorrenza' => 'una_tantum'],
+        'foto_10'    => ['prezzo' => 2.5, 'tipo' => 'foto_ia',    'qta' => 10,   'label' => '10 foto con IA',        'ricorrenza' => 'una_tantum'],
+        'sess_5'     => ['prezzo' => 2,   'tipo' => 'sessioni',   'qta' => 5,    'label' => '5 sessioni',            'ricorrenza' => 'una_tantum'],
+        'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'ricorrenza' => 'mese'],
+        'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'ricorrenza' => 'mese'],
+        'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'ricorrenza' => 'una_tantum'],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
@@ -219,7 +221,7 @@ function predizione_extra(): array {
         $code = (string)$code;
         if (!is_array($e)) continue;
         $tipo = (string)($e['tipo'] ?? ($def[$code]['tipo'] ?? 'mail'));
-        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente'], true)) $tipo = 'mail';
+        if (!in_array($tipo, ['mail', 'foto_ia', 'sessioni', 'assistente', 'report'], true)) $tipo = 'mail';
         $ric = (string)($e['ricorrenza'] ?? ($def[$code]['ricorrenza'] ?? 'una_tantum'));
         if (!in_array($ric, ['una_tantum', 'mese'], true)) $ric = 'una_tantum';
         $out[$code] = [
@@ -491,6 +493,7 @@ function predizione_applica_extra_ordine(array &$rec, array $extra, string $pian
         $qta = max(0, (int)$qta);
         if ($qta <= 0 || !isset($cat[$code])) continue;
         $e = $cat[$code];
+        if (($e['tipo'] ?? '') === 'report') { $rec['report_extra'] = true; continue; } // Report: attiva la funzione
         predizione_aggiungi_crediti($rec, $e['tipo'], (int)$e['qta'] * $qta, 0);
     }
 }
