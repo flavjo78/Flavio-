@@ -83,6 +83,159 @@ function ord_manda_mail_pdf(string $to, string $oggetto, string $corpo, ?string 
     return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $msg, $headers);
 }
 
+/* ====================================================================
+   ATTIVAZIONE + NOTIFICHE (condivisa: admin "segna pagato" e PayPal auto)
+   Attiva l'ordine, salva, e manda la mail di benvenuto col nome utente +
+   password (solo per i NUOVI) e l'avviso all'autore. Ritorna $res.
+   ==================================================================== */
+function ord_attiva_e_notifica(array &$ordini, string $id): array {
+    $res = predizione_attiva_ordine($ordini[$id]);
+    ord_scrivi($ordini);
+    if (function_exists('predizione_log_operazione')) {
+        predizione_log_operazione('attiva', (string)$res['utente'],
+            'ordine ' . $id . ' · ' . trim(($ordini[$id]['nome'] ?? '') . ' ' . ($ordini[$id]['cognome'] ?? '')));
+    }
+    if (!empty($res['nuovo']) && !empty($ordini[$id]['mail'])) {
+        $corpo = "Benvenuto in PREDIZIONE!\n\n"
+               . "Il tuo accesso e' attivo.\n"
+               . "Nome utente: " . $res['utente'] . "\n"
+               . "Password: " . $res['password'] . "\n\n"
+               . "Entra dall'app con questi dati e, al primo accesso, puoi cambiare la\n"
+               . "password (almeno 10 caratteri, 1 maiuscola e 1 simbolo).\n"
+               . "App: https://www.abraka.it/predizione/regia-predizione.html\n\n"
+               . "==============================================\n"
+               . "AL PRIMO ACCESSO L'APP TI FA DA GUIDA\n"
+               . "==============================================\n"
+               . "La prima volta che entri (o finche' non\n"
+               . "hai collegato la mail del gioco) l'app si trasforma in una GUIDA passo-passo\n"
+               . "che ti accompagna, dal telefono o dal computer, fino alla fine.\n\n"
+               . "- Con una mail GMAIL: e' tutto gia' COLLAUDATO e si fa in pochi minuti, in\n"
+               . "  pochi passaggi guidati (auto-impostazione). E' la via piu' semplice e veloce.\n"
+               . "- Con un ALTRO tipo di mail (Outlook, Libero, aziendale, un tuo dominio...):\n"
+               . "  ci pensiamo NOI, ma serve la nostra assistenza e i tempi sono un po' piu'\n"
+               . "  lunghi. In quel caso scrivici a supporto@abraka.it e ti seguiamo passo passo.\n\n"
+               . "Piu' sotto trovi comunque TUTTI i passaggi scritti, se preferisci leggerli.\n\n"
+               . "==============================================\n"
+               . "LE DUE MAIL (leggi: e' importante)\n"
+               . "==============================================\n"
+               . "1) MAIL DI COMUNICAZIONE = la mail con cui ti sei registrato ora.\n"
+               . "   E' QUESTA la mail dove ti scriviamo noi: ricevute, avvisi, assistenza.\n"
+               . "2) MAIL DEL GIOCO = la mail da cui partono le foto agli spettatori.\n"
+               . "   Puo' essere la STESSA della comunicazione, ma e' PREFERIBILE usarne\n"
+               . "   una DIVERSA, dedicata solo allo spettacolo (resta tutto piu' ordinato).\n\n"
+               . "Per usare al PIENO la funzione \"Palco\" (grandi invii, centinaia di mail)\n"
+               . "serve una mail di un DOMINIO tuo (non una Gmail): scrivici a\n"
+               . "supporto@abraka.it e ti guidiamo (assistenza dedicata, tempi un po' piu' lunghi).\n\n"
+               . "Se qualcosa non ti torna, rispondi a questa mail: ti aiutiamo noi.\n"
+               . "==============================================\n\n"
+               . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
+               . "Un saluto,\nabraka — supporto@abraka.it";
+        ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);
+    }
+    if (!empty($res['nuovo'])) {
+        $o = $ordini[$id];
+        $dett = "Nuovo acquisto ATTIVATO.\n\n"
+              . "Ordine: " . ($o['id'] ?? '') . "\n"
+              . "Cliente: " . ($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '') . "\n"
+              . "Email: " . ($o['mail'] ?? '') . "\n"
+              . "Telefono: " . ($o['tel'] ?? '') . "\n"
+              . "Residenza: " . ($o['via'] ?? '') . ", " . ($o['citta'] ?? '') . " (" . ($o['prov'] ?? '') . ")\n"
+              . "Gioco: " . ($o['gioco'] ?? '') . "\n"
+              . "Piano: " . ($o['piano'] ?? '') . " (" . ($o['durata'] ?? '') . ")\n"
+              . "Importo: " . ($o['importo'] ?? '') . " EUR  ·  Canale: " . ($o['canale'] ?? '') . "\n"
+              . "Utente creato: " . $res['utente'] . "\n"
+              . "Ricevuta: " . $res['ricevuta'] . "\n"
+              . "Data: " . date('d/m/Y H:i') . "\n";
+        ord_manda_mail(PRED_NOTIFY_EMAIL, 'Acquisto effettuato — ' . ($o['id'] ?? ''), $dett);
+    }
+    return $res;
+}
+
+/* ====================================================================
+   PAYPAL — pagamento AUTOMATICO (Orders v2). Le CHIAVI stanno sul server
+   in _dati/paypal.json (NON versionato), così non finiscono nel repo:
+     { "attivo": true, "modo": "sandbox", "client_id": "...", "secret": "..." }
+   modo = "sandbox" (prova, soldi finti) oppure "live" (reale).
+   Il Client ID è pubblico (serve anche nel bottone sul sito); la Secret resta
+   solo qui lato server (serve per creare/catturare l'ordine).
+   ==================================================================== */
+function ord_paypal_cfg(): array {
+    $f = DATA_DIR . '/paypal.json'; $c = [];
+    if (is_file($f)) { $j = json_decode((string)@file_get_contents($f), true); if (is_array($j)) $c = $j; }
+    $modo = (($c['modo'] ?? 'sandbox') === 'live') ? 'live' : 'sandbox';
+    return [
+        'attivo'    => !empty($c['attivo']) && !empty($c['client_id']) && !empty($c['secret']),
+        'modo'      => $modo,
+        'client_id' => (string)($c['client_id'] ?? ''),
+        'secret'    => (string)($c['secret'] ?? ''),
+    ];
+}
+function ord_pp_base(string $modo): string {
+    return $modo === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
+}
+/* chiamata HTTP a PayPal (cURL). Ritorna [codice_http, dati_decodificati] o [0, null]. */
+function ord_pp_http(string $url, string $metodo, array $headers, ?string $body): array {
+    if (!function_exists('curl_init')) return [0, null];
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_CUSTOMREQUEST  => $metodo,
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_HTTPHEADER     => $headers,
+        CURLOPT_TIMEOUT        => 25,
+        CURLOPT_SSL_VERIFYPEER => true,
+    ]);
+    if ($body !== null) curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+    $out  = curl_exec($ch);
+    $code = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    $dati = is_string($out) ? json_decode($out, true) : null;
+    return [$code, $dati];
+}
+/* token d'accesso (OAuth client_credentials). Ritorna la stringa o null. */
+function ord_pp_token(array $cfg): ?string {
+    $url = ord_pp_base($cfg['modo']) . '/v1/oauth2/token';
+    [$code, $d] = ord_pp_http($url, 'POST', [
+        'Authorization: Basic ' . base64_encode($cfg['client_id'] . ':' . $cfg['secret']),
+        'Content-Type: application/x-www-form-urlencoded',
+    ], 'grant_type=client_credentials');
+    return ($code === 200 && !empty($d['access_token'])) ? (string)$d['access_token'] : null;
+}
+/* crea un ordine PayPal per $importo €; ritorna l'id PayPal o null. */
+function ord_pp_crea(array $cfg, string $token, float $importo, string $rif, string $descr): ?string {
+    $url = ord_pp_base($cfg['modo']) . '/v2/checkout/orders';
+    $payload = json_encode([
+        'intent' => 'CAPTURE',
+        'purchase_units' => [[
+            'reference_id' => $rif,
+            'description'  => substr($descr, 0, 120),
+            'amount' => ['currency_code' => 'EUR', 'value' => number_format($importo, 2, '.', '')],
+        ]],
+    ], JSON_UNESCAPED_UNICODE);
+    [$code, $d] = ord_pp_http($url, 'POST', [
+        'Authorization: Bearer ' . $token, 'Content-Type: application/json',
+    ], $payload);
+    return (($code === 200 || $code === 201) && !empty($d['id'])) ? (string)$d['id'] : null;
+}
+/* cattura (incassa) l'ordine PayPal; ritorna ['ok'=>bool,'importo'=>float]. */
+function ord_pp_cattura(array $cfg, string $token, string $ppid): array {
+    $url = ord_pp_base($cfg['modo']) . '/v2/checkout/orders/' . rawurlencode($ppid) . '/capture';
+    [$code, $d] = ord_pp_http($url, 'POST', [
+        'Authorization: Bearer ' . $token, 'Content-Type: application/json',
+    ], '{}');
+    $stato = (string)($d['status'] ?? '');
+    $imp = 0.0;
+    $cap = $d['purchase_units'][0]['payments']['captures'][0] ?? null;
+    if (is_array($cap)) $imp = (float)($cap['amount']['value'] ?? 0);
+    $ok = (($code === 200 || $code === 201) && $stato === 'COMPLETED');
+    return ['ok' => $ok, 'importo' => $imp];
+}
+/* trova la chiave interna (PRD-NNNN) a partire dal CODICE mascherato o dall'id. */
+function ord_trova(array $ordini, string $idOcodice): ?string {
+    if (isset($ordini[$idOcodice])) return $idOcodice;
+    foreach ($ordini as $k => $o) { if ((string)($o['codice'] ?? '') === $idOcodice) return $k; }
+    return null;
+}
+
 /* ---------- dispatch ---------------------------------------------------- */
 $azione = ord_p('azione') ?: 'crea';
 
@@ -115,93 +268,7 @@ if (strpos($azione, 'admin_') === 0) {
     if ($azione === 'admin_attiva') {
         $id = ord_p('id');
         if (!isset($ordini[$id])) predizione_json(['ok' => false, 'errore' => 'Ordine non trovato'], 404);
-        $res = predizione_attiva_ordine($ordini[$id]);
-        ord_scrivi($ordini);
-        // archivio operazioni: ordine attivato
-        if (function_exists('predizione_log_operazione')) {
-            predizione_log_operazione('attiva', (string)$res['utente'],
-                'ordine ' . $id . ' · ' . trim(($ordini[$id]['nome'] ?? '') . ' ' . ($ordini[$id]['cognome'] ?? '')));
-        }
-        // mail di benvenuto col (solo se nuovo: altrimenti la password non si rimanda)
-        if ($res['nuovo'] && !empty($ordini[$id]['mail'])) {
-            $corpo = "Benvenuto in PREDIZIONE!\n\n"
-                   . "Il tuo accesso e' attivo.\n"
-                   . "Nome utente: " . $res['utente'] . "\n"
-                   . "Password: " . $res['password'] . "\n\n"
-                   . "Entra dall'app con questi dati e, al primo accesso, puoi cambiare la\n"
-                   . "password (almeno 10 caratteri, 1 maiuscola e 1 simbolo).\n"
-                   . "App: https://www.abraka.it/predizione/regia-predizione.html\n\n"
-                   . "==============================================\n"
-                   . "AL PRIMO ACCESSO L'APP TI FA DA GUIDA\n"
-                   . "==============================================\n"
-                   . "La prima volta che entri (o finche' non\n"
-                   . "hai collegato la mail del gioco) l'app si trasforma in una GUIDA passo-passo\n"
-                   . "che ti accompagna, dal telefono o dal computer, fino alla fine.\n\n"
-                   . "- Con una mail GMAIL: e' tutto gia' COLLAUDATO e si fa in pochi minuti, in\n"
-                   . "  pochi passaggi guidati (auto-impostazione). E' la via piu' semplice e veloce.\n"
-                   . "- Con un ALTRO tipo di mail (Outlook, Libero, aziendale, un tuo dominio...):\n"
-                   . "  ci pensiamo NOI, ma serve la nostra assistenza e i tempi sono un po' piu'\n"
-                   . "  lunghi. In quel caso scrivici a supporto@abraka.it e ti seguiamo passo passo.\n\n"
-                   . "Piu' sotto trovi comunque TUTTI i passaggi scritti, se preferisci leggerli.\n\n"
-                   . "==============================================\n"
-                   . "LE DUE MAIL (leggi: e' importante)\n"
-                   . "==============================================\n"
-                   . "1) MAIL DI COMUNICAZIONE = la mail con cui ti sei registrato ora.\n"
-                   . "   E' QUESTA la mail dove ti scriviamo noi: ricevute, avvisi, assistenza.\n"
-                   . "2) MAIL DEL GIOCO = la mail da cui partono le foto agli spettatori.\n"
-                   . "   Puo' essere la STESSA della comunicazione, ma e' PREFERIBILE usarne\n"
-                   . "   una DIVERSA, dedicata solo allo spettacolo (resta tutto piu' ordinato).\n\n"
-                   . "Per usare al PIENO la funzione \"Palco\" (grandi invii, centinaia di mail)\n"
-                   . "serve una mail di un DOMINIO tuo (non una Gmail): scrivici a\n"
-                   . "supporto@abraka.it e ti guidiamo (assistenza dedicata, tempi un po' piu' lunghi).\n\n"
-                   . "==============================================\n"
-                   . "COME PREPARARE LA MAIL DEL GIOCO (passo-passo, con Gmail)\n"
-                   . "==============================================\n"
-                   . "PARTE 1 - CREARE LA MAIL GMAIL DEL GIOCO\n"
-                   . "1) Dal telefono o dal computer vai su:  https://accounts.google.com/signup\n"
-                   . "2) Scrivi un nome (puo' essere il tuo nome d'arte) e scegli un indirizzo,\n"
-                   . "   es. ilmiomagoshow@gmail.com . Scegli una password e segnatela.\n"
-                   . "3) Segui i passaggi fino alla fine: la casella Gmail e' pronta.\n\n"
-                   . "PARTE 2 - ATTIVARE LA \"VERIFICA IN DUE PASSAGGI\"\n"
-                   . "4) Entrato nella nuova Gmail, vai su:  https://myaccount.google.com/security\n"
-                   . "5) Cerca \"Verifica in due passaggi\" e ATTIVALA (ti chiede il numero di\n"
-                   . "   telefono e un codice che ricevi via SMS). Serve per il passo dopo.\n\n"
-                   . "PARTE 3 - CREARE LA \"PASSWORD PER LE APP\" (16 lettere)\n"
-                   . "6) Sempre nella pagina Sicurezza, apri \"Password per le app\"\n"
-                   . "   (oppure vai su:  https://myaccount.google.com/apppasswords ).\n"
-                   . "7) Dai un nome qualsiasi (es. PREDIZIONE) e premi Crea.\n"
-                   . "8) Google ti mostra un codice di 16 LETTERE (es. abcd efgh ijkl mnop):\n"
-                   . "   e' una password speciale. COPIALA (si usa una volta sola, nel passo 10).\n\n"
-                   . "PARTE 4 - COLLEGARE LA MAIL ALL'APP PREDIZIONE\n"
-                   . "9) Apri l'app PREDIZIONE -> ingranaggio Impostazioni -> \"La tua casella\".\n"
-                   . "10) Scrivi l'indirizzo Gmail nuovo e INCOLLA le 16 lettere nel campo\n"
-                   . "    password. (Facoltativo: un nome mittente.) Premi \"Salva casella\".\n\n"
-                   . "Fatto! Da ora, a gioco avviato, il tasto \"Invia a mano\" spedisce le mail\n"
-                   . "con la foto dalla tua Gmail. (Per gli eventi GRANDI c'e' il livello \"Palco\":\n"
-                   . "non devi configurare nulla, scrivici a supporto@abraka.it.)\n\n"
-                   . "Se qualcosa non ti torna, rispondi a questa mail: ti aiutiamo noi.\n"
-                   . "==============================================\n\n"
-                   . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
-                   . "Un saluto,\nabraka — supporto@abraka.it";
-            ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);
-        }
-        // notifica all'autore ogni acquisto a buon fine
-        if ($res['nuovo']) {
-            $o = $ordini[$id];
-            $dett = "Nuovo acquisto ATTIVATO.\n\n"
-                  . "Ordine: " . ($o['id'] ?? '') . "\n"
-                  . "Cliente: " . ($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '') . "\n"
-                  . "Email: " . ($o['mail'] ?? '') . "\n"
-                  . "Telefono: " . ($o['tel'] ?? '') . "\n"
-                  . "Residenza: " . ($o['via'] ?? '') . ", " . ($o['citta'] ?? '') . " (" . ($o['prov'] ?? '') . ")\n"
-                  . "Gioco: " . ($o['gioco'] ?? '') . "\n"
-                  . "Piano: " . ($o['piano'] ?? '') . " (" . ($o['durata'] ?? '') . ")\n"
-                  . "Importo: " . ($o['importo'] ?? '') . " EUR  ·  Canale: " . ($o['canale'] ?? '') . "\n"
-                  . "Utente creato: " . $res['utente'] . "\n"
-                  . "Ricevuta: " . $res['ricevuta'] . "\n"
-                  . "Data: " . date('d/m/Y H:i') . "\n";
-            ord_manda_mail(PRED_NOTIFY_EMAIL, 'Acquisto effettuato — ' . ($o['id'] ?? ''), $dett);
-        }
+        $res = ord_attiva_e_notifica($ordini, $id);
         predizione_json(['ok' => true, 'utente' => $res['utente'], 'password' => $res['password'],
                          'ricevuta' => $res['ricevuta'], 'nuovo' => $res['nuovo']]);
     }
@@ -428,6 +495,62 @@ if ($azione === 'crea') {
 
     predizione_json(['ok' => true, 'ordine' => $codice, 'id' => $id, 'importo' => $importo,
                      'canale' => $canale, 'causale' => $causale, 'istruzioni' => $istr]);
+}
+
+/* ===== PAYPAL: configurazione pubblica (per il bottone sul sito) ======== */
+if ($azione === 'paypal_cfg') {
+    $cfg = ord_paypal_cfg();
+    predizione_json(['ok' => true, 'attivo' => $cfg['attivo'], 'modo' => $cfg['modo'], 'client_id' => $cfg['client_id']]);
+}
+
+/* ===== PAYPAL: crea l'ordine di pagamento (importo preso dall'ordine) ==== */
+if ($azione === 'paypal_crea') {
+    $cfg = ord_paypal_cfg();
+    if (!$cfg['attivo']) predizione_json(['ok' => false, 'errore' => 'PayPal non configurato'], 400);
+    $ordini = ord_leggi();
+    $id = ord_trova($ordini, ord_p('id'));
+    if ($id === null) predizione_json(['ok' => false, 'errore' => 'Ordine non trovato'], 404);
+    $o = $ordini[$id];
+    if (($o['stato'] ?? 'attesa') === 'attivato') predizione_json(['ok' => false, 'errore' => 'Ordine già pagato'], 409);
+    $importo = round((float)($o['importo'] ?? 0), 2);
+    if ($importo <= 0) predizione_json(['ok' => false, 'errore' => 'Importo non valido'], 400);
+    $token = ord_pp_token($cfg);
+    if ($token === null) predizione_json(['ok' => false, 'errore' => 'PayPal non raggiungibile'], 502);
+    $ppid = ord_pp_crea($cfg, $token, $importo, (string)($o['codice'] ?? $id), 'PREDIZIONE ordine ' . (string)($o['codice'] ?? $id));
+    if ($ppid === null) predizione_json(['ok' => false, 'errore' => 'Creazione pagamento fallita'], 502);
+    $ordini[$id]['pp_order'] = $ppid; ord_scrivi($ordini);
+    predizione_json(['ok' => true, 'id' => $ppid]);
+}
+
+/* ===== PAYPAL: cattura (incassa) e ATTIVA l'ordine ====================== */
+if ($azione === 'paypal_cattura') {
+    $cfg = ord_paypal_cfg();
+    if (!$cfg['attivo']) predizione_json(['ok' => false, 'errore' => 'PayPal non configurato'], 400);
+    $ordini = ord_leggi();
+    $id = ord_trova($ordini, ord_p('id'));
+    if ($id === null) predizione_json(['ok' => false, 'errore' => 'Ordine non trovato'], 404);
+    // già attivato? idempotente: diciamo ok senza ri-catturare
+    if (($ordini[$id]['stato'] ?? 'attesa') === 'attivato') {
+        predizione_json(['ok' => true, 'attivato' => true, 'gia' => true]);
+    }
+    $ppid = ord_p('ppid');
+    // sicurezza: il pp_order deve combaciare con quello che avevamo creato
+    if ($ppid === '' || $ppid !== (string)($ordini[$id]['pp_order'] ?? '')) {
+        predizione_json(['ok' => false, 'errore' => 'Pagamento non riconosciuto'], 400);
+    }
+    $token = ord_pp_token($cfg);
+    if ($token === null) predizione_json(['ok' => false, 'errore' => 'PayPal non raggiungibile'], 502);
+    $cap = ord_pp_cattura($cfg, $token, $ppid);
+    if (!$cap['ok']) predizione_json(['ok' => false, 'errore' => 'Pagamento non completato'], 402);
+    // l'importo incassato deve combaciare con quello dell'ordine (anti-manomissione)
+    $atteso = round((float)($ordini[$id]['importo'] ?? 0), 2);
+    if (abs($cap['importo'] - $atteso) > 0.02) {
+        $ordini[$id]['pp_warning'] = 'importo diverso: ' . $cap['importo'] . ' vs ' . $atteso; ord_scrivi($ordini);
+        predizione_json(['ok' => false, 'errore' => 'Importo del pagamento non corrisponde'], 409);
+    }
+    $ordini[$id]['pp_pagato'] = date('c');
+    $res = ord_attiva_e_notifica($ordini, $id);   // crea utente + mail di benvenuto con password
+    predizione_json(['ok' => true, 'attivato' => true, 'nuovo' => !empty($res['nuovo'])]);
 }
 
 predizione_json(['ok' => false, 'errore' => 'Azione sconosciuta'], 400);

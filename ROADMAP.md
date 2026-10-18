@@ -112,8 +112,10 @@
 ## 🔴 DA FARE DAVVERO
 
 ### ⭐ URGENTI (le due cose che contano adesso)
-- **A. Pagamento AUTOMATICO (webhook).** Oggi segni "pagato" a mano nel 000 e parte l'attivazione.
-  Fase 2: il sistema di pagamento conferma da solo → utente creato e mail inviata senza intervento.
+- **A. Pagamento AUTOMATICO.** 🟡 **PayPal automatico COSTRUITO (AGG 64)**: il cliente paga nel sito e il
+  sistema **attiva da solo** (crea utente + ricevuta + mail con password). **Resta da fare l'autore:**
+  mettere le chiavi in `predizione/_dati/paypal.json` (da developer.paypal.com) e **provare in sandbox**,
+  poi passare a **live**. (Facoltativo: webhook firmato per robustezza extra — oggi la cattura è in onApprove.)
   **DECISIONI 18 ott (autore):**
   - **Partenza:** **bonifico** (QR SEPA + copia IBAN/importo/causale col codice ordine) + **PayPal AUTOMATICO**.
   - **Carrello (`acquista.html`) GIÀ FATTO (UI):** tasti pagamento = **Bonifico** · **PayPal** · **Carte**.

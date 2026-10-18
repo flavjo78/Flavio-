@@ -3,7 +3,30 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 63 — carrello pagamenti (Bonifico/PayPal≥20€/Carte), testo tasto per metodo, fix prezzo Foyer mensile in vetrina; include tutto dall'AGG 61).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 64 — PayPal AUTOMATICO: paga nel sito → attiva da solo; chiavi in _dati/paypal.json; include tutto dall'AGG 61).
+
+> ### Aggiunte 18 ottobre 2026 (AGG 64 — PayPal AUTOMATICO, pagamento + attivazione)
+> - **`ordine.php`:** nuovi endpoint pubblici **`paypal_cfg`** (dà client_id+modo al bottone), **`paypal_crea`**
+>   (crea l'ordine PayPal con l'importo PRESO DAL NOSTRO ORDINE, non dal client → anti-manomissione),
+>   **`paypal_cattura`** (incassa, verifica stato COMPLETED + importo combaciante col pp_order salvato, poi
+>   **attiva**). Helper PayPal Orders v2 via cURL (`ord_pp_token/crea/cattura`, base sandbox/live).
+> - **Attivazione condivisa** `ord_attiva_e_notifica($ordini,$id)`: estratta da `admin_attiva` e riusata da
+>   PayPal → crea utente + ricevuta PDF + mail di benvenuto con password + avviso autore. Idempotente.
+> - **Chiavi su `_dati/paypal.json`** (NON versionato, come autore.json):
+>   `{"attivo":true,"modo":"sandbox","client_id":"...","secret":"..."}`. La Secret resta solo lato server;
+>   il Client ID è pubblico (serve al bottone). Senza il file → PayPal "non attivo" e il sito mostra il
+>   fallback manuale (paypal.me).
+> - **`acquista.html`:** la pagina finale, se il metodo è PayPal e PayPal è configurato, carica l'SDK
+>   (`paypal.com/sdk/js?client-id=...&currency=EUR&intent=capture`) e mostra i **bottoni PayPal/carta**;
+>   `createOrder`→`paypal_crea`, `onApprove`→`paypal_cattura`→"Pagato e attivato ✓". Se PayPal non è
+>   configurato o l'SDK non carica → mostra le istruzioni manuali di riserva (comportamento vecchio).
+> - **Flusso:** prima in **sandbox** (soldi finti) con le chiavi sandbox; poi si passa a **live**. Manca
+>   ancora (facoltativo, robustezza extra): il **webhook** firmato lato server. Oggi la cattura avviene in
+>   `onApprove` (server-side), sufficiente per iniziare.
+> - **Richiede:** `predizione/` → `ordine.php`; **radice** → `acquista.html`; sul server
+>   `predizione/_dati/paypal.json` con le chiavi (dall'account PayPal Business → developer.paypal.com). Niente AWS.
+
+
 
 > ### Aggiunte 18 ottobre 2026 (AGG 63 — carrello pagamenti + testo tasto + fix Foyer mensile)
 > - **Carrello (`acquista.html`): metodi di pagamento.** Tasti **Bonifico · PayPal · Carte**.

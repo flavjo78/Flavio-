@@ -291,11 +291,63 @@
       document.getElementById('cart').classList.add('hidden');
       document.getElementById('fatto').classList.remove('hidden');
       document.getElementById('ordId').textContent=d.ordine;
-      var istr=(d.istruzioni||'').replace(/\n/g,'<br>');
-      document.getElementById('payBox').innerHTML='<b>Importo: '+money(d.importo||0)+'</b><br><br>'+istr;
+      var importo=d.importo||0, istr=(d.istruzioni||'').replace(/\n/g,'<br>');
+      if(canale==='paypal'){ avviaPaypal(d.ordine, importo, istr); }
+      else { document.getElementById('payBox').innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istr; }
       window.scrollTo(0,0);
     }).catch(function(){ btn.disabled=false; alert('Server non raggiungibile.'); });
   };
+
+  /* ---- PAYPAL automatico: bottoni nella pagina finale ------------------- */
+  var ppSdkPronto=false;
+  function caricaScript(src,cb){
+    var s=document.createElement('script'); s.src=src; s.onload=cb; s.onerror=function(){ cb(new Error('sdk')); };
+    document.head.appendChild(s);
+  }
+  function avviaPaypal(codice, importo, istrManuale){
+    var box=document.getElementById('payBox');
+    box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Caricamento PayPal…';
+    fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','paypal_cfg');return f;})()})
+      .then(function(r){return r.json();}).then(function(c){
+        if(!c||!c.ok||!c.attivo||!c.client_id){
+          // PayPal non ancora configurato: mostra le istruzioni manuali di riserva
+          box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale;
+          return;
+        }
+        box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Paga in modo sicuro con PayPal o carta:<div id="ppBtns" style="margin-top:12px"></div>'+
+          '<div id="ppMsg" class="hint" style="margin-top:10px"></div>';
+        var render=function(){
+          if(!window.paypal){ document.getElementById('ppMsg').textContent='PayPal non disponibile al momento. Riprova o usa il bonifico.'; return; }
+          window.paypal.Buttons({
+            style:{layout:'vertical',color:'gold',shape:'pill',label:'paypal'},
+            createOrder:function(){
+              return fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','paypal_crea');f.append('id',codice);return f;})()})
+                .then(function(r){return r.json();}).then(function(x){ if(!x||!x.ok) throw new Error((x&&x.errore)||'errore'); return x.id; });
+            },
+            onApprove:function(data){
+              document.getElementById('ppMsg').textContent='Pagamento in corso…';
+              return fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','paypal_cattura');f.append('id',codice);f.append('ppid',data.orderID);return f;})()})
+                .then(function(r){return r.json();}).then(function(x){
+                  if(x&&x.ok&&x.attivato){
+                    box.innerHTML='<div class="big" style="color:#86b26f">Pagato e attivato ✓</div><p>Grazie! A breve ricevi tutto via mail da <b>supporto@abraka.it</b> (controlla anche lo spam).</p>';
+                  } else {
+                    document.getElementById('ppMsg').textContent=(x&&x.errore)||'Pagamento non confermato. Scrivici a supporto@abraka.it.';
+                  }
+                });
+            },
+            onCancel:function(){ document.getElementById('ppMsg').textContent='Pagamento annullato.'; },
+            onError:function(){ document.getElementById('ppMsg').textContent='Errore col pagamento. Riprova o usa il bonifico.'; }
+          }).render('#ppBtns');
+        };
+        if(ppSdkPronto){ render(); }
+        else {
+          caricaScript('https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture', function(err){
+            if(err){ box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale; return; }
+            ppSdkPronto=true; render();
+          });
+        }
+      }).catch(function(){ box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale; });
+  }
 })();
 </script>
 </body>
