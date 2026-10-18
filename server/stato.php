@@ -252,6 +252,7 @@ function predizione_stato_pubblico(array $s): array {
         'rispondi_ok'      => !empty($s['rispondi_ok']),        // via libera gia' dato in questa sessione?
         'sicurezza'        => predizione_sicurezza($s),         // tappe anti-dimenticanza (pop-up Regia)
         'accesso'          => predizione_accesso_info(predizione_utente_record(predizione_utente()) ?: []),  // scadenza accesso 4 anni (banner/blocco)
+        'calligrafia'      => predizione_calligrafia_pubblica($s),   // Foto magic: calligrafia corrente + disponibili
     ];
 }
 
@@ -600,7 +601,8 @@ function predizione_admin(string $azione): void {
                 $ptest = trim((string)($pr['testo'] ?? ''));
                 if ($pid === '' || $ptest === '') continue;   // scarta righe vuote
                 if ($pnome === '') $pnome = $pid;
-                $lista[] = ['id' => substr($pid, 0, 40), 'nome' => substr($pnome, 0, 80), 'testo' => substr($ptest, 0, 6000)];
+                $lista[] = ['id' => substr($pid, 0, 40), 'nome' => substr($pnome, 0, 80), 'testo' => substr($ptest, 0, 6000),
+                            'disponibile' => !empty($pr['disponibile'])];
             }
             if (!$lista) predizione_json(['ok' => false, 'errore' => 'Serve almeno un prompt valido'], 400);
             $attivo = preg_replace('/[^a-z0-9._-]/', '', strtolower((string)($d['attivo'] ?? '')));
@@ -1158,6 +1160,18 @@ switch ($azione) {
         // spunta "blocca la Foto A": se ON, dopo "Finisci" la Foto A resta (per il prossimo show).
         $valore = strtoupper((string)p('valore'));
         $stato['blocca_foto_a'] = ($valore === 'ON' || $valore === '1' || $valore === 'TRUE');
+        predizione_scrivi_stato($stato);
+        predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'calligrafia':
+        // scelta della CALLIGRAFIA della Foto magic PER QUESTO utente.
+        // Ammessa solo tra quelle rese "disponibili" dall'admin (pannello 000).
+        $cid = preg_replace('/[^a-z0-9._-]/', '', strtolower((string)(p('calligrafia') ?? p('id') ?? '')));
+        $disp = array_column(predizione_prompts_ia_disponibili(), 'id');
+        if ($cid === '' || !in_array($cid, $disp, true)) {
+            predizione_json(['ok' => false, 'errore' => 'Calligrafia non disponibile'], 400);
+        }
+        $stato['calligrafia_id'] = $cid;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

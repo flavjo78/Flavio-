@@ -387,9 +387,9 @@
 
       <!-- ===== CALIGRAFIA FOTO MAGIC (prompt IA) ===== -->
       <section class="view" id="v-prompt" style="display:none">
-        <div class="legend">È il <b>testo</b> (prompt) che diciamo all'intelligenza artificiale per scrivere a mano la frase sul foglio della <b>Foto magic</b>. Puoi <b>sceglierne uno</b> tra quelli salvati, <b>modificarlo</b> o <b>crearne di nuovi</b>. La parola speciale <b>{FRASE}</b> viene sostituita in automatico con la frase vera (dove va scritta). Vale per <b>tutti</b>.</div>
+        <div class="legend">È il <b>testo</b> (prompt) che diciamo all'intelligenza artificiale per scrivere a mano la frase sul foglio della <b>Foto magic</b>. Puoi <b>modificarlo</b> o <b>crearne di nuovi</b>. La parola speciale <b>{FRASE}</b> viene sostituita in automatico con la frase vera.<br><br><b>attivo</b> = la calligrafia predefinita, usata da chi non ne sceglie una sua. <b>disponibile</b> = i performer la trovano nella loro <b>Regia → Foto magic</b> e possono <b>sceglierla</b> (spunta quelle che vuoi offrire).</div>
         <div class="card">
-          <div class="plinfo">Prompt salvati (scegli quello attivo)</div>
+          <div class="plinfo">Prompt salvati — <b>attivo</b> (predefinito) · <b>disponibile</b> (scelta dai performer)</div>
           <div id="prList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div>
           <div class="btns"><button class="btn" id="prNuovo">+ Nuovo prompt</button></div>
           <div class="sep"></div>
@@ -550,13 +550,17 @@
     var box=$('prList'); if(!box) return;
     box.innerHTML=PR.lista.map(function(p){
       var att=(p.id===PR.attivo), sel=(p.id===prSel);
-      return '<div class="srow" style="'+(sel?'border:1px solid var(--gold)':'')+'">'+
+      return '<div class="srow" style="'+(sel?'border:1px solid var(--gold);':'')+'flex-wrap:wrap;gap:8px">'+
         '<label class="chk" style="margin:0"><input type="radio" name="prAtt" value="'+esc(p.id)+'" '+(att?'checked':'')+'> attivo</label>'+
-        '<span class="d" style="flex:1">'+esc(p.nome||p.id)+(att?' · <b style="color:var(--gold)">in uso</b>':'')+'</span>'+
+        '<label class="chk" style="margin:0"><input type="checkbox" class="prDisp" data-disp="'+esc(p.id)+'" '+(p.disponibile?'checked':'')+'> disponibile</label>'+
+        '<span class="d" style="flex:1;min-width:110px">'+esc(p.nome||p.id)+(att?' · <b style="color:var(--gold)">in uso</b>':'')+'</span>'+
         '<button class="btn" data-pred="'+esc(p.id)+'">modifica</button></div>';
     }).join('');
     document.querySelectorAll('#prList input[name="prAtt"]').forEach(function(rb){
       rb.addEventListener('change', function(){ PR.attivo=rb.value; salvaPrompt(true); });
+    });
+    document.querySelectorAll('#prList .prDisp').forEach(function(cb){
+      cb.addEventListener('change', function(){ var it=prItem(cb.getAttribute('data-disp')); if(it){ it.disponibile=cb.checked; salvaPrompt(true); } });
     });
     document.querySelectorAll('#prList [data-pred]').forEach(function(b){
       b.addEventListener('click', function(){ prSel=b.getAttribute('data-pred'); renderPrompt(); });

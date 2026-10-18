@@ -764,6 +764,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <button class="btn" id="genBtn" type="button" style="width:100%;margin-top:6px">Crea la Foto magic (rivelazione)</button>
       <img id="genPrev" alt="anteprima rivelazione" style="display:none;width:100%;border-radius:12px;margin-top:10px;border:1px solid var(--line-2);cursor:zoom-in">
       <p class="hint">Carica la <b>foto base</b> (tu col foglio bianco), scrivi la <b>frase</b> e premi <b>Crea Foto magic</b>: la frase viene scritta a mano sul foglio e usata come <b>rivelazione</b>. Ci mette ~30 secondi. Tocca l'anteprima per vederla grande.</p>
+
+      <!-- CALLIGRAFIA (la "mano" con cui l'IA scrive): corrente + scelta tra le disponibili -->
+      <div id="calliWrap" class="field" style="margin-top:14px;display:none">
+        <label>Calligrafia della scritta</label>
+        <button class="btn ghost" id="calliBtn" type="button" style="width:100%;text-align:left">✒️ <b id="calliCorr">—</b> · <span style="color:var(--gold)">cambia</span></button>
+        <div id="calliList" style="display:none;margin-top:8px"></div>
+        <p class="hint" style="margin-top:8px">È la <b>“mano”</b> con cui l’IA scrive la frase sul foglio. Scegli tra le calligrafie <b>disponibili</b> (le prepara l’amministratore).</p>
+      </div>
     </section>
 
     <section class="sp" data-sp="report" aria-label="Report della sessione">
@@ -1187,6 +1195,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     sessNum.textContent = st.sessione ? ('#'+st.sessione) : '—';
     if(typeof aggiornaSicurezza==='function') aggiornaSicurezza(st);
     if(typeof aggiornaAccesso==='function') aggiornaAccesso(st);
+    if(typeof aggiornaCalligrafia==='function') aggiornaCalligrafia(st);
 
     setModoUI(st.invio_modo);
     var ivSub=$('invioSub'); if(ivSub){ ivSub.textContent = (st.invio_modo==='casella') ? 'Casella' : 'Palco'; }
@@ -1382,6 +1391,45 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var elEl=$('elapsed'); if(!elEl) return;
     elEl.textContent = fmtDur(elapsedBase + (Date.now()-elapsedAnchor)/1000);
   }, 1000);
+
+  // ---- CALLIGRAFIA Foto magic: mostra la corrente + scelta tra le disponibili ----
+  function aggiornaCalligrafia(st){
+    var wrap=$('calliWrap'); if(!wrap) return;
+    var c=st && st.calligrafia;
+    if(!FLAGS.foto || !c){ wrap.style.display='none'; return; }
+    var disp=c.disponibili||[], corr=c.corrente||{};
+    wrap.style.display=(disp.length||corr.nome)?'':'none';
+    var cc=$('calliCorr'); if(cc) cc.textContent=corr.nome||'—';
+    var list=$('calliList'); if(!list) return;
+    list.innerHTML='';
+    if(!disp.length){ var p=document.createElement('p'); p.className='hint'; p.style.margin='0';
+      p.textContent='Nessuna calligrafia disponibile. L’amministratore può renderle disponibili dal pannello 000.'; list.appendChild(p); return; }
+    disp.forEach(function(d){
+      var on=(d.id===corr.id);
+      var b=document.createElement('button');
+      b.type='button'; b.className='btn '+(on?'primary':'ghost');
+      b.style.width='100%'; b.style.textAlign='left'; b.style.marginBottom='6px';
+      b.textContent=(on?'● ':'○ ')+(d.nome||d.id);
+      b.addEventListener('click', function(){ comando('calligrafia', {calligrafia:d.id}, 'Calligrafia impostata'); var l=$('calliList'); if(l) l.style.display='none'; });
+      list.appendChild(b);
+    });
+  }
+  (function(){ var cb=$('calliBtn'); if(cb) cb.addEventListener('click', function(){ var l=$('calliList'); if(l) l.style.display=(l.style.display==='none')?'':'none'; }); })();
+
+  // ---- OCCHIO mostra/nascondi sulle password (evita errori di battitura) ----
+  function occhioPassword(inp){
+    if(!inp || inp._occhio) return; inp._occhio=true;
+    inp.style.paddingRight='46px';
+    var holder=document.createElement('span');
+    holder.style.cssText='position:relative;display:block';
+    inp.parentNode.insertBefore(holder, inp); holder.appendChild(inp);
+    var b=document.createElement('button'); b.type='button'; b.setAttribute('aria-label','Mostra o nascondi la password'); b.title='Mostra/nascondi';
+    b.style.cssText='position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:19px;line-height:1;padding:6px;color:var(--ink-dim)';
+    b.textContent='👁';
+    b.addEventListener('click', function(){ var mostra=(inp.type==='password'); inp.type=mostra?'text':'password'; b.textContent=mostra?'🙈':'👁'; try{inp.focus();}catch(e){} });
+    holder.appendChild(b);
+  }
+  (function(){ ['loginPw','pwNew','pwNew2'].forEach(function(id){ occhioPassword($(id)); }); })();
 
   function comando(azione, extra, okMsg){
     if(!getPw()){ toast('Inserisci prima la password (ingranaggio in alto)','err'); return; }
@@ -1716,6 +1764,39 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); } }
   }
 
+  // Riduce/CONVERTE la foto nel telefono PRIMA di inviarla: lato lungo max 1600px,
+  // ri-salvata come JPEG. Risolve le foto troppo grandi (oltre il limite del server)
+  // e le HEIC dell'iPhone (su Safari si decodificano e diventano JPEG) senza passare
+  // da WhatsApp. Se qualcosa non va, torna il file originale (non blocca mai).
+  function ridimensionaFoto(file){
+    return new Promise(function(resolve){
+      try{
+        if(!file || (file.type && file.type.indexOf('image/')!==0 && file.type!=='')){ resolve(file); return; }
+        var url=URL.createObjectURL(file);
+        var img=new Image();
+        img.onload=function(){
+          try{
+            var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+            if(!w||!h){ URL.revokeObjectURL(url); resolve(file); return; }
+            var MAX=1600, scala=Math.min(1, MAX/Math.max(w,h));
+            var nw=Math.max(1,Math.round(w*scala)), nh=Math.max(1,Math.round(h*scala));
+            var cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
+            cv.getContext('2d').drawImage(img,0,0,nw,nh);
+            URL.revokeObjectURL(url);
+            if(!cv.toBlob){ resolve(file); return; }
+            cv.toBlob(function(blob){
+              if(!blob){ resolve(file); return; }
+              var nome=((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg';
+              try{ resolve(new File([blob], nome, {type:'image/jpeg'})); }
+              catch(e){ blob.name=nome; resolve(blob); }   // vecchi browser senza costruttore File
+            }, 'image/jpeg', 0.85);
+          }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); }
+        };
+        img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); };
+        img.src=url;
+      }catch(e){ resolve(file); }
+    });
+  }
   function wireSlot(id,key,ph){
     var slot=$(id), input=slot.querySelector('input'), thumb=slot.querySelector('.thumb'),
         sub=slot.querySelector('.s'), camBtn=slot.querySelector('[data-cambia]'), delBtn=slot.querySelector('[data-del]');
@@ -1752,17 +1833,21 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     input.addEventListener('change', function(){
       var f=input.files&&input.files[0]; if(!f) return;
       if(!getPw()){ toast('Inserisci prima la password','err'); input.value=''; return; }
-      var url=URL.createObjectURL(f);
-      thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
-      if(sub)sub.textContent='caricamento…';
-      apiCarica(key, f).then(function(res){
-        if(res.data && res.data.ok){
-          if(sub)sub.textContent='caricata · '+f.name; slot.classList.add('filled');
-          toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
-          if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
-          if(key==='BASE' && res.data.preview){ try{ localStorage.setItem('pred_base_'+getUser(), res.data.preview); }catch(e){} showMarker(res.data.preview); }
-        } else { if(sub)sub.textContent='errore'; pendingReveal=false; toast((res.data&&res.data.errore)||'Upload fallito','err'); }
-      }).catch(function(){ if(sub)sub.textContent='errore'; pendingReveal=false; toast('Server non raggiungibile','err'); });
+      var nomeOrig=f.name||'foto';
+      if(sub)sub.textContent='preparo la foto…';
+      ridimensionaFoto(f).then(function(ff){
+        var url=URL.createObjectURL(ff);
+        thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
+        if(sub)sub.textContent='caricamento…';
+        apiCarica(key, ff).then(function(res){
+          if(res.data && res.data.ok){
+            if(sub)sub.textContent='caricata · '+nomeOrig; slot.classList.add('filled');
+            toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
+            if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
+            if(key==='BASE' && res.data.preview){ try{ localStorage.setItem('pred_base_'+getUser(), res.data.preview); }catch(e){} showMarker(res.data.preview); }
+          } else { if(sub)sub.textContent='errore'; pendingReveal=false; toast((res.data&&res.data.errore)||'Upload fallito','err'); }
+        }).catch(function(){ if(sub)sub.textContent='errore'; pendingReveal=false; toast('Server non raggiungibile','err'); });
+      });
     });
   }
   wireSlot('slotA','A','A');

@@ -3,7 +3,33 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 66 — biglietteria home come flusso automatico (Bonifico + PayPal), fix telefono +39, progressivo ordini che non si azzera).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 67 — calligrafia Foto magic scelta dal performer tra quelle "disponibili"; foto ridotte nel telefono prima dell'invio; occhio mostra-password).
+
+> ### Aggiunte 18 ottobre 2026 (AGG 67 — calligrafia scelta dal performer + foto ridotte nel telefono + occhio password)
+> - **Calligrafia Foto magic SCELTA DAL PERFORMER (per-utente).** Nella Regia → sezione **Foto magic** ora si
+>   vede la **calligrafia impostata** e, toccando **"cambia"**, si sceglie tra quelle che l'admin ha reso
+>   **disponibili**. La scelta è **per singolo utente** (salvata in `stato['calligrafia_id']`), NON cambia
+>   quella degli altri. `genera_ia.php` usa la calligrafia dell'utente (se ancora disponibile), altrimenti
+>   quella **attiva globale**, altrimenti il predefinito.
+>   - `config.php`: `predizione_prompts_ia_disponibili()` (lista {id,nome} con flag `disponibile`),
+>     `predizione_prompt_ia_corrente($id)` (risolve la corrente per l'utente), `predizione_calligrafia_pubblica($s)`.
+>   - `stato.php`: `predizione_stato_pubblico` espone `calligrafia` = {corrente:{id,nome}, disponibili:[...]};
+>     nuova azione **`calligrafia`** (salva la scelta, ammessa solo tra le disponibili);
+>     `admin_prompt_ia_salva` salva anche il flag **`disponibile`** per ogni prompt.
+>   - **Pannello 000 → Caligrafia Foto magic (`admin.html`):** per ogni calligrafia spunta **"disponibile"**
+>     (oltre a "attivo"). *attivo* = predefinita per chi non sceglie; *disponibile* = i performer la trovano
+>     nella loro Regia.
+> - **Foto ridotte NEL TELEFONO prima dell'invio (`regia-predizione.html`).** Bug: le foto scattate col
+>   cellulare (iPhone **HEIC** o JPEG enormi oltre il limite del server) davano **errore**; le stesse foto
+>   passate da WhatsApp (JPEG piccolo) andavano. Ora `ridimensionaFoto()` ridimensiona (lato lungo max
+>   **1600px**) e **ri-salva come JPEG** su canvas PRIMA di inviarle (risolve dimensioni + converte HEIC su
+>   Safari). Se qualcosa non va, invia il file originale (non blocca mai). Vale per Foto A / Rivelazione / Foto base.
+> - **Occhio "mostra password" (`regia-predizione.html`).** Sui campi password (login + cambio password) c'è
+>   il tasto **👁** per vedere la password e evitare errori di battitura (`occhioPassword()`).
+> - **Service-worker v24** (così i telefoni ricaricano la Regia aggiornata).
+> - **Richiede:** `predizione/` → `config.php`, `stato.php`, `genera_ia.php`, `admin.html`,
+>   `regia-predizione.html`, `service-worker.js`. Niente radice, niente AWS. (Collaudato: logica calligrafia,
+>   endpoint, rendering Regia + occhio password nel browser.)
 
 > ### Aggiunte 18 ottobre 2026 (AGG 66 — biglietteria home automatica + fix +39 + progressivo ordini)
 > - **Biglietteria nella home (`sito/index.html`) = flusso NUOVO automatico (Opzione A).** Prima era una

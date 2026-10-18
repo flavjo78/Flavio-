@@ -275,6 +275,51 @@ function predizione_prompt_ia_attivo(): string {
     return predizione_prompt_ia_default();
 }
 
+/* CALLIGRAFIE "DISPONIBILI" ai performer: quelle che l'admin ha spuntato
+   "rendi disponibile" nel pannello 000. Ritorna una lista {id, nome} leggera. */
+function predizione_prompts_ia_disponibili(): array {
+    $d = predizione_prompts_ia_leggi();
+    $out = [];
+    foreach ($d['lista'] as $p) {
+        if (!empty($p['disponibile'])) {
+            $out[] = ['id' => (string)($p['id'] ?? ''), 'nome' => (string)($p['nome'] ?? '')];
+        }
+    }
+    return $out;
+}
+
+/* La calligrafia CORRENTE per un utente: la SUA scelta (se esiste ED è ancora
+   disponibile), altrimenti quella ATTIVA globale, altrimenti il predefinito.
+   Ritorna ['id'=>, 'nome'=>, 'testo'=>]. È quella che usa genera_ia.php. */
+function predizione_prompt_ia_corrente(string $id = ''): array {
+    $d = predizione_prompts_ia_leggi();
+    if ($id !== '') {
+        foreach ($d['lista'] as $p) {
+            if ((string)($p['id'] ?? '') === $id && !empty($p['disponibile'])) {
+                $t = trim((string)($p['testo'] ?? ''));
+                if ($t !== '') return ['id' => $id, 'nome' => (string)($p['nome'] ?? ''), 'testo' => $t];
+            }
+        }
+    }
+    foreach ($d['lista'] as $p) {
+        if ((string)($p['id'] ?? '') === (string)$d['attivo']) {
+            $t = trim((string)($p['testo'] ?? ''));
+            if ($t !== '') return ['id' => (string)$d['attivo'], 'nome' => (string)($p['nome'] ?? ''), 'testo' => $t];
+        }
+    }
+    return ['id' => 'default', 'nome' => 'Predefinito', 'testo' => predizione_prompt_ia_default()];
+}
+
+/* Blocco "calligrafia" per lo stato pubblico (Regia): corrente (id+nome) +
+   elenco disponibili. NON espone il testo del prompt (non serve al pannello). */
+function predizione_calligrafia_pubblica(array $s): array {
+    $c = predizione_prompt_ia_corrente((string)($s['calligrafia_id'] ?? ''));
+    return [
+        'corrente'    => ['id' => $c['id'], 'nome' => $c['nome']],
+        'disponibili' => predizione_prompts_ia_disponibili(),
+    ];
+}
+
 /* -------------------- ASSISTENTE DI SCENA (link temporaneo) ------------- */
 /* Il performer crea un "lasciapassare" (token) salvato nello stato dell'utente.
    Vale finche' e' presente: lo si cancella alla fine della sessione ("Finisci")

@@ -101,10 +101,11 @@ if (count($righe) <= 1) {
         "Scrivi esattamente queste parole, ogni voce una sola volta, SENZA trattini, numeri, " .
         "puntini o altri simboli davanti.";
 }
-/* Prompt ATTIVO scelto dal pannello 000 (o il predefinito). La parola {FRASE}
-   viene sostituita con l'istruzione che contiene la frase vera; se nel modello
-   manca {FRASE}, l'istruzione viene aggiunta in coda (così funziona comunque). */
-$template = predizione_prompt_ia_attivo();
+/* Calligrafia scelta da QUESTO utente (se disponibile), altrimenti l'attiva
+   globale, altrimenti il predefinito. La parola {FRASE} viene sostituita con
+   l'istruzione che contiene la frase vera; se nel modello manca {FRASE},
+   l'istruzione viene aggiunta in coda (così funziona comunque). */
+$template = predizione_prompt_ia_corrente((string)($statoAuth['calligrafia_id'] ?? ''))['testo'];
 $prompt = (strpos($template, '{FRASE}') !== false)
     ? str_replace('{FRASE}', $istruzioneFrase, $template)
     : ($template . "\n" . $istruzioneFrase);

@@ -48,6 +48,9 @@
 - **Gestione ordini nel pannello 000 (AGG 65):** PayPal in **bordò**, tasto **Archivia**, processati con
   **selezione multipla** (tasto destro / tieni premuto) → **cartelle** o **cancella**. Numero ordini
   **progressivo che non si azzera** anche cancellando (AGG 66). Fix telefono **+39** nella biglietteria.
+- **Foto magic (AGG 67):** la **calligrafia** si sceglie dalla Regia tra quelle rese **"disponibili"** dal
+  pannello 000 (per-utente). Le **foto** vengono **ridotte nel telefono** prima dell'invio (risolve l'errore
+  con le foto grandi/HEIC dell'iPhone, senza passare da WhatsApp). **Occhio mostra-password** nel login.
 
 **Rifiniture e robustezza (AGG 41→60, 15-17 ottobre)**
 - **Invio a mano "Invia mail"** funziona anche con caselle di **dominio** (login automatico, AGG 41).
