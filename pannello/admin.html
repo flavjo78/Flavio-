@@ -131,6 +131,31 @@
   .edline input{width:120px}
   .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
   .filters select{flex:1;min-width:120px}
+  /* --- AGG 65: ordini PayPal (bordo' chiaro), selezione, menu', cartelle --- */
+  .card.pp{background:rgba(150,54,74,.16);border-color:#9c4a5e}
+  .card.pp b{color:#e3a2b0}
+  .card.selord{cursor:pointer;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  .card.selord.sel{outline:2px solid var(--gold);outline-offset:1px;background:var(--gold-soft)}
+  .card.selord .selmark{display:inline-block;width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line-2);vertical-align:-3px;margin-right:7px}
+  .card.selord.sel .selmark{background:var(--gold);border-color:transparent;position:relative}
+  .card.selord.sel .selmark::after{content:"✓";position:absolute;top:-3px;left:2px;color:#231a0c;font-size:13px;font-weight:900}
+  .carthead{display:flex;align-items:center;gap:8px;margin:14px 0 6px;color:var(--gold);font-size:12px;letter-spacing:.1em;text-transform:uppercase}
+  .carthead svg{width:15px;height:15px;stroke:var(--gold);fill:none;stroke-width:1.6}
+  .ordmenu{position:fixed;z-index:120;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:6px;box-shadow:0 12px 40px rgba(0,0,0,.6);min-width:210px;display:none}
+  .ordmenu .mi{display:block;width:100%;text-align:left;background:none;border:none;color:var(--ink);font-family:inherit;font-size:14px;font-weight:600;padding:11px 12px;border-radius:9px;cursor:pointer}
+  .ordmenu .mi:hover{background:var(--surface)}
+  .ordmenu .mi.danger{color:var(--stop)}
+  .ordmenu .mhint{font-size:11px;color:var(--faint);padding:4px 12px 6px}
+  .selbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:115;background:var(--surface-2);border:1px solid var(--line-2);border-radius:14px;box-shadow:0 12px 40px rgba(0,0,0,.6);padding:9px 11px;display:none;align-items:center;gap:8px;flex-wrap:wrap;max-width:94vw}
+  .selbar.on{display:flex}
+  .selbar .cnt{font-size:13px;font-weight:800;color:var(--gold);padding:0 4px}
+  .ovl{position:fixed;inset:0;z-index:118;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;padding:18px}
+  .ovl.on{display:flex}
+  .ovl .box{background:var(--surface);border:1px solid var(--line-2);border-radius:16px;padding:18px;width:100%;max-width:400px;max-height:80vh;overflow:auto}
+  .ovl .box h3{color:var(--gold);font-size:15px;margin:0 0 10px}
+  .ovl .box .cartlist{display:flex;flex-direction:column;gap:7px;margin:10px 0}
+  .ovl .box .cartlist button{width:100%;text-align:left;background:var(--surface-2);border:1px solid var(--line-2);color:var(--ink);font-family:inherit;font-size:14px;font-weight:600;padding:11px 12px;border-radius:10px;cursor:pointer}
+  .ovl .box .cartlist button:hover{border-color:var(--gold)}
 </style>
 </head>
 <body class="nav-open">
@@ -199,8 +224,47 @@
         <input class="search" id="ordSearch" placeholder="🔎 Cerca ordine per numero, nome o tipo…" oninput="renderOrdiniAll()">
         <h2>In attesa di pagamento</h2>
         <div id="ordAttesa"><div class="small">—</div></div>
+        <div id="ordPpWrap" style="display:none">
+          <h2>Pagati con PayPal — da archiviare</h2>
+          <div id="ordPp"></div>
+        </div>
         <div class="collapse-h" id="ordProcToggle"><h2>Ordini processati</h2><span class="chev" id="ordProcChev">▸ mostra</span></div>
-        <div id="ordProc" style="display:none"><div class="small">—</div></div>
+        <div id="ordProc" style="display:none">
+          <div class="small" style="margin-bottom:8px">Tocca un ordine per <b>selezionarlo</b> (anche più di uno). Poi <b>tasto destro</b> (PC) o <b>tieni premuto</b> (telefono) per il menù: sposta in cartella o cancella.</div>
+          <div id="ordProcBody"><div class="small">—</div></div>
+        </div>
+
+        <!-- menù tasto destro / tieni premuto -->
+        <div class="ordmenu" id="ordMenu">
+          <div class="mhint" id="ordMenuCnt">1 ordine selezionato</div>
+          <button class="mi" data-om="cartella">📁 Inserisci in cartella…</button>
+          <button class="mi danger" data-om="cancella">🗑 Cancella</button>
+          <button class="mi" data-om="chiudi" style="color:var(--faint)">Annulla</button>
+        </div>
+        <!-- barra in basso quando selezioni (comoda su telefono) -->
+        <div class="selbar" id="ordSelBar">
+          <span class="cnt" id="ordSelCnt">0</span>
+          <button class="btn" id="ordSelMove">📁 Sposta in cartella</button>
+          <button class="btn danger" id="ordSelDel">🗑 Cancella</button>
+          <button class="btn" id="ordSelClearBtn">✕</button>
+        </div>
+        <!-- finestra "scegli cartella" -->
+        <div class="ovl" id="ordCartOvl">
+          <div class="box">
+            <h3 id="ordCartTit">Sposta in cartella</h3>
+            <div class="small" style="margin:0 0 6px">Scegli una cartella esistente, oppure creane una nuova.</div>
+            <div class="cartlist" id="ordCartList"></div>
+            <div class="field" style="margin-top:6px">
+              <label>Nuova cartella</label>
+              <input type="text" id="ordCartNew" placeholder="Es. Prove, Clienti 2026…" maxlength="40">
+            </div>
+            <div class="btns" style="margin-top:12px">
+              <button class="btn gold" id="ordCartCreate">Crea e sposta</button>
+              <button class="btn" id="ordCartNone">Togli dalla cartella</button>
+              <button class="btn" id="ordCartCancel">Annulla</button>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ===== UTENTI ===== -->
@@ -578,39 +642,127 @@
   })();
 
   /* ---------- ORDINI ---------- */
+  var CART=[];                 // elenco cartelle (dal server)
+  var ordSel=Object.create(null);  // id -> true (ordini processati selezionati)
   function statoPill(s){ if(s==='attivato')return '<span class="pill on">attivato</span>'; if(s==='annullato')return '<span class="pill off">annullato</span>'; return '<span class="pill">in attesa</span>'; }
-  function ordCard(o){
+  function ordSelIds(){ var a=[]; for(var k in ordSel){ if(ordSel[k]) a.push(k); } return a; }
+
+  // tipo: 'attesa' | 'ppPaid' | 'proc' (processato, selezionabile)
+  function ordCard(o, tipo){
     var d=document.createElement('div'); d.className='card'; d.style.marginBottom='8px';
-    var az=(o.stato==='attesa')
-      ? '<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>'
-      : (o.utente?'<span class="small">utente: <b>'+esc(o.utente)+'</b></span>':'');
-    d.innerHTML='<div class="row" style="justify-content:space-between"><b style="color:var(--gold);font-size:17px">'+esc(o.codice||o.id)+'</b>'+statoPill(o.stato)+'</div>'+
+    if((o.canale||'')==='paypal') d.classList.add('pp');
+    var mark='';
+    if(tipo==='proc'){ d.classList.add('selord'); if(ordSel[o.id]) d.classList.add('sel'); mark='<span class="selmark"></span>'; }
+    var az='';
+    if(tipo==='attesa'){
+      az='<button class="btn gold" data-oa="attiva">Segna pagato e attiva</button><button class="btn danger" data-oa="annulla">Annulla</button>';
+    } else if(tipo==='ppPaid'){
+      az=(o.utente?'<span class="small">utente: <b>'+esc(o.utente)+'</b></span> ':'')+'<button class="btn" data-oa="archivia">📥 Archivia</button>';
+    } else { // proc
+      az=(o.utente?'<span class="small">utente: <b>'+esc(o.utente)+'</b></span>':'');
+    }
+    d.innerHTML='<div class="row" style="justify-content:space-between"><b style="color:var(--gold);font-size:17px">'+mark+esc(o.codice||o.id)+'</b>'+statoPill(o.stato)+'</div>'+
       '<div class="meta">'+esc(o.nome||'—')+' · '+esc(o.mail||'')+'<br>'+esc(o.gioco||'')+' · '+esc(o.piano||'')+' ('+esc(o.durata||'')+') · <b>'+esc(o.importo)+' €</b> · '+esc(o.canale||'')+(o.fonte?(' · da <b>'+esc(o.fonte)+'</b>'):'')+'<br><span class="small" style="opacity:.55">rif. interno: '+esc(o.id)+'</span></div>'+
-      '<div class="btns">'+az+'</div>';
-    d.querySelectorAll('button[data-oa]').forEach(function(btn){ btn.addEventListener('click',function(){
+      (az?'<div class="btns">'+az+'</div>':'');
+    d.querySelectorAll('button[data-oa]').forEach(function(btn){ btn.addEventListener('click',function(ev){ ev.stopPropagation();
       var a=btn.getAttribute('data-oa'), cod=(o.codice||o.id);
       if(a==='attiva'){ if(!confirm('Confermi che il pagamento di '+cod+' è arrivato?'))return;
         callOrdini('admin_attiva',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){ if(r.data.nuovo)alert('Attivato!\nUtente: '+r.data.utente+'\nPassword: '+r.data.password+'\nRicevuta: '+r.data.ricevuta); toast('Ordine attivato','ok'); caricaOrdini(); carica(); } else toast((r.data&&r.data.errore)||'Errore','err'); }); }
       else if(a==='annulla'){ if(!confirm('Annullare '+cod+'?'))return; callOrdini('admin_annulla',{id:o.id}).then(function(r){ if(r.data&&r.data.ok){toast('Annullato','ok');caricaOrdini();}else toast('Errore','err'); }); }
+      else if(a==='archivia'){ callOrdini('admin_archivia',{id:o.id,valore:'1'}).then(function(r){ if(r.data&&r.data.ok){toast('Archiviato','ok');caricaOrdini();}else toast('Errore','err'); }); }
     }); });
+    // selezione (solo processati): click = seleziona/deseleziona; tasto destro / tieni premuto = menù
+    if(tipo==='proc'){
+      var lpT=null, lpMoved=false, lpFired=false;
+      function selSoloQuesto(){ if(!ordSel[o.id]){ ordSelClear(); ordSel[o.id]=true; d.classList.add('sel'); aggiornaSelBar(); } }
+      d.addEventListener('click', function(){ if(lpFired){ lpFired=false; return; } // dopo un "tieni premuto" il tocco finale NON deseleziona
+        ordSel[o.id]=!ordSel[o.id]; if(!ordSel[o.id])delete ordSel[o.id]; d.classList.toggle('sel'); aggiornaSelBar(); });
+      d.addEventListener('contextmenu', function(ev){ ev.preventDefault(); selSoloQuesto(); ordMenuMostra(ev.clientX, ev.clientY); });
+      d.addEventListener('touchstart', function(ev){ lpMoved=false; lpFired=false; var t=ev.touches[0]; var x=t.clientX,y=t.clientY;
+        lpT=setTimeout(function(){ lpT=null; if(!lpMoved){ lpFired=true; selSoloQuesto(); ordMenuMostra(x,y); } }, 500); }, {passive:true});
+      d.addEventListener('touchmove', function(){ lpMoved=true; if(lpT){clearTimeout(lpT);lpT=null;} }, {passive:true});
+      d.addEventListener('touchend', function(){ if(lpT){clearTimeout(lpT);lpT=null;} });
+    }
     return d;
   }
+
+  function cartHead(nome){ var h=document.createElement('div'); h.className='carthead';
+    h.innerHTML='<svg viewBox="0 0 24 24"><path d="M3 7h6l2 2h10v10H3z"/></svg> '+esc(nome||'Senza cartella'); return h; }
+
   window.renderOrdiniAll=function(){
     var q=($('ordSearch').value||'').toLowerCase().trim();
     function match(o){ if(!q)return true;
       return (o.id||'').toLowerCase().indexOf(q)>=0 || (o.codice||'').toLowerCase().indexOf(q)>=0 ||
              (o.fonte||'').toLowerCase().indexOf(q)>=0 || (o.nome||'').toLowerCase().indexOf(q)>=0 ||
              (o.mail||'').toLowerCase().indexOf(q)>=0 || (o.piano||'').toLowerCase().indexOf(q)>=0 ||
-             (o.gioco||'').toLowerCase().indexOf(q)>=0 || (o.canale||'').toLowerCase().indexOf(q)>=0;
+             (o.gioco||'').toLowerCase().indexOf(q)>=0 || (o.canale||'').toLowerCase().indexOf(q)>=0 ||
+             (o.cartella||'').toLowerCase().indexOf(q)>=0;
     }
+    function isPpPaid(o){ return (o.canale||'')==='paypal' && (o.stato||'attesa')==='attivato' && !o.archiviato; }
     var attesa=ORD.filter(function(o){return (o.stato||'attesa')==='attesa' && match(o);});
-    var proc  =ORD.filter(function(o){return (o.stato||'attesa')!=='attesa' && match(o);});
-    var ba=$('ordAttesa'); ba.innerHTML=''; if(!attesa.length){ ba.innerHTML='<div class="small">Nessun ordine in attesa.</div>'; } else attesa.forEach(function(o){ ba.appendChild(ordCard(o)); });
-    var bp=$('ordProc'); bp.innerHTML=''; if(!proc.length){ bp.innerHTML='<div class="small">Nessun ordine processato.</div>'; } else proc.forEach(function(o){ bp.appendChild(ordCard(o)); });
-    // badge nel menù
-    var nb=$('ordBadge'); if(attesa.length){ nb.textContent=attesa.length; nb.classList.remove('hidden'); } else nb.classList.add('hidden');
+    var ppPaid=ORD.filter(function(o){return isPpPaid(o) && match(o);});
+    var proc  =ORD.filter(function(o){return (o.stato||'attesa')!=='attesa' && !isPpPaid(o) && match(o);});
+
+    var ba=$('ordAttesa'); ba.innerHTML=''; if(!attesa.length){ ba.innerHTML='<div class="small">Nessun ordine in attesa.</div>'; } else attesa.forEach(function(o){ ba.appendChild(ordCard(o,'attesa')); });
+
+    var pw=$('ordPpWrap'), pp=$('ordPp'); pp.innerHTML='';
+    if(ppPaid.length){ pw.style.display=''; ppPaid.forEach(function(o){ pp.appendChild(ordCard(o,'ppPaid')); }); } else { pw.style.display='none'; }
+
+    // processati: raggruppati per cartella (prima "Senza cartella", poi le cartelle in ordine)
+    var bp=$('ordProcBody'); bp.innerHTML='';
+    if(!proc.length){ bp.innerHTML='<div class="small">Nessun ordine processato.</div>'; }
+    else {
+      var gruppi={}; proc.forEach(function(o){ var c=(o.cartella||''); (gruppi[c]=gruppi[c]||[]).push(o); });
+      var nomi=Object.keys(gruppi).filter(function(c){return c!=='';}).sort(function(a,b){return a.localeCompare(b);});
+      var ordine=(gruppi['']?['']:[]).concat(nomi);
+      ordine.forEach(function(c){
+        if(c!=='' || nomi.length){ bp.appendChild(cartHead(c)); }
+        gruppi[c].forEach(function(o){ bp.appendChild(ordCard(o,'proc')); });
+      });
+    }
+    // badge nel menù (ordini da gestire = attesa + paypal da archiviare)
+    var tot=attesa.length+ppPaid.length;
+    var nb=$('ordBadge'); if(tot){ nb.textContent=tot; nb.classList.remove('hidden'); } else nb.classList.add('hidden');
+    aggiornaSelBar();
   };
-  function caricaOrdini(){ callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok){ ORD=r.data.ordini||[]; renderOrdiniAll(); } }).catch(function(){}); }
+
+  /* ----- selezione: barra in basso + menù tasto destro/tieni premuto ----- */
+  function aggiornaSelBar(){ var n=ordSelIds().length; var bar=$('ordSelBar'); $('ordSelCnt').textContent=n+(n===1?' selezionato':' selezionati');
+    if(n) bar.classList.add('on'); else bar.classList.remove('on'); }
+  function ordSelClear(){ ordSel=Object.create(null); document.querySelectorAll('#ordProcBody .card.sel').forEach(function(c){c.classList.remove('sel');}); aggiornaSelBar(); }
+  function ordMenuMostra(x,y){
+    var n=ordSelIds().length; if(!n) return;
+    var m=$('ordMenu'); $('ordMenuCnt').textContent=n+(n===1?' ordine selezionato':' ordini selezionati');
+    m.style.display='block';
+    var mw=m.offsetWidth||220, mh=m.offsetHeight||140, W=window.innerWidth, H=window.innerHeight;
+    m.style.left=Math.max(8,Math.min(x, W-mw-8))+'px';
+    m.style.top =Math.max(8,Math.min(y, H-mh-8))+'px';
+  }
+  function ordMenuChiudi(){ $('ordMenu').style.display='none'; }
+  function ordElimina(){ var ids=ordSelIds(); if(!ids.length)return; ordMenuChiudi();
+    if(!confirm('Cancellare '+ids.length+(ids.length===1?' ordine':' ordini')+'? Non si può annullare.'))return;
+    callOrdini('admin_ordine_elimina',{ids:JSON.stringify(ids)}).then(function(r){ if(r.data&&r.data.ok){ toast('Cancellati: '+(r.data.quanti||0),'ok'); ordSelClear(); caricaOrdini(); } else toast('Errore','err'); }); }
+  function ordCartApri(){ ordMenuChiudi(); var ids=ordSelIds(); if(!ids.length)return;
+    var lst=$('ordCartList'); lst.innerHTML=''; $('ordCartTit').textContent='Sposta '+ids.length+(ids.length===1?' ordine':' ordini')+' in cartella';
+    if(CART.length){ CART.forEach(function(c){ var b=document.createElement('button'); b.textContent='📁 '+c; b.onclick=function(){ ordSposta(c); }; lst.appendChild(b); }); }
+    else { lst.innerHTML='<div class="small">Ancora nessuna cartella. Creane una qui sotto.</div>'; }
+    $('ordCartNew').value=''; $('ordCartOvl').classList.add('on'); }
+  function ordCartChiudi(){ $('ordCartOvl').classList.remove('on'); }
+  function ordSposta(nome){ var ids=ordSelIds(); if(!ids.length)return;
+    callOrdini('admin_ordine_cartella',{ids:JSON.stringify(ids),cartella:(nome||'')}).then(function(r){ if(r.data&&r.data.ok){ toast(nome?('Spostati in “'+nome+'”'):'Tolti dalla cartella','ok'); ordCartChiudi(); ordSelClear(); caricaOrdini(); } else toast('Errore','err'); }); }
+
+  $('ordMenu').addEventListener('click',function(ev){ var b=ev.target.closest('.mi'); if(!b)return; var a=b.getAttribute('data-om');
+    if(a==='cancella')ordElimina(); else if(a==='cartella')ordCartApri(); else ordMenuChiudi(); });
+  $('ordSelDel').addEventListener('click',ordElimina);
+  $('ordSelMove').addEventListener('click',ordCartApri);
+  $('ordSelClearBtn').addEventListener('click',function(){ ordSelClear(); });
+  $('ordCartCreate').addEventListener('click',function(){ var v=($('ordCartNew').value||'').trim(); if(!v){ toast('Scrivi il nome della cartella','err'); return; } ordSposta(v); });
+  $('ordCartNone').addEventListener('click',function(){ ordSposta(''); });
+  $('ordCartCancel').addEventListener('click',ordCartChiudi);
+  $('ordCartOvl').addEventListener('click',function(ev){ if(ev.target===this) ordCartChiudi(); });
+  document.addEventListener('click',function(ev){ var m=$('ordMenu'); if(m.style.display==='block' && !m.contains(ev.target)) ordMenuChiudi(); });
+
+  function caricaOrdini(){ callOrdini('admin_ordini').then(function(r){ if(r.data&&r.data.ok){ ORD=r.data.ordini||[]; CART=r.data.cartelle||[]; ordSel=Object.create(null); renderOrdiniAll(); } }).catch(function(){}); }
   $('ordProcToggle').addEventListener('click',function(){
     var b=$('ordProc'); var open=b.style.display!=='none'; b.style.display=open?'none':''; $('ordProcChev').textContent=open?'▸ mostra':'▾ nascondi';
   });

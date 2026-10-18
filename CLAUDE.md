@@ -3,7 +3,30 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 64 — PayPal AUTOMATICO: paga nel sito → attiva da solo; chiavi in _dati/paypal.json; include tutto dall'AGG 61).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 65 — ordini PayPal evidenziati + "Archivia"; processati: selezione multipla (tasto destro / tieni premuto) → cartelle o cancella).
+
+> ### Aggiunte 18 ottobre 2026 (AGG 65 — gestione ordini: PayPal in evidenza, archivia, cartelle, cancella)
+> - **Card ordine PayPal in BORDÒ CHIARO** (`admin.html`: classe `.card.pp`): nel pannello 000 → Ordini si
+>   riconoscono a colpo d'occhio gli ordini col canale `paypal`.
+> - **PayPal pagato in automatico → resta negli Ordini, con "Archivia".** Nuova sezione **"Pagati con PayPal
+>   — da archiviare"** tra "In attesa" e "Processati": ci finiscono gli ordini `paypal` + `attivato` + NON
+>   archiviati, con il tasto **📥 Archivia**. Finché non premi "Archivia", l'ordine NON sparisce (prima un
+>   ordine processato spariva subito in archivio). Alla pressione va nei processati. Se un PayPal arriva ma
+>   NON si è attivato da solo (resta `attesa`) → compare come sempre il tasto **"Attiva"** (fallback a mano).
+> - **Le due mail del PayPal automatico: già ok.** Il flusso chiama `crea` (→ mail "nuovo ordine" a supporto
+>   e all'autore) e poi `paypal_cattura` (→ mail di benvenuto al cliente + "Acquisto effettuato" all'autore):
+>   quindi, come per il bonifico, arrivano ENTRAMBE le mail (ordine + attivazione). Nessuna modifica necessaria.
+> - **Ordini PROCESSATI: selezione multipla + cartelle + cancella.** Tocca un ordine per **selezionarlo**
+>   (anche più di uno); **tasto destro** (PC) o **tieni premuto** (telefono) apre un **menù**: **"Inserisci in
+>   cartella…"** (scegli una cartella esistente o creane una nuova) oppure **"Cancella"** (elimina davvero —
+>   utile per le PROVE). In basso compare anche una **barra** con "Sposta in cartella" / "Cancella" / "✕".
+>   I processati sono **raggruppati per cartella** (prima "Senza cartella", poi le cartelle in ordine).
+> - **`ordine.php`:** la lista `admin_ordini` ora espone `archiviato` e `cartella` + l'elenco `cartelle`.
+>   Nuovi comandi admin: **`admin_archivia`** (id/ids, valore 1/0), **`admin_ordine_elimina`** (id/ids → cancella),
+>   **`admin_ordine_cartella`** (id/ids + `cartella`; nome vuoto = togli dalla cartella). Le cartelle non hanno
+>   un file a parte: nascono dal campo `cartella` degli ordini.
+> - **Richiede:** `predizione/` → `ordine.php`, `admin.html`. Niente radice, niente AWS. (Collaudato: endpoint
+>   via HTTP + rendering nel browser.)
 
 > ### Aggiunte 18 ottobre 2026 (AGG 64 — PayPal AUTOMATICO, pagamento + attivazione)
 > - **`ordine.php`:** nuovi endpoint pubblici **`paypal_cfg`** (dà client_id+modo al bottone), **`paypal_crea`**

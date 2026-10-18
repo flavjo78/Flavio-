@@ -1,7 +1,7 @@
 # PREDIZIONE — Roadmap (stato reale)
 
-> Aggiornata il **17 ottobre 2026** dallo stato VERO del codice e dal
-> registro "AGG 12 → 60" in `CLAUDE.md`.
+> Aggiornata il **18 ottobre 2026** dallo stato VERO del codice e dal
+> registro "AGG 12 → 65" in `CLAUDE.md`.
 >
 > Legenda: ✅ fatto e funzionante · 🟡 fatto nel codice, da confermare se è ONLINE
 > o da collaudare dal vivo · 🔴 da fare davvero.
@@ -131,6 +131,10 @@
   - Per PayPal automatico servirà dall'autore: **conto PayPal Business** + **Client ID** + **Secret**.
   - **Voce di PROVA pagamento** nel listino (`prova_foto` = "5 Foto magic (prova)", 0,40 €): **VISIBILE** ai
     clienti (scelta autore, per un test reale). Da togliere dall'editor Listino quando il test è finito.
+  - **Gestione ordini nel pannello (AGG 65):** gli ordini **PayPal** sono evidenziati in **bordò**; il PayPal
+    pagato in automatico **resta negli Ordini** con il tasto **Archivia** (non sparisce da solo); gli ordini
+    **processati** si possono **selezionare** (tasto destro / tieni premuto), **mettere in cartelle** o
+    **cancellare** (comodo per le prove). Le due mail (ordine + attivazione) partono come per il bonifico.
 - **B. Conferma FINALE col commercialista.** Chiudere l'inquadramento fiscale (vedi punto 5): portare
   al commercialista il foglio `guide/domande-commercialista.html` con regime + ATECO e avere la risposta
   definitiva (integrare nella partita IVA esistente, oppure diritto d'autore / Paddle). Finché non è

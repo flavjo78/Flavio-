@@ -259,10 +259,16 @@ if (strpos($azione, 'admin_') === 0) {
                 'piano' => $o['piano'] ?? '', 'durata' => $o['durata'] ?? '',
                 'importo' => $o['importo'] ?? 0, 'canale' => $o['canale'] ?? '',
                 'data' => $o['data'] ?? '', 'utente' => $o['utente'] ?? '',
+                'archiviato' => !empty($o['archiviato']),
+                'cartella' => (string)($o['cartella'] ?? ''),
             ];
         }
         usort($out, fn($a, $b) => strcmp($b['data'], $a['data']));
-        predizione_json(['ok' => true, 'ordini' => $out]);
+        // elenco cartelle esistenti (dai campi cartella degli ordini)
+        $cart = [];
+        foreach ($ordini as $o) { $c = trim((string)($o['cartella'] ?? '')); if ($c !== '' && !in_array($c, $cart, true)) $cart[] = $c; }
+        sort($cart, SORT_NATURAL | SORT_FLAG_CASE);
+        predizione_json(['ok' => true, 'ordini' => $out, 'cartelle' => $cart]);
     }
 
     if ($azione === 'admin_attiva') {
@@ -280,6 +286,44 @@ if (strpos($azione, 'admin_') === 0) {
             ord_scrivi($ordini);
         }
         predizione_json(['ok' => true]);
+    }
+
+    /* lista di id (uno o più): accetta 'ids' (JSON array) oppure il singolo 'id' */
+    $ord_ids = function (): array {
+        $raw = ord_p('ids');
+        $ids = [];
+        if ($raw !== '') { $t = json_decode($raw, true); if (is_array($t)) foreach ($t as $v) { $v = (string)$v; if ($v !== '') $ids[] = $v; } }
+        $single = ord_p('id'); if ($single !== '') $ids[] = $single;
+        return array_values(array_unique($ids));
+    };
+
+    /* ARCHIVIA / RIPORTA negli ordini (per i PayPal pagati-in-automatico) */
+    if ($azione === 'admin_archivia') {
+        $val = (ord_p('valore') === '0') ? false : true;   // default: archivia
+        $n = 0;
+        foreach ($ord_ids() as $id) { if (isset($ordini[$id])) { $ordini[$id]['archiviato'] = $val; $n++; } }
+        if ($n) ord_scrivi($ordini);
+        predizione_json(['ok' => true, 'quanti' => $n]);
+    }
+
+    /* CANCELLA uno o più ordini (serve per le prove) */
+    if ($azione === 'admin_ordine_elimina') {
+        $n = 0;
+        foreach ($ord_ids() as $id) { if (isset($ordini[$id])) { unset($ordini[$id]); $n++; } }
+        if ($n) ord_scrivi($ordini);
+        predizione_json(['ok' => true, 'quanti' => $n]);
+    }
+
+    /* SPOSTA uno o più ordini in una CARTELLA (nome vuoto = togli dalla cartella) */
+    if ($azione === 'admin_ordine_cartella') {
+        $nome = trim((string)ord_p('cartella'));
+        $nome = preg_replace('/[\x00-\x1F\x7F]/u', '', (string)$nome);   // via i caratteri di controllo
+        if (function_exists('mb_substr')) { if (mb_strlen($nome) > 40) $nome = mb_substr($nome, 0, 40); }
+        elseif (strlen($nome) > 60) { $nome = substr($nome, 0, 60); }
+        $n = 0;
+        foreach ($ord_ids() as $id) { if (isset($ordini[$id])) { $ordini[$id]['cartella'] = $nome; $n++; } }
+        if ($n) ord_scrivi($ordini);
+        predizione_json(['ok' => true, 'quanti' => $n, 'cartella' => $nome]);
     }
 
     predizione_json(['ok' => false, 'errore' => 'Azione admin sconosciuta'], 400);
