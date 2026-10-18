@@ -221,7 +221,7 @@ function predizione_extra_default(): array {
         // Voce di PROVA per collaudare il pagamento (pochi centesimi). NON si vede
         // ai clienti: compare solo aprendo la pagina "scegli" con ?test=1. Si puo'
         // togliere dall'editor Listino quando non serve piu'.
-        'test_cent'  => ['prezzo' => 0.10, 'tipo' => 'mail',      'qta' => 1,    'label' => 'Prova pagamento (TEST)','mesi' => 1, 'data' => ''],
+        'test_cent'  => ['prezzo' => 0.40, 'tipo' => 'foto_ia',   'qta' => 5,    'label' => 'Prova pagamento (TEST) — 5 Foto magic', 'mesi' => 1, 'data' => ''],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
