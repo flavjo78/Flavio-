@@ -3,7 +3,25 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 17 ottobre 2026 (AGG 62 — grafico cronologia nella scheda utente + scadenza accesso 4 anni modificabile/blocco/promemoria + guida "icona sul telefono"; include il fix "gratis" dell'AGG 61).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 63 — carrello pagamenti (Bonifico/PayPal≥20€/Carte), testo tasto per metodo, fix prezzo Foyer mensile in vetrina; include tutto dall'AGG 61).
+
+> ### Aggiunte 18 ottobre 2026 (AGG 63 — carrello pagamenti + testo tasto + fix Foyer mensile)
+> - **Carrello (`acquista.html`): metodi di pagamento.** Tasti **Bonifico · PayPal · Carte**.
+>   - **PayPal** cliccabile solo col totale **≥ 20 €** (`SOGLIA_PP=20`); sotto, nota piccola
+>     "aggiungi altri X € per usarlo"; se selezionato e poi si scende sotto soglia, torna a Bonifico.
+>   - **Eccezione** `prova_foto` (`haProva()`): abilita PayPal **anche sotto i 20 €** (per il test).
+>   - **Carte** (al posto di Satispay): **non cliccabile**, nota "prossimamente in arrivo".
+> - **Testo del tasto per metodo (`acquista.html`):** Bonifico → **"Ordina e paga"** (poi attivi tu);
+>   PayPal → **"Paga e attiva ora"** (attivazione automatica, quando il webhook sarà collegato). `labelPaga()`.
+> - **Voce di PROVA pagamento** nel listino: `prova_foto` = "5 Foto magic (prova)" **0,40 €**, **VISIBILE**
+>   ai clienti (per un test reale). Da togliere dall'editor Listino quando il test è finito.
+> - **FIX prezzo Foyer in vetrina (`prezzi.html`):** il piano **gratis** (Foyer) veniva **saltato** dal toggle
+>   Annuale/Mensile (non aveva i dati) → mostrava sempre il valore ANNUALE. Ora il piano gratis porta
+>   `data-gratis` + `data-pieno-perm/month` e `setMode` aggiorna il suo prezzo pieno barrato secondo il mese/anno.
+> - **Attenzione (ancora da fare, fase 2):** l'incasso automatico VERO (webhook PayPal → `attiva_ordine`)
+>   non è ancora costruito; oggi l'ordine si **registra** e si attiva a mano. Serve conto PayPal Business + chiavi.
+> - **Richiede:** **radice del sito** → `prezzi.html`, `acquista.html`; `predizione/` → `piani.php` (voce prova).
+>   (Nel bundle c'è TUTTO dall'AGG 61: carica tutte e due le cartelle.) Niente AWS.
 
 > ### Aggiunte 17 ottobre 2026 (AGG 62 — grafici cronologia + scadenza accesso + guida icona telefono)
 > - **Grafico cronologia nella scheda utente (pannello 000 → `admin.html`).** Nella sezione "Cronologia e

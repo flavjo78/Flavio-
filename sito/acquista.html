@@ -96,7 +96,7 @@
     <p class="hint" id="canHint" style="margin-top:6px"></p>
 
     <div class="tot">Totale <b id="totale">0 €</b></div>
-    <button class="btn" id="pay">Paga ora</button>
+    <button class="btn" id="pay">Ordina e paga</button>
     <p class="hint">Dopo il pagamento il gioco viene <b>attivato</b> e ricevi tutto via mail da <b>supporto@abraka.it</b>.</p>
   </div>
 
@@ -247,6 +247,11 @@
     if(!ppOk){ hint='<b>PayPal</b>: attivo dai '+money(SOGLIA_PP)+' — aggiungi altri <b>'+money(manca)+'</b> per usarlo.<br>'; }
     hint+='<b>Carte</b>: prossimamente in arrivo.';
     document.getElementById('canHint').innerHTML=hint;
+    labelPaga();
+  }
+  function labelPaga(){
+    // bonifico = "Ordina e paga" (poi lo attivi tu); PayPal = "Paga e attiva ora" (attivazione automatica)
+    document.getElementById('pay').textContent = (canale==='paypal') ? 'Paga e attiva ora' : 'Ordina e paga';
   }
   function calc(){
     var t=totaleCarrello();
@@ -257,7 +262,7 @@
   document.querySelectorAll('#durSeg button').forEach(function(b){ b.onclick=function(){ dur=b.getAttribute('data-dur'); document.querySelectorAll('#durSeg button').forEach(function(x){x.classList.toggle('on',x===b);}); renderPiani(); calc(); }; });
   document.querySelectorAll('#canSeg button').forEach(function(b){ b.onclick=function(){
     if(b.classList.contains('soon')||b.classList.contains('locked')||b.disabled) return;  // Carte (prossimamente) e PayPal sotto soglia non cliccabili
-    canale=b.getAttribute('data-can'); segOn(canale);
+    canale=b.getAttribute('data-can'); segOn(canale); labelPaga();
   }; });
 
   document.getElementById('pay').onclick=function(){

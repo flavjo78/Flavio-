@@ -190,8 +190,13 @@
       var perm=Math.round(p.prezzo_anno/12*100)/100;
       var save=Math.max(0, (p.prezzo_mese*12)-p.prezzo_anno);
       var pienoAnno=p.prezzo_anno_pieno||p.prezzo_anno, pienoMese=p.prezzo_mese_pieno||p.prezzo_mese;
-      h+='<div class="plan'+(feat?' feat':'')+'"'+(gratis?'':' data-perm="'+it(perm)+'" data-month="'+it(p.prezzo_mese)+'" data-year="'+it(p.prezzo_anno)+'" data-save="'+it(save)+'"'
-            +' data-pieno-perm="'+it(Math.round(pienoAnno/12*100)/100)+'" data-pieno-month="'+it(pienoMese)+'" data-pieno-year="'+it(pienoAnno)+'"')+'>';
+      var pienoPerm=Math.round(pienoAnno/12*100)/100;
+      // anche il piano GRATIS porta i dati pieno anno/mese, così il toggle Annuale/Mensile lo aggiorna
+      var attrs = gratis
+        ? (' data-gratis="1" data-pieno-perm="'+it(pienoPerm)+'" data-pieno-month="'+it(pienoMese)+'"')
+        : (' data-perm="'+it(perm)+'" data-month="'+it(p.prezzo_mese)+'" data-year="'+it(p.prezzo_anno)+'" data-save="'+it(save)+'"'
+            +' data-pieno-perm="'+it(pienoPerm)+'" data-pieno-month="'+it(pienoMese)+'" data-pieno-year="'+it(pienoAnno)+'"');
+      h+='<div class="plan'+(feat?' feat':'')+'"'+attrs+'>';
       if(feat) h+='<div class="badge">Più scelto</div>';
       h+='<div class="pname">'+esc(p.nome)+'</div><div class="ptag">'+(PTAG[p.nome]||'')+'</div>';
       if(gratis){
@@ -239,6 +244,15 @@
         yr.innerHTML='oppure <b>'+year+' €/anno</b> · risparmi '+save+' €';
         if(barr) barr.innerHTML = (parseFloat((pMonth||'0').replace(',','.'))>parseFloat((month||'0').replace(',','.'))) ? ('<span class="old">'+pMonth+' €</span>') : '';
       }
+    });
+    // piano GRATIS (Foyer): aggiorna il prezzo pieno barrato secondo Annuale/Mensile
+    document.querySelectorAll('.plan[data-gratis]').forEach(function(p){
+      var pPerm=p.getAttribute('data-pieno-perm'), pMonth=p.getAttribute('data-pieno-month');
+      var old=p.querySelector('.old'), yr=p.querySelector('.yr');
+      if(!old) return;   // Foyer senza prezzo pieno: niente barrato da cambiare
+      var full = (mode==='anno') ? pPerm : (parseFloat((pMonth||'0').replace(',','.'))>0 ? pMonth : pPerm);
+      old.textContent = full+' €';
+      if(yr) yr.innerHTML = (mode==='anno') ? '100% di sconto · incluso con l\'accesso' : 'gratis ogni mese · incluso con l\'accesso';
     });
     document.getElementById('saveline').textContent = (mode==='anno')
       ? 'Prezzo annuale: il mese mostrato è la quota dell’anno (paghi una volta).'

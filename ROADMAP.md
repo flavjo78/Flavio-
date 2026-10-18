@@ -121,6 +121,9 @@
     - **Carte** (al posto di Satispay): **non cliccabile**, nota "prossimamente in arrivo".
     - **Eccezione:** la **Foto magic di PROVA** (`prova_foto`) abilita PayPal **anche sotto i 20 €**
       (`SOGLIA_PP=20`, `haProva()`), così si può collaudare PayPal con un importo piccolo.
+    - **Testo del tasto per metodo** (`labelPaga()`): Bonifico → "Ordina e paga"; PayPal → "Paga e attiva ora".
+    - **FIX (AGG 63):** in vetrina `prezzi.html` il piano **gratis (Foyer)** ora risponde al toggle
+      Annuale/Mensile (prima mostrava sempre il prezzo annuale).
   - **Soglia minima PayPal = 20 €** (sotto → solo bonifico), **MAI** sovrapprezzo su PayPal.
   - **Da costruire (fase 2):** l'incasso automatico vero (webhook PayPal → `attiva_ordine`).
   - Per PayPal automatico servirà dall'autore: **conto PayPal Business** + **Client ID** + **Secret**.
