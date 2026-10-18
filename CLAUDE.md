@@ -35,9 +35,13 @@ Ultimo aggiornamento: 17 ottobre 2026 (AGG 62 — grafico cronologia nella sched
 > - **Editor estensioni più ordinato.** La riga estensione (`lzExtraRow` in `admin.html`) è ora una **card a due
 >   righe** (sopra: nome/tipo/qta/€; sotto: riquadro "Scadenza: consumabile entro N mesi · oppure entro il [data]")
 >   → niente più "a capo" brutto.
-> - **Voce di PROVA pagamento.** Extra di fabbrica `test_cent` (0,10 €) per collaudare l'acquisto: **nascosta**
->   ai clienti e in vetrina (codice che inizia con "test"), compare SOLO su `acquista.html?...&test=1`
->   (`piani.php`, `acquista.html`, `prezzi.html`). Si toglie dall'editor Listino quando non serve.
+> - **Voce di PROVA pagamento.** Extra `prova_foto` = "5 Foto magic (prova)" 0,40 € (`piani.php`), **VISIBILE**
+>   ai clienti per un test reale. (Il filtro "codice che inizia con test" resta in `acquista.html`/`prezzi.html`
+>   per nascondere eventuali voci `test*`.) Si toglie dall'editor Listino quando il test è finito.
+> - **Carrello pagamenti (`acquista.html`).** Tasti = **Bonifico · PayPal · Carte**. **PayPal** cliccabile solo
+>   col totale **≥ 20 €** (`SOGLIA_PP`), sotto nota "aggiungi altri X €"; **eccezione** `prova_foto` (`haProva()`)
+>   abilita PayPal anche sotto soglia. **Carte** (ex-Satispay) non cliccabile, "prossimamente in arrivo".
+>   (L'incasso automatico vero — webhook — è fase 2.)
 > - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `ordine.php`, `invia.php`,
 >   `genera_ia.php`, `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice del sito** →
 >   `prezzi.html`, `acquista.html` (fix "gratis" dell'AGG 61, che non avevi ancora caricato). Niente AWS.

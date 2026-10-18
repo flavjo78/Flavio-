@@ -33,6 +33,8 @@
   .seg{display:flex;gap:8px;margin-bottom:10px}
   .seg button{flex:1;padding:10px;border-radius:12px;border:1px solid var(--line2);background:var(--surface2);color:var(--ink);font-weight:700;cursor:pointer;font-family:inherit}
   .seg button.on{border-color:var(--gold);background:var(--goldsoft);color:var(--gold)}
+  .seg button.soon,.seg button.locked{opacity:.4;cursor:not-allowed;position:relative}
+  .seg button.soon{color:#8a8070}
   .field{margin-bottom:9px}
   .field label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim);margin-bottom:4px}
   input,select{width:100%;background:var(--surface2);border:1px solid var(--line2);color:var(--ink);border-radius:10px;padding:11px 12px;font-size:15px;font-family:inherit}
@@ -90,7 +92,8 @@
     </div>
 
     <h2>Pagamento</h2>
-    <div class="seg" id="canSeg"><button data-can="bonifico" class="on">Bonifico</button><button data-can="satispay">Satispay</button><button data-can="paypal">PayPal</button></div>
+    <div class="seg" id="canSeg"><button data-can="bonifico" class="on">Bonifico</button><button data-can="paypal" id="btnPP">PayPal</button><button data-can="carte" id="btnCarte" class="soon" disabled>Carte</button></div>
+    <p class="hint" id="canHint" style="margin-top:6px"></p>
 
     <div class="tot">Totale <b id="totale">0 €</b></div>
     <button class="btn" id="pay">Paga ora</button>
@@ -228,18 +231,40 @@
     return (dur==='mese')?p.prezzo_mese:p.prezzo_anno;
   }
   function costoExtra(){ var t=0; allExtras().forEach(function(e){ t+=(qty[e.code]||0)*e.prezzo; }); return t; }
+  var SOGLIA_PP=20;   // PayPal (e in futuro le carte) attivi dai 20 €
+  function totaleCarrello(){ var t=prezzoPiano()+costoExtra(); if(!esistente) t+=accesso; return t; }
+  function haProva(){ return (qty['prova_foto']||0)>0; }   // eccezione: la Foto magic di PROVA si paga con PayPal anche da sola
+  function ppAbilitato(t){ return t>=SOGLIA_PP || haProva(); }
+  function segOn(can){ document.querySelectorAll('#canSeg button').forEach(function(x){ x.classList.toggle('on', x.getAttribute('data-can')===can); }); }
+  function aggiornaPagamenti(t){
+    var ppOk=ppAbilitato(t), btnPP=document.getElementById('btnPP');
+    btnPP.classList.toggle('locked', !ppOk);
+    btnPP.disabled = !ppOk;
+    // se PayPal era selezionato ma ora non è più ammesso, torna a Bonifico
+    if(canale==='paypal' && !ppOk){ canale='bonifico'; segOn('bonifico'); }
+    var manca=Math.max(0, SOGLIA_PP - t);
+    var hint='';
+    if(!ppOk){ hint='<b>PayPal</b>: attivo dai '+money(SOGLIA_PP)+' — aggiungi altri <b>'+money(manca)+'</b> per usarlo.<br>'; }
+    hint+='<b>Carte</b>: prossimamente in arrivo.';
+    document.getElementById('canHint').innerHTML=hint;
+  }
   function calc(){
-    var t=prezzoPiano()+costoExtra();
-    if(!esistente) t+=accesso;   // nuovo cliente: accesso 25 €
+    var t=totaleCarrello();
     document.getElementById('totale').textContent=money(t);
+    aggiornaPagamenti(t);
   }
 
   document.querySelectorAll('#durSeg button').forEach(function(b){ b.onclick=function(){ dur=b.getAttribute('data-dur'); document.querySelectorAll('#durSeg button').forEach(function(x){x.classList.toggle('on',x===b);}); renderPiani(); calc(); }; });
-  document.querySelectorAll('#canSeg button').forEach(function(b){ b.onclick=function(){ canale=b.getAttribute('data-can'); document.querySelectorAll('#canSeg button').forEach(function(x){x.classList.toggle('on',x===b);}); }; });
+  document.querySelectorAll('#canSeg button').forEach(function(b){ b.onclick=function(){
+    if(b.classList.contains('soon')||b.classList.contains('locked')||b.disabled) return;  // Carte (prossimamente) e PayPal sotto soglia non cliccabili
+    canale=b.getAttribute('data-can'); segOn(canale);
+  }; });
 
   document.getElementById('pay').onclick=function(){
     var extraMap={}; allExtras().forEach(function(e){ if(qty[e.code]>0) extraMap[e.code]=qty[e.code]; });
     if(curPlan==='' && Object.keys(extraMap).length===0){ alert('Scegli un piano o almeno un extra.'); return; }
+    if(canale==='paypal' && !ppAbilitato(totaleCarrello())){ alert('PayPal è disponibile dai '+money(SOGLIA_PP)+'. Scegli Bonifico oppure aumenta l\'importo.'); return; }
+    if(canale==='carte'){ alert('Il pagamento con carta sarà disponibile prossimamente.'); return; }
     var fd=new FormData();
     fd.append('azione','crea');
     fd.append('gioco','Predizione');
