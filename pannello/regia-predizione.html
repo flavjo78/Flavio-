@@ -797,8 +797,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Crea un <b>link</b> da mandare a chi ti aiuta (WhatsApp, ecc.). L'assistente può <b>preparare la rivelazione</b> e <b>comandare il gioco</b>, ma <b>non</b> vede password, casella o report. Il link <b>scade quando premi "Finisci"</b> o quando lo revochi.</p>
     </section>
 
-    <button class="btn aiuto" id="helpBtn" type="button" style="margin-top:16px;width:100%">Aiuto — come funzionano i tasti</button>
     <p class="foot">Le impostazioni si salvano da sole. Per tornare, usa la freccia in alto a sinistra.</p>
+
+  <!-- DIAGNOSTICA FOTO: appare in basso quando carichi una foto, spiega cosa succede -->
+  <div id="fotoDiag" style="display:none;position:fixed;left:8px;right:8px;bottom:8px;z-index:95;background:var(--surface-2);border:1px solid var(--line-2);border-radius:12px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5)">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px">
+      <b style="font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)">🔧 Diagnostica foto</b>
+      <button type="button" id="fotoDiagX" style="background:none;border:none;color:var(--ink-dim);font-size:18px;line-height:1;cursor:pointer;padding:2px 6px">&times;</button>
+    </div>
+    <div class="dc" style="white-space:pre-wrap;font-size:12px;color:var(--ink);margin-top:4px;font-variant-numeric:tabular-nums">—</div>
+  </div>
   </div>
 
   <!-- AIUTO: badge per spegnere, nuvoletta di spiegazione, pop-up iniziale -->
@@ -1132,8 +1140,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     fd.set('password', getPw());
     fd.set('slot', slot);
     fd.set('foto', file);
+    // robusto: legge il testo e prova a decodificare il JSON; se il server risponde
+    // qualcosa che NON è JSON (es. 413 "file troppo grande", errore PHP), NON crolla:
+    // restituisce codice + testo grezzo, così la diagnostica mostra il motivo vero.
     return fetch(API_BASE+'carica.php', {method:'POST', body:fd})
-      .then(function(r){ return r.json().then(function(j){ return {code:r.status, data:j}; }); });
+      .then(function(r){ return r.text().then(function(t){
+        var j=null; try{ j=JSON.parse(t); }catch(e){}
+        return {code:r.status, data:j, raw:t};
+      }); });
   }
   function apiGenera(testo, size, pos){
     var body=new URLSearchParams();
@@ -1768,33 +1782,45 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // ri-salvata come JPEG. Risolve le foto troppo grandi (oltre il limite del server)
   // e le HEIC dell'iPhone (su Safari si decodificano e diventano JPEG) senza passare
   // da WhatsApp. Se qualcosa non va, torna il file originale (non blocca mai).
+  function diagFoto(txt){ var d=$('fotoDiag'); if(!d) return; var c=d.querySelector('.dc'); if(c) c.textContent=txt; d.style.display='block'; }
+  (function(){ var x=$('fotoDiagX'); if(x) x.addEventListener('click', function(){ var d=$('fotoDiag'); if(d) d.style.display='none'; }); })();
+  function _kb(n){ n=n||0; return (n>=1048576)?((Math.round(n/104857.6)/10)+' MB'):(Math.round(n/1024)+' KB'); }
+  // Ridimensiona a lato lungo 1280px e ri-salva come JPEG (immagini leggere = mail veloce).
+  // Ritorna {file, diag, ridotta}: 'diag' è una frase per la diagnostica a schermo; se non
+  // riesce (es. HEIC non apribile) torna l'originale spiegando il MOTIVO.
   function ridimensionaFoto(file){
     return new Promise(function(resolve){
+      var tipo=(file&&file.type)||'(tipo ignoto)';
+      var dimOrig=file?file.size:0;
+      function ok(f,diag){ resolve({file:f, diag:diag, ridotta:true}); }
+      function fallback(motivo){ resolve({file:file, diag:'originale '+_kb(dimOrig)+' · '+tipo+' → NON ridotta ('+motivo+')', ridotta:false}); }
       try{
-        if(!file || (file.type && file.type.indexOf('image/')!==0 && file.type!=='')){ resolve(file); return; }
+        if(!file){ resolve({file:file, diag:'nessun file', ridotta:false}); return; }
+        if(file.type && file.type.indexOf('image/')!==0 && file.type!==''){ fallback('non è un\'immagine'); return; }
         var url=URL.createObjectURL(file);
         var img=new Image();
         img.onload=function(){
           try{
             var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
-            if(!w||!h){ URL.revokeObjectURL(url); resolve(file); return; }
-            var MAX=1600, scala=Math.min(1, MAX/Math.max(w,h));
+            if(!w||!h){ URL.revokeObjectURL(url); fallback('non riesco a leggere le dimensioni'); return; }
+            var MAX=1280, scala=Math.min(1, MAX/Math.max(w,h));
             var nw=Math.max(1,Math.round(w*scala)), nh=Math.max(1,Math.round(h*scala));
             var cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
             cv.getContext('2d').drawImage(img,0,0,nw,nh);
             URL.revokeObjectURL(url);
-            if(!cv.toBlob){ resolve(file); return; }
+            if(!cv.toBlob){ fallback('questo browser non sa convertire (canvas.toBlob)'); return; }
             cv.toBlob(function(blob){
-              if(!blob){ resolve(file); return; }
+              if(!blob){ fallback('conversione JPEG fallita'); return; }
               var nome=((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg';
-              try{ resolve(new File([blob], nome, {type:'image/jpeg'})); }
-              catch(e){ blob.name=nome; resolve(blob); }   // vecchi browser senza costruttore File
-            }, 'image/jpeg', 0.85);
-          }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); }
+              var diag='orig '+w+'×'+h+' '+_kb(dimOrig)+' '+tipo+'  →  invio '+nw+'×'+nh+' '+_kb(blob.size)+' jpeg';
+              try{ ok(new File([blob], nome, {type:'image/jpeg'}), diag); }
+              catch(e){ blob.name=nome; ok(blob, diag); }   // vecchi browser senza costruttore File
+            }, 'image/jpeg', 0.82);
+          }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} fallback('errore canvas: '+((e&&e.message)||e)); }
         };
-        img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); };
+        img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} fallback('il telefono non apre questo formato (es. HEIC su Android/PC)'); };
         img.src=url;
-      }catch(e){ resolve(file); }
+      }catch(e){ fallback('errore: '+((e&&e.message)||e)); }
     });
   }
   function wireSlot(id,key,ph){
@@ -1835,18 +1861,31 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(!getPw()){ toast('Inserisci prima la password','err'); input.value=''; return; }
       var nomeOrig=f.name||'foto';
       if(sub)sub.textContent='preparo la foto…';
-      ridimensionaFoto(f).then(function(ff){
+      diagFoto('Preparo «'+nomeOrig+'»…');
+      ridimensionaFoto(f).then(function(rz){
+        var ff=rz.file;
+        diagFoto((rz.ridotta?'✓ ridotta — ':'⚠ ')+rz.diag+'\nInvio al server…');
         var url=URL.createObjectURL(ff);
         thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
         if(sub)sub.textContent='caricamento…';
         apiCarica(key, ff).then(function(res){
           if(res.data && res.data.ok){
             if(sub)sub.textContent='caricata · '+nomeOrig; slot.classList.add('filled');
+            diagFoto('✓ CARICATA\n'+rz.diag+'\nsul server: '+(res.data.larghezza||'?')+'×'+(res.data.altezza||'?')+' '+(res.data.tipo||'')+'  (ok, codice '+res.code+')');
             toast(key==='A' ? 'Foto A neutra salvata' : (key==='BASE' ? 'Foto base salvata' : 'Rivelazione pronta'),'ok'); poll();
             if(key==='B' && pendingReveal){ pendingReveal=false; comando('cambia', null, 'Rivelazione · ora si vede la Foto B'); }
             if(key==='BASE' && res.data.preview){ try{ localStorage.setItem('pred_base_'+getUser(), res.data.preview); }catch(e){} showMarker(res.data.preview); }
-          } else { if(sub)sub.textContent='errore'; pendingReveal=false; toast((res.data&&res.data.errore)||'Upload fallito','err'); }
-        }).catch(function(){ if(sub)sub.textContent='errore'; pendingReveal=false; toast('Server non raggiungibile','err'); });
+          } else {
+            if(sub)sub.textContent='errore'; pendingReveal=false;
+            var msg=(res.data&&res.data.errore) || ('risposta del server (codice '+res.code+'): '+(((res.raw||'').replace(/\s+/g,' ').slice(0,160))||'vuota'));
+            diagFoto('✗ ERRORE CARICAMENTO\n'+rz.diag+'\n→ '+msg);
+            toast((res.data&&res.data.errore)||('Upload fallito (codice '+res.code+')'),'err');
+          }
+        }).catch(function(e){
+          if(sub)sub.textContent='errore'; pendingReveal=false;
+          diagFoto('✗ SERVER NON RAGGIUNGIBILE\n'+rz.diag+'\n'+(((e&&e.message)||e)||''));
+          toast('Server non raggiungibile','err');
+        });
       });
     });
   }
