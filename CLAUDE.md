@@ -35,6 +35,9 @@ Ultimo aggiornamento: 17 ottobre 2026 (AGG 62 — grafico cronologia nella sched
 > - **Editor estensioni più ordinato.** La riga estensione (`lzExtraRow` in `admin.html`) è ora una **card a due
 >   righe** (sopra: nome/tipo/qta/€; sotto: riquadro "Scadenza: consumabile entro N mesi · oppure entro il [data]")
 >   → niente più "a capo" brutto.
+> - **Voce di PROVA pagamento.** Extra di fabbrica `test_cent` (0,10 €) per collaudare l'acquisto: **nascosta**
+>   ai clienti e in vetrina (codice che inizia con "test"), compare SOLO su `acquista.html?...&test=1`
+>   (`piani.php`, `acquista.html`, `prezzi.html`). Si toglie dall'editor Listino quando non serve.
 > - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `ordine.php`, `invia.php`,
 >   `genera_ia.php`, `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice del sito** →
 >   `prezzi.html`, `acquista.html` (fix "gratis" dell'AGG 61, che non avevi ancora caricato). Niente AWS.

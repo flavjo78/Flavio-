@@ -113,8 +113,14 @@
 
 ### ⭐ URGENTI (le due cose che contano adesso)
 - **A. Pagamento AUTOMATICO (webhook).** Oggi segni "pagato" a mano nel 000 e parte l'attivazione.
-  Fase 2: il sistema di pagamento (Stripe/Paddle/PayPal) conferma da solo → utente creato e mail
-  inviata senza intervento.
+  Fase 2: il sistema di pagamento conferma da solo → utente creato e mail inviata senza intervento.
+  **DECISIONI 18 ott (autore):**
+  - **Partenza:** **bonifico** (QR SEPA + copia IBAN/importo/causale col codice ordine) + **PayPal AUTOMATICO**.
+  - **Satispay** e **Stripe**: mostrati come tasti **"prossimamente disponibili"** (non ancora attivi).
+  - **Soglia minima PayPal/Stripe = 20 €** (sotto → solo bonifico), **MAI** sovrapprezzo su PayPal.
+  - Per PayPal automatico servirà dall'autore: **conto PayPal Business** + **Client ID** + **Secret**.
+  - **Voce di PROVA pagamento** già pronta nel listino (`test_cent`, 0,10 €): compare SOLO aprendo
+    `acquista.html?u=<utente>&test=1` (nascosta ai clienti e in vetrina). Da togliere dall'editor quando non serve.
 - **B. Conferma FINALE col commercialista.** Chiudere l'inquadramento fiscale (vedi punto 5): portare
   al commercialista il foglio `guide/domande-commercialista.html` con regime + ATECO e avere la risposta
   definitiva (integrare nella partita IVA esistente, oppure diritto d'autore / Paddle). Finché non è

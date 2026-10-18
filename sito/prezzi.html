@@ -213,6 +213,7 @@
   function renderExtra(){
     var box=document.getElementById('extras'); var h='';
     (DATA.extra||[]).forEach(function(e){
+      if(String(e.code||'').indexOf('test')===0) return;   // voce di prova: nascosta in vetrina
       var val='';
       if(e.data) val=' <span style="color:var(--dim);font-size:12px">· entro il '+ggmmaa(e.data)+'</span>';
       else if(e.mesi===0) val=' <span style="color:var(--dim);font-size:12px">· senza scadenza</span>';

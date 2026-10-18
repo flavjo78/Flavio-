@@ -182,7 +182,14 @@
   function siteIc(t){ return '<span style="color:#e7c983;vertical-align:middle;margin-right:6px">'+(SITEIC[t]||SITEIC.mail)+'</span>'; }
   // una tantum del piano scelto (voci aggiuntive specifiche di quel piano)
   function planUnaTantum(){ if(!curPlan) return []; var p=piani.filter(function(x){return x.nome===curPlan;})[0]; return (p&&p.una_tantum)||[]; }
-  function allExtras(){ return extra.concat(planUnaTantum()); }
+  // voci di PROVA (codice che inizia con "test"): nascoste ai clienti,
+  // compaiono solo aprendo la pagina con ?test=1
+  var TESTMODE=/[?&]test=1\b/.test(location.search);
+  function allExtras(){
+    return extra.concat(planUnaTantum()).filter(function(e){
+      return TESTMODE || String(e.code||'').indexOf('test')!==0;
+    });
+  }
   function renderConfronto(){
     var box=document.getElementById('confronto');
     var cols=piani.slice();

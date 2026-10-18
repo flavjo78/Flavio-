@@ -218,6 +218,10 @@ function predizione_extra_default(): array {
         'assist_mese'=> ['prezzo' => 2,   'tipo' => 'assistente', 'qta' => 1,    'label' => 'Assistente di scena',   'mesi' => 1, 'data' => ''],
         'report_mese'=> ['prezzo' => 1,   'tipo' => 'report',     'qta' => 1,    'label' => 'Report sessione',       'mesi' => 1, 'data' => ''],
         'mail_5000'  => ['prezzo' => 7,   'tipo' => 'mail',       'qta' => 5000, 'label' => '5.000 mail (Palco)',    'mesi' => 1, 'data' => ''],
+        // Voce di PROVA per collaudare il pagamento (pochi centesimi). NON si vede
+        // ai clienti: compare solo aprendo la pagina "scegli" con ?test=1. Si puo'
+        // togliere dall'editor Listino quando non serve piu'.
+        'test_cent'  => ['prezzo' => 0.10, 'tipo' => 'mail',      'qta' => 1,    'label' => 'Prova pagamento (TEST)','mesi' => 1, 'data' => ''],
     ];
 }
 /* Extra EFFETTIVI: fabbrica + modifiche salvate (prezzo/quantita'/etichetta). */
