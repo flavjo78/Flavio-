@@ -1020,6 +1020,17 @@ switch ($azione) {
         // anche a gioco avviato, fino a quando premi "Cambia". Serve pero'
         // prima di "Cambia" (la controlliamo li').
 
+        // LIMITE SESSIONI: se non ne restano (piano del mese finito E niente crediti)
+        // la nuova sessione NON parte. Prima si avviava comunque, oltre il limite.
+        $recSess = predizione_utente_record(predizione_utente());
+        if ($recSess) {
+            predizione_uso_mese($stato);
+            if (predizione_rimaste($stato, $recSess, 'sessioni') < 1) {
+                predizione_json(['ok' => false, 'limite' => 'sessioni',
+                    'errore' => 'Hai finito le sessioni di questo mese. Acquista altre sessioni oppure attendi il rinnovo del piano.'], 403);
+            }
+        }
+
         // orario di sicurezza opzionale: "HH:MM" (oggi) oppure timestamp
         $orario = p('orario_scambio');
         $ts = null;

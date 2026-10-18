@@ -427,6 +427,21 @@ function predizione_consuma(array &$stato, string $tipo, int $n = 1): void {
     }
 }
 
+/* Quante unità RESTANO per questo tipo = (tetto mensile del piano − già usate nel
+   mese) + crediti non scaduti. Serve a BLOCCARE l'azione quando è a zero (prima si
+   consumava e basta, senza controllare → si superavano i limiti). Chiama prima
+   predizione_uso_mese() per azzerare il contatore se è cambiato il mese. */
+function predizione_rimaste(array $stato, array $rec, string $tipo): int {
+    $lim = predizione_limiti_utente($rec);
+    $cap = 0;
+    if ($tipo === 'mail')          $cap = (int)$lim['mail_mese'];
+    elseif ($tipo === 'foto_ia')   $cap = (int)$lim['foto_ia_mese'];
+    elseif ($tipo === 'sessioni')  $cap = (int)$lim['sessioni_mese'];
+    $usato = (int)($stato['uso'][$tipo] ?? 0);
+    $rimPiano = max(0, $cap - $usato);
+    return $rimPiano + predizione_crediti_disponibili($rec, $tipo);
+}
+
 /* Riepilogo limiti+crediti per l'app (Mio account / I miei limiti). */
 function predizione_limiti_utente(array $rec): array {
     $piani = predizione_piani();
