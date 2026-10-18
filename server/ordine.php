@@ -535,12 +535,17 @@ if ($azione === 'crea') {
         $istr = "Satispay: riceverai la richiesta di $importo € al tuo numero.\nCausale/nota:  $codice";
     }
 
-    // mail al cliente (come pagare) e a supporto (nuovo ordine) — si usa il CODICE mascherato
-    $corpoCliente = "Grazie! Ecco come completare l'ordine $codice.\n\n$istr\n\n"
-                  . "Il gioco viene ATTIVATO entro 72 ore dalla conferma del pagamento.\n"
-                  . "La password ti arrivera' da supporto@abraka.it (controlla anche lo spam).\n\n"
-                  . "abraka — supporto@abraka.it";
-    ord_manda_mail($mail, "Ordine $codice — come pagare", $corpoCliente);
+    // mail al cliente "come pagare": SOLO per i canali manuali (bonifico/satispay).
+    // Con PayPal il pagamento è AUTOMATICO nel sito (il cliente paga subito e riceve la
+    // mail di benvenuto con la password dopo l'incasso): la mail "come pagare", con il
+    // link paypal.me manuale, sarebbe sbagliata/confusa, quindi NON va inviata.
+    if ($canale !== 'paypal') {
+        $corpoCliente = "Grazie! Ecco come completare l'ordine $codice.\n\n$istr\n\n"
+                      . "Il gioco viene ATTIVATO entro 72 ore dalla conferma del pagamento.\n"
+                      . "La password ti arrivera' da supporto@abraka.it (controlla anche lo spam).\n\n"
+                      . "abraka — supporto@abraka.it";
+        ord_manda_mail($mail, "Ordine $codice — come pagare", $corpoCliente);
+    }
     // AVVISO all'autore: 1) appena arriva l'ordine (QUI), 2) quando viene processato (in admin_attiva)
     $avviso = "Ordine $codice\n$nome $cognome\n$mail\n$gioco · $piano ($durata)\nImporto $importo €\nCanale: $canale";
     ord_manda_mail('supporto@abraka.it', "Nuovo ordine $codice", $avviso);
