@@ -39,8 +39,15 @@
 - **Sito vetrina** (`sito/index.html`): video d'ingresso, Accedi, biglietteria. Pagine `acquista.html`,
   `licenza.html`, `prezzi.html`.
 - **Ordine completo** (`ordine.php`): numero `PRD-NNNN`, codice di conferma via mail, coordinate di
-  pagamento (bonifico/PayPal/Satispay), mail al cliente + `supporto@` + autore, **mail di benvenuto
+  pagamento, mail al cliente + `supporto@` + autore, **mail di benvenuto
   con password** e **ricevuta PDF**. Attivazione utente (`attiva_ordine`).
+- **PayPal AUTOMATICO (AGG 64-66) — funziona in SANDBOX:** bottoni PayPal nel sito, incasso + verifica
+  importo + **attivazione automatica** (crea→cattura→attiva); metodi = **solo Bonifico + PayPal** sia nella
+  biglietteria della home (`index.html`) sia in `acquista.html` (sincronizzati). **Manca solo il passaggio
+  a LIVE** (soldi veri) → vedi URGENTE A.
+- **Gestione ordini nel pannello 000 (AGG 65):** PayPal in **bordò**, tasto **Archivia**, processati con
+  **selezione multipla** (tasto destro / tieni premuto) → **cartelle** o **cancella**. Numero ordini
+  **progressivo che non si azzera** anche cancellando (AGG 66). Fix telefono **+39** nella biglietteria.
 
 **Rifiniture e robustezza (AGG 41→60, 15-17 ottobre)**
 - **Invio a mano "Invia mail"** funziona anche con caselle di **dominio** (login automatico, AGG 41).
@@ -111,37 +118,23 @@
 
 ## 🔴 DA FARE DAVVERO
 
-### ⭐ URGENTI (le due cose che contano adesso)
-- **A. Pagamento AUTOMATICO.** 🟡 **PayPal automatico COSTRUITO (AGG 64)**: il cliente paga nel sito e il
-  sistema **attiva da solo** (crea utente + ricevuta + mail con password). **Resta da fare l'autore:**
-  mettere le chiavi in `predizione/_dati/paypal.json` (da developer.paypal.com) e **provare in sandbox**,
-  poi passare a **live**. (Facoltativo: webhook firmato per robustezza extra — oggi la cattura è in onApprove.)
-  **DECISIONI 18 ott (autore):**
-  - **Partenza:** **bonifico** (QR SEPA + copia IBAN/importo/causale col codice ordine) + **PayPal AUTOMATICO**.
-  - **Carrello (`acquista.html`) GIÀ FATTO (UI):** tasti pagamento = **Bonifico** · **PayPal** · **Carte**.
-    - **PayPal** diventa cliccabile SOLO col totale **≥ 20 €**; sotto, nota in piccolo "aggiungi altri X €".
-    - **Carte** (al posto di Satispay): **non cliccabile**, nota "prossimamente in arrivo".
-    - **Eccezione:** la **Foto magic di PROVA** (`prova_foto`) abilita PayPal **anche sotto i 20 €**
-      (`SOGLIA_PP=20`, `haProva()`), così si può collaudare PayPal con un importo piccolo.
-    - **Testo del tasto per metodo** (`labelPaga()`): Bonifico → "Ordina e paga"; PayPal → "Paga e attiva ora".
-    - **FIX (AGG 63):** in vetrina `prezzi.html` il piano **gratis (Foyer)** ora risponde al toggle
-      Annuale/Mensile (prima mostrava sempre il prezzo annuale).
-  - **Soglia minima PayPal = 20 €** (sotto → solo bonifico), **MAI** sovrapprezzo su PayPal.
-  - **Da costruire (fase 2):** l'incasso automatico vero (webhook PayPal → `attiva_ordine`).
-  - Per PayPal automatico servirà dall'autore: **conto PayPal Business** + **Client ID** + **Secret**.
-  - **Voce di PROVA pagamento** nel listino (`prova_foto` = "5 Foto magic (prova)", 0,40 €): **VISIBILE** ai
-    clienti (scelta autore, per un test reale). Da togliere dall'editor Listino quando il test è finito.
-  - **Gestione ordini nel pannello (AGG 65):** gli ordini **PayPal** sono evidenziati in **bordò**; il PayPal
-    pagato in automatico **resta negli Ordini** con il tasto **Archivia** (non sparisce da solo); gli ordini
-    **processati** si possono **selezionare** (tasto destro / tieni premuto), **mettere in cartelle** o
-    **cancellare** (comodo per le prove). Le due mail (ordine + attivazione) partono come per il bonifico.
-  - **Biglietteria home automatica (AGG 66):** la pagina d'acquisto DENTRO la home (`index.html`) ora è il
-    **flusso automatico** come `acquista.html` → solo **Bonifico + PayPal** (via Satispay), bottoni PayPal veri,
-    schermata finale corretta. **Fix telefono +39** (etichetta fissa, l'autofill va nel campo giusto).
-    **`acquista.html`**: solo Bonifico + PayPal (via "Carte"), via la scritta "[diagnostica]".
-    **Regola:** metodi di pagamento SEMPRE sincronizzati tra le due pagine.
-  - **Progressivo ordini monotòno (AGG 66):** il numero d'ordine non si azzera più se cancelli ordini
-    (contatore persistente `_dati/ordini_seq.txt`).
+### ⭐ URGENTI (le cose che contano adesso)
+
+- **A. ⬅️ PASSARE AL PAGAMENTO VERO (PayPal LIVE).** Questo è il prossimo passo che manca.
+  - **Dov'è ora:** PayPal automatico **COSTRUITO e FUNZIONANTE in SANDBOX** (soldi finti). Il cliente paga nel
+    sito → i bottoni compaiono → il sistema incassa, controlla l'importo e **attiva da solo** (utente +
+    ricevuta + mail con password). Collaudato: bottoni nel browser + giro `paypal_crea`/`paypal_cattura`.
+  - **COSA MANCA per i soldi VERI (lo fa l'autore, niente codice):**
+    1. su **developer.paypal.com** creare l'app in **"Live"** (non più Sandbox) e copiare **Client ID + Secret** LIVE;
+    2. nel file **`predizione/_dati/paypal.json`** mettere quelle chiavi e cambiare **`"modo":"live"`**;
+    3. nel **conto PayPal Business** collegare il **conto bancario** (per poter prelevare gli incassi);
+    4. fare **UNA prova vera** con un importo piccolo (es. la Foto magic di prova 0,40 €), controllare che
+       arrivino le mail e che l'ordine risulti attivato;
+    5. quando il test LIVE è ok, **togliere dall'editor Listino** la voce di PROVA `prova_foto`.
+  - ⚠️ **Le chiavi LIVE NON si incollano in chat né nel codice:** solo l'autore le mette nel file sul server.
+  - **Facoltativo (robustezza extra, più avanti):** il **webhook PayPal firmato** lato server. Oggi l'incasso
+    avviene alla conferma del pagamento (`onApprove` → `paypal_cattura`, lato server), sufficiente per partire.
+
 - **B. Conferma FINALE col commercialista.** Chiudere l'inquadramento fiscale (vedi punto 5): portare
   al commercialista il foglio `guide/domande-commercialista.html` con regime + ATECO e avere la risposta
   definitiva (integrare nella partita IVA esistente, oppure diritto d'autore / Paddle). Finché non è
