@@ -306,12 +306,16 @@
   }
   function avviaPaypal(codice, importo, istrManuale){
     var box=document.getElementById('payBox');
+    function ripiego(motivo){
+      try{ console.log('PayPal ripiego:', motivo); }catch(e){}
+      box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+
+        '<div style="color:#cf8262;font-size:12.5px;margin-bottom:8px">[diagnostica] PayPal non mostrato · motivo: '+motivo+'</div>'+istrManuale;
+    }
     box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Caricamento PayPal…';
     fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','paypal_cfg');return f;})()})
       .then(function(r){return r.json();}).then(function(c){
         if(!c||!c.ok||!c.attivo||!c.client_id){
-          // PayPal non ancora configurato: mostra le istruzioni manuali di riserva
-          box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale;
+          ripiego('config non attiva (ok='+(c&&c.ok)+' attivo='+(c&&c.attivo)+' clientid='+(c&&!!c.client_id)+')');
           return;
         }
         box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Paga in modo sicuro con PayPal o carta:<div id="ppBtns" style="margin-top:12px"></div>'+
@@ -342,11 +346,11 @@
         if(ppSdkPronto){ render(); }
         else {
           caricaScript('https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture', function(err){
-            if(err){ box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale; return; }
+            if(err){ ripiego('SDK PayPal non caricato (blocco browser/adblock o chiave errata)'); return; }
             ppSdkPronto=true; render();
           });
         }
-      }).catch(function(){ box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+istrManuale; });
+      }).catch(function(e){ ripiego('errore contattando il server ('+(e&&e.message||e)+')'); });
   }
 })();
 </script>
