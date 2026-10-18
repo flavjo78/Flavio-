@@ -156,7 +156,7 @@
       <div class="acard">
         <div class="row2"><div style="flex:1"><label class="lb">Nome</label><input id="nome" placeholder="Mario"></div><div style="flex:1"><label class="lb">Cognome</label><input id="cognome" placeholder="Rossi"></div></div><div class="err" id="eNome"></div>
         <label class="lb">Email</label><input id="email" type="email" placeholder="mario.rossi@email.it"><div class="err" id="eEmail"></div>
-        <label class="lb">Telefono</label><div class="row2"><input value="+39" style="max-width:74px;text-align:center"><input id="tel" placeholder="333 1234567"></div><div class="err" id="eTel"></div>
+        <label class="lb">Telefono</label><div class="row2"><span style="flex:0 0 auto;display:flex;align-items:center;justify-content:center;min-width:58px;background:var(--surface2);border:1px solid var(--line2);color:var(--dim);border-radius:12px;padding:0 10px;font-size:15px">+39</span><input id="tel" type="tel" inputmode="numeric" autocomplete="tel-national" placeholder="333 1234567"></div><div class="err" id="eTel"></div>
         <label class="lb">Nazione</label><select id="naz"><option>Italia</option></select>
         <label class="lb">Provincia</label><select id="prov" onchange="riempiCitta()"><option value="">— scegli —</option></select>
         <label class="lb">Città</label><select id="citta"><option value="">— scegli prima la provincia —</option></select>
@@ -189,7 +189,7 @@
 
     <div class="ascreen" id="a_pag"><h2>Pagamento</h2><p class="sub">Scegli come pagare e accetta le condizioni</p>
       <div class="acard"><div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim)">Metodo</div>
-        <div class="pay"><div class="m sel" onclick="pay(this)">Bonifico</div><div class="m" onclick="pay(this)">Satispay</div><div class="m" onclick="pay(this)">PayPal</div></div>
+        <div class="pay"><div class="m sel" onclick="pay(this)">Bonifico</div><div class="m" onclick="pay(this)">PayPal</div></div>
         <div id="causaleBox" style="margin-top:10px;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:13px;color:var(--dim)">
           <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--dim);margin-bottom:8px">Fai il bonifico con questi dati</div>
           <div style="display:flex;justify-content:space-between;padding:4px 0"><span>Importo</span><b style="color:var(--goldink);font-size:15px" id="bonImporto">25 €</b></div>
@@ -202,8 +202,9 @@
         <div class="hint" style="color:var(--faint)">La password arriva <b>solo dopo la verifica del pagamento</b>, da <b>supporto@abraka.it</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma del pagamento.</div>
         <button class="aback" onclick="ago(4)">‹ indietro</button></div></div>
 
-    <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2>Ordine ricevuto!</h2><p class="sub">Codice ordine <b id="ordId">PRD-0042</b></p>
-      <p style="color:var(--dim);font-size:14px">Stiamo <b>verificando il pagamento</b>. Appena risulta ricevuto, parte in automatico la mail con la tua <b>password</b>. Il gioco viene <b>attivato entro 72 ore</b> dalla conferma.</p>
+    <div class="ascreen" id="a_fatto"><div class="acard" style="text-align:center"><div style="margin:0 auto 10px;width:74px;height:74px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e7c074,#b9892f);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 22px rgba(0,0,0,.55)"><svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="#2a1e08" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.2 4.3L19 7"/></svg></div><h2 id="fattoTit">Ordine ricevuto!</h2><p class="sub">Codice ordine <b id="ordId">PRD-0042</b></p>
+      <p id="fattoIntro" style="color:var(--dim);font-size:14px"></p>
+      <div id="ppBox" style="display:none;text-align:left;margin-bottom:12px"></div>
       <div id="bonFatto" style="display:none;text-align:left;background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;margin-bottom:12px;font-size:13px;color:var(--dim)">
         <div style="font-size:11px;letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Completa il bonifico</div>
         <div style="display:flex;justify-content:space-between;padding:3px 0"><span>Importo</span><b style="color:var(--goldink)" id="fImporto">—</b></div>
@@ -212,7 +213,7 @@
         <div style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Causale (scrivila <b>esatta</b>):</div>
         <div style="margin-top:4px;font-family:var(--display);color:var(--goldink);font-size:18px" id="fCausale">—</div>
       </div>
-      <div class="mailbox">📧 Da: <b>supporto@abraka.it</b><br>A: <b id="mailTo">…</b><br>Oggetto: <b>Benvenuto — i tuoi accessi</b></div>
+      <div class="mailbox" id="fattoMail">📧 Da: <b>supporto@abraka.it</b><br>A: <b id="mailTo">…</b><br>Oggetto: <b>Benvenuto — i tuoi accessi</b></div>
       <p style="color:var(--faint);font-size:13px;margin-top:10px">Non vedi la mail? <b>Controlla anche lo spam</b>.</p>
       <button class="abtn ghost" onclick="chiudiAcq()">Torna al palco</button></div></div>
   </div></div>
@@ -327,9 +328,19 @@
     document.getElementById('durataRow').style.display=(k>0)?'block':'none';recalcScelta();}
   function durata(d,el){curDur=d;document.querySelectorAll('#durataRow .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');recalcScelta();}
   function recalcScelta(){var k=curPlan;var price=(k===0)?0:(curDur==='anno'?planAnnual[k]:planMonthly[k]);var tot=25+price;
-    document.getElementById('tot').textContent=tot+' €';document.getElementById('pagaTxt').textContent='Paga '+tot+' € e conferma';var bi=document.getElementById('bonImporto');if(bi)bi.textContent=tot+' €';
+    window._tot=tot;
+    document.getElementById('tot').textContent=tot+' €';aggiornaTastoPaga();var bi=document.getElementById('bonImporto');if(bi)bi.textContent=tot+' €';
     document.getElementById('totnote').textContent=k>0?('Oggi: accesso 25 € + '+planNames[k]+(curDur==='anno'?(' per 1 anno ('+planAnnual[k]+' €)'):(' per 1 mese ('+planMonthly[k]+' €)'))+'. Totale '+tot+' €.'):'Solo l’accesso 25 €. L’estensione puoi comprarla ora o attivarla dall’app.';}
-  function pay(el){document.querySelectorAll('#a_pag .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');document.getElementById('causaleBox').style.display=(el.textContent.trim()==='Bonifico')?'block':'none';}
+  function pay(el){document.querySelectorAll('#a_pag .m').forEach(function(m){m.classList.remove('sel');});el.classList.add('sel');
+    document.getElementById('causaleBox').style.display=(el.textContent.trim()==='Bonifico')?'block':'none';
+    aggiornaTastoPaga();}
+  function aggiornaTastoPaga(){
+    var sel=document.querySelector('#a_pag .m.sel');
+    var m=sel?sel.textContent.trim():'Bonifico';
+    var tot=(typeof window._tot==='number')?window._tot:0;
+    var txt=(m==='PayPal')?('Paga e attiva ora — '+tot+' €'):('Ordina e paga — '+tot+' €');
+    var pt=document.getElementById('pagaTxt'); if(pt)pt.textContent=txt;
+  }
   var ORDINE_URL='/predizione/ordine.php';
   var PAG={intestatario:'—',iban:'—'};
   fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','pagamenti');return f;})()})
@@ -361,19 +372,71 @@
     fetch(ORDINE_URL,{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
       if(btn)btn.disabled=false;
       if(d&&d.ok){var oi=document.getElementById('ordId'); if(oi)oi.textContent=d.ordine;
-        var bf=document.getElementById('bonFatto');
-        if(bf){ if(canale==='bonifico'){
+        var bf=document.getElementById('bonFatto'), pb=document.getElementById('ppBox'), mb=document.getElementById('fattoMail');
+        var tit=document.getElementById('fattoTit'), intro=document.getElementById('fattoIntro');
+        if(canale==='paypal'){
+          if(bf)bf.style.display='none'; if(mb)mb.style.display='none';
+          if(tit)tit.textContent='Completa il pagamento';
+          if(intro)intro.innerHTML='Paga in modo sicuro qui sotto. Appena paghi, il gioco si <b>attiva da solo</b> e ricevi la mail con la <b>password</b>.';
+          ago(6);
+          avviaPaypalHome(d.ordine, d.importo||0);
+        } else {
+          if(pb)pb.style.display='none'; if(mb)mb.style.display='';
+          if(tit)tit.textContent='Ordine ricevuto!';
+          if(intro)intro.innerHTML='Abbiamo registrato il tuo ordine. Completa il <b>bonifico</b> qui sotto: appena risulta il pagamento ti attiviamo e ricevi la mail con la <b>password</b> da <b>supporto@abraka.it</b> (entro 72 ore).';
+          if(bf){
             var nm=((document.getElementById('nome').value||'')+' '+(document.getElementById('cognome').value||'')).trim();
             document.getElementById('fImporto').textContent=(d.importo||'')+' €';
             document.getElementById('fIntest').textContent=PAG.intestatario||'—';
             document.getElementById('fIban').textContent=PAG.iban||'—';
             document.getElementById('fCausale').textContent=d.ordine+' '+nm;
             bf.style.display='block';
-          } else { bf.style.display='none'; } }
-        ago(6);}
+          }
+          ago(6);
+        }
+      }
       else{document.getElementById('eAcc').textContent=(d&&d.errore)||'Errore, riprova.';}
     }).catch(function(){ if(btn)btn.disabled=false; ago(6); /* anteprima/offline: mostra conferma demo */ });
   }
-  paint();paintLang();
+  /* PayPal AUTOMATICO nella biglietteria (stesso giro di acquista.html) */
+  function avviaPaypalHome(codice, importo){
+    var box=document.getElementById('ppBox'); if(!box)return; box.style.display='block';
+    function ripiego(msg){ box.innerHTML='<div style="background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:14px;font-size:13px;color:var(--dim)">'+(msg||'PayPal non è disponibile in questo momento.')+'<br><br>Scrivi a <b>supporto@abraka.it</b> oppure riprova col <b>bonifico</b>.</div>'; }
+    box.innerHTML='<div style="font-size:13px;color:var(--dim)">Caricamento PayPal…</div>';
+    var f=new FormData(); f.append('azione','paypal_cfg');
+    fetch(ORDINE_URL,{method:'POST',body:f}).then(function(r){return r.json();}).then(function(c){
+      if(!c||!c.ok||!c.attivo||!c.client_id){ ripiego('Il pagamento automatico non è attivo.'); return; }
+      box.innerHTML='<div style="font-size:13px;color:var(--dim);margin-bottom:10px">Importo <b style="color:var(--goldink)">'+importo+' €</b> — paga con PayPal o carta:</div><div id="ppBtns"></div><div id="ppMsg" style="font-size:13px;color:var(--dim);margin-top:10px"></div>';
+      var render=function(){
+        if(!window.paypal||!window.paypal.Buttons){ document.getElementById('ppMsg').textContent='PayPal non disponibile ora. Riprova o usa il bonifico.'; return; }
+        window.paypal.Buttons({
+          style:{layout:'vertical',color:'gold',shape:'pill',label:'paypal'},
+          createOrder:function(){ var f2=new FormData(); f2.append('azione','paypal_crea'); f2.append('id',codice);
+            return fetch(ORDINE_URL,{method:'POST',body:f2}).then(function(r){return r.json();}).then(function(x){ if(!x||!x.ok)throw new Error((x&&x.errore)||'errore'); return x.id; }); },
+          onApprove:function(data){ document.getElementById('ppMsg').textContent='Pagamento in corso…';
+            var f3=new FormData(); f3.append('azione','paypal_cattura'); f3.append('id',codice); f3.append('ppid',data.orderID);
+            return fetch(ORDINE_URL,{method:'POST',body:f3}).then(function(r){return r.json();}).then(function(x){
+              if(x&&x.ok&&x.attivato){
+                var tit=document.getElementById('fattoTit'); if(tit)tit.textContent='Pagato e attivato ✓';
+                var intro=document.getElementById('fattoIntro'); if(intro)intro.innerHTML='Grazie! Ricevi tutto via mail da <b>supporto@abraka.it</b> (controlla anche lo spam).';
+                box.style.display='none';
+                var mb=document.getElementById('fattoMail'); if(mb)mb.style.display='';
+              } else { document.getElementById('ppMsg').textContent=(x&&x.errore)||'Pagamento non confermato. Scrivici a supporto@abraka.it.'; }
+            }); },
+          onCancel:function(){ document.getElementById('ppMsg').textContent='Pagamento annullato.'; },
+          onError:function(){ document.getElementById('ppMsg').textContent='Errore col pagamento. Riprova o usa il bonifico.'; }
+        }).render('#ppBtns');
+      };
+      if(window.paypal&&window.paypal.Buttons){ render(); return; }
+      var s=document.createElement('script'); s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture'; document.head.appendChild(s);
+      var t0=Date.now(), fatto=false;
+      (function poll(){ if(fatto)return;
+        if(window.paypal&&window.paypal.Buttons){ fatto=true; render(); return; }
+        if(Date.now()-t0>8000){ fatto=true; ripiego('PayPal non si è caricato (bloccato dal browser o rete).'); return; }
+        setTimeout(poll,250);
+      })();
+    }).catch(function(){ ripiego('Non riesco a contattare il server.'); });
+  }
+  paint();paintLang();recalcScelta();
 </script>
 </body></html>

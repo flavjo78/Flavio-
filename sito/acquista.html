@@ -92,7 +92,7 @@
     </div>
 
     <h2>Pagamento</h2>
-    <div class="seg" id="canSeg"><button data-can="bonifico" class="on">Bonifico</button><button data-can="paypal" id="btnPP">PayPal</button><button data-can="carte" id="btnCarte" class="soon" disabled>Carte</button></div>
+    <div class="seg" id="canSeg"><button data-can="bonifico" class="on">Bonifico</button><button data-can="paypal" id="btnPP">PayPal</button></div>
     <p class="hint" id="canHint" style="margin-top:6px"></p>
 
     <div class="tot">Totale <b id="totale">0 €</b></div>
@@ -244,8 +244,7 @@
     if(canale==='paypal' && !ppOk){ canale='bonifico'; segOn('bonifico'); }
     var manca=Math.max(0, SOGLIA_PP - t);
     var hint='';
-    if(!ppOk){ hint='<b>PayPal</b>: attivo dai '+money(SOGLIA_PP)+' — aggiungi altri <b>'+money(manca)+'</b> per usarlo.<br>'; }
-    hint+='<b>Carte</b>: prossimamente in arrivo.';
+    if(!ppOk){ hint='<b>PayPal</b>: attivo dai '+money(SOGLIA_PP)+' — aggiungi altri <b>'+money(manca)+'</b> per usarlo.'; }
     document.getElementById('canHint').innerHTML=hint;
     labelPaga();
   }
@@ -269,7 +268,6 @@
     var extraMap={}; allExtras().forEach(function(e){ if(qty[e.code]>0) extraMap[e.code]=qty[e.code]; });
     if(curPlan==='' && Object.keys(extraMap).length===0){ alert('Scegli un piano o almeno un extra.'); return; }
     if(canale==='paypal' && !ppAbilitato(totaleCarrello())){ alert('PayPal è disponibile dai '+money(SOGLIA_PP)+'. Scegli Bonifico oppure aumenta l\'importo.'); return; }
-    if(canale==='carte'){ alert('Il pagamento con carta sarà disponibile prossimamente.'); return; }
     var fd=new FormData();
     fd.append('azione','crea');
     fd.append('gioco','Predizione');
@@ -309,7 +307,7 @@
     function ripiego(motivo){
       try{ console.log('PayPal ripiego:', motivo); }catch(e){}
       box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>'+
-        '<div style="color:#cf8262;font-size:12.5px;margin-bottom:8px">[diagnostica] PayPal non mostrato · motivo: '+motivo+'</div>'+istrManuale;
+        '<div style="color:#cf8262;font-size:12.5px;margin-bottom:8px">PayPal non disponibile in questo momento. Puoi pagare col bonifico qui sotto:</div>'+istrManuale;
     }
     box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Caricamento PayPal…';
     fetch(ORDINE_URL,{method:'POST',body:(function(){var f=new FormData();f.append('azione','paypal_cfg');return f;})()})

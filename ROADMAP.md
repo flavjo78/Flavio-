@@ -135,6 +135,13 @@
     pagato in automatico **resta negli Ordini** con il tasto **Archivia** (non sparisce da solo); gli ordini
     **processati** si possono **selezionare** (tasto destro / tieni premuto), **mettere in cartelle** o
     **cancellare** (comodo per le prove). Le due mail (ordine + attivazione) partono come per il bonifico.
+  - **Biglietteria home automatica (AGG 66):** la pagina d'acquisto DENTRO la home (`index.html`) ora è il
+    **flusso automatico** come `acquista.html` → solo **Bonifico + PayPal** (via Satispay), bottoni PayPal veri,
+    schermata finale corretta. **Fix telefono +39** (etichetta fissa, l'autofill va nel campo giusto).
+    **`acquista.html`**: solo Bonifico + PayPal (via "Carte"), via la scritta "[diagnostica]".
+    **Regola:** metodi di pagamento SEMPRE sincronizzati tra le due pagine.
+  - **Progressivo ordini monotòno (AGG 66):** il numero d'ordine non si azzera più se cancelli ordini
+    (contatore persistente `_dati/ordini_seq.txt`).
 - **B. Conferma FINALE col commercialista.** Chiudere l'inquadramento fiscale (vedi punto 5): portare
   al commercialista il foglio `guide/domande-commercialista.html` con regime + ATECO e avere la risposta
   definitiva (integrare nella partita IVA esistente, oppure diritto d'autore / Paddle). Finché non è

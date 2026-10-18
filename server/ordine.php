@@ -36,12 +36,21 @@ function ord_scrivi(array $o): bool {
     predizione_prepara_cartella();
     return @file_put_contents(ord_file(), json_encode($o, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), LOCK_EX) !== false;
 }
+/* Numero d'ordine PROGRESSIVO che NON si azzera mai, nemmeno se cancelli
+   degli ordini: un contatore persistente in _dati/ordini_seq.txt che sale e
+   basta. Si parte dal massimo tra il contatore salvato e gli ordini presenti
+   (così funziona anche sui dati vecchi, senza contatore), poi +1 e si salva. */
 function ord_prossimo_id(array $ordini): string {
-    $max = 0;
+    predizione_prepara_cartella();
+    $f = DATA_DIR . '/ordini_seq.txt';
+    $salvato = (int)@file_get_contents($f);   // 0 se il file non c'è ancora
+    $max = $salvato;
     foreach (array_keys($ordini) as $k) {
         if (preg_match('/PRD-(\d+)/', $k, $m)) { $n = (int)$m[1]; if ($n > $max) $max = $n; }
     }
-    return 'PRD-' . str_pad((string)($max + 1), 4, '0', STR_PAD_LEFT);
+    $nuovo = $max + 1;
+    @file_put_contents($f, (string)$nuovo, LOCK_EX);
+    return 'PRD-' . str_pad((string)$nuovo, 4, '0', STR_PAD_LEFT);
 }
 function ord_p(string $k): string {
     $v = $_POST[$k] ?? $_GET[$k] ?? '';

@@ -3,7 +3,34 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 65 — ordini PayPal evidenziati + "Archivia"; processati: selezione multipla (tasto destro / tieni premuto) → cartelle o cancella).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 66 — biglietteria home come flusso automatico (Bonifico + PayPal), fix telefono +39, progressivo ordini che non si azzera).
+
+> ### Aggiunte 18 ottobre 2026 (AGG 66 — biglietteria home automatica + fix +39 + progressivo ordini)
+> - **Biglietteria nella home (`sito/index.html`) = flusso NUOVO automatico (Opzione A).** Prima era una
+>   seconda pagina d'acquisto VECCHIA e manuale (Bonifico/Satispay/PayPal-solo-scritta) che finiva su "Ordine
+>   ricevuto! · verificando · 72 ore". Ora:
+>   - **metodi = solo Bonifico + PayPal** (via Satispay);
+>   - **PayPal AUTOMATICO**: dopo "Paga e attiva ora" compaiono i **bottoni PayPal** nella schermata finale
+>     (stesso giro di `acquista.html`: `paypal_cfg`→SDK→`paypal_crea`/`paypal_cattura`→"Pagato e attivato ✓");
+>   - **schermata finale a 2 facce** (`a_fatto`): **bonifico** → "Ordine ricevuto!" + box IBAN/causale + testo
+>     corretto (niente più "parte in automatico la password" fuorviante col bonifico); **PayPal** → "Completa
+>     il pagamento" + bottoni, poi "Pagato e attivato ✓". `#ppBox`, `#fattoTit`, `#fattoIntro`, `#fattoMail`,
+>     `avviaPaypalHome()`.
+>   - testo del tasto per metodo (`aggiornaTastoPaga`): Bonifico → "Ordina e paga — X €"; PayPal → "Paga e
+>     attiva ora — X €".
+> - **FIX telefono +39 (`index.html`).** Il campo era **due caselle** (`+39` + numero): la compilazione
+>   automatica infilava il numero nella casella del +39. Ora **+39 è un'etichetta FISSA** (uno `<span>`, non
+>   una casella) e il campo numero ha `type=tel` + `autocomplete="tel-national"` → l'autofill va nel posto giusto.
+> - **`acquista.html`: solo Bonifico + PayPal** (tolto "Carte") e **via la scritta arancione "[diagnostica]"**
+>   dal ripiego PayPal (ora un messaggio gentile). **REGOLA:** i metodi di pagamento restano **sincronizzati**
+>   tra `index.html` e `acquista.html` (se ne cambio uno, cambio anche l'altro).
+> - **Progressivo ordini che NON si azzera (`ordine.php`).** `ord_prossimo_id` ora usa un **contatore
+>   persistente** `_dati/ordini_seq.txt` (next = max(contatore, id esistenti)+1, poi salva): anche cancellando
+>   ordini col tasto "Cancella" (AGG 65), **il numero non viene mai riusato**. (Collaudato: crea→cancella→crea
+>   dà il numero successivo, non uno riciclato.)
+> - **Richiede:** `predizione/` → `ordine.php`; **radice del sito** → `index.html`, `acquista.html`. Niente AWS.
+
+> ### Aggiunte 18 ottobre 2026 (AGG 65 — gestione ordini: PayPal in evidenza, archivia, cartelle, cancella)
 
 > ### Aggiunte 18 ottobre 2026 (AGG 65 — gestione ordini: PayPal in evidenza, archivia, cartelle, cancella)
 > - **Card ordine PayPal in BORDÒ CHIARO** (`admin.html`: classe `.card.pp`): nel pannello 000 → Ordini si
