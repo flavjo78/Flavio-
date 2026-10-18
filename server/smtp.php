@@ -84,6 +84,78 @@ function pred_smtp_host(string $email): array {
     return ['mail.tophost.it', 587];
 }
 
+/* Deduce host/porta IMAP (lettura) dall'indirizzo della casella.
+   Gmail -> imap.gmail.com; dominio (Tophost) -> pop.tophost.it (stesso host del
+   robottino di casa). Porta 993 (SSL) in entrambi i casi. */
+function pred_imap_host(string $email): array {
+    $dom = strtolower(substr(strrchr($email, '@') ?: '', 1));
+    if ($dom === 'gmail.com' || $dom === 'googlemail.com') return ['imap.gmail.com', 993];
+    return ['pop.tophost.it', 993];
+}
+
+/* TEST della LETTURA (IMAP): prova a entrare nella casella (quello che fa il
+   robottino). Prova i vari login finché uno entra. Richiede l'estensione php-imap:
+   se manca, ritorna 'skip'=>true (la lettura la potrà verificare solo il robottino).
+   Ritorna ['ok'=>bool, 'login'=>string|null, 'err'=>string, 'skip'=>bool]. */
+function pred_imap_test(string $host, int $port, array $logins, string $pass): array {
+    if (!function_exists('imap_open')) {
+        return ['ok' => false, 'login' => null, 'skip' => true,
+                'err' => 'IMAP non testabile da questo server (estensione php-imap non attiva): la lettura la verifica il robottino.'];
+    }
+    // timeout brevi: se un host non risponde, il tasto non resta appeso
+    if (function_exists('imap_timeout')) { @imap_timeout(IMAP_OPENTIMEOUT, 12); @imap_timeout(IMAP_READTIMEOUT, 12); }
+    $mbox = '{' . $host . ':' . $port . '/imap/ssl/novalidate-cert}INBOX';
+    $ultimo = '';
+    foreach ($logins as $u) {
+        $u = trim((string)$u);
+        if ($u === '') continue;
+        $im = @imap_open($mbox, $u, $pass, 0, 1);
+        if ($im !== false) { @imap_close($im); @imap_errors(); @imap_alerts(); return ['ok' => true, 'login' => $u, 'skip' => false, 'err' => '']; }
+        $e = @imap_last_error(); if ($e) $ultimo = $e;
+        @imap_errors(); @imap_alerts();   // svuota la coda errori per il tentativo dopo
+    }
+    return ['ok' => false, 'login' => null, 'skip' => false, 'err' => ($ultimo ?: 'login IMAP non riuscito')];
+}
+
+/* TEST COMPLETO della casella: LETTURA (IMAP) + INVIO (SMTP, manda una prova a
+   $dest). $m = config casella {user, pass, login?, from?}. Ritorna un riepilogo
+   leggibile con l'esito dei due controlli (per il tasto "Prova casella"). */
+function pred_testa_casella(array $m, string $dest = 'prova@abraka.it'): array {
+    $cUser = (string)($m['user'] ?? '');
+    $cPass = (string)($m['pass'] ?? '');
+    $cFrom = (string)($m['from'] ?? '');
+    $cLogin= (string)($m['login'] ?? '');
+    if ($cUser === '' || $cPass === '') {
+        return ['ok' => false, 'errore' => 'Casella non configurata (manca indirizzo o password).'];
+    }
+    // ordine login: manuale (se c'è) -> indirizzo intero -> nome mailbox (parte dopo @)
+    $logins = [];
+    if ($cLogin !== '') $logins[] = $cLogin;
+    $logins[] = $cUser;
+    $posAt = strpos($cUser, '@'); if ($posAt !== false) { $d = substr($cUser, $posAt + 1); if ($d !== '') $logins[] = $d; }
+    $logins = array_values(array_unique(array_filter($logins)));
+
+    [$ih, $ip] = pred_imap_host($cUser);
+    $imap = pred_imap_test($ih, $ip, $logins, $cPass);
+
+    [$sh, $sp] = pred_smtp_host($cUser);
+    $smtpLogin = null; $smtpErr = null;
+    foreach ($logins as $u) {
+        $e = null;
+        $corpo = '<p>Prova automatica PREDIZIONE: la casella <b>' . htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8') . '</b> funziona in INVIO.</p>';
+        if (pred_smtp_send($sh, $sp, $u, $cPass, $cUser, $cFrom, $dest, 'Prova casella — PREDIZIONE', $corpo, $e)) { $smtpLogin = $u; break; }
+        $smtpErr = $e;
+    }
+    return [
+        'ok'   => true,
+        'dest' => $dest,
+        'imap' => ['ok' => (bool)$imap['ok'], 'login' => $imap['login'], 'err' => (string)$imap['err'],
+                   'skip' => !empty($imap['skip']), 'host' => $ih . ':' . $ip],
+        'smtp' => ['ok' => ($smtpLogin !== null), 'login' => $smtpLogin, 'err' => (string)($smtpErr ?? ''),
+                   'host' => $sh . ':' . $sp],
+    ];
+}
+
 /* INVIO IN BLOCCO (una sola connessione, tante mail): serve per il TEST del
    robottino (riempire una casella). Apre UNA connessione, fa login una volta e
    spedisce N messaggi di fila -> velocissimo, niente timeout. Prova 587

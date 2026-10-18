@@ -622,6 +622,8 @@
         <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
         <button class="btn" id="provaMail" type="button" style="width:100%;margin-top:8px">Prova casella (manda una mail a te stesso)</button>
         <p class="hint" id="provaMsg"></p>
+        <button class="btn" id="provaRobot" type="button" style="width:100%;margin-top:4px">🤖 Verifica robottino (riesce a LEGGERE la casella?)</button>
+        <p class="hint" id="provaRobotMsg"></p>
         <p class="hint" id="noteGmail"><b>Attenzione:</b> questa è la <b>password per le app di Gmail</b> (16 lettere create su Google) — <b>NON</b> è la password con cui entri nel pannello. Serve la <b>verifica in due passaggi</b> su Google (così non dai la password vera).</p>
         <p class="hint" id="noteDominio" style="display:none"><b>Nota:</b> è la <b>password della casella</b> del tuo dominio (quella dell'hosting), <b>NON</b> la password con cui entri nel pannello. Il nome d'accesso lo troviamo noi da soli.</p>
       </div>
@@ -1934,6 +1936,28 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(d && d.ok){ if(msg){ msg.style.color='var(--good)'; msg.innerHTML='✅ Inviata! Controlla la casella <b>'+(d.dove||'')+'</b> (anche nello spam). La tua casella funziona.'; } toast('Prova inviata','ok'); }
       else { if(msg){ msg.style.color='var(--stop)'; msg.innerHTML='❌ Non è partita. Errore: <b>'+((d&&d.errore)||'sconosciuto')+'</b><br>Di solito è la <b>password per app</b> sbagliata/scaduta, o <b>IMAP</b> spento in Gmail.'; } toast('Invio fallito','err'); }
     }).catch(function(){ pmBtn.disabled=false; pmBtn.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile.'; } });
+  });
+
+  // ---- Verifica robottino: LETTURA (IMAP) + INVIO (SMTP) della propria casella ----
+  var prBtn=$('provaRobot');
+  if(prBtn) prBtn.addEventListener('click', function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var msg=$('provaRobotMsg'); prBtn.disabled=true; var old=prBtn.textContent; prBtn.textContent='Verifico (lettura + invio)…';
+    if(msg){ msg.style.color='var(--ink-dim)'; msg.textContent='Provo a LEGGERE e a INVIARE…'; }
+    var fd=new FormData(); fd.append('azione','prova_casella'); fd.append('utente',getUser()); fd.append('password',getPw());
+    fetch(API_BASE+'stato.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
+      prBtn.disabled=false; prBtn.textContent=old;
+      if(!d || !d.ok){ if(msg){ msg.style.color='var(--stop)'; msg.textContent='❌ '+((d&&d.errore)||'Errore'); } toast('Casella non configurata','err'); return; }
+      var im=d.imap||{}, sm=d.smtp||{}, html='';
+      if(im.skip){ html+='📥 <b>Lettura (robottino):</b> non verificabile dal sito — la controlla il robottino.<br>'; }
+      else if(im.ok){ html+='📥 <b>Lettura (robottino):</b> <b style="color:var(--good)">OK</b> ✓<br>'; }
+      else { html+='📥 <b>Lettura (robottino):</b> <b style="color:var(--stop)">NON funziona</b> — '+(im.err||'')+'<br><span style="color:var(--stop)">È questo che impedisce al robottino di rispondere.</span>'+(/gmail/i.test(im.host||'')?'<br>→ Su <b>Gmail</b>: Impostazioni → "Inoltro e POP/IMAP" → <b>attiva IMAP</b>.':'')+'<br>'; }
+      if(sm.ok){ html+='📤 <b>Invio:</b> <b style="color:var(--good)">OK</b> ✓ (prova mandata a '+(d.dest||'')+')'; }
+      else { html+='📤 <b>Invio:</b> <b style="color:var(--stop)">NON funziona</b> — '+(sm.err||''); }
+      if(msg){ msg.style.color='var(--ink)'; msg.innerHTML=html; }
+      var tutto=(im.ok||im.skip)&&sm.ok;
+      toast(tutto?'Casella a posto':'Problema sulla casella', tutto?'ok':'err');
+    }).catch(function(){ prBtn.disabled=false; prBtn.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile.'; } });
   });
 
   // ---- "vai a capo" per il testo del foglio (la tastiera del telefono a volte non lo fa) ----

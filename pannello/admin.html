@@ -1310,7 +1310,8 @@
       '<div class="field"><input type="email" id="mEmail" placeholder="utente@gmail.com" value="'+esc(m.user||'')+'"></div>'+
       '<div class="field"><label class="small" for="mApp">Password per le app di Google (16 lettere)</label><input type="text" id="mApp" placeholder="codice di 16 lettere da Google" value="'+esc(m.pass||'')+'"></div>'+
       '<div class="field"><input type="text" id="mFrom" placeholder="nome mittente (facoltativo)" value="'+esc(m.from||'')+'"></div>'+
-      '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button></div>'+
+      '<div class="btns"><button class="btn" id="mSalvaMail">Salva casella</button><button class="btn" id="mProvaCasella">🤖 Prova casella (lettura + invio)</button></div>'+
+      '<div class="small" id="mProvaMsg" style="margin-top:6px"></div>'+
       '<div class="sep"></div>'+
       '<div class="plinfo">Cambia password d\'accesso</div>'+
       '<div class="kv"><span>Password attuale</span><b style="color:var(--gold)">'+(s.pass?esc(s.pass):'—')+'</b></div>'+
@@ -1422,6 +1423,20 @@
         call('admin_crediti',{numero:num,tipo:t,qta:q,scad:$('cs_'+t).value}).then(function(r){done(r,'Crediti aggiunti');}); };
     });
     $('mSalvaMail').onclick=function(){ var e=$('mEmail').value.trim(),ap=$('mApp').value.trim(),fr=$('mFrom').value.trim(); if(!e||!ap){toast('Email e password per app','err');return;} call('admin_mail',{numero:num,email:e,app_password:ap,from:fr}).then(function(r){done(r,'Casella salvata');}); };
+    if($('mProvaCasella')) $('mProvaCasella').onclick=function(){
+      var b=$('mProvaCasella'), msg=$('mProvaMsg'); b.disabled=true; var old=b.textContent; b.textContent='Verifico…';
+      if(msg){ msg.style.color='var(--ink-dim)'; msg.textContent='Provo a leggere (IMAP) e a inviare (SMTP)…'; }
+      call('admin_prova_casella',{numero:num}).then(function(r){
+        b.disabled=false; b.textContent=old; var d=r.data||{};
+        if(!d.ok){ if(msg){ msg.style.color='var(--stop)'; msg.textContent='❌ '+(d.errore||'Errore'); } return; }
+        var im=d.imap||{}, sm=d.smtp||{}, html='';
+        if(im.skip){ html+='📥 Lettura (IMAP): non verificabile dal server — la controlla il robottino.<br>'; }
+        else if(im.ok){ html+='📥 Lettura (IMAP): <b style="color:var(--good)">OK</b> (login '+esc(im.login||'')+')<br>'; }
+        else { html+='📥 Lettura (IMAP): <b style="color:var(--stop)">NON funziona</b> — '+esc(im.err||'')+(/gmail/i.test(im.host||'')?' · su Gmail attiva IMAP':'')+'<br>'; }
+        html+= sm.ok ? ('📤 Invio (SMTP): <b style="color:var(--good)">OK</b> (prova a '+esc(d.dest||'')+')') : ('📤 Invio (SMTP): <b style="color:var(--stop)">NON funziona</b> — '+esc(sm.err||''));
+        if(msg){ msg.style.color='var(--ink)'; msg.innerHTML=html; }
+      }).catch(function(){ b.disabled=false; b.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile'; } });
+    };
     // CAMBIA USERNAME (solo se non ha giocato: il server rifiuta altrimenti)
     if($('mSalvaUser')) $('mSalvaUser').onclick=function(){
       var nv=(($('mUser').value||'').trim().toLowerCase());

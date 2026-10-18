@@ -904,6 +904,16 @@ function predizione_admin(string $azione): void {
             $esito = pred_smtp_invia_blocco($host, $port, $mc['user'], $mc['pass'],
                        $mc['user'], ($mc['from'] !== '' ? $mc['from'] : 'Prova Predizione'), $dest, $n);
             predizione_json(['ok' => true] + $esito);
+
+        case 'admin_prova_casella':
+            // TEST COMPLETO della casella di un utente: LETTURA (IMAP, quella che usa il
+            // robottino) + INVIO (SMTP) con prova a prova@abraka.it. Dice OK o l'errore.
+            require_once __DIR__ . '/smtp.php';
+            $cnum = predizione_pulisci_utente(p('numero') ?: p('mitt'));
+            if (!isset($utenti[$cnum])) predizione_json(['ok' => false, 'errore' => 'Utente assente'], 404);
+            $mc = predizione_mail_cfg($cnum);
+            $dest = substr(trim((string)(p('dest') ?? '')), 0, 160) ?: 'prova@abraka.it';
+            predizione_json(pred_testa_casella($mc, $dest));
     }
 }
 
@@ -1185,6 +1195,15 @@ switch ($azione) {
         $stato['calligrafia_id'] = $cid;
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
+
+    case 'prova_casella':
+        // TEST della PROPRIA casella: LETTURA (IMAP, come il robottino) + INVIO (SMTP)
+        // con una prova a prova@abraka.it. Dice OK o l'errore preciso, così si capisce
+        // se il robottino potrà funzionare (es. su Gmail serve l'IMAP attivo).
+        require_once __DIR__ . '/smtp.php';
+        $mcp = predizione_mail_cfg(predizione_utente());
+        $destp = substr(trim((string)(p('dest') ?? '')), 0, 160) ?: 'prova@abraka.it';
+        predizione_json(pred_testa_casella($mcp, $destp));
 
     case 'rispondi_manuale':
         // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte

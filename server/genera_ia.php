@@ -45,6 +45,15 @@ if ($recAcc && function_exists('predizione_accesso_scaduto') && predizione_acces
     predizione_json(['ok' => false, 'scaduto' => true,
         'errore' => 'Accesso scaduto: rinnova l\'accesso per creare Foto magic (supporto@abraka.it).'], 403);
 }
+// LIMITE FOTO MAGIC: se non ne restano (piano del mese finito E niente crediti),
+// non si genera. Prima si generava comunque, oltre il limite.
+if ($recAcc && function_exists('predizione_rimaste')) {
+    predizione_uso_mese($statoAuth);
+    if (predizione_rimaste($statoAuth, $recAcc, 'foto_ia') < 1) {
+        predizione_json(['ok' => false, 'limite' => 'foto_ia',
+            'errore' => 'Hai finito le Foto magic di questo mese. Acquista altri crediti oppure attendi il rinnovo del piano.'], 403);
+    }
+}
 
 /* ---- frase da scrivere -------------------------------------------------- */
 $testo = substr((string)(pia('testo') ?? ''), 0, 200);
