@@ -343,13 +343,20 @@
             onError:function(){ document.getElementById('ppMsg').textContent='Errore col pagamento. Riprova o usa il bonifico.'; }
           }).render('#ppBtns');
         };
-        if(ppSdkPronto){ render(); }
-        else {
-          caricaScript('https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture', function(err){
-            if(err){ ripiego('SDK PayPal non caricato (blocco browser/adblock o chiave errata)'); return; }
-            ppSdkPronto=true; render();
-          });
-        }
+        if(window.paypal && window.paypal.Buttons){ ppSdkPronto=true; render(); return; }
+        // carica lo SDK e NON si fida del solo onerror: controlla ogni 250ms se PayPal è davvero arrivato
+        var s=document.createElement('script');
+        s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture';
+        var errCaricamento=false;
+        s.onerror=function(){ errCaricamento=true; };
+        document.head.appendChild(s);
+        var t0=Date.now(), fatto=false;
+        (function poll(){
+          if(fatto) return;
+          if(window.paypal && window.paypal.Buttons){ fatto=true; ppSdkPronto=true; render(); return; }
+          if(Date.now()-t0 > 8000){ fatto=true; ripiego('PayPal non arrivato dopo 8s'+(errCaricamento?' · onerror (bloccato dal browser/rete)':' · caricato ma window.paypal mancante')); return; }
+          setTimeout(poll, 250);
+        })();
       }).catch(function(e){ ripiego('errore contattando il server ('+(e&&e.message||e)+')'); });
   }
 })();
