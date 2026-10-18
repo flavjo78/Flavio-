@@ -3,7 +3,35 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 67 — calligrafia Foto magic scelta dal performer tra quelle "disponibili"; foto ridotte nel telefono prima dell'invio; occhio mostra-password).
+Ultimo aggiornamento: 18 ottobre 2026 (AGG 68 — blocco limiti (sessioni/mail/foto); Test casella IMAP+SMTP; diagnostica foto; PayPal senza mail "come pagare").
+
+> ### Aggiunte 18 ottobre 2026 (AGG 68 — limiti che bloccano + Test casella (robottino) + diagnostica foto)
+> - **LIMITI che BLOCCANO davvero.** Prima le azioni **consumavano** ma **non controllavano** mai il residuo
+>   → si superavano i limiti. Nuovo helper `predizione_rimaste($stato,$rec,$tipo)` = (tetto mese − usate) +
+>   crediti. Ora: **`avvia`** (stato.php) blocca se 0 sessioni; **`invia.php`** blocca se le mail del mese non
+>   bastano per TUTTI i destinatari; **`genera_ia.php`** blocca se 0 Foto magic. Messaggi chiari ("Hai finito…").
+>   *(Nota: il consumo del ROBOTTINO non è ancora bloccato al limite — da decidere, per non fermare uno show
+>   a metà.)*
+> - **TEST CASELLA (verifica robottino): LETTURA (IMAP) + INVIO (SMTP).** `smtp.php`: `pred_imap_host()`
+>   (Gmail→imap.gmail.com / dominio→pop.tophost.it, 993), `pred_imap_test()` (login IMAP con timeout, prova i
+>   vari login; se php-imap manca ritorna `skip`), `pred_testa_casella($m)` (IMAP + SMTP con prova a
+>   **prova@abraka.it**). Azioni: **`prova_casella`** (performer, la propria casella) e **`admin_prova_casella`**
+>   (admin, un utente). Tasti: Regia → "La tua casella" → **"🤖 Verifica robottino (legge la casella?)"**;
+>   pannello 000 → scheda utente → **"🤖 Prova casella (lettura + invio)"**. Serve a capire **perché** il
+>   robottino non risponde (es. **Gmail con IMAP disattivato**: l'invio a mano va ma la lettura no).
+> - **Robottino casella NON-001.** Scoperto che per gli utenti diversi da 001 il robottino usa host di
+>   ripiego **gmail** (imap/smtp) e un solo login → **va solo con Gmail**; con una casella di **dominio**
+>   (Tophost) userebbe l'host sbagliato. (Il fix completo per il dominio = dare al robottino host Tophost +
+>   login mailbox, lato `admin_caselle`/Lambda — da fare quando servirà una casella di dominio.)
+> - **Diagnostica FOTO a schermo** (`regia-predizione.html`): al caricamento compare un riquadro
+>   "🔧 Diagnostica foto" che mostra dimensioni originali → ridotte (1280px JPEG) → risposta del server, e il
+>   **motivo** se fallisce (HEIC non apribile, "413 file troppo grande", ecc.). `apiCarica` ora mostra
+>   codice+messaggio reale. Tolto il tasto "Aiuto — come funzionano i tasti" dal Foto magic. SW **v26**.
+> - **PayPal:** con pagamento automatico il cliente **non riceve più** la mail "come pagare" (`ordine.php`);
+>   resta solo per bonifico/satispay.
+> - **Richiede:** `predizione/` → `config.php`, `ordine.php`, `piani.php`, `stato.php`, `invia.php`,
+>   `genera_ia.php`, `smtp.php`, `admin.html`, `regia-predizione.html`, `service-worker.js`; **radice** →
+>   `licenza.html`. Niente AWS.
 
 > ### Aggiunte 18 ottobre 2026 (AGG 67 — calligrafia scelta dal performer + foto ridotte nel telefono + occhio password)
 > - **Calligrafia Foto magic SCELTA DAL PERFORMER (per-utente).** Nella Regia → sezione **Foto magic** ora si
