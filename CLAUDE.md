@@ -3,7 +3,47 @@
 > Documento di handover del progetto. Spiega **cosa fa** l'app, **com'è fatta**,
 > le **decisioni prese** e **cosa manca ancora**. Leggilo prima di metterci mano.
 
-Ultimo aggiornamento: 18 ottobre 2026 (AGG 68 — blocco limiti (sessioni/mail/foto); Test casella IMAP+SMTP; diagnostica foto; PayPal senza mail "come pagare").
+Ultimo aggiornamento: 19 ottobre 2026 (AGG 70 — Diagnostica casella AUTOMATICA (prova completa + auto alla 1ª config + allerta) e Limiti durante lo show (mail in negativo + ripiano al rinnovo)).
+
+> ### Aggiunte 19 ottobre 2026 (AGG 70 — Diagnostica casella AUTOMATICA + Limiti durante lo show)
+> - **DIAGNOSTICA CASELLA AUTOMATICA (un tasto fa tutto).** Regia → "La tua casella" →
+>   **"🤖 Diagnostica casella (prova completa)"**: `diag_start` avvia un gioco di PROVA (sessione con
+>   `prova=true`: NON consuma limiti, NON entra nei report, NON tocca le foto vere) e manda una mail dalla
+>   casella **spettatore** `prova@abraka.it` alla casella-gioco; `diag_check` (polling ~10s, ~2–3 min) legge
+>   `prova@` via socket IMAP e cerca una risposta **DA** quella casella (UID > base); `diag_end` chiude la
+>   prova (helper `predizione_diag_chiudi`, che NON cancella `foto_a`/`rivelazione_pronta`), rimette i
+>   contatori e, se FALLISCE, manda un'**allerta** (`predizione_mail_semplice`) a `PRED_DIAG_ALERT`
+>   (= appisolata@gmail.com). Se c'è un gioco in corso → "termina prima il gioco". **Parte DA SOLA alla 1ª
+>   configurazione** della casella (gancio nel salvataggio `saveMail`, flag `primaVolta`). Tolto il vecchio
+>   "Prova casella (manda una mail a te stesso)"; `pred_testa_casella` (AGG 69) resta per il pannello 000.
+>   - `smtp.php`: lettore IMAP via socket (`pred_imap_raw_*`), `pred_prova_manda`/`pred_prova_uids_da`/
+>     `pred_imap_raw_uids_from`. `config.php`: `predizione_prova_casella()` legge `_dati/prova_casella.json`
+>     (NON versionato) + `PRED_DIAG_ALERT`. Richiede sul server `predizione/_dati/prova_casella.json`
+>     `{"user":"prova@abraka.it","pass":"…","login":""}`. `autochiusura` protetta per le sessioni di prova.
+> - **LIMITI DURANTE LO SHOW.** MAIL: a gioco avviato NON si bloccano mai → l'eccedenza oltre piano+crediti
+>   diventa **DEBITO** (`$stato['debito']['mail']`, si va "in negativo"). Blocco solo al prossimo **`avvia`**
+>   (nuovo show bloccato se mail ≤ 0, oltre al blocco sessioni). Al **rinnovo** (`predizione_uso_mese`) il
+>   debito è trasferito nell'"usato" del mese nuovo → le mail nuove colmano prima il negativo (tetto 85,
+>   debito 15 → parte da 15 usate = 70 libere). `predizione_consuma` traccia il debito; `predizione_rimaste(mail)`
+>   sottrae il debito e può essere **negativo** (sessioni/foto restano col pavimento 0, bloccano a 0). Tolto il
+>   blocco mail in `invia.php` (l'invio a mano è solo a gioco avviato). Stato pubblico espone `uso.mail_resta`
+>   (può essere negativo) e la Regia lo mostra in rosso "in negativo N (si ripiana al rinnovo)". SW **v28**.
+> - **Richiede:** `predizione/` → `config.php`, `piani.php`, `stato.php`, `smtp.php`, `invia.php`,
+>   `admin.html`, `regia-predizione.html`, `service-worker.js`; + `predizione/_dati/prova_casella.json`. Niente AWS.
+>   *(La diagnostica automatica va collaudata dal vivo: coinvolge il robottino AWS e la casella prova@.)*
+
+> ### Aggiunte 19 ottobre 2026 (AGG 69 — Diagnostica casella "seria" (identità) + password 16 cifre a vista)
+> - **Verifica casella che becca la "password di un altro account".** Il vecchio test diceva "a posto" anche
+>   quando la casella spediva da un indirizzo diverso (es. indirizzo flavjo@ ma password di appisolata@): Gmail
+>   accetta comunque l'invio. Nuovo `pred_testa_casella` (`smtp.php`): manda una mail di verifica (token) ALLA
+>   CASELLA STESSA e poi ENTRA a leggerla via **socket IMAP** (`pred_imap_raw_apri`/`_cmd`/`_conta_oggetto`,
+>   senza php-imap). Esiti: login IMAP fallito → password/IMAP sbagliati; login ok ma token ASSENTE → la
+>   casella usa un ALTRO account; token presente → tutto coerente. Ritorna `problema`+`diagnosi` a parole;
+>   Regia e pannello 000 mostrano il verdetto (📥 Lettura / 📤 Invio / 🪪 Identità).
+> - **Password a 16 lettere A VISTA nella Regia:** tasto "👁 Mostra la password salvata" (azione autenticata
+>   `mail_svela`); gli spazi incollati dalle "password per le app" di Google vengono tolti in automatico (gmail).
+> - **Richiede:** `predizione/` → `smtp.php`, `stato.php`, `admin.html`, `regia-predizione.html`,
+>   `service-worker.js`. *(Tutto incluso anche nel pacchetto AGG 70: caricando la 70 si ha anche la 69.)*
 
 > ### Aggiunte 18 ottobre 2026 (AGG 68 — limiti che bloccano + Test casella (robottino) + diagnostica foto)
 > - **LIMITI che BLOCCANO davvero.** Prima le azioni **consumavano** ma **non controllavano** mai il residuo
