@@ -452,7 +452,8 @@ function predizione_prova_casella(): ?array {
     if (!is_file($f)) return null;
     $j = json_decode((string)@file_get_contents($f), true);
     if (!is_array($j) || empty($j['user']) || empty($j['pass'])) return null;
-    return ['user' => (string)$j['user'], 'pass' => (string)$j['pass'], 'login' => (string)($j['login'] ?? '')];
+    return ['user' => (string)$j['user'], 'pass' => (string)$j['pass'], 'login' => (string)($j['login'] ?? ''),
+            'pass2' => (string)($j['pass2'] ?? ''), 'pass3' => (string)($j['pass3'] ?? '')];
 }
 
 /* ---- Archivio OPERAZIONI admin (attiva / sospendi / elimina / crea) ----- */

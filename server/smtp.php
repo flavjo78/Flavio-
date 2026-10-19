@@ -185,17 +185,26 @@ function pred_prova_logins(array $pv): array {
     return array_values(array_unique(array_filter($logins)));
 }
 
+/* Le password da provare per la casella spettatore: 'pass', poi 'pass2'/'pass3'
+   (così, se non si sa quale sia quella giusta, le prova tutte). */
+function pred_prova_passwords(array $pv): array {
+    $out = [];
+    foreach (['pass', 'pass2', 'pass3'] as $k) { $v = (string)($pv[$k] ?? ''); if ($v !== '') $out[] = $v; }
+    return array_values(array_unique($out));
+}
+
 /* Manda una mail DALLA casella spettatore. Ritorna ['ok'=>bool,'login'=>?,'err'=>string]. */
 function pred_prova_manda(array $pv, string $to, string $subject, string $bodyHtml): array {
     [$h, $p] = pred_smtp_host((string)($pv['user'] ?? ''));
-    $pass = (string)($pv['pass'] ?? '');
     $err = null;
-    foreach (pred_prova_logins($pv) as $login) {
-        $e = null;
-        if (pred_smtp_send($h, $p, $login, $pass, (string)$pv['user'], 'Spettatore di prova', $to, $subject, $bodyHtml, $e)) {
-            return ['ok' => true, 'login' => $login, 'err' => ''];
+    foreach (pred_prova_passwords($pv) as $pass) {
+        foreach (pred_prova_logins($pv) as $login) {
+            $e = null;
+            if (pred_smtp_send($h, $p, $login, $pass, (string)$pv['user'], 'Spettatore di prova', $to, $subject, $bodyHtml, $e)) {
+                return ['ok' => true, 'login' => $login, 'err' => ''];
+            }
+            $err = $e;
         }
-        $err = $e;
     }
     return ['ok' => false, 'login' => null, 'err' => (string)$err];
 }
@@ -204,16 +213,17 @@ function pred_prova_manda(array $pv, string $to, string $subject, string $bodyHt
    casella-gioco). Ritorna l'array di uid, oppure null se non riesce a entrare. */
 function pred_prova_uids_da(array $pv, string $fromAddr): ?array {
     [$h, $p] = pred_imap_host((string)($pv['user'] ?? ''));
-    $pass = (string)($pv['pass'] ?? '');
-    foreach (pred_prova_logins($pv) as $login) {
-        $err = null; $seq = 0;
-        $fp = pred_imap_raw_apri($h, $p, $login, $pass, $err, $seq);
-        if (!$fp) continue;
-        $sel = pred_imap_raw_cmd($fp, 'SELECT INBOX', $seq);
-        if ($sel['stato'] !== 'OK') { pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp); continue; }
-        $uids = pred_imap_raw_uids_from($fp, $fromAddr, $seq);
-        pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp);
-        return $uids;
+    foreach (pred_prova_passwords($pv) as $pass) {
+        foreach (pred_prova_logins($pv) as $login) {
+            $err = null; $seq = 0;
+            $fp = pred_imap_raw_apri($h, $p, $login, $pass, $err, $seq);
+            if (!$fp) continue;
+            $sel = pred_imap_raw_cmd($fp, 'SELECT INBOX', $seq);
+            if ($sel['stato'] !== 'OK') { pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp); continue; }
+            $uids = pred_imap_raw_uids_from($fp, $fromAddr, $seq);
+            pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp);
+            return $uids;
+        }
     }
     return null;
 }

@@ -192,6 +192,8 @@ function predizione_sicurezza(array $s): array {
     $vuoto = ['fase' => 'ok', 'attiva' => false, 'disattivata' => false, 'ferma_tra' => 0,
               'avviso_tra' => 0, 'rallenta_tra' => 0];
     if (!$sess) return $vuoto;
+    // le sessioni di PROVA (diagnostica) non fanno MAI scattare l'avviso "troppo tempo connesso"
+    if (!empty($sess['prova'])) return $vuoto;
     $faseGioco = $sess['fase'] ?? '';
     if ($faseGioco !== 'avviato' && $faseGioco !== 'cambiato') return $vuoto;
     $avv = (int)($sess['avvio_ts'] ?? time());
