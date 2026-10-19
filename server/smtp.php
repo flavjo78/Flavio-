@@ -93,38 +93,101 @@ function pred_imap_host(string $email): array {
     return ['pop.tophost.it', 993];
 }
 
-/* TEST della LETTURA (IMAP): prova a entrare nella casella (quello che fa il
-   robottino). Prova i vari login finché uno entra. Richiede l'estensione php-imap:
-   se manca, ritorna 'skip'=>true (la lettura la potrà verificare solo il robottino).
-   Ritorna ['ok'=>bool, 'login'=>string|null, 'err'=>string, 'skip'=>bool]. */
-function pred_imap_test(string $host, int $port, array $logins, string $pass): array {
-    if (!function_exists('imap_open')) {
-        return ['ok' => false, 'login' => null, 'skip' => true,
-                'err' => 'IMAP non testabile da questo server (estensione php-imap non attiva): la lettura la verifica il robottino.'];
+/* ===== LETTURA via IMAP "a mano" (socket SSL), SENZA l'estensione php-imap =====
+   Tophost spesso non ha php-imap: così possiamo verificare DAVVERO la lettura
+   (quello che fa il robottino) aprendo noi una connessione ssl://host:993,
+   facendo LOGIN e, se serve, cercando una mail nell'INBOX. */
+
+/* manda un comando "aN COMANDO" e legge finché torna la riga taggata "aN ...".
+   Ritorna ['stato'=>'OK'|'NO'|'BAD'|'', 'righe'=>[...]]. $seq è il contatore dei tag. */
+function pred_imap_raw_cmd($fp, string $cmd, int &$seq): array {
+    $seq++;
+    $tag = 'a' . $seq;
+    @fwrite($fp, $tag . ' ' . $cmd . "\r\n");
+    $righe = []; $stato = '';
+    $fine = time() + 15;
+    while (time() < $fine) {
+        $l = @fgets($fp, 8192);
+        if ($l === false) break;
+        $righe[] = rtrim($l, "\r\n");
+        if (strncmp($l, $tag . ' ', strlen($tag) + 1) === 0) {
+            if (preg_match('/^' . preg_quote($tag, '/') . '\s+(OK|NO|BAD)/i', $l, $mm)) $stato = strtoupper($mm[1]);
+            break;
+        }
+        $m = @stream_get_meta_data($fp); if (!empty($m['timed_out'])) break;
     }
-    // timeout brevi: se un host non risponde, il tasto non resta appeso
-    if (function_exists('imap_timeout')) { @imap_timeout(IMAP_OPENTIMEOUT, 12); @imap_timeout(IMAP_READTIMEOUT, 12); }
-    $mbox = '{' . $host . ':' . $port . '/imap/ssl/novalidate-cert}INBOX';
+    return ['stato' => $stato, 'righe' => $righe];
+}
+
+/* estrae un motivo leggibile da una risposta NO/BAD del server IMAP */
+function pred_imap_raw_motivo(array $righe): string {
+    $ult = '';
+    foreach ($righe as $r) { if (preg_match('/\b(?:NO|BAD)\b\s*(.*)$/i', $r, $m) && trim($m[1]) !== '') $ult = trim($m[1]); }
+    return $ult !== '' ? $ult : 'login IMAP rifiutato';
+}
+
+/* apre la connessione IMAP e fa LOGIN. Ritorna il socket (da chiudere con LOGOUT)
+   oppure null + $err. $seq azzerato e usato per i comandi successivi. */
+function pred_imap_raw_apri(string $host, int $port, string $user, string $pass, ?string &$err, int &$seq) {
+    $err = null; $seq = 0;
+    $ctx = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false]]);
+    $fp = @stream_socket_client("ssl://$host:$port", $eno, $estr, 15, STREAM_CLIENT_CONNECT, $ctx);
+    if (!$fp) { $err = "connessione a $host:$port fallita ($estr)"; return null; }
+    stream_set_timeout($fp, 15);
+    @fgets($fp, 4096);   // saluto "* OK ..."
+    $u = str_replace(['\\', '"'], ['\\\\', '\\"'], $user);
+    $p = str_replace(['\\', '"'], ['\\\\', '\\"'], $pass);
+    $r = pred_imap_raw_cmd($fp, 'LOGIN "' . $u . '" "' . $p . '"', $seq);
+    if ($r['stato'] !== 'OK') { $err = pred_imap_raw_motivo($r['righe']); @fclose($fp); return null; }
+    return $fp;
+}
+
+/* conta quante mail dell'INBOX hanno $needle nell'oggetto (-1 = non ho potuto cercare) */
+function pred_imap_raw_conta_oggetto($fp, string $needle, int &$seq): int {
+    $nd = str_replace(['\\', '"'], ['\\\\', '\\"'], $needle);
+    $r = pred_imap_raw_cmd($fp, 'UID SEARCH HEADER SUBJECT "' . $nd . '"', $seq);
+    if ($r['stato'] !== 'OK') return -1;
+    $n = 0;
+    foreach ($r['righe'] as $x) {
+        if (preg_match('/^\*\s+SEARCH\b(.*)$/i', $x, $m)) {
+            foreach (preg_split('/\s+/', trim($m[1])) as $t) { if ($t !== '' && ctype_digit($t)) $n++; }
+        }
+    }
+    return $n;
+}
+
+/* TEST della LETTURA (IMAP): prova a entrare nella casella (quello che fa il
+   robottino). Prova i vari login finché uno entra.
+   Ritorna ['ok'=>bool, 'login'=>string|null, 'err'=>string, 'skip'=>false]. */
+function pred_imap_test(string $host, int $port, array $logins, string $pass): array {
     $ultimo = '';
     foreach ($logins as $u) {
         $u = trim((string)$u);
         if ($u === '') continue;
-        $im = @imap_open($mbox, $u, $pass, 0, 1);
-        if ($im !== false) { @imap_close($im); @imap_errors(); @imap_alerts(); return ['ok' => true, 'login' => $u, 'skip' => false, 'err' => '']; }
-        $e = @imap_last_error(); if ($e) $ultimo = $e;
-        @imap_errors(); @imap_alerts();   // svuota la coda errori per il tentativo dopo
+        $err = null; $seq = 0;
+        $fp = pred_imap_raw_apri($host, $port, $u, $pass, $err, $seq);
+        if ($fp) { pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp); return ['ok' => true, 'login' => $u, 'skip' => false, 'err' => '']; }
+        if ($err) $ultimo = $err;
     }
     return ['ok' => false, 'login' => null, 'skip' => false, 'err' => ($ultimo ?: 'login IMAP non riuscito')];
 }
 
-/* TEST COMPLETO della casella: LETTURA (IMAP) + INVIO (SMTP, manda una prova a
-   $dest). $m = config casella {user, pass, login?, from?}. Ritorna un riepilogo
-   leggibile con l'esito dei due controlli (per il tasto "Prova casella"). */
-function pred_testa_casella(array $m, string $dest = 'prova@abraka.it'): array {
-    $cUser = (string)($m['user'] ?? '');
+/* TEST SERIO E COMPLETO della casella — becca anche la "password di un ALTRO
+   indirizzo". $m = config casella {user, pass, login?, from?}. Come funziona:
+   1) MANDA una mail di verifica (con un codice unico) ALLA CASELLA STESSA;
+   2) ENTRA nella casella (IMAP, login con l'indirizzo scritto) e CERCA quel codice.
+   Tre esiti:
+   - login IMAP fallito        -> la password NON è di questo indirizzo / IMAP spento;
+   - login ok ma codice ASSENTE -> la casella invia/legge da un ALTRO account
+     (la mail è finita in un'altra casella): password di un altro indirizzo;
+   - login ok e codice PRESENTE -> tutto coerente (invia e legge dallo stesso indirizzo).
+   Ritorna un riepilogo leggibile con 'problema' (true/false) e 'diagnosi' a parole. */
+function pred_testa_casella(array $m, string $dest = ''): array {
+    @set_time_limit(60);
+    $cUser = trim((string)($m['user'] ?? ''));
     $cPass = (string)($m['pass'] ?? '');
     $cFrom = (string)($m['from'] ?? '');
-    $cLogin= (string)($m['login'] ?? '');
+    $cLogin= trim((string)($m['login'] ?? ''));
     if ($cUser === '' || $cPass === '') {
         return ['ok' => false, 'errore' => 'Casella non configurata (manca indirizzo o password).'];
     }
@@ -136,23 +199,82 @@ function pred_testa_casella(array $m, string $dest = 'prova@abraka.it'): array {
     $logins = array_values(array_unique(array_filter($logins)));
 
     [$ih, $ip] = pred_imap_host($cUser);
-    $imap = pred_imap_test($ih, $ip, $logins, $cPass);
-
     [$sh, $sp] = pred_smtp_host($cUser);
+
+    // codice unico di questa verifica (va nell'oggetto della mail di prova)
+    $token   = 'VRF' . strtoupper(bin2hex(random_bytes(4)));
+    $oggetto = 'PREDIZIONE verifica ' . $token;
+    $corpo   = '<p>Verifica automatica PREDIZIONE (' . $token . '). Se la leggi, la casella <b>'
+             . htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8') . '</b> invia e legge correttamente.</p>';
+
+    // 1) INVIO della mail di verifica ALLA CASELLA STESSA (prova i vari login)
     $smtpLogin = null; $smtpErr = null;
     foreach ($logins as $u) {
         $e = null;
-        $corpo = '<p>Prova automatica PREDIZIONE: la casella <b>' . htmlspecialchars($cUser, ENT_QUOTES, 'UTF-8') . '</b> funziona in INVIO.</p>';
-        if (pred_smtp_send($sh, $sp, $u, $cPass, $cUser, $cFrom, $dest, 'Prova casella — PREDIZIONE', $corpo, $e)) { $smtpLogin = $u; break; }
+        if (pred_smtp_send($sh, $sp, $u, $cPass, $cUser, $cFrom, $cUser, $oggetto, $corpo, $e)) { $smtpLogin = $u; break; }
         $smtpErr = $e;
     }
+
+    // 2) LETTURA (IMAP) + VERIFICA IDENTITÀ: entra e cerca il codice nell'INBOX
+    $imapOk = false; $imapLogin = null; $imapErr = ''; $ultimo = '';
+    $identita = null; $identitaNota = '';   // true=trovato, false=assente, null=non verificabile
+    foreach ($logins as $u) {
+        $err = null; $seq = 0;
+        $fp = pred_imap_raw_apri($ih, $ip, $u, $cPass, $err, $seq);
+        if (!$fp) { if ($err) $ultimo = $err; continue; }
+        $imapOk = true; $imapLogin = $u;
+        if ($smtpLogin !== null) {
+            $sel = pred_imap_raw_cmd($fp, 'SELECT INBOX', $seq);
+            if ($sel['stato'] === 'OK') {
+                $trov = -1;
+                for ($t = 0; $t < 5; $t++) {   // la mail può metterci qualche secondo
+                    $trov = pred_imap_raw_conta_oggetto($fp, $token, $seq);
+                    if ($trov > 0) break;
+                    if ($t < 4) sleep(3);
+                }
+                if ($trov > 0)       { $identita = true; }
+                elseif ($trov === 0) { $identita = false; $identitaNota = 'la mail di verifica NON è arrivata in questa casella'; }
+                else                 { $identita = null;  $identitaNota = 'non ho potuto leggere la posta in arrivo'; }
+            } else {
+                $identita = null; $identitaNota = 'non riesco ad aprire la posta in arrivo';
+            }
+        }
+        pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp);
+        break;
+    }
+    if (!$imapOk) $imapErr = ($ultimo ?: 'login IMAP non riuscito');
+
+    // VERDETTO + DIAGNOSI a parole semplici
+    $problema = false; $diagnosi = '';
+    if (!$imapOk) {
+        $problema = true;
+        $diagnosi = 'Il robottino NON riesce a LEGGERE la casella ' . $cUser . '. Quasi sempre vuol dire: '
+                  . 'la "password per le app" NON è di questo indirizzo (o è sbagliata di una lettera), '
+                  . 'oppure IMAP è spento in questa casella.';
+    } elseif ($identita === false) {
+        $problema = true;
+        $diagnosi = 'ATTENZIONE: la casella è scritta come ' . $cUser . ' ma in realtà invia e legge da un ALTRO '
+                  . 'account (la "password per le app" è di un altro indirizzo). Rigenera la password per le app '
+                  . 'DENTRO ' . $cUser . ' e rimettila qui.';
+    } elseif ($smtpLogin === null) {
+        $problema = true;
+        $diagnosi = 'Il robottino riesce a leggere ma NON a INVIARE da ' . $cUser . ': ' . ($smtpErr ?: 'invio rifiutato') . '.';
+    } elseif ($identita === true) {
+        $diagnosi = 'Tutto a posto: il robottino legge e invia dallo stesso indirizzo (' . $cUser . ').';
+    } else {
+        $diagnosi = 'Accesso e invio OK, ma non ho potuto confermare al 100% la lettura (' . $identitaNota . '). '
+                  . 'Riprova fra un minuto.';
+    }
+
     return [
-        'ok'   => true,
-        'dest' => $dest,
-        'imap' => ['ok' => (bool)$imap['ok'], 'login' => $imap['login'], 'err' => (string)$imap['err'],
-                   'skip' => !empty($imap['skip']), 'host' => $ih . ':' . $ip],
-        'smtp' => ['ok' => ($smtpLogin !== null), 'login' => $smtpLogin, 'err' => (string)($smtpErr ?? ''),
-                   'host' => $sh . ':' . $sp],
+        'ok'       => true,
+        'problema' => $problema,
+        'diagnosi' => $diagnosi,
+        'indirizzo'=> $cUser,
+        'dest'     => $cUser,
+        'imap'     => ['ok' => $imapOk, 'login' => $imapLogin, 'err' => $imapErr, 'skip' => false, 'host' => $ih . ':' . $ip],
+        'smtp'     => ['ok' => ($smtpLogin !== null), 'login' => $smtpLogin, 'err' => (string)($smtpErr ?? ''), 'host' => $sh . ':' . $sp],
+        'identita' => ['ok' => $identita, 'nota' => $identitaNota],
     ];
 }
 

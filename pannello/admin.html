@@ -1429,11 +1429,17 @@
       call('admin_prova_casella',{numero:num}).then(function(r){
         b.disabled=false; b.textContent=old; var d=r.data||{};
         if(!d.ok){ if(msg){ msg.style.color='var(--stop)'; msg.textContent='❌ '+(d.errore||'Errore'); } return; }
-        var im=d.imap||{}, sm=d.smtp||{}, html='';
-        if(im.skip){ html+='📥 Lettura (IMAP): non verificabile dal server — la controlla il robottino.<br>'; }
-        else if(im.ok){ html+='📥 Lettura (IMAP): <b style="color:var(--good)">OK</b> (login '+esc(im.login||'')+')<br>'; }
-        else { html+='📥 Lettura (IMAP): <b style="color:var(--stop)">NON funziona</b> — '+esc(im.err||'')+(/gmail/i.test(im.host||'')?' · su Gmail attiva IMAP':'')+'<br>'; }
-        html+= sm.ok ? ('📤 Invio (SMTP): <b style="color:var(--good)">OK</b> (prova a '+esc(d.dest||'')+')') : ('📤 Invio (SMTP): <b style="color:var(--stop)">NON funziona</b> — '+esc(sm.err||''));
+        var im=d.imap||{}, sm=d.smtp||{}, idn=d.identita||{}, html='';
+        if(d.diagnosi){
+          var col=d.problema?'var(--stop)':'var(--good)';
+          html+='<div style="border:1px solid '+col+';border-radius:10px;padding:8px 10px;margin-bottom:6px">'
+              +(d.problema?'⚠️ <b>Problema</b>':'✅ <b>A posto</b>')+'<br>'+esc(d.diagnosi)+'</div>';
+        }
+        html+= im.ok ? ('📥 Lettura (IMAP): <b style="color:var(--good)">OK</b> (login '+esc(im.login||'')+')<br>')
+                     : ('📥 Lettura (IMAP): <b style="color:var(--stop)">NON funziona</b> — '+esc(im.err||'')+(/gmail/i.test(im.host||'')?' · su Gmail attiva IMAP':'')+'<br>');
+        html+= sm.ok ? ('📤 Invio (SMTP): <b style="color:var(--good)">OK</b><br>') : ('📤 Invio (SMTP): <b style="color:var(--stop)">NON funziona</b> — '+esc(sm.err||'')+'<br>');
+        if(idn.ok===true) html+='🪪 Identità: <b style="color:var(--good)">confermata</b>';
+        else if(idn.ok===false) html+='🪪 Identità: <b style="color:var(--stop)">SBAGLIATA</b> (usa un altro account)';
         if(msg){ msg.style.color='var(--ink)'; msg.innerHTML=html; }
       }).catch(function(){ b.disabled=false; b.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile'; } });
     };

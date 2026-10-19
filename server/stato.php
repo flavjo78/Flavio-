@@ -936,6 +936,11 @@ function predizione_mail_da_richiesta(): array {
         $dom  = strtolower(substr(strrchr($email, '@') ?: '', 1));
         $tipo = ($dom === 'gmail.com' || $dom === 'googlemail.com') ? 'gmail' : 'altro';
     }
+    // Password per le app di Google: Google la MOSTRA a gruppi di 4 con gli SPAZI
+    // (es. "abcd efgh ijkl mnop"), ma la password vera è di 16 lettere SENZA spazi.
+    // Se l'utente la incolla con gli spazi, il login fallisce "senza motivo": li
+    // togliamo noi (solo per le caselle Gmail, dove non ci sono mai spazi validi).
+    if ($tipo === 'gmail' && $apppass !== '') $apppass = preg_replace('/\s+/', '', $apppass);
     return [
         'imap_host' => 'imap.gmail.com', 'imap_port' => 993,
         'smtp_host' => 'smtp.gmail.com', 'smtp_port' => 587,
@@ -1204,6 +1209,13 @@ switch ($azione) {
         $mcp = predizione_mail_cfg(predizione_utente());
         $destp = substr(trim((string)(p('dest') ?? '')), 0, 160) ?: 'prova@abraka.it';
         predizione_json(pred_testa_casella($mcp, $destp));
+
+    case 'mail_svela':
+        // Mostra all'utente (GIÀ autenticato con la sua password) la "password per
+        // le app" a 16 lettere della PROPRIA casella, per controllarla a occhio
+        // (es. una lettera sbagliata, o è la password di un altro indirizzo). NON
+        // esce mai nello stato pubblico: serve il login, come tutte le azioni qui.
+        predizione_json(['ok' => true, 'mail' => predizione_mail_cfg(predizione_utente())]);
 
     case 'rispondi_manuale':
         // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte
