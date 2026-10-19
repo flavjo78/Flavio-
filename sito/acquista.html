@@ -317,7 +317,7 @@
           return;
         }
         box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Paga in modo sicuro con PayPal o carta:<div id="ppBtns" style="margin-top:12px"></div>'+
-          '<div class="hint" style="margin-top:10px;line-height:1.5">Con il <b>conto PayPal</b> premi il tasto giallo. Per la <b>carta</b> apri “Carta di debito o credito”; per richiudere il modulo carta premi la <b>✕</b> in alto a destra del modulo.</div>'+
+          '<div class="hint" style="margin-top:10px;line-height:1.5">Premi il tasto <b>PayPal</b>: puoi pagare con il tuo conto PayPal <b>oppure con carta</b> dalla pagina di PayPal. Se preferisci il bonifico, lo trovi qui sotto.</div>'+
           '<div id="ppMsg" class="hint" style="margin-top:10px"></div>';
         var render=function(){
           if(!window.paypal){ document.getElementById('ppMsg').textContent='PayPal non disponibile al momento. Riprova o usa il bonifico.'; return; }
@@ -345,7 +345,7 @@
         if(window.paypal && window.paypal.Buttons){ ppSdkPronto=true; render(); return; }
         // carica lo SDK e NON si fida del solo onerror: controlla ogni 250ms se PayPal è davvero arrivato
         var s=document.createElement('script');
-        s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture';
+        s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture&disable-funding=card,paylater';
         var errCaricamento=false;
         s.onerror=function(){ errCaricamento=true; };
         document.head.appendChild(s);

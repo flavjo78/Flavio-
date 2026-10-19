@@ -428,7 +428,7 @@
         }).render('#ppBtns');
       };
       if(window.paypal&&window.paypal.Buttons){ render(); return; }
-      var s=document.createElement('script'); s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture'; document.head.appendChild(s);
+      var s=document.createElement('script'); s.src='https://www.paypal.com/sdk/js?client-id='+encodeURIComponent(c.client_id)+'&currency=EUR&intent=capture&disable-funding=card,paylater'; document.head.appendChild(s);
       var t0=Date.now(), fatto=false;
       (function poll(){ if(fatto)return;
         if(window.paypal&&window.paypal.Buttons){ fatto=true; render(); return; }
