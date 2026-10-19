@@ -1004,6 +1004,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         var i=b.querySelector('i'); if(i) i.style.width=pct+'%';}
       set('limPiano', ac.piano||'Foyer');
       setBar('limMailTxt','limMailBar', uso.mail,     (ac.mail_mese||0)+(crd.mail||0));
+      // se le mail sono andate IN NEGATIVO (debito), lo mostro chiaro accanto alla barra
+      if(typeof uso.mail_resta!=='undefined' && uso.mail_resta<0){
+        var lmt=$('limMailTxt'); if(lmt){ lmt.innerHTML = lmt.textContent + ' · <span style="color:var(--stop)">in negativo '+uso.mail_resta+' (si ripiana al rinnovo)</span>'; }
+      }
       setBar('limFotoTxt','limFotoBar', uso.foto_ia,  (ac.foto_ia_mese||0)+(crd.foto_ia||0));
       setBar('limSessTxt','limSessBar', uso.sessioni, (ac.sessioni_mese||0)+(crd.sessioni||0));
       set('tsLimiti', (uso.sessioni||0)+'/'+((ac.sessioni_mese||0)+(crd.sessioni||0))+' sessioni');

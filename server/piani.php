@@ -419,11 +419,22 @@ function predizione_consuma(array &$stato, string $tipo, int $n = 1): void {
     if ($tipo === 'sessioni') $stato['uso']['sessioni_oggi'] = (int)($stato['uso']['sessioni_oggi'] ?? 0) + $n;
     // storico movimento (tutto il consumo)
     predizione_movimento($stato, $tipo, -abs($n), 'uso');
-    // eccedenza oltre il piano -> scala dai crediti (secchiello) e salva l'utente
-    if ($daCrediti > 0 && $rec !== null) {
-        predizione_scala_crediti($rec, $tipo, $daCrediti);
-        $utenti[$u] = $rec;
-        predizione_utenti_scrivi($utenti);
+    // eccedenza oltre il piano -> prima i CREDITI (secchiello), poi — SOLO per le
+    // mail — il DEBITO (si va "in negativo"). Il debito si ripiana al prossimo
+    // rinnovo: le mail nuove del piano colmano prima quel negativo.
+    if ($daCrediti > 0) {
+        $credPrima = ($rec !== null) ? predizione_crediti_disponibili($rec, $tipo) : 0;
+        $usaCred   = min($daCrediti, $credPrima);
+        if ($usaCred > 0 && $rec !== null) {
+            predizione_scala_crediti($rec, $tipo, $usaCred);
+            $utenti[$u] = $rec;
+            predizione_utenti_scrivi($utenti);
+        }
+        $scoperto = $daCrediti - $usaCred;
+        if ($scoperto > 0 && $tipo === 'mail') {
+            if (!isset($stato['debito']) || !is_array($stato['debito'])) $stato['debito'] = [];
+            $stato['debito']['mail'] = (int)($stato['debito']['mail'] ?? 0) + $scoperto;
+        }
     }
 }
 
@@ -438,6 +449,13 @@ function predizione_rimaste(array $stato, array $rec, string $tipo): int {
     elseif ($tipo === 'foto_ia')   $cap = (int)$lim['foto_ia_mese'];
     elseif ($tipo === 'sessioni')  $cap = (int)$lim['sessioni_mese'];
     $usato = (int)($stato['uso'][$tipo] ?? 0);
+    if ($tipo === 'mail') {
+        // Le MAIL possono andare IN NEGATIVO (durante uno show non si bloccano mai):
+        // niente pavimento a 0 e si sottrae il DEBITO accumulato. Sessioni e Foto
+        // magic invece non vanno mai in negativo (restano col pavimento a 0).
+        $deb = (int)($stato['debito']['mail'] ?? 0);
+        return ($cap - $usato) + predizione_crediti_disponibili($rec, $tipo) - $deb;
+    }
     $rimPiano = max(0, $cap - $usato);
     return $rimPiano + predizione_crediti_disponibili($rec, $tipo);
 }

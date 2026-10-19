@@ -269,7 +269,7 @@ function predizione_stato_pubblico(array $s): array {
         'mail_inviate'   => (int)($s['mail_inviate'] ?? 0),
         'assistente_attivo' => !empty($s['assistente_token']),  // c'e' un link assistente attivo?
         'account'        => predizione_account_pubblico(predizione_utente()),  // piano e limiti (Mio account)
-        'uso'            => predizione_uso_mese($s),  // consumi del mese (pagina Limiti con le barre)
+        'uso'            => predizione_uso_mese_pub($s),  // consumi del mese (+ mail_resta, può essere negativo)
         'palco_abilitato'  => !empty(predizione_limiti_utente(predizione_utente_record(predizione_utente()) ?: [])['grandi_invii']),
         'rispondi_manuale' => !empty($s['rispondi_manuale']),   // "tasto Rispondi" attivo?
         'rispondi_ok'      => !empty($s['rispondi_ok']),        // via libera gia' dato in questa sessione?
@@ -289,6 +289,19 @@ function predizione_account_pubblico(string $u): ?array {
     $lim['email'] = (string)($rec['email_comunicazione'] ?? '');
     $lim['tel']   = (string)($rec['telefono'] ?? '');
     return $lim;
+}
+
+/* Consumi del mese per l'app, con l'aggiunta di 'mail_resta' (mail che restano:
+   può essere NEGATIVO se durante uno show si è andati oltre il limite) e
+   'debito_mail'. Così la Regia può mostrare il numero negativo. */
+function predizione_uso_mese_pub(array &$s): array {
+    $uso = predizione_uso_mese($s);
+    $rec = predizione_utente_record(predizione_utente());
+    if ($rec && function_exists('predizione_rimaste')) {
+        $uso['mail_resta']  = predizione_rimaste($s, $rec, 'mail');
+        $uso['debito_mail'] = (int)($s['debito']['mail'] ?? 0);
+    }
+    return $uso;
 }
 
 /* true se l'utente ha gia' configurato la sua casella (campi minimi presenti) */
@@ -1063,9 +1076,17 @@ switch ($azione) {
         $recSess = predizione_utente_record(predizione_utente());
         if ($recSess) {
             predizione_uso_mese($stato);
+            // SESSIONI: un nuovo show non parte se non ne restano (non vanno in negativo).
             if (predizione_rimaste($stato, $recSess, 'sessioni') < 1) {
                 predizione_json(['ok' => false, 'limite' => 'sessioni',
                     'errore' => 'Hai finito le sessioni di questo mese. Acquista altre sessioni oppure attendi il rinnovo del piano.'], 403);
+            }
+            // MAIL: durante uno show le mail non si bloccano mai (vanno in negativo),
+            // ma un NUOVO show non parte se le mail sono a zero o in negativo. Il
+            // negativo si ripiana al prossimo rinnovo (le mail nuove lo colmano prima).
+            if (predizione_rimaste($stato, $recSess, 'mail') <= 0) {
+                predizione_json(['ok' => false, 'limite' => 'mail',
+                    'errore' => 'Mail esaurite (sei in negativo): un nuovo show non può partire. Attendi il rinnovo del piano oppure aggiungi mail. (Lo show già avviato finisce sempre.)'], 403);
             }
         }
 

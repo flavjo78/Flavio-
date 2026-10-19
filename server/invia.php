@@ -118,18 +118,9 @@ if (count($dest) > PRED_INVIO_MAX) {
     predizione_json(['ok' => false, 'errore' => 'Massimo ' . PRED_INVIO_MAX . ' indirizzi per invio'], 400);
 }
 
-// LIMITE MAIL: se le mail rimaste del mese (piano + crediti) non bastano per TUTTI
-// i destinatari, l'invio si blocca. Prima partiva comunque, oltre il limite.
-$recMail = predizione_utente_record($utente);
-if ($recMail && function_exists('predizione_rimaste')) {
-    predizione_uso_mese($stato);
-    $rim = predizione_rimaste($stato, $recMail, 'mail');
-    if ($rim < count($dest)) {
-        predizione_json(['ok' => false, 'limite' => 'mail',
-            'errore' => 'Mail del mese insufficienti: te ne restano ' . $rim . ' ma ne servono ' . count($dest)
-                      . '. Riduci i destinatari oppure acquista altri crediti.'], 403);
-    }
-}
+// LIMITE MAIL: durante uno show NON si blocca mai (l'invio a mano avviene solo a
+// gioco avviato). Le mail oltre il tetto vanno "in negativo" (debito) e il blocco
+// scatta solo al prossimo "Avvia". Il consumo (con eventuale debito) è più sotto.
 
 /* --- contenuto della mail (oggetto/testo dal pannello) ------------------ */
 $oggetto = (string)($stato['mail_oggetto'] ?? '') ?: 'La tua foto';

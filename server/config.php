@@ -383,9 +383,15 @@ function predizione_uso_mese(array &$stato): array {
     $per = predizione_periodo_uso($g);
     $oggi = date('Y-m-d');
     if (!isset($stato['uso']) || !is_array($stato['uso']) || (($stato['uso']['mese'] ?? '') !== $per['chiave'])) {
-        // nuovo periodo mensile: azzera tutto (compreso il contatore del giorno)
-        $stato['uso'] = ['mese' => $per['chiave'], 'mail' => 0, 'foto_ia' => 0, 'sessioni' => 0,
+        // nuovo periodo mensile: azzera tutto (compreso il contatore del giorno).
+        // MAIL: se nel mese scorso si è andati IN NEGATIVO (debito), le nuove mail
+        // del piano COLMANO PRIMA quel debito -> il mese nuovo parte già "usato" di
+        // quella quantità (es. tetto 85, debito 15 -> parte da 15 usate = 70 libere).
+        $debMail = (int)($stato['debito']['mail'] ?? 0);
+        $stato['uso'] = ['mese' => $per['chiave'], 'mail' => $debMail, 'foto_ia' => 0, 'sessioni' => 0,
                          'reset_ts' => $per['fine'], 'giorno' => $oggi, 'mail_oggi' => 0, 'sessioni_oggi' => 0];
+        if (!isset($stato['debito']) || !is_array($stato['debito'])) $stato['debito'] = [];
+        $stato['debito']['mail'] = 0;   // il debito è stato trasferito nell'"usato" del mese nuovo
     } else {
         $stato['uso']['reset_ts'] = $per['fine'];   // prossima ricarica (per mostrarla nel pannello)
     }
