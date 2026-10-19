@@ -848,6 +848,20 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     </div>
   </div>
 
+  <!-- POP-UP della DIAGNOSTICA casella (prova completa, ~120s) -->
+  <div class="iaclock" id="diagPop" aria-hidden="true">
+    <div class="hist-card" style="max-width:340px;width:90%;text-align:center;padding:22px 18px">
+      <div class="iac-card" style="width:150px;height:150px;margin:0 auto 10px">
+        <svg viewBox="0 0 100 100" class="iac-face">
+          <circle cx="50" cy="50" r="45" class="iac-ring"/>
+          <circle cx="50" cy="50" r="45" class="iac-prog" id="diagProg" style="animation:none;stroke-dashoffset:0"/>
+        </svg>
+        <div class="iac-num" id="diagPopNum" style="font-size:44px">120</div>
+      </div>
+      <div id="diagPopMsg" style="font-size:14px;color:var(--ink);line-height:1.5">⏳ Avvio la prova…</div>
+    </div>
+  </div>
+
   <!-- scelta come caricare la Foto B: da file oppure con l'IA -->
   <div class="hist" id="bChoose" role="dialog" aria-label="Carica Foto B">
     <div class="hist-card">
@@ -2009,6 +2023,58 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   var prBtn=$('provaRobot');
   if(prBtn) prBtn.addEventListener('click', function(){ runDiagnostica(false); });
 
+  // ---- DIAGNOSTICA in POP-UP con timer 120s (proposta a fine guida) ----
+  var diagPopTimer=null;
+  function diagPopMsg(html){ var m=$('diagPopMsg'); if(m) m.innerHTML=html; }
+  function diagPopProg(frac){ var c=$('diagProg'); if(c){ try{ c.style.strokeDashoffset = (283*Math.max(0,Math.min(1,frac))).toFixed(0); }catch(e){} } }
+  function diagPopChiudi(){ var p=$('diagPop'); if(p) p.classList.remove('open'); clearInterval(diagPopTimer); }
+  function diagPopEsito(ok, msg){
+    clearInterval(diagPopTimer);
+    var n=$('diagPopNum'); if(n){ n.textContent = ok?'✓':'✕'; n.style.color = ok?'var(--good)':'var(--stop)'; n.style.fontSize='48px'; }
+    diagPopMsg((ok?'<b style="color:var(--good)">✅ Tutto a posto!</b>':'<b style="color:var(--stop)">❌ Prova non superata</b>')
+      +'<br><span style="font-size:13px">'+(msg||(ok?'Il robottino legge la casella e risponde.':'Scrivi a supporto@abraka.it.'))+'</span>'
+      +'<br><button class="btn" id="diagPopX" type="button" style="margin-top:12px">Chiudi</button>');
+    var b=$('diagPopX'); if(b) b.onclick=diagPopChiudi;
+  }
+  function diagPopPoll(n){
+    var MAX=11;   // ~11 x 10s = 110s (sotto i 120)
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_check')}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok&&d.trovato){ diagEndPop('ok'); return; }
+      if(n>=MAX){ diagEndPop('fail'); return; }
+      setTimeout(function(){ diagPopPoll(n+1); }, 10000);
+    }).catch(function(){ if(n>=11){ diagEndPop('fail'); } else { setTimeout(function(){ diagPopPoll(n+1); }, 10000); } });
+  }
+  function diagEndPop(esito){
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_end',{esito:esito})}).then(function(r){return r.json();}).then(function(d){
+      diagPopEsito(esito==='ok', (d&&d.messaggio)||'');
+    }).catch(function(){ diagPopEsito(esito==='ok',''); });
+  }
+  window.openDiagPopup=function(){
+    if(!getPw()){ toast('Accedi prima','err'); return; }
+    var p=$('diagPop'); if(!p) return;
+    p.classList.add('open');
+    var n=$('diagPopNum'); if(n){ n.style.color=''; n.style.fontSize='44px'; n.textContent=120; }
+    diagPopProg(0);
+    diagPopMsg('⏳ <b>Avvio la prova…</b>');
+    var left=120;
+    clearInterval(diagPopTimer);
+    diagPopTimer=setInterval(function(){ left--; if(left<0)left=0; if(n && /^\d+$/.test(n.textContent)) n.textContent=left; diagPopProg((120-left)/120); if(left<=0) clearInterval(diagPopTimer); },1000);
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_start')}).then(function(r){return r.json();}).then(function(d){
+      if(!d||!d.ok){
+        if(d&&d.attivo){ diagPopEsito(false,'C\'è un gioco in corso: termina prima il gioco, poi rifai la prova.'); }
+        else { diagPopEsito(false,(d&&d.errore)||'Errore'); }
+        return;
+      }
+      if(!d.inviata){
+        fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_end',{esito:'fail'})});
+        diagPopEsito(false,'Non riesco a mandare la mail di prova (spettatore). '+(d.errore_invio||''));
+        return;
+      }
+      diagPopMsg('⏳ <b>Prova in corso…</b><br><span style="font-size:12px">aspetto la risposta del robottino, non chiudere.</span>');
+      diagPopPoll(0);
+    }).catch(function(){ diagPopEsito(false,'Server non raggiungibile.'); });
+  };
+
   // ---- "vai a capo" per il testo del foglio (la tastiera del telefono a volte non lo fa) ----
   var predNL=$('predNL');
   if(predNL) predNL.addEventListener('click', function(){
@@ -2335,6 +2401,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
        +'<button class="gbtn ghost" data-act="fine" style="margin-top:10px">Salta, entra nella Regia</button>'
        +'</div>';
     }
+    else if(gScreen==='diagask'){
+      gSetSteps(0);
+      h='<div class="gcard gcenter">'
+       +'<div class="gglyph" style="font-size:48px">🤖</div>'
+       +'<h2 class="gt">Vuoi fare una prova veloce?</h2>'
+       +'<p class="glead">La <b>diagnostica</b> controlla che il robottino <b>legga la casella e risponda</b> davvero. Parte da sola e dura circa <b>2 minuti</b>.</p>'
+       +'<button class="gbtn primary" data-act="diagsi">Sì, fai la prova (2 min)</button>'
+       +'<button class="gbtn ghost" data-act="diagno" style="margin-top:10px">No, entro nella Regia</button>'
+       +'<p class="hint" style="text-align:center;margin-top:8px">Potrai rifarla quando vuoi: <b>Impostazioni → Il mio account → Diagnostica casella</b>.</p>'
+       +'</div>';
+    }
     else if(gScreen==='installa'){
       gSetSteps(0);
       h='<div class="gcard">'
@@ -2384,7 +2461,14 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var nav=e.target.closest('[data-g]'); if(nav){ gGo(nav.getAttribute('data-g')); return; }
     var act=e.target.closest('[data-act]'); if(!act) return;
     var a=act.getAttribute('data-act');
-    if(a==='entra' || a==='fine'){ gChiudi(true); return; }
+    if(a==='entra' || a==='fine'){
+      // a fine guida: se la casella è impostata, proponi la diagnostica (prova completa);
+      // altrimenti entra direttamente nella Regia.
+      if(g_passImpostata){ gGo('diagask'); } else { gChiudi(true); }
+      return;
+    }
+    if(a==='diagsi'){ gChiudi(true); setTimeout(function(){ if(typeof openDiagPopup==='function') openDiagPopup(); }, 350); return; }
+    if(a==='diagno'){ gChiudi(true); toast('Quando vuoi: Impostazioni → Il mio account → Diagnostica casella.','ok'); return; }
     if(a==='salta'){ gChiudi(true); toast('Guida saltata. La ritrovi in Impostazioni.','ok'); return; }
     if(a==='saveEmail'){
       var v=(($('gEmailIn')&&$('gEmailIn').value)||'').trim();
