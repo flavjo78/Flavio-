@@ -317,6 +317,7 @@
           return;
         }
         box.innerHTML='<b>Importo: '+money(importo)+'</b><br><br>Paga in modo sicuro con PayPal o carta:<div id="ppBtns" style="margin-top:12px"></div>'+
+          '<div class="hint" style="margin-top:10px;line-height:1.5">Con il <b>conto PayPal</b> premi il tasto giallo. Per la <b>carta</b> apri “Carta di debito o credito”; per richiudere il modulo carta premi la <b>✕</b> in alto a destra del modulo.</div>'+
           '<div id="ppMsg" class="hint" style="margin-top:10px"></div>';
         var render=function(){
           if(!window.paypal){ document.getElementById('ppMsg').textContent='PayPal non disponibile al momento. Riprova o usa il bonifico.'; return; }
