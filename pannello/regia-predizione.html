@@ -621,10 +621,9 @@
         <button class="btn" id="mailAppShow" type="button" style="width:100%;margin:-2px 0 6px;font-size:13px">👁 Mostra la password salvata (16 lettere)</button>
         <div class="field"><label for="mailFrom">Nome mittente (facoltativo)</label><input type="text" id="mailFrom" placeholder="Es. Il Mago"></div>
         <button class="btn" id="saveMail" type="button" style="width:100%;margin-top:6px">Salva casella</button>
-        <button class="btn" id="provaMail" type="button" style="width:100%;margin-top:8px">Prova casella (manda una mail a te stesso)</button>
-        <p class="hint" id="provaMsg"></p>
-        <button class="btn" id="provaRobot" type="button" style="width:100%;margin-top:4px">🤖 Verifica robottino (riesce a LEGGERE la casella?)</button>
+        <button class="btn" id="provaRobot" type="button" style="width:100%;margin-top:8px">🤖 Diagnostica casella (prova completa)</button>
         <p class="hint" id="provaRobotMsg"></p>
+        <p class="hint" id="provaMsg" style="display:none"></p>
         <p class="hint" id="noteGmail"><b>Attenzione:</b> questa è la <b>password per le app di Gmail</b> (16 lettere create su Google) — <b>NON</b> è la password con cui entri nel pannello. Serve la <b>verifica in due passaggi</b> su Google (così non dai la password vera).</p>
         <p class="hint" id="noteDominio" style="display:none"><b>Nota:</b> è la <b>password della casella</b> del tuo dominio (quella dell'hosting), <b>NON</b> la password con cui entri nel pannello. Il nome d'accesso lo troviamo noi da soli.</p>
       </div>
@@ -1905,7 +1904,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var e=($('mailEmail').value||'').trim(), a=($('mailApp').value||'').trim(), f=($('mailFrom').value||'').trim();
     if(!e){ toast('Inserisci l\'indirizzo email','err'); return; }
     if(!a && !g_passImpostata){ toast('Inserisci la password della casella','err'); return; }
-    comando('mail_config', {email:e, app_password:a, from:f}, 'Casella salvata');  // password vuota = tieni quella salvata
+    var primaVolta = !g_passImpostata;   // non c'era ancora una casella salvata = PRIMA configurazione
+    apiAzione('mail_config', {email:e, app_password:a, from:f}).then(function(res){   // password vuota = tieni quella salvata
+      if(res.data && res.data.ok){
+        toast('Casella salvata','ok'); render(res.data.stato);
+        if(primaVolta && typeof runDiagnostica==='function'){
+          // PRIMA configurazione: parte DA SOLA la diagnostica completa.
+          toast('Faccio la diagnostica automatica…','ok');
+          setTimeout(function(){ runDiagnostica(true); }, 500);
+        }
+      } else { toast((res.data&&res.data.errore)||'Errore','err'); poll(); }
+    }).catch(function(){ toast('Server non raggiungibile','err'); offline(); });
   });
   // mentre scrivi l'indirizzo, le etichette si adattano (Gmail o dominio)
   var mEmailEl=$('mailEmail');
@@ -1925,19 +1934,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       } else { toast((r.data&&r.data.errore)||'Non cambiata','err'); }
     }).catch(function(){ toast('Server non raggiungibile','err'); });
   });
-  // ---- "Prova casella": manda una mail di test a te stesso e mostra l'errore esatto ----
-  var pmBtn=$('provaMail');
-  if(pmBtn) pmBtn.addEventListener('click', function(){
-    if(!getPw()){ toast('Accedi prima','err'); return; }
-    var msg=$('provaMsg'); pmBtn.disabled=true; var old=pmBtn.textContent; pmBtn.textContent='Provo a inviare…';
-    if(msg){ msg.style.color='var(--ink-faint)'; msg.textContent='Sto inviando la mail di prova…'; }
-    var fd=new FormData(); fd.append('azione','prova'); fd.append('utente',USER); fd.append('password',PW);
-    fetch(API_BASE+'invia.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-      pmBtn.disabled=false; pmBtn.textContent=old;
-      if(d && d.ok){ if(msg){ msg.style.color='var(--good)'; msg.innerHTML='✅ Inviata! Controlla la casella <b>'+(d.dove||'')+'</b> (anche nello spam). La tua casella funziona.'; } toast('Prova inviata','ok'); }
-      else { if(msg){ msg.style.color='var(--stop)'; msg.innerHTML='❌ Non è partita. Errore: <b>'+((d&&d.errore)||'sconosciuto')+'</b><br>Di solito è la <b>password per app</b> sbagliata/scaduta, o <b>IMAP</b> spento in Gmail.'; } toast('Invio fallito','err'); }
-    }).catch(function(){ pmBtn.disabled=false; pmBtn.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile.'; } });
-  });
+  // (il vecchio tasto "Prova casella — manda una mail a te stesso" è stato rimosso:
+  //  ora c'è la DIAGNOSTICA AUTOMATICA qui sotto, che fa la prova completa da sola.)
 
   // ---- Mostra la password a 16 lettere salvata (per controllarla a occhio) ----
   // La password non arriva più in chiaro nello stato pubblico (sicurezza): la
@@ -1958,35 +1956,54 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }).catch(function(){ masBtn.disabled=false; masBtn.textContent=old; toast('Server non raggiungibile','err'); });
   });
 
-  // ---- Verifica robottino: LETTURA (IMAP) + INVIO (SMTP) della propria casella ----
-  var prBtn=$('provaRobot');
-  if(prBtn) prBtn.addEventListener('click', function(){
+  // ---- DIAGNOSTICA AUTOMATICA: avvia un gioco di prova, manda una mail dallo
+  //      "spettatore" (prova@), aspetta la risposta del robottino, verifica, chiude.
+  //      NON consuma limiti. Se c'è un gioco in corso, chiede di terminarlo prima. ----
+  var diagInCorso=false;
+  function setDiagMsg(html, color){ var m=$('provaRobotMsg'); if(m){ m.style.color=color||'var(--ink)'; m.innerHTML=html; } }
+  function diagLibera(){ diagInCorso=false; var b=$('provaRobot'); if(b){ b.disabled=false; b.textContent='🤖 Diagnostica casella (prova completa)'; } }
+  function diagForm(az, extra){ var fd=new FormData(); fd.append('azione',az); fd.append('utente',getUser()); fd.append('password',getPw()); if(extra){ for(var k in extra) fd.append(k, extra[k]); } return fd; }
+  function diagEnd(esito, notaFail){
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_end',{esito:esito})}).then(function(r){return r.json();}).then(function(d){
+      diagLibera();
+      var msg=(d&&d.messaggio)||'';
+      if(esito==='ok'){ setDiagMsg('✅ <b>Diagnostica superata.</b><br>'+msg,'var(--good)'); toast('Diagnostica superata','ok'); }
+      else { setDiagMsg('❌ <b>Diagnostica NON superata.</b><br>'+(notaFail?notaFail+'<br>':'')+'Scrivi a <b>supporto@abraka.it</b>.','var(--stop)'); toast('Diagnostica non superata','err'); }
+    }).catch(function(){ diagLibera(); setDiagMsg('Server non raggiungibile (chiusura prova).','var(--stop)'); });
+  }
+  function diagPoll(n){
+    var MAX=16;   // ~16 x 10s ≈ 2 min e 40
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_check')}).then(function(r){return r.json();}).then(function(d){
+      if(d&&d.ok&&d.trovato){ diagEnd('ok',''); return; }
+      if(n>=MAX){ diagEnd('fail',''); return; }
+      setDiagMsg('⏳ <b>Diagnostica in corso…</b> aspetto la risposta del robottino… ('+((n+1)*10)+'s)<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
+      setTimeout(function(){ diagPoll(n+1); }, 10000);
+    }).catch(function(){ if(n>=16){ diagEnd('fail',''); } else { setTimeout(function(){ diagPoll(n+1); }, 10000); } });
+  }
+  function runDiagnostica(auto){
+    if(diagInCorso) return;
     if(!getPw()){ toast('Accedi prima','err'); return; }
-    var msg=$('provaRobotMsg'); prBtn.disabled=true; var old=prBtn.textContent; prBtn.textContent='Verifico (lettura + invio)…';
-    if(msg){ msg.style.color='var(--ink-dim)'; msg.textContent='Provo a LEGGERE e a INVIARE…'; }
-    var fd=new FormData(); fd.append('azione','prova_casella'); fd.append('utente',getUser()); fd.append('password',getPw());
-    fetch(API_BASE+'stato.php',{method:'POST',body:fd}).then(function(r){return r.json();}).then(function(d){
-      prBtn.disabled=false; prBtn.textContent=old;
-      if(!d || !d.ok){ if(msg){ msg.style.color='var(--stop)'; msg.textContent='❌ '+((d&&d.errore)||'Errore'); } toast('Casella non configurata','err'); return; }
-      var im=d.imap||{}, sm=d.smtp||{}, idn=d.identita||{}, html='';
-      // DIAGNOSI in grande: il verdetto chiaro per primo
-      if(d.diagnosi){
-        var col = d.problema ? 'var(--stop)' : 'var(--good)';
-        html += '<div style="border:1px solid '+col+';border-radius:12px;padding:10px 12px;margin-bottom:8px">'
-              + (d.problema?'⚠️ <b>Problema trovato</b>':'✅ <b>Casella a posto</b>')
-              + '<br><span style="font-size:13px">'+d.diagnosi+'</span></div>';
+    diagInCorso=true;
+    var b=$('provaRobot'); if(b){ b.disabled=true; b.textContent='Diagnostica in corso…'; }
+    setDiagMsg('⏳ <b>Diagnostica in corso…</b> avvio il gioco di prova…','var(--ink-dim)');
+    fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_start')}).then(function(r){return r.json();}).then(function(d){
+      if(!d||!d.ok){
+        diagLibera();
+        if(d&&d.attivo){ setDiagMsg('⚠️ '+(d.errore||'C\'è un gioco in corso. Termina prima il gioco, poi rifai la diagnostica.'),'var(--stop)'); toast('Termina prima il gioco','err'); }
+        else { setDiagMsg('❌ '+((d&&d.errore)||'Errore'),'var(--stop)'); }
+        return;
       }
-      // dettaglio tecnico (più piccolo)
-      if(im.ok){ html+='📥 <b>Lettura (robottino):</b> <b style="color:var(--good)">OK</b> ✓<br>'; }
-      else { html+='📥 <b>Lettura (robottino):</b> <b style="color:var(--stop)">NON funziona</b> — '+(im.err||'')+(/gmail/i.test(im.host||'')?'<br>→ Su <b>Gmail</b>: Impostazioni → "Inoltro e POP/IMAP" → <b>attiva IMAP</b>.':'')+'<br>'; }
-      if(sm.ok){ html+='📤 <b>Invio:</b> <b style="color:var(--good)">OK</b> ✓<br>'; }
-      else { html+='📤 <b>Invio:</b> <b style="color:var(--stop)">NON funziona</b> — '+(sm.err||'')+'<br>'; }
-      if(idn.ok===true){ html+='🪪 <b>Identità:</b> <b style="color:var(--good)">confermata</b> ✓ (legge e invia dallo stesso indirizzo)'; }
-      else if(idn.ok===false){ html+='🪪 <b>Identità:</b> <b style="color:var(--stop)">SBAGLIATA</b> — la casella usa un ALTRO account.'; }
-      if(msg){ msg.style.color='var(--ink)'; msg.innerHTML=html; }
-      toast(d.problema?'Problema sulla casella':'Casella a posto', d.problema?'err':'ok');
-    }).catch(function(){ prBtn.disabled=false; prBtn.textContent=old; if(msg){ msg.style.color='var(--stop)'; msg.textContent='Server non raggiungibile.'; } });
-  });
+      if(!d.inviata){
+        setDiagMsg('⏳ Chiudo la prova…','var(--ink-dim)');
+        diagEnd('fail','Non riesco a mandare la mail di prova dallo spettatore (prova@): '+(d.errore_invio||'controlla _dati/prova_casella.json sul server.'));
+        return;
+      }
+      setDiagMsg('⏳ <b>Diagnostica in corso…</b> mail di prova inviata, aspetto la risposta del robottino (fino a ~2 minuti).<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
+      diagPoll(0);
+    }).catch(function(){ diagLibera(); setDiagMsg('Server non raggiungibile.','var(--stop)'); });
+  }
+  var prBtn=$('provaRobot');
+  if(prBtn) prBtn.addEventListener('click', function(){ runDiagnostica(false); });
 
   // ---- "vai a capo" per il testo del foglio (la tastiera del telefono a volte non lo fa) ----
   var predNL=$('predNL');
@@ -2470,7 +2487,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     {prep:coSub('limiti'), wait:220, sel:'#buyBtn', n:21, t:'Limiti · "Acquista / Cambia piano"', x:'Apre la pagina per <b>comprare crediti</b> o <b>cambiare piano</b>.'},
     // Il mio account
     {prep:coSub('account'), wait:360, sel:'#saveMail', n:22, t:'Account · "Salva casella"', x:'La <b>tua casella</b>: email + <b>password per le app di Gmail</b> (16 lettere). Poi <b>Salva casella</b>.'},
-    {prep:coSub('account'), wait:220, sel:'#provaMail', n:23, t:'Account · "Prova casella"', x:'Manda una <b>mail di test a te stesso</b> per vedere se la casella funziona. <b>Non</b> consuma le mail del pacchetto.'},
+    {prep:coSub('account'), wait:220, sel:'#provaRobot', n:23, t:'Account · "Diagnostica casella"', x:'Fa da sola la <b>prova completa</b>: controlla che il robottino <b>legga e risponda</b>. <b>Non</b> consuma mail né sessioni. (Parte in automatico la prima volta che salvi la casella.)'},
     {prep:coSub('account'), wait:220, sel:'#savePw', n:24, t:'Account · "Cambia password"', x:'Cambia la password con cui <b>entri nel pannello</b> (diversa dalla password per le app di Gmail).'},
     {prep:function(){ coCloseSet(); }, wait:380, sel:'#helpRound', n:25, t:'Hai visto tutto!', x:'Queste sono le funzioni avanzate: le ritrovi tutte nelle <b>Impostazioni</b>. Riapri le guide quando vuoi da questo <b>?</b>.'}
   ];

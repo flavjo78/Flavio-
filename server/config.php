@@ -434,6 +434,21 @@ function predizione_mail_semplice(string $to, string $oggetto, string $corpo, st
     return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $corpo, $headers);
 }
 
+/* Indirizzo dove arriva l'ALLERTA quando una diagnostica NON viene superata. */
+if (!defined('PRED_DIAG_ALERT')) define('PRED_DIAG_ALERT', 'appisolata@gmail.com');
+
+/* Casella "SPETTATORE" di prova per la DIAGNOSTICA AUTOMATICA: manda la mail di
+   prova alla casella-gioco e poi rilegge la risposta del robottino. Le credenziali
+   stanno in _dati/prova_casella.json (NON nel codice pubblico):
+   {"user":"prova@abraka.it","pass":"...","login":""}. Se il file manca -> null. */
+function predizione_prova_casella(): ?array {
+    $f = DATA_DIR . '/prova_casella.json';
+    if (!is_file($f)) return null;
+    $j = json_decode((string)@file_get_contents($f), true);
+    if (!is_array($j) || empty($j['user']) || empty($j['pass'])) return null;
+    return ['user' => (string)$j['user'], 'pass' => (string)$j['pass'], 'login' => (string)($j['login'] ?? '')];
+}
+
 /* ---- Archivio OPERAZIONI admin (attiva / sospendi / elimina / crea) ----- */
 /* Registro globale in _dati/operazioni.jsonl: serve all'admin per ricordare
    cosa ha fatto e quando (le righe non si cancellano quando elimini un utente). */

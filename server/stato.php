@@ -163,6 +163,23 @@ function predizione_chiudi_sessione(array &$stato, int $id, string $motivo = 'fi
     }
 }
 
+/* Chiude la sessione di PROVA della DIAGNOSTICA, SENZA toccare le foto vere
+   dell'utente (foto_a, rivelazione_pronta, foto base): spegne il robottino e
+   RIMUOVE la sessione di prova, così non resta nei report e non consuma nulla.
+   (Diverso da predizione_chiudi_sessione, che invece congela/cancella le foto.) */
+function predizione_diag_chiudi(array &$stato): void {
+    $id = (int)($stato['diag']['sess'] ?? 0);
+    if ($id > 0 && isset($stato['sessioni'][(string)$id])) {
+        $b = $stato['sessioni'][(string)$id]['before'] ?? null;
+        if (!empty($b) && is_file($b) && strpos($b, '_before.') !== false) @unlink($b);
+        unset($stato['sessioni'][(string)$id]);
+    }
+    $stato['autorisponditore'] = false;
+    $stato['forza'] = null;
+    if ((int)($stato['sessione_corrente'] ?? 0) === $id) $stato['sessione_corrente'] = 0;
+    unset($stato['diag']);
+}
+
 /* Stato della SICUREZZA della sessione in corso: da quanto è attiva e a che
    "tappa" siamo (ok → avviso → rallentato → fermo). Il cronometro parte
    dall'ULTIMA conferma: 'proroga_ts' (impostato all'Avvia e aggiornato dal tasto
@@ -207,7 +224,13 @@ function predizione_sicurezza(array $s): array {
 function predizione_autochiusura(array &$stato): bool {
     $sic = predizione_sicurezza($stato);
     if (($sic['fase'] ?? 'ok') !== 'fermo') return false;
-    predizione_chiudi_sessione($stato, (int)($stato['sessione_corrente'] ?? 0), 'auto_fine');
+    $id = (int)($stato['sessione_corrente'] ?? 0);
+    // una sessione di PROVA (diagnostica) si chiude senza toccare le foto vere
+    if ($id > 0 && !empty($stato['sessioni'][(string)$id]['prova'])) {
+        predizione_diag_chiudi($stato);
+        return true;
+    }
+    predizione_chiudi_sessione($stato, $id, 'auto_fine');
     return true;
 }
 
@@ -1217,6 +1240,104 @@ switch ($azione) {
         // esce mai nello stato pubblico: serve il login, come tutte le azioni qui.
         predizione_json(['ok' => true, 'mail' => predizione_mail_cfg(predizione_utente())]);
 
+    case 'diag_start':
+        // DIAGNOSTICA AUTOMATICA — passo 1: avvia un gioco di PROVA (non consuma
+        // limiti, non entra nei report) e manda una mail "spettatore" dalla casella
+        // prova@ alla casella-gioco. Il robottino vero (AWS) dovrà rispondere; il
+        // passo 2 (diag_check) controlla che la risposta sia arrivata su prova@.
+        require_once __DIR__ . '/smtp.php';
+        @set_time_limit(60);
+        $mcD = predizione_mail_cfg($utente);
+        if ((string)($mcD['user'] ?? '') === '' || (string)($mcD['pass'] ?? '') === '') {
+            predizione_json(['ok' => false, 'errore' => 'Casella non configurata: salva prima indirizzo e password.'], 400);
+        }
+        // c'è un gioco VERO in corso? (non una prova) -> non si può fare la diagnostica
+        $scAtt = predizione_sessione_corrente($stato);
+        if ($scAtt && in_array(($scAtt['fase'] ?? ''), ['avviato', 'cambiato'], true) && empty($scAtt['prova'])) {
+            predizione_json(['ok' => false, 'attivo' => true,
+                'errore' => 'C\'è un gioco in corso. Termina prima il gioco, poi rifai la diagnostica.']);
+        }
+        // ripulisci una diagnostica eventualmente rimasta appesa
+        if (!empty($stato['diag'])) { predizione_diag_chiudi($stato); }
+        $pvD = predizione_prova_casella();
+        if (!$pvD) {
+            predizione_json(['ok' => false, 'errore' => 'Spettatore di prova non configurato sul server (_dati/prova_casella.json).']);
+        }
+        // UID già presenti in prova@ provenienti DA questa casella (per non confondere
+        // con risposte vecchie): la "linea di partenza" del controllo.
+        $uidsPrima = pred_prova_uids_da($pvD, (string)$mcD['user']);
+        $uidBase   = (is_array($uidsPrima) && $uidsPrima) ? max($uidsPrima) : 0;
+        // crea la sessione di PROVA (Foto A = quella dell'utente o la neutra predefinita)
+        $foto_aD = (!empty($stato['foto_a']) && is_file($stato['foto_a'])) ? $stato['foto_a'] : __DIR__ . '/neutro.png';
+        $nidD    = (int)($stato['ultimo_id'] ?? 0) + 1;
+        $extD    = strtolower(pathinfo($foto_aD, PATHINFO_EXTENSION)) ?: 'png';
+        $beforeD = predizione_data_dir() . '/sess_' . $nidD . '_before.' . $extD;
+        @copy($foto_aD, $beforeD);
+        $stato['sessioni'][(string)$nidD] = [
+            'fase' => 'avviato', 'before' => $beforeD, 'after' => null, 'orario_scambio' => null,
+            // avvio un po' INDIETRO: così la mail dello spettatore (inviata ora) non
+            // viene scartata dal robottino come "arrivata prima dell'avvio" per via
+            // di piccole differenze di orologio tra i server.
+            'avvio_ts' => time() - 300, 'scadenza_ts' => time() + 900, 'prova' => true,
+        ];
+        // memorizzo i contatori per rimetterli a posto a fine prova
+        $stato['diag'] = ['sess' => $nidD, 'uid_base' => $uidBase, 'start_ts' => time(),
+                          'mr' => (int)($stato['mail_ricevute'] ?? 0), 'mi' => (int)($stato['mail_inviate'] ?? 0)];
+        $stato['sessione_corrente'] = $nidD;
+        $stato['ultimo_id']         = $nidD;
+        $stato['forza']             = null;
+        $stato['autorisponditore']  = true;    // il robottino deve rispondere
+        $stato['rispondi_ok']       = true;    // niente "attesa Rispondi mail" durante la prova
+        $stato['mail_ricevute']     = 0;
+        $stato['mail_inviate']      = 0;
+        predizione_scrivi_stato($stato);
+        // manda la mail "spettatore" DALLA casella prova@ ALLA casella-gioco
+        $tokD  = substr(bin2hex(random_bytes(3)), 0, 6);
+        $subD  = 'Spettatore di prova PREDIZIONE ' . $tokD;
+        $bodyD = '<p>Verifica automatica: il robottino dovrebbe rispondere a questa mail con la foto.</p>';
+        $sndD  = pred_prova_manda($pvD, (string)$mcD['user'], $subD, $bodyD);
+        predizione_json(['ok' => true, 'inviata' => (bool)$sndD['ok'], 'errore_invio' => $sndD['ok'] ? '' : (string)$sndD['err']]);
+
+    case 'diag_check':
+        // DIAGNOSTICA — passo 2: la risposta del robottino è arrivata su prova@?
+        require_once __DIR__ . '/smtp.php';
+        @set_time_limit(40);
+        if (empty($stato['diag'])) predizione_json(['ok' => true, 'trovato' => false, 'nessuna' => true]);
+        $mcC = predizione_mail_cfg($utente);
+        $pvC = predizione_prova_casella();
+        if (!$pvC) predizione_json(['ok' => true, 'trovato' => false]);
+        $uidsOra = pred_prova_uids_da($pvC, (string)$mcC['user']);
+        $base    = (int)($stato['diag']['uid_base'] ?? 0);
+        $trovato = false;
+        if (is_array($uidsOra)) { foreach ($uidsOra as $u) { if ((int)$u > $base) { $trovato = true; break; } } }
+        predizione_json(['ok' => true, 'trovato' => $trovato]);
+
+    case 'diag_end':
+        // DIAGNOSTICA — passo 3: chiude la prova (senza toccare le foto vere),
+        // rimette i contatori e, se è andata male, manda l'ALLERTA all'autore.
+        $esitoD = strtolower((string)(p('esito') ?? ''));   // 'ok' | 'fail'
+        $mcE    = predizione_mail_cfg($utente);
+        $mrE    = (int)($stato['diag']['mr'] ?? 0);
+        $miE    = (int)($stato['diag']['mi'] ?? 0);
+        predizione_diag_chiudi($stato);
+        $stato['mail_ricevute'] = $mrE;
+        $stato['mail_inviate']  = $miE;
+        predizione_scrivi_stato($stato);
+        if ($esitoD === 'ok') {
+            predizione_json(['ok' => true, 'esito' => 'ok',
+                'messaggio' => 'Diagnostica superata: il robottino legge la casella e risponde. ✓']);
+        }
+        // FALLITA -> allerta a PRED_DIAG_ALERT (da supporto@)
+        $alertTo = defined('PRED_DIAG_ALERT') ? PRED_DIAG_ALERT : 'appisolata@gmail.com';
+        @predizione_mail_semplice($alertTo, 'ALLERTA — diagnostica NON superata (' . $utente . ')',
+            "La diagnostica dell'utente \"$utente\" (casella " . (string)($mcE['user'] ?? '?') . ") NON e' stata superata.\n"
+            . "Il robottino non ha risposto alla mail di prova entro il tempo previsto.\n\n"
+            . "Cose da controllare: IMAP attivo nella casella, password per le app giusta di QUELL'indirizzo,\n"
+            . "eventuale blocco di Google (accesso sospetto da approvare).\n\n"
+            . date('d/m/Y H:i'));
+        predizione_json(['ok' => true, 'esito' => 'fail',
+            'messaggio' => 'Diagnostica NON superata. Contatta supporto@abraka.it.']);
+
     case 'rispondi_manuale':
         // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte
         // restano in attesa finche' non si preme "Rispondi mail". Solo il performer.
@@ -1366,7 +1487,10 @@ switch ($azione) {
         // solo le INVIATE e il consumo mensile delle mail.
         $inv = max(0, (int)p('inviate'));
         $stato['mail_inviate']  = (int)($stato['mail_inviate']  ?? 0) + $inv;
-        if ($inv > 0) predizione_consuma($stato, 'mail', $inv);   // consumo: prima il piano del mese, poi i crediti
+        // in modalità DIAGNOSTICA (sessione di prova) le mail NON consumano il limite
+        $scMR = predizione_sessione_corrente($stato);
+        $provaMR = ($scMR && !empty($scMR['prova']));
+        if ($inv > 0 && !$provaMR) predizione_consuma($stato, 'mail', $inv);   // consumo: prima il piano del mese, poi i crediti
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true]);
 

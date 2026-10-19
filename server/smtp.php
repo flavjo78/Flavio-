@@ -156,6 +156,68 @@ function pred_imap_raw_conta_oggetto($fp, string $needle, int &$seq): int {
     return $n;
 }
 
+/* elenco degli UID delle mail in INBOX ricevute DA un certo mittente */
+function pred_imap_raw_uids_from($fp, string $fromAddr, int &$seq): array {
+    $nd = str_replace(['\\', '"'], ['\\\\', '\\"'], $fromAddr);
+    $r = pred_imap_raw_cmd($fp, 'UID SEARCH FROM "' . $nd . '"', $seq);
+    $out = [];
+    if ($r['stato'] !== 'OK') return $out;
+    foreach ($r['righe'] as $x) {
+        if (preg_match('/^\*\s+SEARCH\b(.*)$/i', $x, $m)) {
+            foreach (preg_split('/\s+/', trim($m[1])) as $t) { if ($t !== '' && ctype_digit($t)) $out[] = (int)$t; }
+        }
+    }
+    return $out;
+}
+
+/* ===== Casella "SPETTATORE" di prova (per la DIAGNOSTICA AUTOMATICA) ==========
+   Serve una casella neutra (NON una casella-gioco) che manda la mail di prova e
+   poi rilegge la risposta del robottino. I login da provare (Tophost/Gmail). */
+function pred_prova_logins(array $pv): array {
+    $u = (string)($pv['user'] ?? '');
+    $logins = [];
+    if (!empty($pv['login'])) $logins[] = (string)$pv['login'];
+    if ($u !== '') {
+        $logins[] = $u;
+        $at = strpos($u, '@');
+        if ($at !== false) { $logins[] = substr($u, 0, $at); $d = substr($u, $at + 1); if ($d !== '') $logins[] = $d; }
+    }
+    return array_values(array_unique(array_filter($logins)));
+}
+
+/* Manda una mail DALLA casella spettatore. Ritorna ['ok'=>bool,'login'=>?,'err'=>string]. */
+function pred_prova_manda(array $pv, string $to, string $subject, string $bodyHtml): array {
+    [$h, $p] = pred_smtp_host((string)($pv['user'] ?? ''));
+    $pass = (string)($pv['pass'] ?? '');
+    $err = null;
+    foreach (pred_prova_logins($pv) as $login) {
+        $e = null;
+        if (pred_smtp_send($h, $p, $login, $pass, (string)$pv['user'], 'Spettatore di prova', $to, $subject, $bodyHtml, $e)) {
+            return ['ok' => true, 'login' => $login, 'err' => ''];
+        }
+        $err = $e;
+    }
+    return ['ok' => false, 'login' => null, 'err' => (string)$err];
+}
+
+/* Legge dalla casella spettatore gli UID delle mail ricevute DA $fromAddr (la
+   casella-gioco). Ritorna l'array di uid, oppure null se non riesce a entrare. */
+function pred_prova_uids_da(array $pv, string $fromAddr): ?array {
+    [$h, $p] = pred_imap_host((string)($pv['user'] ?? ''));
+    $pass = (string)($pv['pass'] ?? '');
+    foreach (pred_prova_logins($pv) as $login) {
+        $err = null; $seq = 0;
+        $fp = pred_imap_raw_apri($h, $p, $login, $pass, $err, $seq);
+        if (!$fp) continue;
+        $sel = pred_imap_raw_cmd($fp, 'SELECT INBOX', $seq);
+        if ($sel['stato'] !== 'OK') { pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp); continue; }
+        $uids = pred_imap_raw_uids_from($fp, $fromAddr, $seq);
+        pred_imap_raw_cmd($fp, 'LOGOUT', $seq); @fclose($fp);
+        return $uids;
+    }
+    return null;
+}
+
 /* TEST della LETTURA (IMAP): prova a entrare nella casella (quello che fa il
    robottino). Prova i vari login finché uno entra.
    Ritorna ['ok'=>bool, 'login'=>string|null, 'err'=>string, 'skip'=>false]. */
