@@ -1390,11 +1390,11 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     if(fase==='avviso' || fase==='rallentato'){
       var tit=$('sicTitle'), msg=$('sicMsg'), cnt=$('sicCount');
       if(fase==='rallentato'){
-        if(tit) tit.textContent='Il robottino sta rallentando';
-        if(msg) msg.innerHTML="Nessuno conferma da un po'. Il robottino ha <b>rallentato</b> e tra poco <b>si ferma</b> da solo. Sei ancora in gioco?";
+        if(tit) tit.textContent='I nostri sistemi stanno rallentando';
+        if(msg) msg.innerHTML="Nessuno conferma da un po'. I nostri sistemi hanno <b>rallentato</b> e tra poco <b>si fermano</b> da soli. Sei ancora in gioco?";
       } else {
         if(tit) tit.textContent='Sei ancora in gioco?';
-        if(msg) msg.innerHTML='Il gioco è avviato da diverse ore. Se non confermi, il robottino <b>rallenterà</b> e poi <b>si fermerà</b> da solo (sicurezza).';
+        if(msg) msg.innerHTML='Il gioco è avviato da diverse ore. Se non confermi, i nostri sistemi <b>rallenteranno</b> e poi <b>si fermeranno</b> da soli (sicurezza).';
       }
       if(cnt) cnt.textContent = (s && s.ferma_tra) ? ('Si spegne da solo tra circa '+sicDurata(s.ferma_tra)) : '';
       box.classList.add('open');
@@ -1994,7 +1994,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_check')}).then(function(r){return r.json();}).then(function(d){
       if(d&&d.ok&&d.trovato){ diagEnd('ok',''); return; }
       if(n>=MAX){ diagEnd('fail',''); return; }
-      setDiagMsg('⏳ <b>Diagnostica in corso…</b> aspetto la risposta del robottino… ('+((n+1)*10)+'s)<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
+      setDiagMsg('⏳ <b>Diagnostica in corso…</b> aspetto la risposta dei nostri sistemi… ('+((n+1)*10)+'s)<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
       setTimeout(function(){ diagPoll(n+1); }, 10000);
     }).catch(function(){ if(n>=16){ diagEnd('fail',''); } else { setTimeout(function(){ diagPoll(n+1); }, 10000); } });
   }
@@ -2016,7 +2016,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         diagEnd('fail','Non riesco a mandare la mail di prova dallo spettatore (prova@): '+(d.errore_invio||'controlla _dati/prova_casella.json sul server.'));
         return;
       }
-      setDiagMsg('⏳ <b>Diagnostica in corso…</b> mail di prova inviata, aspetto la risposta del robottino (fino a ~2 minuti).<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
+      setDiagMsg('⏳ <b>Diagnostica in corso…</b> mail di prova inviata, aspetto la risposta dei nostri sistemi (fino a ~2 minuti).<br><span style="font-size:12px">Non chiudere l\'app.</span>','var(--ink-dim)');
       diagPoll(0);
     }).catch(function(){ diagLibera(); setDiagMsg('Server non raggiungibile.','var(--stop)'); });
   }
@@ -2024,15 +2024,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(prBtn) prBtn.addEventListener('click', function(){ runDiagnostica(false); });
 
   // ---- DIAGNOSTICA in POP-UP con timer 120s (proposta a fine guida) ----
-  var diagPopTimer=null;
+  var diagPopTimer=null, diagThenHowto=false;
   function diagPopMsg(html){ var m=$('diagPopMsg'); if(m) m.innerHTML=html; }
   function diagPopProg(frac){ var c=$('diagProg'); if(c){ try{ c.style.strokeDashoffset = (283*Math.max(0,Math.min(1,frac))).toFixed(0); }catch(e){} } }
-  function diagPopChiudi(){ var p=$('diagPop'); if(p) p.classList.remove('open'); clearInterval(diagPopTimer); }
+  function diagPopChiudi(){ var p=$('diagPop'); if(p) p.classList.remove('open'); clearInterval(diagPopTimer);
+    // la spiegazione dei tasti (se richiesta dalla guida) parte DOPO la diagnostica
+    if(diagThenHowto){ diagThenHowto=false; setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 400); } }
   function diagPopEsito(ok, msg){
     clearInterval(diagPopTimer);
     var n=$('diagPopNum'); if(n){ n.textContent = ok?'✓':'✕'; n.style.color = ok?'var(--good)':'var(--stop)'; n.style.fontSize='48px'; }
     diagPopMsg((ok?'<b style="color:var(--good)">✅ Tutto a posto!</b>':'<b style="color:var(--stop)">❌ Prova non superata</b>')
-      +'<br><span style="font-size:13px">'+(msg||(ok?'Il robottino legge la casella e risponde.':'Scrivi a supporto@abraka.it.'))+'</span>'
+      +'<br><span style="font-size:13px">'+(msg||(ok?'I nostri sistemi leggono la casella e rispondono.':'Scrivi a supporto@abraka.it.'))+'</span>'
       +'<br><button class="btn" id="diagPopX" type="button" style="margin-top:12px">Chiudi</button>');
     var b=$('diagPopX'); if(b) b.onclick=diagPopChiudi;
   }
@@ -2049,7 +2051,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       diagPopEsito(esito==='ok', (d&&d.messaggio)||'');
     }).catch(function(){ diagPopEsito(esito==='ok',''); });
   }
-  window.openDiagPopup=function(){
+  window.openDiagPopup=function(thenHowto){
+    diagThenHowto=!!thenHowto;
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var p=$('diagPop'); if(!p) return;
     p.classList.add('open');
@@ -2070,7 +2073,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         diagPopEsito(false,'Non riesco a mandare la mail di prova (spettatore). '+(d.errore_invio||''));
         return;
       }
-      diagPopMsg('⏳ <b>Prova in corso…</b><br><span style="font-size:12px">aspetto la risposta del robottino, non chiudere.</span>');
+      diagPopMsg('⏳ <b>Prova in corso…</b><br><span style="font-size:12px">aspetto la risposta dei nostri sistemi, non chiudere.</span>');
       diagPopPoll(0);
     }).catch(function(){ diagPopEsito(false,'Server non raggiungibile.'); });
   };
@@ -2232,9 +2235,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   };
 
   function gApri(s){ if(!gEl) return; gOpen=true; gEl.classList.add('open'); gScreen=s; gRender(); }
-  function gChiudi(ok){ gOpen=false; if(gEl) gEl.classList.remove('open'); if(ok) gOkSet(true); poll();
-    // appena finita la configurazione casella, proponi "come si gioca" (una volta sola)
-    setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 700); }
+  function gChiudi(ok, skipHowto){ gOpen=false; if(gEl) gEl.classList.remove('open'); if(ok) gOkSet(true); poll();
+    // appena finita la configurazione casella, proponi "come si gioca" (una volta sola).
+    // Se skipHowto=true (sto per aprire la DIAGNOSTICA), la spiegazione parte DOPO.
+    if(!skipHowto) setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 700); }
   function gGo(s){ gScreen=s; gRender(); if(gEl) gEl.scrollTop=0; window.scrollTo(0,0); }
 
   function gSetSteps(n){
@@ -2406,7 +2410,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       h='<div class="gcard gcenter">'
        +'<div class="gglyph" style="font-size:48px">🤖</div>'
        +'<h2 class="gt">Vuoi fare una prova veloce?</h2>'
-       +'<p class="glead">La <b>diagnostica</b> controlla che il robottino <b>legga la casella e risponda</b> davvero. Parte da sola e dura circa <b>2 minuti</b>.</p>'
+       +'<p class="glead">La <b>diagnostica</b> controlla che i nostri sistemi <b>leggano la casella e rispondano</b> davvero. Parte da sola e dura circa <b>2 minuti</b>.</p>'
        +'<button class="gbtn primary" data-act="diagsi">Sì, fai la prova (2 min)</button>'
        +'<button class="gbtn ghost" data-act="diagno" style="margin-top:10px">No, entro nella Regia</button>'
        +'<p class="hint" style="text-align:center;margin-top:8px">Potrai rifarla quando vuoi: <b>Impostazioni → Il mio account → Diagnostica casella</b>.</p>'
@@ -2467,7 +2471,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       if(g_passImpostata){ gGo('diagask'); } else { gChiudi(true); }
       return;
     }
-    if(a==='diagsi'){ gChiudi(true); setTimeout(function(){ if(typeof openDiagPopup==='function') openDiagPopup(); }, 350); return; }
+    if(a==='diagsi'){ gChiudi(true, true); setTimeout(function(){ if(typeof openDiagPopup==='function') openDiagPopup(true); }, 350); return; }
     if(a==='diagno'){ gChiudi(true); toast('Quando vuoi: Impostazioni → Il mio account → Diagnostica casella.','ok'); return; }
     if(a==='salta'){ gChiudi(true); toast('Guida saltata. La ritrovi in Impostazioni.','ok'); return; }
     if(a==='saveEmail'){
@@ -2575,7 +2579,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     {prep:coSub('limiti'), wait:220, sel:'#buyBtn', n:21, t:'Limiti · "Acquista / Cambia piano"', x:'Apre la pagina per <b>comprare crediti</b> o <b>cambiare piano</b>.'},
     // Il mio account
     {prep:coSub('account'), wait:360, sel:'#saveMail', n:22, t:'Account · "Salva casella"', x:'La <b>tua casella</b>: email + <b>password per le app di Gmail</b> (16 lettere). Poi <b>Salva casella</b>.'},
-    {prep:coSub('account'), wait:220, sel:'#provaRobot', n:23, t:'Account · "Diagnostica casella"', x:'Fa da sola la <b>prova completa</b>: controlla che il robottino <b>legga e risponda</b>. <b>Non</b> consuma mail né sessioni. (Parte in automatico la prima volta che salvi la casella.)'},
+    {prep:coSub('account'), wait:220, sel:'#provaRobot', n:23, t:'Account · "Diagnostica casella"', x:'Fa da sola la <b>prova completa</b>: controlla che i nostri sistemi <b>leggano e rispondano</b>. <b>Non</b> consuma mail né sessioni. (Parte in automatico la prima volta che salvi la casella.)'},
     {prep:coSub('account'), wait:220, sel:'#savePw', n:24, t:'Account · "Cambia password"', x:'Cambia la password con cui <b>entri nel pannello</b> (diversa dalla password per le app di Gmail).'},
     {prep:function(){ coCloseSet(); }, wait:380, sel:'#helpRound', n:25, t:'Hai visto tutto!', x:'Queste sono le funzioni avanzate: le ritrovi tutte nelle <b>Impostazioni</b>. Riapri le guide quando vuoi da questo <b>?</b>.'}
   ];

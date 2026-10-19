@@ -140,10 +140,23 @@ function ord_attiva_e_notifica(array &$ordini, string $id): array {
                . "In allegato la ricevuta " . $res['ricevuta'] . ".\n\n"
                . "Un saluto,\nabraka — supporto@abraka.it";
         ord_manda_mail_pdf($ordini[$id]['mail'], 'Benvenuto — i tuoi accessi', $corpo, $res['ricevuta_file'] ?? null);
-    }
-    if (!empty($res['nuovo'])) {
+    } elseif (!empty($ordini[$id]['mail'])) {
+        // Utente GIA' esistente (rinnovo o estensione): niente password nuova, ma
+        // confermiamo comunque al cliente che l'acquisto e' stato ATTIVATO.
         $o = $ordini[$id];
-        $dett = "Nuovo acquisto ATTIVATO.\n\n"
+        $corpo = "Ciao,\n\nil tuo acquisto è stato ricevuto e ATTIVATO. ✔\n\n"
+               . "Utente: " . ($res['utente'] ?? '') . "\n"
+               . (!empty($o['piano']) ? ("Piano: " . $o['piano'] . (!empty($o['durata']) ? (" (" . $o['durata'] . ")") : '') . "\n") : '')
+               . "Importo: " . ($o['importo'] ?? '') . " EUR\n\n"
+               . "Trovi tutto gia' aggiornato nella tua app.\n"
+               . (!empty($res['ricevuta']) ? ("In allegato la ricevuta " . $res['ricevuta'] . ".\n") : '')
+               . "\nUn saluto,\nabraka — supporto@abraka.it";
+        ord_manda_mail_pdf($ordini[$id]['mail'], 'Acquisto confermato e attivato', $corpo, $res['ricevuta_file'] ?? null);
+    }
+    // AVVISO all'autore: SEMPRE che un ordine viene attivato (nuovo o rinnovo/estensione).
+    {
+        $o = $ordini[$id];
+        $dett = (!empty($res['nuovo']) ? "Nuovo acquisto ATTIVATO.\n\n" : "Acquisto/rinnovo ATTIVATO.\n\n")
               . "Ordine: " . ($o['id'] ?? '') . "\n"
               . "Cliente: " . ($o['nome'] ?? '') . ' ' . ($o['cognome'] ?? '') . "\n"
               . "Email: " . ($o['mail'] ?? '') . "\n"
