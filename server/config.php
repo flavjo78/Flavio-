@@ -388,6 +388,15 @@ function predizione_uso_mese(array &$stato): array {
         // del piano COLMANO PRIMA quel debito -> il mese nuovo parte già "usato" di
         // quella quantità (es. tetto 85, debito 15 -> parte da 15 usate = 70 libere).
         $debMail = (int)($stato['debito']['mail'] ?? 0);
+        // RINNOVO: registra il "salto" nello storico movimenti (la quantità consumata
+        // nel periodo scorso torna disponibile col rinnovo) -> così il grafico della
+        // scheda utente mostra la RICARICA (la linea "che restano" risale).
+        if (isset($stato['uso']) && is_array($stato['uso'])) {
+            foreach (['mail', 'foto_ia', 'sessioni'] as $tRin) {
+                $uRin = (int)($stato['uso'][$tRin] ?? 0);
+                if ($uRin > 0) predizione_movimento($stato, $tRin, +$uRin, 'rinnovo');
+            }
+        }
         $stato['uso'] = ['mese' => $per['chiave'], 'mail' => $debMail, 'foto_ia' => 0, 'sessioni' => 0,
                          'reset_ts' => $per['fine'], 'giorno' => $oggi, 'mail_oggi' => 0, 'sessioni_oggi' => 0];
         if (!isset($stato['debito']) || !is_array($stato['debito'])) $stato['debito'] = [];
