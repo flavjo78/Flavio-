@@ -238,7 +238,8 @@ function ord_pp_crea(array $cfg, string $token, float $importo, string $rif, str
     ], $payload);
     return (($code === 200 || $code === 201) && !empty($d['id'])) ? (string)$d['id'] : null;
 }
-/* cattura (incassa) l'ordine PayPal; ritorna ['ok'=>bool,'importo'=>float]. */
+/* cattura (incassa) l'ordine PayPal; ritorna
+   ['ok'=>bool,'importo'=>float,'motivo'=>string] (motivo = perche' e' fallito). */
 function ord_pp_cattura(array $cfg, string $token, string $ppid): array {
     $url = ord_pp_base($cfg['modo']) . '/v2/checkout/orders/' . rawurlencode($ppid) . '/capture';
     [$code, $d] = ord_pp_http($url, 'POST', [
@@ -249,7 +250,24 @@ function ord_pp_cattura(array $cfg, string $token, string $ppid): array {
     $cap = $d['purchase_units'][0]['payments']['captures'][0] ?? null;
     if (is_array($cap)) $imp = (float)($cap['amount']['value'] ?? 0);
     $ok = (($code === 200 || $code === 201) && $stato === 'COMPLETED');
-    return ['ok' => $ok, 'importo' => $imp];
+    // perche' e' fallito (per capire i rifiuti carta/3DS): nome errore + "issue" + eventuale stato cattura
+    $motivo = '';
+    if (!$ok) {
+        $nome  = (string)($d['name'] ?? '');
+        $issue = (string)($d['details'][0]['issue'] ?? '');
+        $sCap  = is_array($cap) ? (string)($cap['status'] ?? '') : '';
+        $pr    = is_array($cap) ? (string)($cap['processor_response']['response_code'] ?? '') : '';
+        $pezzi = array_filter(['http=' . $code, $stato !== '' ? 'stato=' . $stato : '',
+                               $nome, $issue, $sCap !== '' ? 'cattura=' . $sCap : '',
+                               $pr !== '' ? 'banca=' . $pr : '']);
+        $motivo = implode(' · ', $pezzi);
+        // traccia sul server per diagnosi (non versionato)
+        @file_put_contents(DATA_DIR . '/paypal_log.txt',
+            date('c') . "  CATTURA FALLITA ppid=$ppid  " . $motivo . "\n" .
+            substr(json_encode($d, JSON_UNESCAPED_UNICODE), 0, 1500) . "\n\n",
+            FILE_APPEND);
+    }
+    return ['ok' => $ok, 'importo' => $imp, 'motivo' => $motivo];
 }
 /* trova la chiave interna (PRD-NNNN) a partire dal CODICE mascherato o dall'id. */
 function ord_trova(array $ordini, string $idOcodice): ?string {
@@ -612,7 +630,11 @@ if ($azione === 'paypal_cattura') {
     $token = ord_pp_token($cfg);
     if ($token === null) predizione_json(['ok' => false, 'errore' => 'PayPal non raggiungibile'], 502);
     $cap = ord_pp_cattura($cfg, $token, $ppid);
-    if (!$cap['ok']) predizione_json(['ok' => false, 'errore' => 'Pagamento non completato'], 402);
+    if (!$cap['ok']) {
+        $perche = !empty($cap['motivo']) ? (' (' . $cap['motivo'] . ')') : '';
+        predizione_json(['ok' => false, 'errore' => 'Pagamento non completato' . $perche,
+                         'motivo' => $cap['motivo'] ?? ''], 402);
+    }
     // l'importo incassato deve combaciare con quello dell'ordine (anti-manomissione)
     $atteso = round((float)($ordini[$id]['importo'] ?? 0), 2);
     if (abs($cap['importo'] - $atteso) > 0.02) {
