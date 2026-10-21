@@ -384,6 +384,37 @@
     var fd=new FormData(); fd.set('utente',U); fd.set('assistente',T); fd.set('slot',slot); fd.set('foto',file);
     return fetch(API+'carica.php',{method:'POST',body:fd}).then(function(r){return r.json().then(function(j){return {code:r.status,data:j};});});
   }
+  // riduce la foto (lato lungo max 1280px) e la ri-salva come JPEG PRIMA di inviarla:
+  // risolve le foto enormi del telefono e gli HEIC (iPhone). Se qualcosa non va, manda l'originale.
+  function ridimAssist(file){
+    return new Promise(function(resolve){
+      try{
+        if(!file){ resolve(file); return; }
+        if(file.type && file.type.indexOf('image/')!==0 && file.type!==''){ resolve(file); return; }
+        var url=URL.createObjectURL(file), img=new Image();
+        img.onload=function(){
+          try{
+            var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+            if(!w||!h){ URL.revokeObjectURL(url); resolve(file); return; }
+            var MAX=1280, s=Math.min(1, MAX/Math.max(w,h));
+            var nw=Math.max(1,Math.round(w*s)), nh=Math.max(1,Math.round(h*s));
+            var cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
+            cv.getContext('2d').drawImage(img,0,0,nw,nh);
+            URL.revokeObjectURL(url);
+            if(!cv.toBlob){ resolve(file); return; }
+            cv.toBlob(function(blob){
+              if(!blob){ resolve(file); return; }
+              var nome=((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg';
+              try{ resolve(new File([blob], nome, {type:'image/jpeg'})); }
+              catch(e){ blob.name=nome; resolve(blob); }
+            }, 'image/jpeg', 0.82);
+          }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); }
+        };
+        img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} resolve(file); };
+        img.src=url;
+      }catch(e){ resolve(file); }
+    });
+  }
 
   var cur={fase:'spento', flags:{}};
 
@@ -564,7 +595,7 @@
       if(camBtn) camBtn.textContent='Carico…';
       var url=URL.createObjectURL(f);
       thumb.innerHTML='<img alt="">'; thumb.querySelector('img').src=url; thumb.setAttribute('data-loaded','1');
-      carica(slotName, f).then(function(r){
+      ridimAssist(f).then(function(file){ return carica(slotName, file); }).then(function(r){
         if(camBtn) camBtn.textContent='Cambia';
         if(r.code===401){ mostraErr('Il link non è più valido. Chiedi un nuovo link.'); return; }
         if(r.data && r.data.ok){ toast('Foto caricata ✓','ok'); poll(); }

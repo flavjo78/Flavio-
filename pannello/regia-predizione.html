@@ -292,10 +292,8 @@
   .iac-pin{fill:var(--gold)}
   .iac-num{position:relative;font-family:"Cormorant Garamond",Georgia,serif;font-size:56px;font-weight:600;color:var(--ink);line-height:1}
   .iac-lbl{position:absolute;bottom:26px;left:0;right:0;text-align:center;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
-  @keyframes iacSpin{from{transform:rotate(0deg)}to{transform:rotate(-360deg)}}
-  @keyframes iacWipe{from{stroke-dashoffset:0}to{stroke-dashoffset:283}}
-  .iaclock.open .iac-hand{animation:iacSpin 30s linear forwards}
-  .iaclock.open .iac-prog{animation:iacWipe 30s linear forwards}
+  /* la lancetta e il bordo girano via JS (startIaClock): cosi' funzionano
+     anche con "Riduci movimento" attivo sul telefono, che spegne le animazioni CSS */
 
   /* ---- Menu impostazioni a quadrati oro (come la home) ---- */
   .tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
@@ -441,7 +439,7 @@
     <p class="subwordmark" style="margin:0 0 6px">Accesso</p>
     <div class="field">
       <label for="loginUser">Utente</label>
-      <input id="loginUser" value="001" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username" placeholder="es. mario.rossi">
+      <input id="loginUser" type="text" inputmode="text" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" placeholder="es. mario.rossi">
     </div>
     <div class="field">
       <label for="loginPw">Password</label>
@@ -1093,8 +1091,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     }
   }
   function doLogin(){
-    var u=(((loginUser&&loginUser.value)||'001').toLowerCase().replace(/[^a-z0-9._-]/g,'')) || '001';
+    var u=(((loginUser&&loginUser.value)||'').toLowerCase().replace(/[^a-z0-9._-]/g,''));
     var p=(loginPw.value||'').trim();
+    if(!u){ toast('Inserisci il nome utente','err'); return; }
     if(!p){ toast('Inserisci la password','err'); return; }
     var body=new URLSearchParams();
     body.set('azione','login'); body.set('utente',u); body.set('password',p);
@@ -1769,9 +1768,22 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
 
   // #13 orologio conto alla rovescia IA (30s, lancetta antioraria)
   var iaTimer=null;
-  function startIaClock(){ var c=$('iaClock'); if(!c) return; var n=$('iacNum'); var left=30; if(n)n.textContent=left;
-    c.classList.remove('open'); void c.offsetWidth; c.classList.add('open');   // riavvia l'animazione
-    clearInterval(iaTimer); iaTimer=setInterval(function(){ left--; if(left<0)left=0; if(n)n.textContent=left; if(left<=0) clearInterval(iaTimer); },1000);
+  function startIaClock(){ var c=$('iaClock'); if(!c) return;
+    var n=$('iacNum'), hand=$('iacHand'), prog=$('iacProg');
+    var DUR=30000, t0=Date.now();
+    if(prog){ prog.style.strokeDasharray='283'; prog.style.strokeDashoffset='0'; }
+    if(hand){ hand.style.transformOrigin='50px 50px'; hand.style.transform='rotate(0deg)'; }
+    if(n) n.textContent=30;
+    c.classList.add('open');
+    // la lancetta e il bordo girano a mano (JS): ~12 passi al secondo, dura 30s
+    clearInterval(iaTimer);
+    iaTimer=setInterval(function(){
+      var el=Date.now()-t0, f=Math.min(1, el/DUR);
+      var left=Math.max(0, Math.ceil((DUR-el)/1000)); if(n) n.textContent=left;
+      if(hand) hand.style.transform='rotate('+(-360*f).toFixed(1)+'deg)';
+      if(prog) prog.style.strokeDashoffset=(283*f).toFixed(1);
+      if(f>=1) clearInterval(iaTimer);
+    }, 80);
   }
   function stopIaClock(){ var c=$('iaClock'); if(c) c.classList.remove('open'); clearInterval(iaTimer); }
 
@@ -2024,11 +2036,16 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if(prBtn) prBtn.addEventListener('click', function(){ runDiagnostica(false); });
 
   // ---- DIAGNOSTICA in POP-UP con timer 120s (proposta a fine guida) ----
-  var diagPopTimer=null, diagThenHowto=false;
+  var diagPopTimer=null, diagThenHowto=false, diagThenInstalla=false;
   function diagPopMsg(html){ var m=$('diagPopMsg'); if(m) m.innerHTML=html; }
   function diagPopProg(frac){ var c=$('diagProg'); if(c){ try{ c.style.strokeDashoffset = (283*Math.max(0,Math.min(1,frac))).toFixed(0); }catch(e){} } }
   function diagPopChiudi(){ var p=$('diagPop'); if(p) p.classList.remove('open'); clearInterval(diagPopTimer);
-    // la spiegazione dei tasti (se richiesta dalla guida) parte DOPO la diagnostica
+    // dalla GUIDA: dopo la diagnostica si passa alla schermata "icona sul telefono"
+    if(diagThenInstalla){ diagThenInstalla=false;
+      if(typeof gOpen!=='undefined' && gOpen && typeof gGo==='function'){ gGo('installa'); }
+      else if(typeof gApri==='function'){ gApri('installa'); }
+      return; }
+    // (vecchio percorso) la spiegazione dei tasti parte DOPO la diagnostica
     if(diagThenHowto){ diagThenHowto=false; setTimeout(function(){ if(window.__howtoFirstRun) window.__howtoFirstRun(); }, 400); } }
   function diagPopEsito(ok, msg){
     clearInterval(diagPopTimer);
@@ -2401,7 +2418,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
        +'<h2 class="gt">Tutto pronto!</h2>'
        +'<p class="glead">La mail del gioco è collegata. Ora puoi <b>avviare il gioco</b> e rispondere agli spettatori con la foto.</p>'
        +(gEmail?('<div class="gsay gcenter"><b>'+gEsc(gEmail)+'</b><br>mail di comunicazione confermata ✓</div>'):'')
-       +'<button class="gbtn primary" data-g="installa">Un\'ultima cosa: l\'icona sul telefono →</button>'
+       +'<button class="gbtn primary" data-g="diagask">Avanti: controlliamo i sistemi →</button>'
        +'<button class="gbtn ghost" data-act="fine" style="margin-top:10px">Salta, entra nella Regia</button>'
        +'</div>';
     }
@@ -2466,13 +2483,20 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     var act=e.target.closest('[data-act]'); if(!act) return;
     var a=act.getAttribute('data-act');
     if(a==='entra' || a==='fine'){
-      // a fine guida: se la casella è impostata, proponi la diagnostica (prova completa);
-      // altrimenti entra direttamente nella Regia.
-      if(g_passImpostata){ gGo('diagask'); } else { gChiudi(true); }
+      // ULTIMO passo (dopo diagnostica + icona telefono): chiudo la guida e parte la
+      // spiegazione dei tasti (gChiudi senza skipHowto -> __howtoFirstRun).
+      gChiudi(true);
       return;
     }
-    if(a==='diagsi'){ gChiudi(true, true); setTimeout(function(){ if(typeof openDiagPopup==='function') openDiagPopup(true); }, 350); return; }
-    if(a==='diagno'){ gChiudi(true); toast('Quando vuoi: Impostazioni → Il mio account → Diagnostica casella.','ok'); return; }
+    // ordine voluto: 1) diagnostica (controllo sistemi) -> 2) icona sul telefono -> 3) guida tasti
+    if(a==='diagsi'){
+      // apro la diagnostica SENZA chiudere la guida (il pop-up sta sopra, z-index 95 > 70);
+      // quando il pop-up si chiude, vado alla schermata "icona sul telefono".
+      diagThenInstalla=true;
+      if(typeof openDiagPopup==='function') openDiagPopup(false);
+      return;
+    }
+    if(a==='diagno'){ gGo('installa'); return; }   // salta la prova -> comunque icona telefono
     if(a==='salta'){ gChiudi(true); toast('Guida saltata. La ritrovi in Impostazioni.','ok'); return; }
     if(a==='saveEmail'){
       var v=(($('gEmailIn')&&$('gEmailIn').value)||'').trim();
