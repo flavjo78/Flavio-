@@ -714,10 +714,8 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         <p class="hint" style="margin-top:6px">Il testo si adatta da solo (fondo scuro → scritte chiare). "Trasparente" = nessun fondo.</p>
       </div>
       <button class="btn primary" id="saveMsg" type="button" style="width:100%;margin-top:4px">Salva il testo</button>
-      <div class="toggle-row">
-        <div><div class="t">Attiva cattura</div><div class="s">Registra chi apre e quando</div></div>
-        <label class="switch"><input type="checkbox" id="capture" checked><span class="track"></span><span class="knob"></span></label>
-      </div>
+      <!-- "cattura" (registra chi apre e quando) è SEMPRE attiva lato server
+           (config.php ABILITA_LOG): niente interruttore da mostrare. -->
     </section>
 
     <!-- Sezione INVIA MAIL (ex "La tua casella"): invio a mano con la foto del gioco -->
@@ -2639,7 +2637,6 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     // Testo mail
     {prep:coSub('testomail'), wait:360, sel:'#body', n:8, t:'Testo mail · il messaggio', x:'Il <b>testo</b> (e l\'<b>oggetto</b> sopra) che arriva insieme alla foto. È facoltativo.'},
     {prep:coSub('testomail'), wait:220, sel:'#saveMsg', n:9, t:'Testo mail · "Salva il testo"', x:'<b>Salva</b> oggetto e testo (è l\'unico testo da confermare a mano).'},
-    {prep:coSub('testomail'), wait:220, sel:'#capture', n:10, t:'Testo mail · "Attiva cattura"', x:'Se <b>acceso</b>, registra <b>chi apre</b> la mail e <b>quando</b>: così il <b>Report</b> è completo.'},
     // Foto magic
     {prep:coSub('ia'), wait:360, sel:'#slotBase', n:11, t:'Foto magic · "Foto base"', x:'La foto di <b>te col foglio bianco</b> in mano: l\'IA ci scriverà sopra la frase.'},
     {prep:coSub('ia'), wait:220, sel:'#predText', n:12, t:'Foto magic · la frase', x:'Scrivi <b>cosa deve comparire</b> sul foglio (es. "Asso di cuori").'},
