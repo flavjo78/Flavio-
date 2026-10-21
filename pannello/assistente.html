@@ -472,6 +472,7 @@
     }
 
     // miniature delle foto salvate
+    lastFotoSig = st.foto_sig || {};   // miniatura aggiornata quando la foto cambia
     updateSlot('slotA','thumbA','A', !!st.ha_foto_a);
     updateSlot('slotB','thumbB','R', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
     updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base);
@@ -563,12 +564,17 @@
     im.onerror=function(){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); };
     im.src=src; thumb.setAttribute('data-loaded','1');
   }
+  var lastFotoSig={};   // firma (data file) delle foto dall'ultimo stato del server
   function updateSlot(id,thumbId,key,loaded){
     var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
     slot.classList.toggle('filled', !!loaded);
     var was=thumb.getAttribute('data-loaded')==='1';
-    if(loaded){ if(!was){ setThumbImg(thumb, slotPreviewUrl(key)); } }
-    else { if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); } }
+    var sk=(key==='R'?'B':key);   // lo slot rivelazione usa la firma 'B'
+    var sig=(lastFotoSig && lastFotoSig[sk]!=null) ? String(lastFotoSig[sk]) : '';
+    var oldSig=thumb.getAttribute('data-sig')||'';
+    if(loaded){
+      if(!was || (sig && sig!==oldSig)){ setThumbImg(thumb, slotPreviewUrl(key)); thumb.setAttribute('data-sig', sig); } }
+    else { if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); thumb.setAttribute('data-sig',''); } }
   }
 
   function wireSlot(slotId, slotName){

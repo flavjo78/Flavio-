@@ -1314,6 +1314,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     chipA.classList.toggle('ok', !!st.ha_foto_a);
     chipB.classList.toggle('ok', !!(st.ha_rivelazione || st.ha_rivelazione_sess));
     // miniature degli slot foto (mostrano la foto salvata, cliccabili per vederla)
+    lastFotoSig = st.foto_sig || {};   // così la miniatura si aggiorna quando la foto cambia
     updateSlot('slotA','thumbA','A', !!st.ha_foto_a, 'A');
     updateSlot('slotB','thumbB','B', !!(st.ha_rivelazione || st.ha_rivelazione_sess), 'R');
     updateSlot('slotBase','thumbBase','BASE', !!st.ha_foto_base, 'F');
@@ -1801,13 +1802,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     im.src=src; thumb.setAttribute('data-loaded','1');
   }
   // aggiorna la miniatura di uno slot in base allo stato (foto salvata o no)
+  var lastFotoSig={};   // firma (data file) delle foto dall'ultimo stato del server
   function updateSlot(id,thumbId,key,loaded,ph){
     var slot=$(id), thumb=$(thumbId); if(!slot||!thumb) return;
     var was=thumb.getAttribute('data-loaded')==='1';
+    var sig=(lastFotoSig && lastFotoSig[key]!=null) ? String(lastFotoSig[key]) : '';
+    var oldSig=thumb.getAttribute('data-sig')||'';
     if(loaded){ slot.classList.add('filled');
-      if(!was){ setThumbImg(thumb, slotPreviewUrl(key)); } }
+      // aggiorna se la miniatura era vuota OPPURE se la foto è cambiata (firma diversa)
+      if(!was || (sig && sig!==oldSig)){ setThumbImg(thumb, slotPreviewUrl(key)); thumb.setAttribute('data-sig', sig); } }
     else { slot.classList.remove('filled');
-      if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); } }
+      if(was){ thumb.innerHTML=PH_EMPTY; thumb.setAttribute('data-loaded','0'); thumb.setAttribute('data-sig',''); } }
   }
 
   // Riduce/CONVERTE la foto nel telefono PRIMA di inviarla: lato lungo max 1600px,

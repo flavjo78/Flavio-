@@ -265,6 +265,16 @@ function predizione_stato_pubblico(array $s): array {
         'mail_cfg'       => predizione_mail_cfg_pubblica(predizione_utente()),  // casella salvata (SENZA password in chiaro)
         'ha_zona'        => (!empty($s['foto_quad']) && is_array($s['foto_quad']) && count($s['foto_quad']) === 4),
         'ha_foto_base'   => (!empty($s['foto_base']) && is_file($s['foto_base'])),
+        // "firma" di ogni foto (data di modifica del file): il pannello aggiorna la
+        // miniatura SOLO quando la foto cambia davvero (es. dopo "Genera Foto magic").
+        'foto_sig'       => [
+            'A'    => (!empty($s['foto_a']) && is_file($s['foto_a'])) ? (int)@filemtime($s['foto_a'])
+                      : (is_file(__DIR__ . '/neutro.png') ? (int)@filemtime(__DIR__ . '/neutro.png') : 0),
+            // lo slot B mostra sempre rivelazione_pronta (vedi anteprima.php), quindi
+            // la firma segue QUEL file: così la miniatura cambia appena ne generi una nuova.
+            'B'    => (!empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta'])) ? (int)@filemtime($s['rivelazione_pronta']) : 0,
+            'BASE' => (!empty($s['foto_base']) && is_file($s['foto_base'])) ? (int)@filemtime($s['foto_base']) : 0,
+        ],
         'foto_quad'      => (!empty($s['foto_quad'])  && is_array($s['foto_quad']))  ? $s['foto_quad']  : null,
         'foto_gomma'     => (!empty($s['foto_gomma']) && is_array($s['foto_gomma'])) ? $s['foto_gomma'] : null,
         'mail_ricevute'  => (int)($s['mail_ricevute'] ?? 0),
