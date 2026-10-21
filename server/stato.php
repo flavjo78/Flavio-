@@ -252,6 +252,7 @@ function predizione_stato_pubblico(array $s): array {
         'invio_modo'     => predizione_invio_modo($s['invio_modo'] ?? null),
         'mail_oggetto'   => (string)($s['mail_oggetto'] ?? ''),
         'mail_testo'     => (string)($s['mail_testo'] ?? ''),
+        'mail_sfondo'    => predizione_mail_sfondo_norm($s['mail_sfondo'] ?? null),  // colore fondo mail
         'ha_foto_a'          => (!empty($s['foto_a']) && is_file($s['foto_a'])) || is_file(__DIR__ . '/neutro.png'),
         'ha_rivelazione'     => !empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta']),
         'ha_rivelazione_sess'=> ($sess && !empty($sess['after']) && is_file($sess['after'])),
@@ -270,9 +271,10 @@ function predizione_stato_pubblico(array $s): array {
         'foto_sig'       => [
             'A'    => (!empty($s['foto_a']) && is_file($s['foto_a'])) ? (int)@filemtime($s['foto_a'])
                       : (is_file(__DIR__ . '/neutro.png') ? (int)@filemtime(__DIR__ . '/neutro.png') : 0),
-            // lo slot B mostra sempre rivelazione_pronta (vedi anteprima.php), quindi
-            // la firma segue QUEL file: così la miniatura cambia appena ne generi una nuova.
-            'B'    => (!empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta'])) ? (int)@filemtime($s['rivelazione_pronta']) : 0,
+            // la miniatura B mostra la rivelazione della sessione attiva (se c'è),
+            // altrimenti quella in attesa — come anteprima.php: la firma segue lo stesso file.
+            'B'    => ($sess && !empty($sess['after']) && is_file($sess['after'])) ? (int)@filemtime($sess['after'])
+                      : ((!empty($s['rivelazione_pronta']) && is_file($s['rivelazione_pronta'])) ? (int)@filemtime($s['rivelazione_pronta']) : 0),
             'BASE' => (!empty($s['foto_base']) && is_file($s['foto_base'])) ? (int)@filemtime($s['foto_base']) : 0,
         ],
         'foto_quad'      => (!empty($s['foto_quad'])  && is_array($s['foto_quad']))  ? $s['foto_quad']  : null,
@@ -862,6 +864,7 @@ function predizione_admin(string $azione): void {
                     'sicurezza_fase'   => predizione_sicurezza($st)['fase'],   // ok|avviso|rallentato (per i giri veloci)
                     'mail_oggetto'     => (string)($st['mail_oggetto'] ?? ''),
                     'mail_testo'       => (string)($st['mail_testo'] ?? ''),
+                    'mail_sfondo'      => predizione_mail_sfondo_norm($st['mail_sfondo'] ?? null),   // colore fondo mail (robottino)
                 ];
             }
             predizione_json(['ok' => true, 'caselle' => $out]);
@@ -1428,6 +1431,7 @@ switch ($azione) {
         // oggetto e testo personalizzati della mail automatica (usati dalla Lambda)
         $stato['mail_oggetto'] = substr((string)(p('oggetto') ?? ''), 0, 200);
         $stato['mail_testo']   = substr((string)(p('testo') ?? ''), 0, 2000);
+        if (p('sfondo') !== null) $stato['mail_sfondo'] = predizione_mail_sfondo_norm(p('sfondo'));  // colore fondo mail
         predizione_scrivi_stato($stato);
         predizione_json(['ok' => true, 'stato' => predizione_stato_pubblico($stato)]);
 

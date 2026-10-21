@@ -22,7 +22,16 @@ if (!$ok) { http_response_code(403); exit; }
 $slot = strtoupper((string)($_GET['slot'] ?? $_POST['slot'] ?? ''));
 if ($slot === 'A')        { $path = $stato['foto_a'] ?? null; $fallback = __DIR__ . '/neutro.png'; }
 elseif ($slot === 'BASE') { $path = $stato['foto_base'] ?? null; $fallback = null; }
-else                      { $path = $stato['rivelazione_pronta'] ?? null; $fallback = null; }
+else {
+    // Rivelazione (B): a gioco AVVIATO la foto viene "congelata" nella sessione
+    // (rivelazione_pronta diventa vuoto) -> mostra quella della sessione attiva,
+    // altrimenti la rivelazione in attesa. Così la miniatura combacia con la mail.
+    $sess = predizione_sessione_corrente($stato);
+    $path = ($sess && !empty($sess['after']) && is_file($sess['after']))
+            ? $sess['after']
+            : ($stato['rivelazione_pronta'] ?? null);
+    $fallback = null;
+}
 
 if ((!$path || !is_file($path)) && $fallback && is_file($fallback)) { $path = $fallback; }
 if (!$path || !is_file($path)) { http_response_code(404); exit; }

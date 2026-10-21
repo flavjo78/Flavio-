@@ -449,6 +449,41 @@ function predizione_mail_semplice(string $to, string $oggetto, string $corpo, st
     return @mail($to, '=?UTF-8?B?' . base64_encode($oggetto) . '?=', $corpo, $headers);
 }
 
+/* ====== COLORE DEL FONDO della mail del gioco (scelto dal performer) ======
+   10 colori + "Trasparente" (nessun fondo). Il testo si adatta da solo:
+   fondo scuro -> scritte chiare; fondo chiaro -> scritte scure. */
+function predizione_mail_palette(): array {
+    return [
+        ''        => 'Trasparente',
+        '#ffffff' => 'Bianco',
+        '#0a0908' => 'Nero',
+        '#0b1a2a' => 'Blu notte',
+        '#0f1e14' => 'Verde bosco',
+        '#2a0d12' => 'Bordò',
+        '#1a0f26' => 'Viola scuro',
+        '#1c1c1e' => 'Antracite',
+        '#f4efe3' => 'Crema',
+        '#e8ddc7' => 'Sabbia',
+        '#eaf1f7' => 'Azzurro chiaro',
+    ];
+}
+function predizione_mail_sfondo_norm($v): string {
+    $v = strtolower(trim((string)$v));
+    if ($v === 'trasparente' || $v === 'none') $v = '';
+    $pal = predizione_mail_palette();
+    return array_key_exists($v, $pal) ? $v : '#0a0908';   // default: nero (come adesso)
+}
+function predizione_mail_colori($sfondo): array {
+    $bg = predizione_mail_sfondo_norm($sfondo);
+    if ($bg === '') return ['bg' => '', 'ink' => '#222222', 'foot' => '#777777', 'line' => '#dddddd'];
+    $h = ltrim($bg, '#');
+    $r = hexdec(substr($h, 0, 2)); $g = hexdec(substr($h, 2, 2)); $b = hexdec(substr($h, 4, 2));
+    $lum = 0.299 * $r + 0.587 * $g + 0.114 * $b;
+    return ($lum < 140)   // fondo scuro -> testo chiaro
+        ? ['bg' => $bg, 'ink' => '#ece0c9', 'foot' => '#8a8069', 'line' => '#2a2620']
+        : ['bg' => $bg, 'ink' => '#222222', 'foot' => '#777777', 'line' => '#dddddd'];
+}
+
 /* Indirizzo dove arriva l'ALLERTA quando una diagnostica NON viene superata. */
 if (!defined('PRED_DIAG_ALERT')) define('PRED_DIAG_ALERT', 'appisolata@gmail.com');
 

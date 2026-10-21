@@ -126,6 +126,7 @@ if (count($dest) > PRED_INVIO_MAX) {
 $oggetto = (string)($stato['mail_oggetto'] ?? '') ?: 'La tua foto';
 $testo   = (string)($stato['mail_testo'] ?? '');
 $testoHtml = nl2br(htmlspecialchars($testo, ENT_QUOTES, 'UTF-8'));
+$col = predizione_mail_colori($stato['mail_sfondo'] ?? null);   // colore fondo + testo
 
 [$host, $port] = pred_smtp_host($cUser);
 
@@ -135,7 +136,8 @@ $loginOk = null;   // il login che ha funzionato col primo invio: lo riuso per i
 foreach ($dest as $to) {
     $id  = 'm' . substr(hash('sha256', $to . '|' . microtime(true) . '|' . random_int(0, 1e9)), 0, 14);
     $img = PRED_IMG_BASE . '?u=' . rawurlencode($utente) . '&s=' . $sid . '&id=' . $id;
-    $body = '<div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;color:#222">'
+    $bgCss = ($col['bg'] !== '') ? ('background:' . $col['bg'] . ';') : '';
+    $body = '<div style="' . $bgCss . 'font-family:Arial,Helvetica,sans-serif;font-size:15px;color:' . $col['ink'] . ';padding:20px">'
           . ($testoHtml !== '' ? '<p>' . $testoHtml . '</p>' : '')
           . '<p><img src="' . htmlspecialchars($img, ENT_QUOTES, 'UTF-8') . '" width="500" '
           . 'style="display:block;max-width:100%;border:0" alt=""></p></div>';

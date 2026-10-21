@@ -708,6 +708,11 @@
       <div class="field"><label for="body">Testo della mail</label><textarea id="body">CIAO,
 GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       <p class="hint">Sono l'<b>oggetto</b> e il <b>testo</b> che compaiono nella mail di risposta (sopra la foto).</p>
+      <div class="field" style="margin-top:8px">
+        <label>Colore del fondo della mail</label>
+        <div id="mailColors" style="display:flex;flex-wrap:wrap;gap:10px;margin-top:6px"></div>
+        <p class="hint" style="margin-top:6px">Il testo si adatta da solo (fondo scuro → scritte chiare). "Trasparente" = nessun fondo.</p>
+      </div>
       <button class="btn primary" id="saveMsg" type="button" style="width:100%;margin-top:4px">Salva il testo</button>
       <div class="toggle-row">
         <div><div class="t">Attiva cattura</div><div class="s">Registra chi apre e quando</div></div>
@@ -1238,6 +1243,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
       var subjEl=$('subj'), bodyEl=$('body');
       if(subjEl && (st.mail_oggetto!==undefined)){ if(st.mail_oggetto) subjEl.value=st.mail_oggetto; }
       if(bodyEl && (st.mail_testo!==undefined)){ if(st.mail_testo) bodyEl.value=st.mail_testo; }
+      if(st.mail_sfondo!==undefined && typeof renderMailColors==='function'){ curSfondo=st.mail_sfondo||''; renderMailColors(); }
       msgLoaded=true;
     }
 
@@ -1484,12 +1490,17 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   swapBtn.addEventListener('click', function(){
     if(!getPw()){ toast('Inserisci prima la password','err'); return; }
     if(!cur.ha_rivelazione && !cur.ha_rivelazione_sess){
-      // Foto B non caricata: apri SUBITO il caricamento (senza passare da Impostazioni).
-      // Dopo il caricamento si rivela da solo (vedi wireSlot 'B').
-      toast('Scegli la rivelazione (Foto B): poi rivelo da solo','ok');
+      // Foto B non caricata: offri le opzioni. Dopo il caricamento si rivela da solo (wireSlot 'B').
       pendingReveal=true;
-      var inpB=document.querySelector('#slotB input');
-      if(inpB){ inpB.click(); } else { pendingReveal=false; toast('Carica la Foto B dalle impostazioni','err'); }
+      if(FLAGS.foto && bChoose){
+        // con la Foto magic disponibile: mostra la scelta "da file / Foto magic"
+        toast('Scegli la rivelazione: da file o Foto magic','ok');
+        bChoose.classList.add('open');
+      } else {
+        toast('Scegli la rivelazione (Foto B): poi rivelo da solo','ok');
+        var inpB=document.querySelector('#slotB input');
+        if(inpB){ inpB.click(); } else { pendingReveal=false; toast('Carica la Foto B dalle impostazioni','err'); }
+      }
       return;
     }
     comando('cambia', null, 'Rivelazione · ora si vede la Foto B');
@@ -1747,12 +1758,51 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     setView.classList.remove('open'); poll();
   });
   // "Salva il testo": oggetto + testo della mail (è l'unico testo libero da salvare a mano)
+  // ---- colore del fondo della mail: quadratini da scegliere -------------
+  var MAIL_COLORS=[
+    {v:'',        nome:'Trasparente'},
+    {v:'#ffffff', nome:'Bianco'},
+    {v:'#0a0908', nome:'Nero'},
+    {v:'#0b1a2a', nome:'Blu notte'},
+    {v:'#0f1e14', nome:'Verde bosco'},
+    {v:'#2a0d12', nome:'Bordò'},
+    {v:'#1a0f26', nome:'Viola scuro'},
+    {v:'#1c1c1e', nome:'Antracite'},
+    {v:'#f4efe3', nome:'Crema'},
+    {v:'#e8ddc7', nome:'Sabbia'},
+    {v:'#eaf1f7', nome:'Azzurro chiaro'}
+  ];
+  var curSfondo='#0a0908';
+  function renderMailColors(){
+    var box=$('mailColors'); if(!box) return;
+    box.innerHTML='';
+    MAIL_COLORS.forEach(function(c){
+      var sel=(String(curSfondo)===String(c.v));
+      var b=document.createElement('button'); b.type='button'; b.title=c.nome;
+      b.setAttribute('data-sfondo', c.v);
+      var trasp=(c.v==='');
+      b.style.cssText='width:30px;height:30px;border-radius:50%;cursor:pointer;'
+        +'border:'+(sel?'3px solid var(--gold)':'1px solid var(--line-2)')+';'
+        +(trasp
+            ? 'background:conic-gradient(#ccc 0 25%,#fff 0 50%,#ccc 0 75%,#fff 0);background-size:12px 12px;'
+            : 'background:'+c.v+';')
+        +'box-shadow:0 0 0 1px rgba(0,0,0,.15) inset';
+      box.appendChild(b);
+    });
+  }
+  var mcBox=$('mailColors');
+  if(mcBox) mcBox.addEventListener('click', function(e){
+    var b=e.target.closest('[data-sfondo]'); if(!b) return;
+    curSfondo=b.getAttribute('data-sfondo'); renderMailColors();
+  });
+  renderMailColors();
+
   var smsg=$('saveMsg');
   if(smsg) smsg.addEventListener('click', function(){
     if(!getPw()){ toast('Accedi prima','err'); return; }
     var oggetto=$('subj')?$('subj').value:'';
     var testo=$('body')?$('body').value:'';
-    comando('messaggio', {oggetto:oggetto, testo:testo}, 'Testo della mail salvato ✓');
+    comando('messaggio', {oggetto:oggetto, testo:testo, sfondo:curSfondo}, 'Testo della mail salvato ✓');
   });
 
   // apre le Impostazioni direttamente su una sotto-pagina (foto, ia, ...)
@@ -1765,7 +1815,7 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   if($('bChooseClose')) $('bChooseClose').addEventListener('click', function(){ bChoose.classList.remove('open'); });
   if(bChoose) bChoose.addEventListener('click', function(e){ if(e.target===bChoose) bChoose.classList.remove('open'); });
   if($('bFromFile')) $('bFromFile').addEventListener('click', function(){ bChoose.classList.remove('open'); var inp=$('slotB')&&$('slotB').querySelector('input'); if(inp) inp.click(); });
-  if($('bFromIa')) $('bFromIa').addEventListener('click', function(){ bChoose.classList.remove('open'); openSettingsTo('ia'); });
+  if($('bFromIa')) $('bFromIa').addEventListener('click', function(){ pendingReveal=false; bChoose.classList.remove('open'); openSettingsTo('ia'); });
 
   // #13 orologio conto alla rovescia IA (30s, lancetta antioraria)
   var iaTimer=null;

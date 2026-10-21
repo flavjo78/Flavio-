@@ -210,14 +210,31 @@ async function lucchetto(op) {   // op = 'prendi' | 'rinnova' | 'rilascia'
   }
 }
 
+/* colore del fondo mail scelto dal performer (fondo + testo che si adatta).
+   '' o 'trasparente' = nessun fondo (usa il predefinito del programma di posta). */
+function coloriMail(sfondo) {
+  let bg = String(sfondo || '').trim().toLowerCase();
+  if (bg === 'trasparente' || bg === 'none') bg = '';
+  if (bg === '') return { bg: '', ink: '#222222', foot: '#777777', line: '#dddddd' };
+  const h = bg.replace('#', '');
+  let r = 0, g = 0, b = 0;
+  if (/^[0-9a-f]{6}$/.test(h)) { r = parseInt(h.slice(0, 2), 16); g = parseInt(h.slice(2, 4), 16); b = parseInt(h.slice(4, 6), 16); }
+  const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+  return (lum < 140)   // fondo scuro -> testo chiaro
+    ? { bg, ink: '#ece0c9', foot: '#8a8069', line: '#2a2620' }
+    : { bg, ink: '#222222', foot: '#777777', line: '#dddddd' };
+}
+
 /* corpo HTML della risposta, con l'immagine dinamica (porta ?u=UTENTE) */
-function corpoHtml(utente, sessione, id, intro) {
+function corpoHtml(utente, sessione, id, intro, sfondo) {
   const src = `${IMAGE_URL_BASE}?u=${encodeURIComponent(utente)}&s=${encodeURIComponent(sessione)}&id=${encodeURIComponent(id)}`;
-  return `<!doctype html><html><body style="margin:0;background:#0a0908;color:#ece0c9;font-family:Georgia,'Times New Roman',serif">
+  const c = coloriMail(sfondo);
+  const bgCss = c.bg ? `background:${c.bg};` : '';
+  return `<!doctype html><html><body style="margin:0;${bgCss}color:${c.ink};font-family:Georgia,'Times New Roman',serif">
   <div style="max-width:560px;margin:0 auto;padding:26px 20px">
     <p style="font-size:16px;line-height:1.6;margin:0 0 18px">${testoSicuro(intro)}</p>
     <img src="${src}" width="520" style="display:block;width:100%;max-width:520px;height:auto;border:0;border-radius:10px" alt="">
-    <p style="font-size:12px;line-height:1.5;color:#8a8069;margin:22px 0 0;border-top:1px solid #2a2620;padding-top:14px">${MAIL_FOOTER}</p>
+    <p style="font-size:12px;line-height:1.5;color:${c.foot};margin:22px 0 0;border-top:1px solid ${c.line};padding-top:14px">${MAIL_FOOTER}</p>
   </div>
 </body></html>`;
 }
@@ -360,7 +377,7 @@ async function processaCasella(cfg) {
 
         if (gioco_attivo && mittente) {
           try {
-            await invia(mittente, stato.oggetto, corpoHtml(utente, stato.sessione, id, stato.intro));
+            await invia(mittente, stato.oggetto, corpoHtml(utente, stato.sessione, id, stato.intro, stato.sfondo));
             risposte++; fatti++;   // conta per il tetto "a turni"
             // registra il mittente per il report di sessione di QUESTO utente
             if (panelPass) {
@@ -456,6 +473,7 @@ async function unGiro(alloc) {
         sicurezzaFase:   (stato.sicurezza && stato.sicurezza.fase) ? String(stato.sicurezza.fase) : 'ok',
         oggetto: stato.mail_oggetto ? String(stato.mail_oggetto) : MAIL_SUBJECT,
         intro:   stato.mail_testo   ? String(stato.mail_testo)   : MAIL_INTRO,
+        sfondo:  stato.mail_sfondo  ? String(stato.mail_sfondo)  : '',
         avvioMs: Number(stato.avvio_ts || 0) * 1000,
       },
       invia: (dest, ogg, html) => inviaCasa(modo, dest, ogg, html),
@@ -479,6 +497,7 @@ async function unGiro(alloc) {
         sicurezzaFase:   c.sicurezza_fase ? String(c.sicurezza_fase) : 'ok',
         oggetto: c.mail_oggetto ? String(c.mail_oggetto) : MAIL_SUBJECT,
         intro:   c.mail_testo   ? String(c.mail_testo)   : MAIL_INTRO,
+        sfondo:  c.mail_sfondo  ? String(c.mail_sfondo)  : '',
         avvioMs: Number(c.avvio_ts || 0) * 1000,
       },
       // gli utenti con casella propria inviano dalla LORO casella (SMTP = credenziali IMAP)
