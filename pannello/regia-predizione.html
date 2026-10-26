@@ -1107,6 +1107,13 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
         USER=u; PW=p; FLAGS=j.flags||{mail:false,foto:false,auto:false,invio:false};
         try{ localStorage.setItem('pred_user',u); localStorage.setItem('pred_pw',p); }catch(e){}
         if(j.admin){ window.location.href='admin.html'; return; }   // amministratore
+        // PULIZIA al cambio utente: svuota i campi "una volta sola" così il NUOVO
+        // utente vede i SUOI dati (casella, mail, password 16 cifre) senza dover
+        // uscire e rientrare. (Prima restavano quelli dell'utente precedente.)
+        try{
+          ['mailEmail','mailFrom','mailApp'].forEach(function(id){ var el=$(id); if(el) el.value=''; });
+          g_passImpostata=false; msgLoaded=false; gEmail='';
+        }catch(e){}
         if(loginView) loginView.classList.add('hidden');
         applyFlags(); poll();
         // prima installazione: mostra una volta sola il percorso "come si gioca"
@@ -1873,38 +1880,77 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   // Ridimensiona a lato lungo 1280px e ri-salva come JPEG (immagini leggere = mail veloce).
   // Ritorna {file, diag, ridotta}: 'diag' è una frase per la diagnostica a schermo; se non
   // riesce (es. HEIC non apribile) torna l'originale spiegando il MOTIVO.
+  // --- HEIC (foto iPhone/alcuni Android): il browser non le apre da solo.
+  //     Carichiamo a richiesta un piccolo "traduttore" (heic2any) che le
+  //     converte in JPEG; poi la normale riduzione fa il resto. ---------------
+  function isHeic(file){
+    var t=((file&&file.type)||'').toLowerCase(), n=((file&&file.name)||'').toLowerCase();
+    return t.indexOf('heic')>=0 || t.indexOf('heif')>=0 || /\.(heic|heif)$/.test(n);
+  }
+  var _heicLibP=null;
+  function caricaHeicLib(){
+    if(window.heic2any) return Promise.resolve();
+    if(_heicLibP) return _heicLibP;
+    _heicLibP=new Promise(function(res,rej){
+      var s=document.createElement('script');
+      s.src='https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      s.onload=function(){ window.heic2any ? res() : rej(new Error('heic2any assente')); };
+      s.onerror=function(){ rej(new Error('traduttore HEIC non caricato')); };
+      document.head.appendChild(s);
+    });
+    return _heicLibP;
+  }
   function ridimensionaFoto(file){
     return new Promise(function(resolve){
       var tipo=(file&&file.type)||'(tipo ignoto)';
       var dimOrig=file?file.size:0;
       function ok(f,diag){ resolve({file:f, diag:diag, ridotta:true}); }
       function fallback(motivo){ resolve({file:file, diag:'originale '+_kb(dimOrig)+' · '+tipo+' → NON ridotta ('+motivo+')', ridotta:false}); }
+      // fa il lavoro vero (ridimensiona + JPEG) su un file GIA' leggibile dal browser
+      function elabora(f){
+        try{
+          var url=URL.createObjectURL(f);
+          var img=new Image();
+          img.onload=function(){
+            try{
+              var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
+              if(!w||!h){ URL.revokeObjectURL(url); fallback('non riesco a leggere le dimensioni'); return; }
+              var MAX=1280, scala=Math.min(1, MAX/Math.max(w,h));
+              var nw=Math.max(1,Math.round(w*scala)), nh=Math.max(1,Math.round(h*scala));
+              var cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
+              cv.getContext('2d').drawImage(img,0,0,nw,nh);
+              URL.revokeObjectURL(url);
+              if(!cv.toBlob){ fallback('questo browser non sa convertire (canvas.toBlob)'); return; }
+              cv.toBlob(function(blob){
+                if(!blob){ fallback('conversione JPEG fallita'); return; }
+                var nome=((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg';
+                var diag='orig '+w+'×'+h+' '+_kb(dimOrig)+' '+tipo+'  →  invio '+nw+'×'+nh+' '+_kb(blob.size)+' jpeg';
+                try{ ok(new File([blob], nome, {type:'image/jpeg'}), diag); }
+                catch(e){ blob.name=nome; ok(blob, diag); }   // vecchi browser senza costruttore File
+              }, 'image/jpeg', 0.82);
+            }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} fallback('errore canvas: '+((e&&e.message)||e)); }
+          };
+          img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} fallback('il telefono non apre questo formato'); };
+          img.src=url;
+        }catch(e){ fallback('errore: '+((e&&e.message)||e)); }
+      }
       try{
         if(!file){ resolve({file:file, diag:'nessun file', ridotta:false}); return; }
-        if(file.type && file.type.indexOf('image/')!==0 && file.type!==''){ fallback('non è un\'immagine'); return; }
-        var url=URL.createObjectURL(file);
-        var img=new Image();
-        img.onload=function(){
-          try{
-            var w=img.naturalWidth||img.width, h=img.naturalHeight||img.height;
-            if(!w||!h){ URL.revokeObjectURL(url); fallback('non riesco a leggere le dimensioni'); return; }
-            var MAX=1280, scala=Math.min(1, MAX/Math.max(w,h));
-            var nw=Math.max(1,Math.round(w*scala)), nh=Math.max(1,Math.round(h*scala));
-            var cv=document.createElement('canvas'); cv.width=nw; cv.height=nh;
-            cv.getContext('2d').drawImage(img,0,0,nw,nh);
-            URL.revokeObjectURL(url);
-            if(!cv.toBlob){ fallback('questo browser non sa convertire (canvas.toBlob)'); return; }
-            cv.toBlob(function(blob){
-              if(!blob){ fallback('conversione JPEG fallita'); return; }
-              var nome=((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg';
-              var diag='orig '+w+'×'+h+' '+_kb(dimOrig)+' '+tipo+'  →  invio '+nw+'×'+nh+' '+_kb(blob.size)+' jpeg';
-              try{ ok(new File([blob], nome, {type:'image/jpeg'}), diag); }
-              catch(e){ blob.name=nome; ok(blob, diag); }   // vecchi browser senza costruttore File
-            }, 'image/jpeg', 0.82);
-          }catch(e){ try{URL.revokeObjectURL(url);}catch(_){} fallback('errore canvas: '+((e&&e.message)||e)); }
-        };
-        img.onerror=function(){ try{URL.revokeObjectURL(url);}catch(_){} fallback('il telefono non apre questo formato (es. HEIC su Android/PC)'); };
-        img.src=url;
+        if(file.type && file.type.indexOf('image/')!==0 && file.type!=='' && !isHeic(file)){ fallback('non è un\'immagine'); return; }
+        if(isHeic(file)){
+          // 1) traduci HEIC -> JPEG, 2) poi ridimensiona come al solito
+          caricaHeicLib()
+            .then(function(){ return window.heic2any({blob:file, toType:'image/jpeg', quality:0.9}); })
+            .then(function(out){
+              var blob=Array.isArray(out)?out[0]:out;
+              var jf; try{ jf=new File([blob], ((file.name||'foto').replace(/\.[^.]+$/,''))+'.jpg', {type:'image/jpeg'}); }
+              catch(e){ blob.name='foto.jpg'; jf=blob; }
+              elabora(jf);
+            })
+            .catch(function(){ elabora(file); });   // se la traduzione non va, provo comunque l'originale
+          return;
+        }
+        elabora(file);
       }catch(e){ fallback('errore: '+((e&&e.message)||e)); }
     });
   }
