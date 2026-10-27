@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<title>Conferma di prenotazione</title>
+<style>
+  @page { size: A4; margin: 10mm 11mm; }
+  * { box-sizing: border-box; }
+  body { font: 10.5pt/1.3 Arial, Helvetica, sans-serif; color: #000; margin: 0; background: #e9e9e9; }
+  .foglio { width: 210mm; min-height: 297mm; margin: 12px auto; background: #fff; padding: 10mm 11mm; }
+  @media print { body { background: #fff; } .foglio { margin: 0; padding: 0; width: auto; min-height: 0; } .nostampa { display: none !important; } }
+  .nostampa { text-align: center; padding: 10px; }
+  .nostampa button { font: 14px Arial; padding: 8px 18px; }
+  .box { border: 1.2px solid #000; border-radius: 6px; padding: 5px 8px; }
+  .testata { display: flex; gap: 8px; align-items: stretch; }
+  .testata .sx { flex: 1.2; display: flex; gap: 10px; }
+  .testata .dx { flex: 1; text-align: center; font-size: 9.5pt; }
+  .insegna { font: 700 30pt/1 Georgia, "Times New Roman", serif; letter-spacing: -1px; display: flex; align-items: center; }
+  .insegna img { max-height: 30mm; max-width: 55mm; }
+  .dati { font-size: 10pt; line-height: 1.3; }
+  .dati .rs { font-weight: 700; }
+  .sede { font-size: 8pt; margin-top: 4px; }
+  .titolo { font-weight: 700; font-size: 11.5pt; margin: 4px 0 6px; }
+  .riga2 { display: flex; gap: 8px; margin-top: 6px; }
+  .riga2 .box { flex: 1; }
+  .riga2 .pratica { flex: 0 0 72mm; font-size: 10pt; }
+  .pratica div { display: flex; justify-content: space-between; }
+  .pratica b { font-weight: 700; }
+  .lbl { font-weight: 700; font-size: 9pt; }
+  .inter { text-align: center; font-weight: 700; font-size: 9.5pt; margin: 4px 0; }
+  .dichiara { font-size: 8.3pt; line-height: 1.3; }
+  .dichiara table { border-collapse: collapse; }
+  .dichiara td { vertical-align: top; padding: 1px 4px 1px 0; }
+  .dichiara td.k { font-weight: 700; font-size: 9pt; white-space: nowrap; padding-right: 10px; }
+  .opz { margin: 3px 0; }
+  .opz span { display: inline-block; margin-right: 14px; }
+  .pallino { display: inline-block; width: 11px; height: 11px; border: 1.2px solid #000; border-radius: 50%; vertical-align: -2px; margin-right: 4px; }
+  .pallino.on { background: #000; }
+  .quadro { display: inline-block; width: 11px; height: 11px; border: 1.2px solid #000; vertical-align: -2px; margin-right: 4px; text-align: center; font-size: 9px; line-height: 9px; }
+  .viaggio { font-size: 10pt; }
+  .viaggio .r { display: flex; gap: 6px; margin: 2px 0; }
+  .viaggio .r .k { font-weight: 700; width: 36mm; flex-shrink: 0; }
+  .viaggio .dur { margin-left: auto; text-align: right; white-space: nowrap; }
+  .servizi { display: flex; gap: 8px; margin-top: 6px; }
+  .servizi .tab { flex: 1; }
+  .servizi .lato { flex: 0 0 60mm; display: flex; flex-direction: column; gap: 6px; }
+  .servizi .lato .box { flex: 1; }
+  table.sv { width: 100%; border-collapse: collapse; font-size: 10pt; }
+  table.sv td { padding: 2px 4px; }
+  table.sv td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  table.sv tr.tot td { border-top: 1.2px solid #000; font-weight: 700; padding-top: 4px; }
+  .acc { font-size: 10pt; }
+  .acc table { width: 100%; border-collapse: collapse; }
+  .acc td { padding: 2px 3px; vertical-align: top; } .acc small { font-size: 8pt; color: #333; }
+  .acc td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .acc tr.saldo td { border-top: 1px solid #000; font-weight: 700; padding-top: 3px; }
+  .validita { font-size: 9pt; margin-top: 8px; }
+  .firme { display: flex; justify-content: space-between; margin-top: 14px; font-size: 10pt; }
+  .firma { margin-top: 14px; font-size: 10pt; }
+  .firma small { display: block; font-size: 8.5pt; }
+  .privacy { font-size: 6.6pt; line-height: 1.25; margin-top: 10px; text-align: justify; color: #222; }
+  .note { font-size: 9pt; margin-top: 6px; }
+  .pre { white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<div class="nostampa"><button onclick="window.print()">🖨 Stampa / salva PDF</button> &nbsp; <button onclick="window.close()">Chiudi</button></div>
+<div class="foglio" id="foglio">Caricamento…</div>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const eur = c => { const n = Number(c || 0) / 100; const neg = n < 0; const [i, d] = Math.abs(n).toFixed(2).split('.'); return (neg ? '-' : '') + i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + d; };
+const dataIt = d => { if (!d) return ''; const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}/${m[1]}` : d; };
+const dataBreve = d => { if (!d) return ''; const m = String(d).match(/^(\d{4})-(\d{2})-(\d{2})/); return m ? `${m[3]}/${m[2]}` : d; };
+async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new URLSearchParams(q) : '')); const d = await r.json(); if (!r.ok) throw new Error(d.errore || 'errore'); return d; }
+(async () => {
+  try {
+    const id = new URLSearchParams(location.search).get('id');
+    const [p, imp] = await Promise.all([api('pratica', { id }), api('impostazioni')]);
+    const A = imp.agenzia, T = imp.testi, c = p.cliente_dati;
+    document.title = `Pratica ${p.numero}-${p.anno} ${c.cognome} ${c.nome}`;
+    const righe = p.righe.filter(r => r.stampa);
+    const fornitori = [...new Set(p.righe.map(r => r.fornitore).filter(Boolean))];
+    const pax = p.adulti + p.bambini + p.infanti;
+    const dovuto = p.dovuto_cent;
+    const saldo = p.saldo_cent;
+    let accontiHtml = p.acconti.map((a, i) => `<tr><td>${esc(a.descrizione || (i + 1) + '° acconto')}<br><small>versato il ${dataIt(a.data)}${a.metodo ? ' · ' + esc(a.metodo) : ''}</small></td><td class="n">${eur(a.importo_cent)}</td></tr>`).join('');
+    if (!p.acconti.length) accontiHtml = `<tr><td>1° Acconto<br><small>versato il ____________</small></td><td class="n"></td></tr><tr><td>2° Acconto<br><small>versato il ____________</small></td><td class="n"></td></tr>`;
+    if (p.abbuono_cent) accontiHtml += `<tr><td>Abbuono</td><td class="n">− ${eur(p.abbuono_cent)}</td></tr>`;
+    const indirizzoCliente = [c.indirizzo, [c.cap, c.citta, c.provincia ? '(' + c.provincia + ')' : ''].filter(Boolean).join(' ')].filter(Boolean).join(' - ');
+    const vuote = Math.max(0, 8 - righe.length);
+    document.getElementById('foglio').innerHTML = `
+    <div class="testata">
+      <div class="box sx">
+        <div class="insegna">${A.logo ? `<img src="${A.logo}" alt="">` : esc(A.insegna || 'Agenzia Viaggi').split(' ').join('<br>')}</div>
+        <div class="dati">
+          <div class="rs">${esc(A.ragione_sociale || A.insegna || '')}</div>
+          ${A.titolare ? `<div>di ${esc(A.titolare)}</div>` : ''}
+          ${A.indirizzo ? `<div>${esc(A.indirizzo)}</div>` : ''}
+          ${(A.cap || A.citta) ? `<div>${esc(A.cap)} ${esc(A.citta)} ${A.provincia ? '(' + esc(A.provincia) + ')' : ''}</div>` : ''}
+          ${A.piva ? `<div>P.IVA ${esc(A.piva)}</div>` : ''}${A.cf && A.cf !== A.piva ? `<div>C.F. ${esc(A.cf)}</div>` : ''}
+          ${A.telefono ? `<div>Tel. ${esc(A.telefono)}</div>` : ''}
+          ${A.email ? `<div>Email ${esc(A.email)}</div>` : ''}
+          ${A.web ? `<div>${esc(A.web)}</div>` : ''}
+          ${A.sede_legale ? `<div class="sede">Sede legale: ${esc(A.sede_legale)}</div>` : ''}
+        </div>
+      </div>
+      <div class="dx">
+        <div class="titolo">${esc(T.titolo)}</div>
+        <div>${esc(T.sottotitolo)}</div>
+        <div style="margin-top:8px;font-weight:700;font-size:8.5pt">${esc(T.diritto_copia)}</div>
+      </div>
+    </div>
+    <div class="riga2">
+      <div class="box"><span class="lbl">Il Sottoscritto</span> &nbsp; <b>${esc(c.cognome.toUpperCase())} ${esc(c.nome.toUpperCase())}</b>${c.cf ? ` &nbsp; c.f.: ${esc(c.cf)}` : ''}${c.nato_il ? ` &nbsp; nato il ${dataIt(c.nato_il)}${c.nato_a ? ' a ' + esc(c.nato_a) : ''}` : ''}
+        <div>${esc(indirizzoCliente)}</div>
+        <div>${c.cellulare ? 'Cell. ' + esc(c.cellulare) : ''} ${c.telefono ? ' Tel. ' + esc(c.telefono) : ''} ${c.email ? ' ' + esc(c.email) : ''}</div></div>
+      <div class="box pratica">
+        <div><span>N. Pratica Adv</span><b>${p.numero}/${p.anno}</b></div>
+        <div><span>Operatore Adv</span><b>${esc(p.operatore || '')}</b></div>
+        <div><span>Data</span><b>${dataIt(p.data_apertura)}</b></div>
+        <div><span>N. Pratica T.O.</span><b>${esc(p.riferimento_to)}</b></div>
+        <div><span>Operatore T.O.</span><b>${esc(p.operatore_to)}</b></div>
+      </div>
+    </div>
+    <div class="inter">${esc(T.in_nome)}</div>
+    <div class="box" style="min-height:14mm">${p.partecipanti.map(q => `<b>${esc(q.nome.toUpperCase())}</b>${q.nato_il ? ' ' + dataIt(q.nato_il) : ''}`).join(' &nbsp;·&nbsp; ')}</div>
+    <div class="box dichiara" style="margin-top:6px">
+      <table><tr><td class="k">Dichiara</td><td>${T.dichiara.split('\n').filter(Boolean).map(r => `- ${esc(r)}`).join('<br>')}</td></tr>
+      <tr><td class="k" style="padding-top:4px">Propone</td><td style="padding-top:4px"><span style="font-size:9.5pt">${esc(T.propone)} <b>${esc(fornitori.join(' / ').toUpperCase())}</b></span>
+        <span style="float:right;font-size:9pt">${esc(T.stipula)}</span></td></tr></table>
+      <div class="opz" style="text-align:center;font-size:10pt"><span><i class="pallino ${p.pacchetto_servizio === 'pacchetto' ? 'on' : ''}"></i>Pacchetto Turistico</span><span><i class="pallino ${p.pacchetto_servizio === 'servizio' ? 'on' : ''}"></i>Servizio Turistico</span></div>
+      <div class="viaggio">
+        <div class="opz"><span><i class="quadro">${p.in_catalogo ? '✔' : ''}</i>In catalogo ${p.catalogo ? esc(p.catalogo) + (p.catalogo_pag ? ' pag. ' + esc(p.catalogo_pag) : '') : ''}</span><span><i class="quadro">${p.in_catalogo ? '' : '✔'}</i>Fuori Catalogo</span><span style="float:right">${p.intermediazione ? 'Intermediazione' : 'Organizzazione propria'}</span></div>
+        <div class="r"><span class="k">Destinaz. / Itinerario</span><span class="pre"><b>${esc(p.destinazione)}</b></span></div>
+        <div class="r"><span class="k">Partenza</span><span><b>${dataIt(p.partenza)}</b> &nbsp; da <b>${esc(p.partenza_da)}</b> &nbsp; a <b>${esc(p.partenza_a)}</b></span><span class="dur">Durata Giorni &nbsp;<b>${p.durata_giorni || ''}</b></span></div>
+        <div class="r"><span class="k">Rientro</span><span><b>${dataIt(p.rientro)}</b> &nbsp; da <b>${esc(p.rientro_da)}</b> &nbsp; a <b>${esc(p.rientro_a)}</b></span><span class="dur">Durata Notti &nbsp;<b>${p.durata_notti || ''}</b></span></div>
+        <div class="r"><span class="k">Partecipanti</span><span>Adulti <b>${p.adulti}</b> &nbsp; Bambini <b>${p.bambini}</b> &nbsp; Infanti <b>${p.infanti}</b>${p.pnr ? ` &nbsp; PNR <b>${esc(p.pnr)}</b>` : ''}</span></div>
+        <div class="r"><span class="k">Richieste Specifiche</span><span>${esc(p.richieste)}</span></div>
+      </div>
+    </div>
+    <div class="servizi">
+      <div class="box tab"><div class="lbl" style="margin-bottom:2px">Servizi richiesti</div>
+        <table class="sv">
+          ${righe.map(r => `<tr><td>${esc(r.descrizione.toUpperCase())}</td><td class="n">${eur(r.prezzo_cent)}</td><td class="n">x Pax N. ${r.pax} =</td><td class="n"><b>${eur(r.prezzo_cent * r.pax)}</b></td></tr>`).join('')}
+          ${Array.from({ length: vuote }).map(() => `<tr><td>&nbsp;</td><td class="n"></td><td class="n">x Pax N. &nbsp; =</td><td class="n"></td></tr>`).join('')}
+          <tr class="tot"><td colspan="3" style="text-align:right">Totale Pratica Euro</td><td class="n">${eur(p.totale_cent)}</td></tr>
+          ${p.stato === 'Annullata con penale' ? `<tr><td colspan="3" style="text-align:right">Pratica annullata — penale dovuta</td><td class="n">${eur(p.penale_cent)}</td></tr>` : ''}
+        </table></div>
+      <div class="lato">
+        <div class="box"><div class="lbl">Documenti Necessari</div><div>${esc(p.documenti_necessari)}</div></div>
+        <div class="box acc"><table>${accontiHtml}
+          <tr class="saldo"><td>Saldo</td><td class="n">${eur(Math.max(0, saldo))}</td></tr>
+          <tr><td>Da versare il</td><td class="n"><b>${dataIt(p.saldo_entro) || '________'}</b></td></tr></table></div>
+      </div>
+    </div>
+    ${A.iban ? `<div class="note">Per i bonifici: IBAN <b>${esc(A.iban)}</b> intestato a ${esc(A.ragione_sociale || A.insegna)} — causale "Pratica ${p.numero}/${p.anno} ${esc(c.cognome)}".</div>` : ''}
+    <div class="validita">${esc(T.validita)}</div>
+    <div class="firme"><span>.......................................... lì, ..........................</span></div>
+    <div class="firma">${esc(T.firma)} .........................................................................<small>${esc(T.firma_nota)}</small></div>
+    <div class="privacy">${esc(T.privacy)}</div>`;
+    if (new URLSearchParams(location.search).get('auto') === '1') setTimeout(() => window.print(), 300);
+  } catch (e) { document.getElementById('foglio').innerHTML = '<p style="color:#b00">' + esc(e.message) + ' — devi essere entrato nel programma.</p>'; }
+})();
+</script>
+</body>
+</html>
