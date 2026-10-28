@@ -13,7 +13,9 @@
   Si distribuisce come cartella con `agenzia.exe` + `web/` (vedi `LEGGIMI.md`); i dati
   stanno in `_dati/agenzia.db` accanto al programma.
 - **Backup automatico** una volta al giorno in una cartella scelta dal pannello opzioni
-  (chiavetta, altro PC in rete), più il tasto "Backup adesso".
+  (chiavetta, altro PC in rete), più il tasto "Backup adesso". Dal pannello si può anche
+  **scaricare una copia completa dei dati** (file `.db`) e **importarne una** al posto dei dati
+  attuali (per prove, trasloco su altro PC, assistenza).
 - **Prezzi tutti IVA inclusa**: un solo campo prezzo per riga, nessuna gestione IVA.
 
 ## 2. Chi lo usa
@@ -23,6 +25,11 @@
 - Tutti gli utenti sono uguali. Il **pannello opzioni** (dati agenzia, testi legali,
   numerazione, liste, backup, utenti) si apre con una **password a parte**.
 - Al primo avvio il programma chiede di creare il primo utente e la password del pannello.
+  All'accesso si sceglie il proprio nome dall'elenco e si scrive solo la password. Le password
+  degli utenti sono visibili in chiaro nel pannello (per chi le dimentica); se si dimentica anche
+  la password del pannello, c'è il file `_dati/RESET-PASSWORD.txt` (vedi LEGGIMI).
+- Se si cambia schermata con modifiche non salvate, il programma chiede: resta / esci senza
+  salvare / salva e vai. Una pratica salvata senza conferma resta come "Preventivo" (bozza).
 
 ## 3. Archivi
 
@@ -50,9 +57,11 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
   itinerario, partenza e rientro (data + "da/a" facoltativi), adulti/bambini/infanti,
   durata giorni/notti, PNR, documenti necessari, richieste specifiche, note interne.
 - **Partecipanti:** elenco nome + data di nascita.
-- **Righe servizi:** descrizione, **fornitore della riga**, prezzo × pax = totale,
-  **costo fornitore** (quanto dovete al fornitore per quella riga, non stampato),
-  spunta "in stampa". I diritti d'agenzia / ADV fee sono righe normali inserite a mano.
+- **Servizi (card):** ogni servizio ha descrizione, **fornitore**, importo cad. × pax, spunta
+  "in stampa". Sotto ogni servizio si aggiungono **voci nascoste** (provvigione, diritti, costi):
+  si sommano all'importo del servizio e il cliente vede UNA riga col totale (una voce nascosta
+  può anche essere messa "in stampa" come riga a parte). L'importo del servizio con fornitore
+  è quanto dovete al fornitore; le voci nascoste restano all'agenzia (margine).
 - **Acconti (illimitati):** data, importo, metodo, descrizione, fornitore a cui si
   riferisce (facoltativo), chi l'ha registrato. Abbuono e **saldo da versare entro il**.
 - **Pagamenti al fornitore:** data, importo, fornitore, metodo, descrizione.

@@ -78,7 +78,14 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     const [p, imp] = await Promise.all([api('pratica', { id }), api('impostazioni')]);
     const A = imp.agenzia, T = imp.testi, c = p.cliente_dati;
     document.title = `Pratica ${p.numero}-${p.anno} ${c.cognome} ${c.nome}`;
-    const righe = p.righe.filter(r => r.stampa);
+    // Righe in stampa: il padre porta l'importo suo + le voci nascoste; le voci "in stampa" vanno come righe a parte.
+    const righe = [];
+    for (const r of p.righe) {
+      const figli = r.figli || [];
+      const nascosti = figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0);
+      if (r.stampa) righe.push({ descrizione: r.descrizione, prezzo_cent: r.prezzo_cent + nascosti, pax: r.pax });
+      for (const c of figli) if (c.stampa) righe.push({ descrizione: c.descrizione, prezzo_cent: c.prezzo_cent, pax: r.pax });
+    }
     const fornitori = [...new Set(p.righe.map(r => r.fornitore).filter(Boolean))];
     const pax = p.adulti + p.bambini + p.infanti;
     const dovuto = p.dovuto_cent;
@@ -132,8 +139,8 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
       <div class="viaggio">
         <div class="opz"><span><i class="quadro">${p.in_catalogo ? '✔' : ''}</i>In catalogo ${p.catalogo ? esc(p.catalogo) + (p.catalogo_pag ? ' pag. ' + esc(p.catalogo_pag) : '') : ''}</span><span><i class="quadro">${p.in_catalogo ? '' : '✔'}</i>Fuori Catalogo</span><span style="float:right">${p.intermediazione ? 'Intermediazione' : 'Organizzazione propria'}</span></div>
         <div class="r"><span class="k">Destinaz. / Itinerario</span><span class="pre"><b>${esc(p.destinazione)}</b></span></div>
-        <div class="r"><span class="k">Partenza</span><span><b>${dataIt(p.partenza)}</b> &nbsp; da <b>${esc(p.partenza_da)}</b> &nbsp; a <b>${esc(p.partenza_a)}</b></span><span class="dur">Durata Giorni &nbsp;<b>${p.durata_giorni || ''}</b></span></div>
-        <div class="r"><span class="k">Rientro</span><span><b>${dataIt(p.rientro)}</b> &nbsp; da <b>${esc(p.rientro_da)}</b> &nbsp; a <b>${esc(p.rientro_a)}</b></span><span class="dur">Durata Notti &nbsp;<b>${p.durata_notti || ''}</b></span></div>
+        <div class="r"><span class="k">Partenza</span><span><b>${dataIt(p.partenza)}</b>${p.partenza_da ? ` &nbsp; da <b>${esc(p.partenza_da)}</b>` : ''}${p.partenza_a ? ` &nbsp; a <b>${esc(p.partenza_a)}</b>` : ''}</span><span class="dur">Durata Giorni &nbsp;<b>${p.durata_giorni || ''}</b></span></div>
+        <div class="r"><span class="k">Rientro</span><span><b>${dataIt(p.rientro)}</b></span><span class="dur">Durata Notti &nbsp;<b>${p.durata_notti || ''}</b></span></div>
         <div class="r"><span class="k">Partecipanti</span><span>Adulti <b>${p.adulti}</b> &nbsp; Bambini <b>${p.bambini}</b> &nbsp; Infanti <b>${p.infanti}</b>${p.pnr ? ` &nbsp; PNR <b>${esc(p.pnr)}</b>` : ''}</span></div>
         <div class="r"><span class="k">Richieste Specifiche</span><span>${esc(p.richieste)}</span></div>
       </div>

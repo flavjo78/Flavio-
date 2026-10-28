@@ -53,6 +53,7 @@ function richiedi(cond, msg) { if (!cond) err(400, msg); }
 
 function utentePubblico(u) { return u ? { id: u.id, username: u.username, nome: u.nome, attivo: u.attivo } : null; }
 function listaUtenti() { return db.all('SELECT id, username, nome, attivo FROM utenti ORDER BY nome'); }
+function listaUtentiPannello() { return db.all('SELECT id, username, nome, attivo, pass_chiaro FROM utenti ORDER BY nome'); }
 
 // ---------- primo avvio / accesso ----------
 function stato_installazione() {
@@ -69,8 +70,8 @@ function installa(ctx) {
   richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
   richiedi(S(c.pannello_password).length >= 4, 'Password del pannello troppo corta (minimo 4)');
   const ts = db.adesso();
-  db.run('INSERT INTO utenti(username, nome, pass_hash, attivo, creato_ts) VALUES(?,?,?,1,?)',
-    S(c.username).toLowerCase(), S(c.nome) || S(c.username), hashPassword(c.password), ts);
+  db.run('INSERT INTO utenti(username, nome, pass_hash, pass_chiaro, attivo, creato_ts) VALUES(?,?,?,?,1,?)',
+    S(c.username).toLowerCase(), S(c.nome) || S(c.username), hashPassword(c.password), S(c.password), ts);
   db.impostazioneSalva('pannello_pass', hashPassword(c.pannello_password));
   const ag = db.impostazione('agenzia');
   if (S(c.insegna)) ag.insegna = S(c.insegna);
@@ -101,7 +102,7 @@ function cambia_password(ctx) {
   const c = ctx.corpo || {};
   richiedi(verificaPassword(c.vecchia, ctx.utente.pass_hash), 'La password attuale non è giusta');
   richiedi(S(c.nuova).length >= 4, 'Password nuova troppo corta (minimo 4)');
-  db.run('UPDATE utenti SET pass_hash = ? WHERE id = ?', hashPassword(c.nuova), ctx.utente.id);
+  db.run('UPDATE utenti SET pass_hash = ?, pass_chiaro = ? WHERE id = ?', hashPassword(c.nuova), S(c.nuova), ctx.utente.id);
   db.log(ctx.utente, 'cambia_password', 'utente', ctx.utente.id, '');
   return { ok: true };
 }
@@ -164,7 +165,7 @@ function impostazioni_salva(ctx) {
   return db.tutteImpostazioni();
 }
 
-function utenti(ctx) { richiediPannello(ctx); return listaUtenti(); }
+function utenti(ctx) { richiediPannello(ctx); return listaUtentiPannello(); }
 function utenti_salva(ctx) {
   richiediPannello(ctx);
   const c = ctx.corpo || {};
@@ -181,14 +182,14 @@ function utenti_salva(ctx) {
     db.run('UPDATE utenti SET username = ?, nome = ?, attivo = ? WHERE id = ?', username, nome, c.attivo === undefined ? u.attivo : B(c.attivo), id);
     if (S(c.password)) {
       richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
-      db.run('UPDATE utenti SET pass_hash = ? WHERE id = ?', hashPassword(c.password), id);
+      db.run('UPDATE utenti SET pass_hash = ?, pass_chiaro = ? WHERE id = ?', hashPassword(c.password), S(c.password), id);
     }
     db.log(ctx.utente, 'utente_modifica', 'utente', id, username);
     return { id };
   }
   richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
   if (db.get('SELECT id FROM utenti WHERE username = ?', username)) err(400, 'Username già usato');
-  const r = db.run('INSERT INTO utenti(username, nome, pass_hash, attivo, creato_ts) VALUES(?,?,?,1,?)', username, nome, hashPassword(c.password), db.adesso());
+  const r = db.run('INSERT INTO utenti(username, nome, pass_hash, pass_chiaro, attivo, creato_ts) VALUES(?,?,?,?,1,?)', username, nome, hashPassword(c.password), S(c.password), db.adesso());
   db.log(ctx.utente, 'utente_crea', 'utente', Number(r.lastInsertRowid), username);
   return { id: Number(r.lastInsertRowid) };
 }
@@ -201,6 +202,47 @@ async function backup_ora(ctx) {
   const dest = await db.eseguiBackup(cartella);
   db.log(ctx.utente, 'backup', '', null, dest);
   return { file: dest };
+}
+// Scarica una copia completa dell'archivio (file SQLite) — per backup a mano o per mandarlo all'assistenza.
+async function esporta_db(ctx) {
+  richiediPannello(ctx);
+  const os = require('node:os');
+  const path = require('node:path');
+  const tmp = path.join(os.tmpdir(), `agenzia-esporta-${process.pid}-${Date.now()}.db`);
+  await db.backupSu(tmp);
+  const d = new Date();
+  const nome = `agenzia-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}.db`;
+  db.log(ctx.utente, 'esporta_db', '', null, nome);
+  return { __file: tmp, __nome: nome, __cancella: true };
+}
+// Importa un archivio (.db) al posto di quello attuale. Quello attuale viene messo da parte in _dati/prima-import-*.db
+function importa_db(ctx) {
+  richiediPannello(ctx);
+  const buf = ctx.corpoRaw;
+  richiedi(buf && buf.length > 100, 'File vuoto');
+  richiedi(buf.subarray(0, 15).toString('latin1') === 'SQLite format 3', 'Il file non è un archivio AGENZIA (.db)');
+  const os = require('node:os');
+  const path = require('node:path');
+  const tmp = path.join(os.tmpdir(), `agenzia-importa-${process.pid}-${Date.now()}.db`);
+  fs.writeFileSync(tmp, buf);
+  // controlla che abbia le nostre tabelle
+  const { DatabaseSync } = require('node:sqlite');
+  let prova;
+  try {
+    prova = new DatabaseSync(tmp, { readOnly: true });
+    const tab = prova.prepare("SELECT name FROM sqlite_master WHERE type='table'").all().map(r => r.name);
+    for (const t of ['utenti', 'clienti', 'pratiche', 'acconti', 'impostazioni']) richiedi(tab.includes(t), `Archivio non valido: manca la tabella ${t}`);
+    const n = prova.prepare('SELECT COUNT(*) AS n FROM pratiche').get().n;
+    prova.close();
+    const copia = db.sostituisciArchivio(tmp);
+    try { fs.unlinkSync(tmp); } catch (e) { /* ignora */ }
+    db.log(null, 'importa_db', '', null, `importate ${n} pratiche; archivio precedente in ${copia}`);
+    return { ok: true, pratiche: n, copia_precedente: copia, rientra: true };
+  } catch (e) {
+    try { if (prova) prova.close(); } catch (e2) { /* ignora */ }
+    try { fs.unlinkSync(tmp); } catch (e2) { /* ignora */ }
+    throw e;
+  }
 }
 function log_operazioni(ctx) {
   richiediPannello(ctx);
@@ -329,7 +371,7 @@ function situazioneFornitore(fid) {
   const righe = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.partenza, p.destinazione, p.cliente_id,
       c.cognome || ' ' || c.nome AS cliente,
       (SELECT COALESCE(SUM(r.costo_cent * r.pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id AND r.fornitore_id = ?) AS costo_cent,
-      (SELECT COALESCE(SUM(r.prezzo_cent * r.pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id AND r.fornitore_id = ?) AS venduto_cent,
+      (SELECT COALESCE(SUM((r.prezzo_cent + COALESCE((SELECT SUM(c.prezzo_cent) FROM pratica_righe c WHERE c.padre_id = r.id),0)) * r.pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id AND r.fornitore_id = ?) AS venduto_cent,
       (SELECT COALESCE(SUM(g.importo_cent),0) FROM pagamenti_fornitore g WHERE g.pratica_id = p.id AND g.fornitore_id = ?) AS pagato_cent,
       (SELECT COALESCE(SUM(a.importo_cent),0) FROM acconti a WHERE a.pratica_id = p.id AND a.fornitore_id = ?) AS cliente_versato_cent
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id
@@ -350,6 +392,10 @@ const STATI = ['Preventivo', 'Confermata', 'Annullata', 'Annullata con penale', 
 const STATI_VALIDI = ['Confermata', 'Chiusa']; // contano per vendite/scadenze
 const CAMPI_PRATICA_TESTO = ['tipo', 'catalogo', 'catalogo_pag', 'riferimento_to', 'operatore_to', 'destinazione', 'partenza_da', 'partenza_a', 'rientro_da', 'rientro_a', 'pnr', 'documenti_necessari', 'richieste', 'note'];
 
+function prossimo_numero(ctx) {
+  const anno = N(ctx.query.anno) || new Date().getFullYear();
+  return { anno, numero: prossimoNumero(anno) };
+}
 function prossimoNumero(anno) {
   const num = db.impostazione('numerazione');
   const max = db.get('SELECT MAX(numero) AS m FROM pratiche WHERE anno = ?', anno).m;
@@ -414,7 +460,9 @@ function caricaPratica(id) {
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id LEFT JOIN utenti u ON u.id = p.operatore_id WHERE p.id = ?`, id);
   if (!p) err(404, 'Pratica non trovata');
   p.cliente_dati = db.get('SELECT * FROM clienti WHERE id = ?', p.cliente_id);
-  p.righe = db.all(`SELECT r.*, f.nome AS fornitore FROM pratica_righe r LEFT JOIN fornitori f ON f.id = r.fornitore_id WHERE r.pratica_id = ? ORDER BY r.ordine, r.id`, id);
+  const tutteRighe = db.all(`SELECT r.*, f.nome AS fornitore FROM pratica_righe r LEFT JOIN fornitori f ON f.id = r.fornitore_id WHERE r.pratica_id = ? ORDER BY r.ordine, r.id`, id);
+  p.righe = tutteRighe.filter(r => !r.padre_id).map(r => ({ ...r, figli: tutteRighe.filter(c => c.padre_id === r.id) }));
+  for (const r of p.righe) r.nascosti_cent = r.figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0); // per persona
   p.partecipanti = db.all('SELECT * FROM pratica_partecipanti WHERE pratica_id = ? ORDER BY ordine, id', id);
   p.acconti = db.all(`SELECT a.*, f.nome AS fornitore, u.nome AS operatore FROM acconti a LEFT JOIN fornitori f ON f.id = a.fornitore_id LEFT JOIN utenti u ON u.id = a.operatore_id WHERE a.pratica_id = ? ORDER BY a.data, a.id`, id);
   p.pagamenti_fornitore = db.all(`SELECT g.*, f.nome AS fornitore, u.nome AS operatore FROM pagamenti_fornitore g LEFT JOIN fornitori f ON f.id = g.fornitore_id LEFT JOIN utenti u ON u.id = g.operatore_id WHERE g.pratica_id = ? ORDER BY g.data, g.id`, id);
@@ -425,7 +473,7 @@ function caricaPratica(id) {
     if (!r.fornitore_id) continue;
     const k = r.fornitore_id;
     perF[k] = perF[k] || { fornitore_id: k, fornitore: r.fornitore, venduto_cent: 0, costo_cent: 0, pagato_cent: 0, cliente_versato_cent: 0 };
-    perF[k].venduto_cent += r.prezzo_cent * r.pax;
+    perF[k].venduto_cent += (r.prezzo_cent + r.figli.reduce((s, c) => s + c.prezzo_cent, 0)) * r.pax;
     perF[k].costo_cent += r.costo_cent * r.pax;
   }
   for (const g of p.pagamenti_fornitore) {
@@ -495,10 +543,19 @@ function pratica_salva(ctx) {
     let ord = 0;
     for (const r of righe) {
       const desc = S(r.descrizione);
-      const prezzo = CENT(r.prezzo), costo = CENT(r.costo);
-      if (!desc && !prezzo && !costo) continue;
-      db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa) VALUES(?,?,?,?,?,?,?,?)',
-        pid, ord++, desc, N(r.fornitore_id) || null, prezzo, Math.max(0, N(r.pax === undefined ? 1 : r.pax)), costo, r.stampa === undefined ? 1 : B(r.stampa));
+      const prezzo = CENT(r.prezzo);
+      const figli = (Array.isArray(r.figli) ? r.figli : []).filter(c => S(c.descrizione) || CENT(c.prezzo));
+      if (!desc && !prezzo && !figli.length) continue;
+      const fid = N(r.fornitore_id) || null;
+      const pax = Math.max(0, N(r.pax === undefined ? 1 : r.pax));
+      // Il "costo fornitore" è l'importo del padre quando c'è un fornitore: è quanto dovete a lui.
+      const ins = db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa, padre_id) VALUES(?,?,?,?,?,?,?,?,NULL)',
+        pid, ord++, desc, fid, prezzo, pax, fid ? prezzo : 0, r.stampa === undefined ? 1 : B(r.stampa));
+      const padreId = Number(ins.lastInsertRowid);
+      for (const c of figli) {
+        db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa, padre_id) VALUES(?,?,?,NULL,?,?,0,?,?)',
+          pid, ord++, S(c.descrizione), CENT(c.prezzo), pax, c.stampa === undefined ? 0 : B(c.stampa), padreId);
+      }
     }
     db.run('DELETE FROM pratica_partecipanti WHERE pratica_id = ?', pid);
     ord = 0;
@@ -631,10 +688,10 @@ function statistiche(ctx) {
   const perTipo = db.all(`SELECT COALESCE(NULLIF(p.tipo,''),'(senza tipo)') AS tipo, COUNT(*) AS n, SUM(${V}) AS venduto_cent
     FROM pratiche p WHERE p.anno = ? AND p.stato IN ('Confermata','Chiusa','Annullata con penale') GROUP BY tipo ORDER BY venduto_cent DESC`, anno);
   const perFornitore = db.all(`SELECT f.id, f.nome,
-      SUM(CASE WHEN p.anno = ? THEN r.prezzo_cent*r.pax ELSE 0 END) AS venduto_cent,
+      SUM(CASE WHEN p.anno = ? THEN (r.prezzo_cent + COALESCE((SELECT SUM(c.prezzo_cent) FROM pratica_righe c WHERE c.padre_id = r.id),0))*r.pax ELSE 0 END) AS venduto_cent,
       SUM(CASE WHEN p.anno = ? THEN r.costo_cent*r.pax ELSE 0 END) AS costo_cent,
       COUNT(DISTINCT CASE WHEN p.anno = ? THEN p.id END) AS n,
-      SUM(CASE WHEN p.anno = ? THEN r.prezzo_cent*r.pax ELSE 0 END) AS venduto_prec_cent,
+      SUM(CASE WHEN p.anno = ? THEN (r.prezzo_cent + COALESCE((SELECT SUM(c.prezzo_cent) FROM pratica_righe c WHERE c.padre_id = r.id),0))*r.pax ELSE 0 END) AS venduto_prec_cent,
       COUNT(DISTINCT CASE WHEN p.anno = ? THEN p.id END) AS n_prec
     FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id JOIN fornitori f ON f.id = r.fornitore_id
     WHERE p.stato IN ('Confermata','Chiusa') AND p.anno IN (?, ?) GROUP BY f.id ORDER BY venduto_cent DESC`, anno, anno, anno, anno - 1, anno - 1, anno, anno - 1);
@@ -650,7 +707,7 @@ function statistiche(ctx) {
   return { anno, anni: pratiche_anni(), perAnno, perMese, perTipo, perFornitore, perOperatore, topClienti, perStato, da_incassare_cent: daIncassare, da_pagare_fornitori_cent: daPagare };
 }
 function statisticheFornitore(fid) {
-  return db.all(`SELECT p.anno, COUNT(DISTINCT p.id) AS n, SUM(r.prezzo_cent*r.pax) AS venduto_cent, SUM(r.costo_cent*r.pax) AS costo_cent,
+  return db.all(`SELECT p.anno, COUNT(DISTINCT p.id) AS n, SUM((r.prezzo_cent + COALESCE((SELECT SUM(c.prezzo_cent) FROM pratica_righe c WHERE c.padre_id = r.id),0))*r.pax) AS venduto_cent, SUM(r.costo_cent*r.pax) AS costo_cent,
       (SELECT COALESCE(SUM(g.importo_cent),0) FROM pagamenti_fornitore g JOIN pratiche q ON q.id = g.pratica_id WHERE q.anno = p.anno AND g.fornitore_id = ?) AS pagato_cent
     FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id WHERE r.fornitore_id = ? AND p.stato IN ('Confermata','Chiusa') GROUP BY p.anno ORDER BY p.anno`, fid, fid);
 }
@@ -692,6 +749,9 @@ const AZIONI = {
   fornitore_elimina: { fn: fornitore_elimina, post: true },
   pratiche: { fn: pratiche },
   pratiche_anni: { fn: pratiche_anni },
+  prossimo_numero: { fn: prossimo_numero },
+  esporta_db: { fn: esporta_db },
+  importa_db: { fn: importa_db, post: true, raw: true },
   pratica: { fn: pratica },
   pratica_salva: { fn: pratica_salva, post: true },
   pratica_elimina: { fn: pratica_elimina, post: true },
@@ -710,7 +770,7 @@ function resetPassword(chi, nuova) {
   if (chi.toLowerCase() === 'pannello') { db.impostazioneSalva('pannello_pass', hashPassword(nuova)); db.log(null, 'reset_password', 'pannello', null, 'da file RESET-PASSWORD.txt'); return 'RESET: password del pannello cambiata'; }
   const u = db.get('SELECT * FROM utenti WHERE username = ?', chi.toLowerCase());
   if (!u) return `RESET ${chi}: utente non trovato`;
-  db.run('UPDATE utenti SET pass_hash = ?, attivo = 1 WHERE id = ?', hashPassword(nuova), u.id);
+  db.run('UPDATE utenti SET pass_hash = ?, pass_chiaro = ?, attivo = 1 WHERE id = ?', hashPassword(nuova), String(nuova), u.id);
   db.log(null, 'reset_password', 'utente', u.id, 'da file RESET-PASSWORD.txt');
   return `RESET: password di ${u.username} cambiata`;
 }

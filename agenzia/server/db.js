@@ -253,6 +253,29 @@ function migra() {
   if (v < 1) {
     db.exec('PRAGMA user_version = 1');
   }
+  if (v < 2) {
+    // v2: righe "figlie" (voci nascoste sommate al padre) e password leggibile dal pannello
+    const colsR = db.prepare('PRAGMA table_info(pratica_righe)').all().map(c => c.name);
+    if (!colsR.includes('padre_id')) db.exec('ALTER TABLE pratica_righe ADD COLUMN padre_id INTEGER');
+    const colsU = db.prepare('PRAGMA table_info(utenti)').all().map(c => c.name);
+    if (!colsU.includes('pass_chiaro')) db.exec("ALTER TABLE utenti ADD COLUMN pass_chiaro TEXT NOT NULL DEFAULT ''");
+    db.exec('PRAGMA user_version = 2');
+  }
+}
+
+// Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).
+function sostituisciArchivio(fileNuovo) {
+  const dest = path.join(DIR_DATI, 'agenzia.db');
+  const d = new Date();
+  const ts = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${String(d.getHours()).padStart(2, '0')}${String(d.getMinutes()).padStart(2, '0')}${String(d.getSeconds()).padStart(2, '0')}`;
+  const copia = path.join(DIR_DATI, `prima-import-${ts}.db`);
+  db.exec('PRAGMA wal_checkpoint(TRUNCATE)');
+  db.close();
+  fs.copyFileSync(dest, copia);
+  for (const suf of ['-wal', '-shm']) { try { fs.unlinkSync(dest + suf); } catch (e) { /* non c'era */ } }
+  fs.copyFileSync(fileNuovo, dest);
+  apri(DIR_DATI);
+  return copia;
 }
 
 function adesso() { return new Date().toISOString(); }
@@ -319,6 +342,6 @@ function log(utente, azione, entita, entitaId, dettaglio) {
 module.exports = {
   apri, get, all, run, transazione, adesso, oggi,
   impostazione, impostazioneSalva, tutteImpostazioni, IMPOSTAZIONI_DEFAULT,
-  eseguiBackup, log,
+  eseguiBackup, sostituisciArchivio, log, backupSu: (dest) => backup(db, dest),
   dirDati: () => DIR_DATI
 };

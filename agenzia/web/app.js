@@ -85,6 +85,21 @@ function leggiForm(el) {
 
 // ================= stato globale e router =================
 const STATO = { utente: null, pannello: false, imp: null, route: '' };
+// Guardia "modifiche non salvate": la pagina che la imposta dice se è sporca e come salvare.
+let GUARDIA = null;
+let IGNORA_HASH = false;
+window.addEventListener('beforeunload', e => { if (GUARDIA && GUARDIA.sporca()) { e.preventDefault(); e.returnValue = ''; } });
+function chiediSalvataggio(cosa) {
+  return new Promise(resolve => {
+    const d = document.createElement('dialog'); d.className = 'modal';
+    d.innerHTML = `<div class="mh">Modifiche non salvate</div><div class="mb"><p>Hai modificato ${esc(cosa)} e non hai salvato. Cosa vuoi fare?</p></div>
+      <div class="mf"><button class="btn" data-x="resta">Resta qui</button><button class="btn pericolo" data-x="esci">Esci senza salvare</button><button class="btn primario" data-x="salva">Salva e vai</button></div>`;
+    document.body.appendChild(d);
+    for (const b of $$('[data-x]', d)) b.onclick = () => { d.close(); d.remove(); resolve(b.dataset.x); };
+    d.addEventListener('cancel', e => { e.preventDefault(); d.close(); d.remove(); resolve('resta'); });
+    d.showModal();
+  });
+}
 
 function naviga(hash) { location.hash = hash; }
 window.addEventListener('hashchange', () => render());
@@ -195,6 +210,13 @@ function cambiaPassword() {
 async function render() {
   if (!STATO.utente) return renderLogin();
   const h = (location.hash || '#/scadenze').replace(/^#\/?/, '');
+  if (IGNORA_HASH) { IGNORA_HASH = false; return; }
+  if (GUARDIA && GUARDIA.sporca() && h !== GUARDIA.route) {
+    const scelta = await chiediSalvataggio(GUARDIA.cosa);
+    if (scelta === 'resta') { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; }
+    if (scelta === 'salva') { const r = await GUARDIA.salva(); if (!r) { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; } toast('Salvato', 'ok'); }
+  }
+  GUARDIA = null;
   const [pagina, id, extra] = h.split('/');
   STATO.route = h;
   try {
@@ -273,33 +295,46 @@ async function fornitoriAttivi(forza) {
 }
 const selFornitore = (sel, lista, vuoto = '—') => `<select name="fornitore_id">${opzioni(lista.map(f => ({ value: f.id, label: f.nome })), sel, vuoto)}</select>`;
 
-async function paginaPratica(id, clientePre) {
+async function paginaPratica(id) {
   const nuova = id === 'nuova';
   const parti = STATO.route.split('/');
   const clienteIniziale = nuova && parti[2] ? await api('cliente', undefined, { id: parti[2] }).catch(() => null) : null;
+  const apriAcconto = !nuova && parti[2] === 'acconto';
   const P = nuova ? {
     id: 0, anno: new Date().getFullYear(), numero: '', stato: 'Preventivo', data_apertura: oggiIso(), intermediazione: 1, pacchetto_servizio: 'pacchetto', in_catalogo: 1,
     cliente_id: clienteIniziale ? clienteIniziale.id : 0, cliente: clienteIniziale ? `${clienteIniziale.cognome} ${clienteIniziale.nome}` : '',
     righe: [], partecipanti: clienteIniziale ? [{ nome: `${clienteIniziale.cognome} ${clienteIniziale.nome}`, nato_il: clienteIniziale.nato_il }] : [], acconti: [], pagamenti_fornitore: [], fornitori: [],
     adulti: 1, bambini: 0, infanti: 0, durata_giorni: 0, durata_notti: 0, abbuono_cent: 0, penale_cent: 0, tipo: '', documenti_necessari: ''
   } : await api('pratica', undefined, { id });
+  if (nuova) { const pn = await api('prossimo_numero', undefined, { anno: P.anno }); P.numero = pn.numero; }
   const forn = await fornitoriAttivi();
   const L = STATO.imp.liste;
-  const titolo = nuova ? 'Nuova pratica' : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato)}`;
+  const titolo = nuova ? `Nuova pratica <span class="muted" style="font-weight:400">· sarà la n. <b>${P.numero}</b>/${P.anno}</span>` : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato)}`;
 
-  const rigaServizio = (r = {}) => `<tr>
-    <td><input data-k="descrizione" list="dlServizi" value="${esc(r.descrizione || '')}" placeholder="Descrizione"></td>
-    <td style="width:190px">${selFornitore(r.fornitore_id || '', forn, '— nessuno —')}</td>
-    <td style="width:110px"><input data-k="prezzo" class="num" value="${r.prezzo_cent !== undefined ? eur(r.prezzo_cent) : ''}" placeholder="0,00"></td>
-    <td style="width:60px"><input data-k="pax" class="num" value="${r.pax ?? 1}"></td>
-    <td class="num" data-tot style="width:110px">${r.prezzo_cent !== undefined ? eur(r.prezzo_cent * (r.pax ?? 1)) : '0,00'}</td>
-    <td style="width:110px"><input data-k="costo" class="num" value="${r.costo_cent ? eur(r.costo_cent) : ''}" placeholder="0,00" title="Quanto l'agenzia deve al fornitore per questa riga (per persona)"></td>
-    <td class="center" style="width:50px"><input type="checkbox" data-k="stampa" ${r.stampa === 0 ? '' : 'checked'} title="Compare nella stampa"></td>
-    <td class="az"><button type="button" class="btn piccolo icona" data-del title="Togli riga">✕</button></td></tr>`;
+  // ---- card di un servizio (padre) con le sue voci nascoste (figli) ----
+  const rigaFiglio = (c = {}) => `<div class="figlio" data-figlio>
+    <span class="freccia">↳</span>
+    <input data-k="descrizione" value="${esc(c.descrizione || '')}" placeholder="Voce nascosta: provvigione, diritti, costi…" list="dlFigli">
+    <input data-k="prezzo" class="num soldi" value="${c.prezzo_cent ? eur(c.prezzo_cent) : ''}" placeholder="€ cad.">
+    <label class="small" title="Se spuntato, questa voce compare in stampa come riga a parte invece di essere sommata al padre"><input type="checkbox" data-k="stampa" ${c.stampa ? 'checked' : ''}> in stampa</label>
+    <button type="button" class="btn piccolo icona" data-del-figlio title="Togli">✕</button></div>`;
+  const cardServizio = (r = {}) => `<div class="srv" data-srv>
+    <div class="srv-h">
+      <div class="campo c-desc"><label>Descrizione (come in stampa)</label><input data-k="descrizione" list="dlServizi" value="${esc(r.descrizione || '')}" placeholder="es. Quota pacchetto"></div>
+      <div class="campo c-forn"><label>Fornitore</label>${selFornitore(r.fornitore_id || '', forn, '— nessuno —')}</div>
+      <div class="campo c-num"><label>Importo cad. €</label><input data-k="prezzo" class="num soldi" value="${r.prezzo_cent ? eur(r.prezzo_cent) : ''}"></div>
+      <div class="campo c-pax"><label>Pax</label><input data-k="pax" class="num" value="${r.pax ?? 1}"></div>
+      <div class="campo c-tot"><label>Totale riga</label><div class="tot" data-tot>0,00</div></div>
+      <div class="campo c-st"><label>&nbsp;</label><label class="small"><input type="checkbox" data-k="stampa" ${r.stampa === 0 ? '' : 'checked'}> in stampa</label></div>
+      <div class="campo c-az"><label>&nbsp;</label><button type="button" class="btn piccolo icona pericolo" data-del title="Togli servizio">✕</button></div>
+    </div>
+    <div class="srv-f">${(r.figli || []).map(rigaFiglio).join('')}</div>
+    <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Aggiungi voce nascosta (provvigione, costi…)</button><span class="small muted" data-cliente></span></div>
+  </div>`;
   const rigaPart = (q = {}) => `<tr><td><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome"></td><td style="width:170px"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
 
   shell('pratiche', titolo, `
-  ${!nuova ? `<div class="muted small" style="margin:-8px 0 12px">Aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</div>` : ''}
+  ${!nuova ? `<div class="muted small" style="margin:-8px 0 12px">Aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</div>` : `<div class="avviso info">Il numero <b>${P.numero}/${P.anno}</b> viene assegnato al primo salvataggio. Fino ad allora la pratica è una bozza.</div>`}
   <div id="fPratica">
   <div class="card"><h2>Cliente e pratica</h2>
     <div class="griglia g4">
@@ -307,7 +342,7 @@ async function paginaPratica(id, clientePre) {
         <div class="picker"><input id="pkCliente" value="${esc(P.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${P.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div>
         <div class="small"><a href="#" id="lnkApriCliente" class="${P.cliente_id ? '' : 'hidden'}">apri la scheda del cliente</a></div></div>
       <div class="campo"><label>Stato</label><select name="stato" id="selStato">${opzioni(STATI, P.stato)}</select></div>
-      <div class="campo" id="campoPenale" style="${P.stato === 'Annullata con penale' ? '' : 'display:none'}"><label>Penale dovuta dal cliente (€)</label><input name="penale" class="num" value="${P.penale_cent ? eur(P.penale_cent) : ''}"></div>
+      <div class="campo" id="campoPenale" style="${P.stato === 'Annullata con penale' ? '' : 'display:none'}"><label>Penale dovuta dal cliente (€)</label><input name="penale" class="num soldi" value="${P.penale_cent ? eur(P.penale_cent) : ''}"></div>
       <div class="campo"><label>Tipo pratica</label><input name="tipo" list="dlTipi" value="${esc(P.tipo || '')}">${datalist('dlTipi', L.tipi_pratica)}</div>
       <div class="campo"><label>Data apertura</label><input name="data_apertura" type="date" value="${esc(P.data_apertura || '')}"></div>
       <div class="campo"><label>Rapporto</label><select name="intermediazione">${opzioni([{ value: '1', label: 'Intermediazione (vendiamo per conto del T.O.)' }, { value: '0', label: 'Nostra organizzazione' }], String(P.intermediazione ?? 1))}</select></div>
@@ -322,18 +357,17 @@ async function paginaPratica(id, clientePre) {
   <div class="card"><h2>Viaggio</h2>
     <div class="griglia g6">
       <div class="campo col6"><label>Destinazione / itinerario (va in stampa)</label><textarea name="destinazione">${esc(P.destinazione || '')}</textarea></div>
-      <div class="campo"><label>Partenza</label><input name="partenza" type="date" id="inPartenza" value="${esc(P.partenza || '')}"></div>
-      <div class="campo"><label>da</label><input name="partenza_da" value="${esc(P.partenza_da || '')}"></div>
-      <div class="campo"><label>a</label><input name="partenza_a" value="${esc(P.partenza_a || '')}"></div>
-      <div class="campo"><label>Rientro</label><input name="rientro" type="date" id="inRientro" value="${esc(P.rientro || '')}"></div>
-      <div class="campo"><label>da</label><input name="rientro_da" value="${esc(P.rientro_da || '')}"></div>
-      <div class="campo"><label>a</label><input name="rientro_a" value="${esc(P.rientro_a || '')}"></div>
+      <div class="campo"><label>Data partenza</label><input name="partenza" type="date" id="inPartenza" value="${esc(P.partenza || '')}"></div>
+      <div class="campo"><label>Parte da (luogo)</label><input name="partenza_da" value="${esc(P.partenza_da || '')}" placeholder="es. Napoli"></div>
+      <div class="campo"><label>Arriva a (luogo)</label><input name="partenza_a" value="${esc(P.partenza_a || '')}" placeholder="es. Madrid"></div>
+      <div class="campo"><label>Data rientro</label><input name="rientro" type="date" id="inRientro" value="${esc(P.rientro || '')}"></div>
+      <div class="campo"><label>Durata giorni</label><input name="durata_giorni" id="inGiorni" class="num" value="${P.durata_giorni ?? 0}"></div>
+      <div class="campo"><label>Durata notti</label><input name="durata_notti" id="inNotti" class="num" value="${P.durata_notti ?? 0}"></div>
+      <input type="hidden" name="rientro_da" value="${esc(P.rientro_da || '')}"><input type="hidden" name="rientro_a" value="${esc(P.rientro_a || '')}">
       <div class="campo"><label>Adulti</label><input name="adulti" class="num" value="${P.adulti ?? 0}"></div>
       <div class="campo"><label>Bambini</label><input name="bambini" class="num" value="${P.bambini ?? 0}"></div>
       <div class="campo"><label>Infanti</label><input name="infanti" class="num" value="${P.infanti ?? 0}"></div>
-      <div class="campo"><label>Durata giorni</label><input name="durata_giorni" id="inGiorni" class="num" value="${P.durata_giorni ?? 0}"></div>
-      <div class="campo"><label>Durata notti</label><input name="durata_notti" id="inNotti" class="num" value="${P.durata_notti ?? 0}"></div>
-      <div class="campo"><label>PNR / biglietti</label><input name="pnr" value="${esc(P.pnr || '')}"></div>
+      <div class="campo col3"><label>PNR / biglietti</label><input name="pnr" value="${esc(P.pnr || '')}"></div>
       <div class="campo col3"><label>Documenti necessari</label><input name="documenti_necessari" list="dlDoc" value="${esc(P.documenti_necessari || '')}">${datalist('dlDoc', L.documenti_necessari)}</div>
       <div class="campo col3"><label>Richieste specifiche (va in stampa)</label><input name="richieste" value="${esc(P.richieste || '')}"></div>
       <div class="campo col6"><label>Note interne (NON in stampa)</label><textarea name="note" style="min-height:44px">${esc(P.note || '')}</textarea></div>
@@ -342,26 +376,29 @@ async function paginaPratica(id, clientePre) {
   <div class="card"><h2>Partecipanti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPart">+ Aggiungi</button></h2>
     <table class="t compatta" data-righe id="tabPart"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th></th></tr></thead><tbody>${P.partecipanti.map(rigaPart).join('')}</tbody></table></div>
 
-  <div class="card"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddRiga">+ Aggiungi riga</button></h2>
-    ${datalist('dlServizi', L.descrizioni_servizi)}
-    <table class="t compatta" data-righe id="tabRighe"><thead><tr><th>Descrizione</th><th>Fornitore</th><th class="num">Prezzo cad.</th><th class="num">Pax</th><th class="num">Totale</th><th class="num" title="Costo che l'agenzia paga al fornitore, per persona">Costo forn. cad.</th><th class="center">Stampa</th><th></th></tr></thead>
-      <tbody>${P.righe.map(rigaServizio).join('')}</tbody>
-      <tfoot><tr><td colspan="4">Totale pratica</td><td class="num" id="totPratica">${eur(P.totale_cent)}</td><td class="num" id="totCosto" title="Totale costi fornitori">${eur(P.costo_cent)}</td><td colspan="2" class="small muted" id="totMargine"></td></tr></tfoot></table>
-    <div class="small muted" style="margin-top:6px">I diritti d'agenzia / ADV fee si inseriscono come righe normali. Il "costo fornitore" non compare in stampa: serve per sapere quanto dovete al fornitore.</div>
+  <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
+    ${datalist('dlServizi', L.descrizioni_servizi)}${datalist('dlFigli', ['Provvigione agenzia', "Diritti d'agenzia", 'Assicurazione', 'Spese', 'Altro'])}
+    <div id="listaServizi" data-righe>${P.righe.map(cardServizio).join('')}</div>
+    <div class="srv-tot">
+      <div><span class="l">Totale pratica (al cliente)</span><span class="v" id="totPratica">0,00</span></div>
+      <div><span class="l">Dovuto ai fornitori</span><span class="v" id="totCosto">0,00</span></div>
+      <div><span class="l">Resta all'agenzia</span><span class="v ok" id="totMargine">0,00</span></div>
+    </div>
+    <div class="small muted" style="margin-top:8px">Ogni servizio è una riga in stampa. Le <b>voci nascoste</b> sotto al servizio (provvigione, diritti…) si sommano al suo importo: il cliente vede una riga sola con il totale. L'importo del servizio con fornitore è quanto dovete al fornitore.</div>
   </div>
 
-  <div class="card"><h2>Acconti e saldo <span class="spazio"></span>${nuova ? '<span class="small muted">salva la pratica per registrare gli acconti</span>' : '<button type="button" class="btn piccolo" id="btnAddAcc">+ Registra acconto</button>'}</h2>
+  <div class="card"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAcc">+ Registra acconto</button></h2>
     <div id="boxAcconti"></div>
     <div class="griglia g4" style="margin-top:12px">
-      <div class="campo"><label>Abbuono / sconto finale (€)</label><input name="abbuono" class="num" id="inAbbuono" value="${P.abbuono_cent ? eur(P.abbuono_cent) : ''}"></div>
-      <div class="campo"><label>Saldo da versare entro il</label><input name="saldo_entro" type="date" value="${esc(P.saldo_entro || '')}"></div>
       <div class="campo"><label>Versato</label><input readonly id="outVersato" value="${eur(P.versato_cent)}"></div>
       <div class="campo"><label>Saldo residuo</label><input readonly id="outSaldo" value="${eur(P.saldo_cent)}" style="font-weight:600"></div>
+      <div class="campo"><label>Saldo da versare entro il</label><input name="saldo_entro" type="date" value="${esc(P.saldo_entro || '')}"></div>
+      <div class="campo"><label>Abbuono / sconto finale € <span class="muted">(facoltativo)</span></label><input name="abbuono" class="num soldi" id="inAbbuono" value="${P.abbuono_cent ? eur(P.abbuono_cent) : ''}"></div>
     </div></div>
 
   ${nuova ? '' : `<div class="card"><h2>Fornitori di questa pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPag">+ Registra pagamento a fornitore</button></h2><div id="boxFornitori"></div></div>`}
   </div>
-  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva <kbd>Ctrl+S</kbd></button>
+  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>
     ${nuova ? '' : `<a class="btn" href="stampa.html?id=${P.id}" target="_blank">🖨 Stampa conferma</a>`}
     <span class="spazio" style="flex:1"></span>
     ${nuova ? '' : `<button class="btn pericolo" id="btnElimina">Elimina pratica</button>`}
@@ -370,37 +407,54 @@ async function paginaPratica(id, clientePre) {
 
   // ---- comportamento ----
   const pg = $('#pg');
+  let sporca = false;
   const ricalcola = () => {
     let tot = 0, costo = 0;
-    for (const tr of $$('#tabRighe tbody tr')) {
-      const prezzo = euroACent($('[data-k=prezzo]', tr).value), pax = parseInt($('[data-k=pax]', tr).value, 10) || 0, c = euroACent($('[data-k=costo]', tr).value);
-      $('[data-tot]', tr).textContent = eur(prezzo * pax);
-      tot += prezzo * pax; costo += c * pax;
+    for (const card of $$('#listaServizi [data-srv]')) {
+      const prezzo = euroACent($(':scope > .srv-h [data-k=prezzo]', card).value);
+      const pax = parseInt($(':scope > .srv-h [data-k=pax]', card).value, 10) || 0;
+      const forn = $(':scope > .srv-h [name=fornitore_id]', card).value;
+      let nascosti = 0, figliStampa = 0;
+      for (const f of $$('[data-figlio]', card)) {
+        const v = euroACent($('[data-k=prezzo]', f).value);
+        if ($('[data-k=stampa]', f).checked) figliStampa += v; else nascosti += v;
+      }
+      const alCliente = prezzo + nascosti;
+      $('[data-tot]', card).textContent = eur((prezzo + nascosti + figliStampa) * pax);
+      $('[data-cliente]', card).textContent = (nascosti || figliStampa) ? `Il cliente vede: ${eur(alCliente)} cad. × ${pax} = ${eur(alCliente * pax)}${figliStampa ? ` + voci in stampa ${eur(figliStampa * pax)}` : ''}` : '';
+      tot += (prezzo + nascosti + figliStampa) * pax;
+      if (forn) costo += prezzo * pax;
     }
-    $('#totPratica').textContent = eur(tot); $('#totCosto').textContent = eur(costo);
-    $('#totMargine').textContent = `margine ${eur(tot - costo)}`;
+    $('#totPratica').textContent = eur(tot); $('#totCosto').textContent = eur(costo); $('#totMargine').textContent = eur(tot - costo);
     const stato = $('#selStato').value;
     let dovuto = tot - euroACent($('#inAbbuono').value);
     if (stato === 'Annullata con penale') dovuto = euroACent($('[name=penale]', pg).value);
     if (stato === 'Annullata') dovuto = 0;
     $('#outSaldo').value = eur(dovuto - (P.versato_cent || 0));
   };
-  $('#tabRighe').addEventListener('input', ricalcola);
-  $('#inAbbuono').addEventListener('input', ricalcola);
-  $('[name=penale]', pg).addEventListener('input', ricalcola);
+  $('#fPratica').addEventListener('input', () => { sporca = true; ricalcola(); });
+  $('#fPratica').addEventListener('change', () => { sporca = true; ricalcola(); });
+  // campi importo: selezione al focus, formato pulito all'uscita
+  pg.addEventListener('focusin', e => { if (e.target.classList && e.target.classList.contains('soldi')) e.target.select(); });
+  pg.addEventListener('focusout', e => { const t = e.target; if (t.classList && t.classList.contains('soldi') && t.value.trim()) { t.value = eur(euroACent(t.value)); ricalcola(); } });
   $('#selStato').onchange = () => { $('#campoPenale').style.display = $('#selStato').value === 'Annullata con penale' ? '' : 'none'; ricalcola(); };
-  pg.addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (b) { b.closest('tr').remove(); ricalcola(); } });
-  $('#btnAddRiga').onclick = () => { $('#tabRighe tbody').insertAdjacentHTML('beforeend', rigaServizio()); $('#tabRighe tbody tr:last-child input').focus(); };
-  $('#btnAddPart').onclick = () => { $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart()); $('#tabPart tbody tr:last-child input').focus(); };
+  pg.addEventListener('click', e => {
+    const bf = e.target.closest('[data-del-figlio]'); if (bf) { bf.closest('[data-figlio]').remove(); sporca = true; ricalcola(); return; }
+    const b = e.target.closest('[data-del]'); if (b) { const el = b.closest('[data-srv]') || b.closest('tr'); el.remove(); sporca = true; ricalcola(); return; }
+    const af = e.target.closest('[data-add-figlio]'); if (af) { const card = af.closest('[data-srv]'); $('.srv-f', card).insertAdjacentHTML('beforeend', rigaFiglio()); $('.srv-f [data-figlio]:last-child input', card).focus(); sporca = true; }
+  });
+  $('#btnAddRiga').onclick = () => { $('#listaServizi').insertAdjacentHTML('beforeend', cardServizio({ pax: parseInt($('[name=adulti]', pg).value, 10) + parseInt($('[name=bambini]', pg).value, 10) || 1 })); $('#listaServizi [data-srv]:last-child input').focus(); sporca = true; ricalcola(); };
+  $('#btnAddPart').onclick = () => { $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart()); $('#tabPart tbody tr:last-child input').focus(); sporca = true; };
   const durata = () => {
     const a = $('#inPartenza').value, b = $('#inRientro').value;
     if (a && b && b >= a) { const g = Math.round((Date.parse(b) - Date.parse(a)) / 86400000); $('#inGiorni').value = g + 1; $('#inNotti').value = g; }
   };
-  $('#inPartenza').onchange = durata; $('#inRientro').onchange = durata;
+  $('#inPartenza').addEventListener('change', durata); $('#inRientro').addEventListener('change', durata);
   ricalcola();
 
   // picker cliente
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => {
+    sporca = true;
     $('#lnkApriCliente').classList.remove('hidden');
     $('#lnkApriCliente').href = '#/clienti/' + c.id;
     if (!$$('#tabPart tbody tr').length) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ nome: `${c.cognome} ${c.nome}`, nato_il: c.nato_il }));
@@ -411,15 +465,15 @@ async function paginaPratica(id, clientePre) {
   const renderAcconti = () => {
     $('#boxAcconti').innerHTML = P.acconti && P.acconti.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Descrizione</th><th>Metodo</th><th>Riferito a</th><th>Registrato da</th><th class="num">Importo</th><th></th></tr></thead><tbody>
       ${P.acconti.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}</td><td class="small">${esc(a.fornitore || '')}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo" data-acc-mod="${a.id}">modifica</button> <button type="button" class="btn piccolo pericolo" data-acc-del="${a.id}">✕</button></td></tr>`).join('')}
-      </tbody><tfoot><tr><td colspan="5">Totale versato</td><td class="num">${eur(P.versato_cent)}</td><td></td></tr></tfoot></table>` : '<div class="muted small">Nessun acconto registrato</div>';
+      </tbody><tfoot><tr><td colspan="5">Totale versato</td><td class="num">${eur(P.versato_cent)}</td><td></td></tr></tfoot></table>` : `<div class="muted small">Nessun acconto registrato${nuova ? ' (si possono registrare da subito: al primo acconto la pratica viene salvata)' : ''}</div>`;
     $('#outVersato').value = eur(P.versato_cent || 0);
     ricalcola();
   };
   const renderFornitori = () => {
     if (nuova) return;
     const tutti = P.fornitori || [];
-    $('#boxFornitori').innerHTML = `${tutti.length ? `<table class="t compatta"><thead><tr><th>Fornitore</th><th class="num">Venduto al cliente</th><th class="num">Costo (dovuto)</th><th class="num">Pagato al fornitore</th><th class="num">Ancora da pagare</th><th class="num">Il cliente ha versato per questa quota</th></tr></thead><tbody>
-      ${tutti.map(f => `<tr class="click" onclick="naviga('#/fornitori/${f.fornitore_id}')"><td>${esc(f.fornitore)}</td><td class="num">${eur(f.venduto_cent)}</td><td class="num">${eur(f.costo_cent)}</td><td class="num">${eur(f.pagato_cent)}</td><td class="num ${f.dovuto_cent > 0 ? 'warn' : 'ok'}"><b>${eur(f.dovuto_cent)}</b></td><td class="num">${eur(f.cliente_versato_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessun fornitore sulle righe (scegli il fornitore in ogni riga dei servizi)</div>'}
+    $('#boxFornitori').innerHTML = `${tutti.length ? `<table class="t compatta"><thead><tr><th>Fornitore</th><th class="num">Venduto al cliente</th><th class="num">Dovuto al fornitore</th><th class="num">Pagato al fornitore</th><th class="num">Ancora da pagare</th><th class="num">Il cliente ha versato per questa quota</th></tr></thead><tbody>
+      ${tutti.map(f => `<tr class="click" onclick="naviga('#/fornitori/${f.fornitore_id}')"><td>${esc(f.fornitore)}</td><td class="num">${eur(f.venduto_cent)}</td><td class="num">${eur(f.costo_cent)}</td><td class="num">${eur(f.pagato_cent)}</td><td class="num ${f.dovuto_cent > 0 ? 'warn' : 'ok'}"><b>${eur(f.dovuto_cent)}</b></td><td class="num">${eur(f.cliente_versato_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessun fornitore sui servizi (scegli il fornitore in ogni servizio)</div>'}
       <h3 style="margin:14px 0 6px">Pagamenti fatti ai fornitori</h3>
       ${P.pagamenti_fornitore.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Fornitore</th><th>Descrizione</th><th>Metodo</th><th>Registrato da</th><th class="num">Importo</th><th></th></tr></thead><tbody>
       ${P.pagamenti_fornitore.map(g => `<tr><td>${dataIt(g.data)}</td><td>${esc(g.fornitore)}</td><td>${esc(g.descrizione)}</td><td>${esc(g.metodo)}</td><td class="small">${esc(g.operatore || '')}</td><td class="num">${eur(g.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo" data-pag-mod="${g.id}">modifica</button> <button type="button" class="btn piccolo pericolo" data-pag-del="${g.id}">✕</button></td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessun pagamento registrato</div>'}`;
@@ -429,12 +483,46 @@ async function paginaPratica(id, clientePre) {
 
   const formMovimento = (m, conFornitore, obbligaFornitore) => `<div class="griglia g2">
     <div class="campo"><label>Data</label><input name="data" type="date" value="${esc(m.data || oggiIso())}"></div>
-    <div class="campo"><label>Importo (€)</label><input name="importo" class="num" value="${m.importo_cent ? eur(m.importo_cent) : ''}" placeholder="0,00"></div>
+    <div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" value="${m.importo_cent ? eur(m.importo_cent) : ''}" placeholder="es. 300 oppure 300,50"></div>
     <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(L.metodi_pagamento, m.metodo || L.metodi_pagamento[0])}</select></div>
     ${conFornitore ? `<div class="campo"><label>${obbligaFornitore ? 'Fornitore *' : 'Riferito al fornitore (facoltativo)'}</label>${selFornitore(m.fornitore_id || '', forn, obbligaFornitore ? '— scegli —' : '— nessuno in particolare —')}</div>` : ''}
     <div class="campo col2"><label>Descrizione</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="es. 1° acconto, saldo…"></div></div>`;
+
+  // ---- salvataggio ----
+  const leggiPratica = () => {
+    const dati = leggiForm($('#fPratica'));
+    dati.id = P.id; dati.anno = P.anno;
+    dati.righe = $$('#listaServizi [data-srv]').map(card => ({
+      descrizione: $(':scope > .srv-h [data-k=descrizione]', card).value, fornitore_id: $(':scope > .srv-h [name=fornitore_id]', card).value,
+      prezzo: $(':scope > .srv-h [data-k=prezzo]', card).value, pax: $(':scope > .srv-h [data-k=pax]', card).value, stampa: $(':scope > .srv-h [data-k=stampa]', card).checked ? 1 : 0,
+      figli: $$('[data-figlio]', card).map(f => ({ descrizione: $('[data-k=descrizione]', f).value, prezzo: $('[data-k=prezzo]', f).value, stampa: $('[data-k=stampa]', f).checked ? 1 : 0 }))
+    }));
+    dati.partecipanti = $$('#tabPart tbody tr').map(tr => ({ nome: $('[data-k=nome]', tr).value, nato_il: $('[data-k=nato_il]', tr).value }));
+    return dati;
+  };
+  // ritorna la pratica salvata oppure null
+  const salvaInterno = async () => {
+    const dati = leggiPratica();
+    if (!dati.cliente_id) { toast('Scegli il cliente intestatario', 'err'); $('#pkCliente').focus(); return null; }
+    const b = $('#btnSalva'); b.disabled = true;
+    try { const r = await api('pratica_salva', dati); sporca = false; return r; }
+    catch (err) { toast(err.message, 'err'); return null; }
+    finally { b.disabled = false; }
+  };
+  const salva = async () => {
+    const r = await salvaInterno(); if (!r) return;
+    toast(`Pratica ${r.numero}/${r.anno} salvata`, 'ok');
+    if (nuova) naviga('#/pratiche/' + r.id); else aggiorna(r);
+  };
+  $('#btnSalva').onclick = salva;
+  document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'la pratica' };
+
+  $('#btnAddAcc').onclick = async () => {
+    if (!P.id) { const r = await salvaInterno(); if (!r) return; naviga('#/pratiche/' + r.id + '/acconto'); return; }
+    modale({ titolo: 'Registra acconto', ok: 'Registra', corpo: formMovimento({}, true, false), onOk: async d => aggiorna(await api('acconto_salva', { ...leggiForm(d), pratica_id: P.id })) });
+  };
   if (!nuova) {
-    $('#btnAddAcc').onclick = () => modale({ titolo: 'Registra acconto', ok: 'Registra', corpo: formMovimento({}, true, false), onOk: async d => aggiorna(await api('acconto_salva', { ...leggiForm(d), pratica_id: P.id })) });
     $('#btnAddPag').onclick = () => modale({ titolo: 'Pagamento a fornitore', ok: 'Registra', corpo: formMovimento({}, true, true), onOk: async d => aggiorna(await api('pagamento_fornitore_salva', { ...leggiForm(d), pratica_id: P.id })) });
     pg.addEventListener('click', async e => {
       const t = e.target;
@@ -447,27 +535,10 @@ async function paginaPratica(id, clientePre) {
     });
     $('#btnElimina').onclick = async () => {
       if (!await conferma('Eliminare la pratica?', `La pratica ${P.numero}/${P.anno} verrà cancellata. Se ha acconti, prima cancellali oppure mettila in stato Annullata.`)) return;
-      try { await api('pratica_elimina', { id: P.id }); toast('Pratica eliminata'); naviga('#/pratiche'); } catch (err) { toast(err.message, 'err'); }
+      try { sporca = false; await api('pratica_elimina', { id: P.id }); toast('Pratica eliminata'); naviga('#/pratiche'); } catch (err) { toast(err.message, 'err'); }
     };
+    if (apriAcconto) { history.replaceState(null, '', '#/pratiche/' + P.id); STATO.route = 'pratiche/' + P.id; GUARDIA.route = STATO.route; setTimeout(() => $('#btnAddAcc').click(), 150); }
   }
-
-  // salvataggio
-  const salva = async () => {
-    const dati = leggiForm($('#fPratica'));
-    dati.id = P.id; dati.anno = P.anno;
-    dati.righe = $$('#tabRighe tbody tr').map(tr => ({ descrizione: $('[data-k=descrizione]', tr).value, fornitore_id: $('[name=fornitore_id]', tr).value, prezzo: $('[data-k=prezzo]', tr).value, pax: $('[data-k=pax]', tr).value, costo: $('[data-k=costo]', tr).value, stampa: $('[data-k=stampa]', tr).checked ? 1 : 0 }));
-    dati.partecipanti = $$('#tabPart tbody tr').map(tr => ({ nome: $('[data-k=nome]', tr).value, nato_il: $('[data-k=nato_il]', tr).value }));
-    if (!dati.cliente_id) { toast('Scegli il cliente intestatario', 'err'); $('#pkCliente').focus(); return; }
-    const b = $('#btnSalva'); b.disabled = true;
-    try {
-      const r = await api('pratica_salva', dati);
-      toast(`Pratica ${r.numero}/${r.anno} salvata`, 'ok');
-      if (nuova) naviga('#/pratiche/' + r.id); else aggiorna(r);
-    } catch (err) { toast(err.message, 'err'); }
-    finally { b.disabled = false; }
-  };
-  $('#btnSalva').onclick = salva;
-  document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
 }
 
 function euroACent(v) {
@@ -558,7 +629,7 @@ async function paginaCliente(id) {
     <div class="campo"><label>Viaggia con (compagni abituali)</label><textarea name="viaggia_con">${esc(C.viaggia_con || '')}</textarea></div>
   </div></div>
   </div>
-  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva <kbd>Ctrl+S</kbd></button>${nuovo ? '' : `<a class="btn" href="#/pratiche/nuova/${C.id}">+ Nuova pratica per questo cliente</a>`}<span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/clienti">Torna all'elenco</a></div>
+  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>${nuovo ? '' : `<a class="btn" href="#/pratiche/nuova/${C.id}">+ Nuova pratica per questo cliente</a>`}<span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/clienti">Torna all'elenco</a></div>
   </div>
   <div>
     ${nuovo ? '' : `<div class="card"><h2>Statistiche</h2>
@@ -568,11 +639,14 @@ async function paginaCliente(id) {
     <div class="card"><h2>Pratiche</h2>${C.pratiche.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Partenza</th><th>Destinazione</th><th>Stato</th><th class="num">Saldo</th></tr></thead><tbody>
       ${C.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono">${p.numero}/${p.anno}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.destinazione || '').split('\n')[0]).slice(0, 40)}</td><td>${badgeStato(p.stato)}</td><td class="num">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica</div>'}</div>`}
   </div></div>`);
-  const salva = async () => {
+  let sporca = false;
+  $('#fCliente').addEventListener('input', () => { sporca = true; });
+  const salvaInterno = async () => {
     const d = leggiForm($('#fCliente')); d.id = C.id || 0;
-    try { const r = await api('cliente_salva', d); toast('Cliente salvato', 'ok'); if (nuovo) naviga('#/clienti/' + r.id); }
-    catch (e) { toast(e.message, 'err'); }
+    try { const r = await api('cliente_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
+  const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Cliente salvato', 'ok'); if (nuovo) naviga('#/clienti/' + r.id); };
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'la scheda del cliente' };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
   if (!nuovo) $('#btnElimina').onclick = async () => {
@@ -623,7 +697,7 @@ async function paginaFornitore(id) {
     ${campo('provvigione', 'Provvigione %')}${campo('pagamento', 'Modalità di pagamento')}${campo('iban', 'IBAN', 'text', 'col2')}${campo('banca', 'Banca', 'text', 'col2')}
     <div class="campo col4"><label>Note</label><textarea name="note">${esc(F.note || '')}</textarea></div>
   </div></div></div>
-  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva <kbd>Ctrl+S</kbd></button><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/fornitori">Torna all'elenco</a></div>
+  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/fornitori">Torna all'elenco</a></div>
   ${nuovo ? '' : `<div class="card"><h2>Situazione pratiche</h2>
     <div class="cards-stat" style="grid-template-columns:repeat(4,1fr)">
       <div class="stat"><div class="l">Venduto (pratiche valide)</div><div class="v" style="font-size:18px">${eur(F.situazione.totali.venduto_cent)}</div></div>
@@ -636,11 +710,14 @@ async function paginaFornitore(id) {
   <div>${nuovo ? '' : `<div class="card"><h2>Confronto anni</h2>
     ${st.length ? st.map(r => `<div class="barra-h"><div class="lab"><b>${r.anno}</b> <span class="muted small">${r.n} pratiche</span></div><div class="b"><i style="width:${Math.round(100 * r.venduto_cent / max)}%"></i></div><div class="v">${eur(r.venduto_cent)}</div></div>`).join('') +
       `<table class="t compatta" style="margin-top:10px"><thead><tr><th>Anno</th><th class="num">Pratiche</th><th class="num">Venduto</th><th class="num">Costo</th><th class="num">Pagato</th><th class="num">Margine</th></tr></thead><tbody>${st.map(r => `<tr><td>${r.anno}</td><td class="num">${r.n}</td><td class="num">${eur(r.venduto_cent)}</td><td class="num">${eur(r.costo_cent)}</td><td class="num">${eur(r.pagato_cent)}</td><td class="num">${eur(r.venduto_cent - r.costo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica confermata</div>'}</div>`}</div></div>`);
-  const salva = async () => {
+  let sporca = false;
+  $('#fForn').addEventListener('input', () => { sporca = true; });
+  const salvaInterno = async () => {
     const d = leggiForm($('#fForn')); d.id = F.id || 0;
-    try { const r = await api('fornitore_salva', d); FORNITORI_CACHE = null; toast('Fornitore salvato', 'ok'); if (nuovo) naviga('#/fornitori/' + r.id); }
-    catch (e) { toast(e.message, 'err'); }
+    try { const r = await api('fornitore_salva', d); FORNITORI_CACHE = null; sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
+  const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Fornitore salvato', 'ok'); if (nuovo) naviga('#/fornitori/' + r.id); };
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'la scheda del fornitore' };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
   if (!nuovo) $('#btnElimina').onclick = async () => {
@@ -750,11 +827,16 @@ async function paginaOpzioni(scheda = 'agenzia') {
     <div class="griglia g2"><div class="campo col2"><label>Cartella dei backup (sul PC centrale)</label><input name="cartella" value="${esc(imp.backup.cartella)}"></div><div class="campo"><label>Ora (HH:MM)</label><input name="ora" value="${esc(imp.backup.ora)}"></div>
     <div class="campo"><label>Ultimo backup</label><input readonly value="${imp.backup.ultimo ? new Date(imp.backup.ultimo).toLocaleString('it-IT') : 'mai'}"></div></div>
     <div class="azioni" style="margin-top:14px"><button class="btn primario" id="btnSalvaOpz">Salva</button><button class="btn" id="btnBackupOra">Backup adesso</button></div></div>
+    <div class="card" style="max-width:640px"><h2>Copia dei dati: scarica / importa</h2>
+      <p class="muted small">Per portare i dati su un altro PC, mandarli all'assistenza o fare una copia a mano. Il file contiene TUTTO (clienti, pratiche, acconti, utenti, impostazioni).</p>
+      <div class="azioni"><a class="btn" href="/api/esporta_db">⬇ Scarica una copia dei dati (.db)</a>
+        <label class="btn pericolo" for="inImporta">⬆ Importa un file di dati…</label><input type="file" id="inImporta" accept=".db" class="hidden"></div>
+      <p class="small muted" style="margin-top:8px">Importare <b>sostituisce tutti i dati attuali</b> con quelli del file. I dati attuali vengono comunque messi da parte in <code>_dati\\prima-import-….db</code>. Dopo l'importazione bisogna rientrare con gli utenti del file importato.</p></div>
     <div class="card" style="max-width:640px"><h2>Password del pannello</h2><div class="griglia g2"><div class="campo"><label>Nuova password del pannello</label><input id="inPanPw" type="password"></div><div class="campo"><label>&nbsp;</label><button class="btn" id="btnPanPw">Cambia</button></div></div></div>`;
   if (scheda === 'utenti') {
     const ut = await api('utenti');
     corpo = `<div class="card"><h2>Utenti <span class="spazio"></span><button class="btn piccolo primario" id="btnNuovoUt">+ Nuovo utente</button></h2>
-      <table class="t compatta"><thead><tr><th>Nome</th><th>Username</th><th>Stato</th><th></th></tr></thead><tbody>${ut.map(u => `<tr><td>${esc(u.nome)}</td><td class="mono">${esc(u.username)}</td><td>${u.attivo ? '<span class="badge Confermata">attivo</span>' : '<span class="badge grigio">disattivato</span>'}</td><td class="az"><button class="btn piccolo" data-ut="${u.id}">modifica</button></td></tr>`).join('')}</tbody></table>
+      <table class="t compatta"><thead><tr><th>Nome</th><th>Username</th><th>Password</th><th>Stato</th><th></th></tr></thead><tbody>${ut.map(u => `<tr><td>${esc(u.nome)}</td><td class="mono">${esc(u.username)}</td><td>${u.pass_chiaro ? `<span class="pw-nascosta mono" data-pw="${esc(u.pass_chiaro)}">••••••</span> <button class="btn piccolo" data-occhio>👁</button>` : '<span class="muted small">non nota: reimpostala da "modifica"</span>'}</td><td>${u.attivo ? '<span class="badge Confermata">attivo</span>' : '<span class="badge grigio">disattivato</span>'}</td><td class="az"><button class="btn piccolo" data-ut="${u.id}">modifica</button></td></tr>`).join('')}</tbody></table>
       <p class="muted small">Tutti gli utenti hanno gli stessi permessi. Ogni operazione viene registrata col nome di chi l'ha fatta. Un utente disattivato non può più entrare ma resta nello storico.</p></div>`;
   }
   if (scheda === 'log') {
@@ -785,6 +867,18 @@ async function paginaOpzioni(scheda = 'agenzia') {
   };
   if ($('#btnLogoVia')) $('#btnLogoVia').onclick = () => { $('[name=logo]').value = ''; toast('Logo tolto: premi Salva'); };
   if ($('#btnBackupOra')) $('#btnBackupOra').onclick = async () => { try { const r = await api('backup_ora', { cartella: $('[name=cartella]').value }); toast('Backup fatto: ' + r.file, 'ok'); } catch (e) { toast(e.message, 'err'); } };
+  $$('[data-occhio]').forEach(b => b.onclick = () => { const sp = b.previousElementSibling; const on = sp.textContent === '••••••'; sp.textContent = on ? sp.dataset.pw : '••••••'; });
+  if ($('#inImporta')) $('#inImporta').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    e.target.value = '';
+    if (!await conferma('Importare questo file?', `Tutti i dati attuali verranno sostituiti da quelli di "${f.name}" (una copia di quelli attuali resta nella cartella _dati). Dovrai rientrare con un utente del file importato.`)) return;
+    try {
+      const r = await fetch('/api/importa_db', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f });
+      const d = await r.json(); if (!r.ok) throw new Error(d.errore || 'Errore');
+      await modale({ titolo: 'Importazione fatta', senzaOk: true, annulla: 'OK', corpo: `<p>Importate <b>${d.pratiche}</b> pratiche. I dati precedenti sono in:<br><code>${esc(d.copia_precedente)}</code></p><p>Ora rientra con un utente del file importato.</p>` });
+      location.reload();
+    } catch (err) { toast(err.message, 'err'); }
+  };
   if ($('#btnPanPw')) $('#btnPanPw').onclick = async () => { try { await api('pannello_password', { nuova: $('#inPanPw').value }); toast('Password del pannello cambiata', 'ok'); $('#inPanPw').value = ''; } catch (e) { toast(e.message, 'err'); } };
   const formUtente = u => `<div class="griglia g2"><div class="campo"><label>Nome (compare nelle pratiche)</label><input name="nome" value="${esc(u.nome || '')}"></div><div class="campo"><label>Username</label><input name="username" value="${esc(u.username || '')}"></div>
     <div class="campo"><label>${u.id ? 'Nuova password (vuoto = non cambia)' : 'Password'}</label><input name="password" type="password"></div>${u.id ? `<div class="chk"><input type="checkbox" name="attivo" id="chkUt" ${u.attivo ? 'checked' : ''}><label for="chkUt">attivo</label></div>` : ''}</div>`;

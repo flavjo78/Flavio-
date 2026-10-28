@@ -17,7 +17,7 @@ const BASE = inExe ? path.dirname(process.execPath) : path.resolve(__dirname, '.
 const DIR_DATI = process.env.AGENZIA_DATI || path.join(BASE, '_dati');
 const DIR_WEB = process.env.AGENZIA_WEB || path.join(BASE, 'web');
 const PORTA = parseInt(process.env.AGENZIA_PORTA || '8787', 10);
-const VERSIONE = '1.0.0';
+const VERSIONE = '1.1.0';
 
 db.apri(DIR_DATI);
 
@@ -45,6 +45,14 @@ function leggiCookie(req) {
     if (i > 0) out[parte.slice(0, i).trim()] = decodeURIComponent(parte.slice(i + 1).trim());
   }
   return out;
+}
+function leggiCorpoRaw(req, max = 200 * 1024 * 1024) {
+  return new Promise((resolve, reject) => {
+    const parti = []; let tot = 0;
+    req.on('data', d => { tot += d.length; if (tot > max) { reject(new ErroreApi(413, 'File troppo grande')); req.destroy(); } else parti.push(d); });
+    req.on('end', () => resolve(Buffer.concat(parti)));
+    req.on('error', reject);
+  });
 }
 function leggiCorpo(req) {
   return new Promise((resolve, reject) => {
@@ -83,7 +91,8 @@ async function gestisciApi(req, res, url) {
   if (!az) return rispondiJson(res, 404, { errore: `Azione sconosciuta: ${nome}` });
   if (az.post && req.method !== 'POST') return rispondiJson(res, 405, { errore: 'Serve POST' });
   const query = Object.fromEntries(url.searchParams.entries());
-  const corpo = req.method === 'POST' ? await leggiCorpo(req) : {};
+  const corpoRaw = (az.raw && req.method === 'POST') ? await leggiCorpoRaw(req) : null;
+  const corpo = (req.method === 'POST' && !az.raw) ? await leggiCorpo(req) : {};
   const sessione = sessioneDa(req);
   let utente = null;
   if (sessione) {
@@ -93,10 +102,18 @@ async function gestisciApi(req, res, url) {
   if (!az.pubblica && !utente) return rispondiJson(res, 401, { errore: 'Devi entrare con nome utente e password', login: true });
   let cookie;
   const ctx = {
-    metodo: req.method, query, corpo, utente, sessione: utente ? sessione : null,
+    metodo: req.method, query, corpo, corpoRaw, utente, sessione: utente ? sessione : null,
     setSessione: sid => { cookie = sid ? `agenzia_sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 86400}` : 'agenzia_sid=; Path=/; HttpOnly; Max-Age=0'; }
   };
   const r = await az.fn(ctx);
+  if (r && r.__file) {
+    // risposta = un file da scaricare
+    res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="${r.__nome}"`, 'Cache-Control': 'no-store' });
+    const st = fs.createReadStream(r.__file);
+    st.pipe(res);
+    st.on('close', () => { if (r.__cancella) fs.unlink(r.__file, () => {}); });
+    return;
+  }
   rispondiJson(res, 200, r === undefined ? { ok: true } : r, cookie);
 }
 
