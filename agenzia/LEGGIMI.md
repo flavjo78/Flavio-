@@ -45,6 +45,7 @@ La cartella `_dati\` non si tocca.
 - "La porta 8787 è già occupata": il programma è già avviato (controllare le attività pianificate).
 - Gli altri PC non si collegano: controllare che il PC centrale sia acceso, che il firewall
   abbia la regola "AGENZIA gestionale" e che i PC siano nella stessa rete.
-- Password del pannello dimenticata: fermare il programma e cancellare la riga `pannello_pass`
-  dalla tabella `impostazioni` del database (serve un programma per SQLite), poi al prossimo
-  avvio... oppure chiedere aiuto a chi ha preparato il programma.
+- **Password dimenticata** (di un utente o del pannello): sul PC centrale creare nella cartella
+  `_dati` un file di testo chiamato `RESET-PASSWORD.txt` con dentro una riga
+  `nomeutente nuovapassword` (oppure `pannello nuovapassword`), poi riavviare il programma.
+  La password viene cambiata e il file cancellato da solo.

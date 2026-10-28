@@ -102,21 +102,40 @@ async function avvio() {
 }
 
 function renderLogin() {
-  $('#app').innerHTML = `<div class="login-wrap"><form class="login" id="fLogin">
-    <h1>Agenzia</h1><p>Entra con il tuo nome utente</p>
-    <div class="campo"><label>Nome utente</label><input name="username" autocomplete="username" autofocus></div>
-    <div class="campo"><label>Password</label><input name="password" type="password" autocomplete="current-password"></div>
-    <button class="btn primario" style="width:100%;justify-content:center;margin-top:6px">Entra</button>
-  </form></div>`;
-  $('#fLogin').onsubmit = async e => {
-    e.preventDefault();
-    try {
-      const r = await api('login', leggiForm($('#fLogin')));
-      STATO.utente = r.utente; STATO.pannello = r.pannello;
-      STATO.imp = await api('impostazioni');
-      if (!location.hash || location.hash === '#/') naviga('#/scadenze'); else render();
-    } catch (err) { toast(err.message, 'err'); }
-  };
+  (async () => {
+    let utenti = [];
+    try { utenti = (await api('stato_installazione')).utenti || []; } catch (e) { /* elenco non disponibile: si scrive il nome */ }
+    let scelto = '';
+    try { scelto = localStorage.getItem('agenzia_ultimo_utente') || ''; } catch (e) { /* ignora */ }
+    if (!utenti.some(u => u.username === scelto)) scelto = utenti.length === 1 ? utenti[0].username : '';
+    const iniziali = n => n.split(/\s+/).map(p => p[0] || '').join('').slice(0, 2).toUpperCase();
+    $('#app').innerHTML = `<div class="login-wrap"><form class="login" id="fLogin" style="width:${utenti.length > 1 ? 520 : 400}px">
+      <h1>Agenzia</h1><p>${utenti.length ? 'Chi sei?' : 'Entra con il tuo nome utente'}</p>
+      ${utenti.length ? `<div class="utenti-scelta">${utenti.map(u => `<button type="button" class="ut ${u.username === scelto ? 'sel' : ''}" data-u="${esc(u.username)}"><span class="av">${esc(iniziali(u.nome))}</span><span>${esc(u.nome)}</span></button>`).join('')}</div>` : ''}
+      <input type="hidden" name="username" value="${esc(scelto)}">
+      ${utenti.length ? '' : '<div class="campo"><label>Nome utente</label><input name="username" autocomplete="username" autofocus></div>'}
+      <div class="campo" id="campoPw" style="${utenti.length && !scelto ? 'visibility:hidden' : ''}"><label>Password di <b id="lblChi">${esc((utenti.find(u => u.username === scelto) || {}).nome || '')}</b></label><input name="password" type="password" autocomplete="current-password" ${scelto || !utenti.length ? 'autofocus' : ''}></div>
+      <button class="btn primario" style="width:100%;justify-content:center;margin-top:6px">Entra</button>
+    </form></div>`;
+    $$('.ut').forEach(b => b.onclick = () => {
+      $$('.ut').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
+      $('[name=username]').value = b.dataset.u;
+      $('#lblChi').textContent = utenti.find(u => u.username === b.dataset.u).nome;
+      $('#campoPw').style.visibility = ''; $('[name=password]').value = ''; $('[name=password]').focus();
+    });
+    $('#fLogin').onsubmit = async e => {
+      e.preventDefault();
+      const f = leggiForm($('#fLogin'));
+      if (!f.username) { toast('Scegli chi sei', 'err'); return; }
+      try {
+        const r = await api('login', f);
+        try { localStorage.setItem('agenzia_ultimo_utente', r.utente.username); } catch (err) { /* ignora */ }
+        STATO.utente = r.utente; STATO.pannello = r.pannello;
+        STATO.imp = await api('impostazioni');
+        if (!location.hash || location.hash === '#/') naviga('#/scadenze'); else render();
+      } catch (err) { toast(err.message, 'err'); $('[name=password]').value = ''; $('[name=password]').focus(); }
+    };
+  })();
 }
 function renderInstalla() {
   $('#app').innerHTML = `<div class="login-wrap"><form class="login" id="fInst" style="width:460px">

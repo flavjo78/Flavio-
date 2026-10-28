@@ -21,6 +21,21 @@ const VERSIONE = '1.0.0';
 
 db.apri(DIR_DATI);
 
+// Recupero password dimenticata (solo chi ha accesso al PC centrale): creare in _dati un file
+// RESET-PASSWORD.txt con una riga "username nuovapassword" oppure "pannello nuovapassword",
+// riavviare il programma: la password viene cambiata e il file cancellato.
+try {
+  const fileReset = path.join(DIR_DATI, 'RESET-PASSWORD.txt');
+  if (fs.existsSync(fileReset)) {
+    const { resetPassword } = require('./api');
+    for (const riga of fs.readFileSync(fileReset, 'utf8').split(/\r?\n/)) {
+      const [chi, ...resto] = riga.trim().split(/\s+/);
+      if (chi && resto.length) console.log(resetPassword(chi, resto.join(' ')));
+    }
+    fs.unlinkSync(fileReset);
+  }
+} catch (e) { console.error('RESET-PASSWORD.txt non applicato:', e.message); }
+
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.woff2': 'font/woff2' };
 
 function leggiCookie(req) {

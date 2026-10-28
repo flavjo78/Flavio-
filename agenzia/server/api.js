@@ -57,7 +57,9 @@ function listaUtenti() { return db.all('SELECT id, username, nome, attivo FROM u
 // ---------- primo avvio / accesso ----------
 function stato_installazione() {
   const n = db.get('SELECT COUNT(*) AS n FROM utenti').n;
-  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna };
+  // Elenco degli utenti attivi (solo nome e username) per la schermata d'accesso "scegli chi sei".
+  const utenti = db.all('SELECT id, username, nome FROM utenti WHERE attivo = 1 ORDER BY nome');
+  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti };
 }
 
 function installa(ctx) {
@@ -702,4 +704,15 @@ const AZIONI = {
   utenti_lista: { fn: () => listaUtenti() }
 };
 
-module.exports = { AZIONI, ErroreApi, STATI };
+// Usato all'avvio dal file _dati/RESET-PASSWORD.txt
+function resetPassword(chi, nuova) {
+  if (String(nuova).length < 4) return `RESET ${chi}: password troppo corta, ignorata`;
+  if (chi.toLowerCase() === 'pannello') { db.impostazioneSalva('pannello_pass', hashPassword(nuova)); db.log(null, 'reset_password', 'pannello', null, 'da file RESET-PASSWORD.txt'); return 'RESET: password del pannello cambiata'; }
+  const u = db.get('SELECT * FROM utenti WHERE username = ?', chi.toLowerCase());
+  if (!u) return `RESET ${chi}: utente non trovato`;
+  db.run('UPDATE utenti SET pass_hash = ?, attivo = 1 WHERE id = ?', hashPassword(nuova), u.id);
+  db.log(null, 'reset_password', 'utente', u.id, 'da file RESET-PASSWORD.txt');
+  return `RESET: password di ${u.username} cambiata`;
+}
+
+module.exports = { AZIONI, ErroreApi, STATI, resetPassword };
