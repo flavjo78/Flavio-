@@ -13,9 +13,9 @@ const MESI = ['Gen', 'Feb', 'Mar', 'Apr', 'Mag', 'Giu', 'Lug', 'Ago', 'Set', 'Ot
 const STATI = ['Preventivo', 'Confermata', 'Annullata', 'Annullata con penale', 'Chiusa'];
 const SERIE = ['var(--s1)', 'var(--s2)', 'var(--s3)', 'var(--s4)', 'var(--s5)', 'var(--s6)', 'var(--s7)', 'var(--s8)'];
 
-function badgeStato(s) {
+function badgeStato(s, bozza) {
   const cls = s === 'Annullata con penale' ? 'penale' : (s || 'grigio').split(' ')[0];
-  return `<span class="badge ${cls}">${esc(s || '')}</span>`;
+  return `<span class="badge ${cls}">${esc(s || '')}</span>${bozza ? ' <span class="badge bozza" title="Salvata senza premere Salva: da completare">Bozza</span>' : ''}`;
 }
 function opzioni(lista, sel, vuoto) {
   let h = vuoto !== undefined ? `<option value="">${esc(vuoto)}</option>` : '';
@@ -84,16 +84,22 @@ function leggiForm(el) {
 }
 
 // ================= stato globale e router =================
-const STATO = { utente: null, pannello: false, imp: null, route: '' };
+const STATO = { utente: null, pannello: false, imp: null, route: '', versione: '' };
 // Guardia "modifiche non salvate": la pagina che la imposta dice se è sporca e come salvare.
 let GUARDIA = null;
 let IGNORA_HASH = false;
-window.addEventListener('beforeunload', e => { if (GUARDIA && GUARDIA.sporca()) { e.preventDefault(); e.returnValue = ''; } });
-function chiediSalvataggio(cosa) {
+window.addEventListener('beforeunload', e => {
+  if (GUARDIA && GUARDIA.sporca()) {
+    // Chiusura del browser: la pratica viene messa da parte come bozza (senza chiedere)
+    if (GUARDIA.beacon) { try { GUARDIA.beacon(); return; } catch (err) { /* chiedi conferma */ } }
+    e.preventDefault(); e.returnValue = '';
+  }
+});
+function chiediSalvataggio(cosa, conBozza) {
   return new Promise(resolve => {
     const d = document.createElement('dialog'); d.className = 'modal';
-    d.innerHTML = `<div class="mh">Modifiche non salvate</div><div class="mb"><p>Hai modificato ${esc(cosa)} e non hai salvato. Cosa vuoi fare?</p></div>
-      <div class="mf"><button class="btn" data-x="resta">Resta qui</button><button class="btn pericolo" data-x="esci">Esci senza salvare</button><button class="btn primario" data-x="salva">Salva e vai</button></div>`;
+    d.innerHTML = `<div class="mh">Modifiche non salvate</div><div class="mb"><p>Hai modificato ${esc(cosa)} e non hai premuto Salva. Cosa vuoi fare?</p>${conBozza ? '<p class="small muted">"Lascia in bozza" la mette da parte così com\'è, con l\'etichetta Bozza nell\'elenco, da completare dopo.</p>' : ''}</div>
+      <div class="mf"><button class="btn" data-x="resta">Resta qui</button><button class="btn pericolo" data-x="esci">Annulla le modifiche</button>${conBozza ? '<button class="btn" data-x="bozza">Lascia in bozza</button>' : ''}<button class="btn primario" data-x="salva">Salva e vai</button></div>`;
     document.body.appendChild(d);
     for (const b of $$('[data-x]', d)) b.onclick = () => { d.close(); d.remove(); resolve(b.dataset.x); };
     d.addEventListener('cancel', e => { e.preventDefault(); d.close(); d.remove(); resolve('resta'); });
@@ -107,6 +113,7 @@ window.addEventListener('hashchange', () => render());
 async function avvio() {
   try {
     const st = await api('stato_installazione');
+    STATO.versione = st.versione || '';
     if (!st.installato) return renderInstalla();
     const me = await api('me').catch(() => null);
     if (!me || !me.utente) return renderLogin();
@@ -192,7 +199,7 @@ function shell(pagina, titoloHtml, contenutoHtml, azioniHtml = '') {
     <div class="sidebar-foot"><div class="nome">${esc(u.nome)}</div><a href="#" id="lnkPw">cambia password</a> · <a href="#" id="lnkEsci">esci</a></div>
   </aside>
   <div class="main">
-    <div class="topbar"><h1>${titoloHtml}</h1><div class="spazio"></div><div class="azioni">${azioniHtml}</div></div>
+    <div class="topbar"><h1>${titoloHtml}</h1><div class="spazio"></div><div class="azioni">${azioniHtml}</div><span class="versione" title="Versione del programma">v${esc(STATO.versione)}</span></div>
     <div class="contenuto" id="pg">${contenutoHtml}</div>
   </div>`;
   $('#lnkEsci').onclick = async e => { e.preventDefault(); await api('logout', {}); STATO.utente = null; renderLogin(); };
@@ -212,9 +219,10 @@ async function render() {
   const h = (location.hash || '#/scadenze').replace(/^#\/?/, '');
   if (IGNORA_HASH) { IGNORA_HASH = false; return; }
   if (GUARDIA && GUARDIA.sporca() && h !== GUARDIA.route) {
-    const scelta = await chiediSalvataggio(GUARDIA.cosa);
+    const scelta = await chiediSalvataggio(GUARDIA.cosa, !!GUARDIA.bozza);
     if (scelta === 'resta') { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; }
     if (scelta === 'salva') { const r = await GUARDIA.salva(); if (!r) { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; } toast('Salvato', 'ok'); }
+    if (scelta === 'bozza') { const r = await GUARDIA.bozza(); if (!r) { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; } toast('Messa da parte come bozza', 'ok'); }
   }
   GUARDIA = null;
   const [pagina, id, extra] = h.split('/');
@@ -262,7 +270,7 @@ async function paginaScadenze() {
 const FILTRI_PR = { q: '', anno: '', stato: '' };
 async function paginaPratiche() {
   const anni = await api('pratiche_anni');
-  if (FILTRI_PR.anno === '' && anni.length) FILTRI_PR.anno = String(anni[0]);
+  if (FILTRI_PR.anno === '' && anni.length) { const cur = new Date().getFullYear(); FILTRI_PR.anno = String(anni.includes(cur) ? cur : anni[0]); }
   shell('pratiche', 'Pratiche', `
     <div class="toolbar">
       <input class="inp cerca" id="prQ" placeholder="Cerca per cliente, destinazione, numero, riferimento…" value="${esc(FILTRI_PR.q)}">
@@ -277,7 +285,7 @@ async function paginaPratiche() {
     const lista = await api('pratiche', undefined, { q: FILTRI_PR.q, anno: FILTRI_PR.anno === 'tutti' ? '' : FILTRI_PR.anno, stato: FILTRI_PR.stato });
     $('#prN').textContent = `${lista.length} pratiche`;
     $('#prTab').innerHTML = lista.length ? `<table class="t"><thead><tr><th>N.</th><th>Apertura</th><th>Cliente</th><th>Destinazione</th><th>Partenza</th><th>Fornitori</th><th>Stato</th><th class="num">Totale</th><th class="num">Versato</th><th class="num">Saldo</th><th>Operatore</th></tr></thead><tbody>
-      ${lista.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono"><b>${p.numero}</b>/${p.anno}</td><td>${dataIt(p.data_apertura)}</td><td>${esc(p.cliente)}</td><td>${esc((p.destinazione || '').split('\n')[0]).slice(0, 60)}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.fornitori || '').replace(/,/g, ', '))}</td><td>${badgeStato(p.stato)}</td><td class="num">${eur(p.totale_cent)}</td><td class="num">${eur(p.versato_cent)}</td><td class="num ${p.saldo_cent > 0 ? 'warn' : ''}">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td><td class="small">${esc(p.operatore || '')}</td></tr>`).join('')}
+      ${lista.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono"><b>${p.numero}</b>/${p.anno}</td><td>${dataIt(p.data_apertura)}</td><td>${esc(p.cliente)}</td><td>${esc((p.destinazione || '').split('\n')[0]).slice(0, 60)}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.fornitori || '').replace(/,/g, ', '))}</td><td>${badgeStato(p.stato, p.bozza)}</td><td class="num">${eur(p.totale_cent)}</td><td class="num">${eur(p.versato_cent)}</td><td class="num ${p.saldo_cent > 0 ? 'warn' : ''}">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td><td class="small">${esc(p.operatore || '')}</td></tr>`).join('')}
       </tbody></table>` : '<div class="vuoto">Nessuna pratica trovata</div>';
   };
   $('#prQ').oninput = e => { FILTRI_PR.q = e.target.value; clearTimeout(timer); timer = setTimeout(carica, 250); };
@@ -309,7 +317,7 @@ async function paginaPratica(id) {
   if (nuova) { const pn = await api('prossimo_numero', undefined, { anno: P.anno }); P.numero = pn.numero; }
   const forn = await fornitoriAttivi();
   const L = STATO.imp.liste;
-  const titolo = nuova ? `Nuova pratica <span class="muted" style="font-weight:400">· sarà la n. <b>${P.numero}</b>/${P.anno}</span>` : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato)}`;
+  const titolo = nuova ? `Nuova pratica <span class="muted" style="font-weight:400">· sarà la n. <b>${P.numero}</b>/${P.anno}</span>` : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato, P.bozza)}`;
 
   // ---- card di un servizio (padre) con le sue voci nascoste (figli) ----
   const rigaFiglio = (c = {}) => `<div class="figlio" data-figlio>
@@ -376,15 +384,16 @@ async function paginaPratica(id) {
   <div class="card"><h2>Partecipanti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPart">+ Aggiungi</button></h2>
     <table class="t compatta" data-righe id="tabPart"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th></th></tr></thead><tbody>${P.partecipanti.map(rigaPart).join('')}</tbody></table></div>
 
-  <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
+  <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn" id="btnAnteprima" title="Mostra i servizi come li vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
+    <div id="anteprimaServizi" class="hidden"></div>
     ${datalist('dlServizi', L.descrizioni_servizi)}${datalist('dlFigli', ['Provvigione agenzia', "Diritti d'agenzia", 'Assicurazione', 'Spese', 'Altro'])}
     <div id="listaServizi" data-righe>${P.righe.map(cardServizio).join('')}</div>
     <div class="srv-tot">
       <div><span class="l">Totale pratica (al cliente)</span><span class="v" id="totPratica">0,00</span></div>
-      <div><span class="l">Dovuto ai fornitori</span><span class="v" id="totCosto">0,00</span></div>
-      <div><span class="l">Resta all'agenzia</span><span class="v ok" id="totMargine">0,00</span></div>
+      <div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="totCosto">0,00</span></div>
+      <div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="totMargine">0,00</span></div>
     </div>
-    <div class="small muted" style="margin-top:8px">Ogni servizio è una riga in stampa. Le <b>voci nascoste</b> sotto al servizio (provvigione, diritti…) si sommano al suo importo: il cliente vede una riga sola con il totale. L'importo del servizio con fornitore è quanto dovete al fornitore.</div>
+    <div class="small muted interno" style="margin-top:8px">Ogni servizio è una riga in stampa. Le <b>voci nascoste</b> sotto al servizio (provvigione, diritti…) si sommano al suo importo: il cliente vede una riga sola con il totale. L'importo del servizio con fornitore è quanto dovete al fornitore.</div>
   </div>
 
   <div class="card"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAcc">+ Registra acconto</button></h2>
@@ -399,11 +408,11 @@ async function paginaPratica(id) {
   ${nuova ? '' : `<div class="card"><h2>Fornitori di questa pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPag">+ Registra pagamento a fornitore</button></h2><div id="boxFornitori"></div></div>`}
   </div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>
-    ${nuova ? '' : `<a class="btn" href="stampa.html?id=${P.id}" target="_blank">🖨 Stampa conferma</a>`}
+    <button type="button" class="btn" data-stampa>🖨 Stampa conferma</button>
     <span class="spazio" style="flex:1"></span>
     ${nuova ? '' : `<button class="btn pericolo" id="btnElimina">Elimina pratica</button>`}
     <a class="btn" href="#/pratiche">Torna all'elenco</a></div>`,
-    nuova ? '' : `<a class="btn" href="stampa.html?id=${P.id}" target="_blank">🖨 Stampa conferma</a><button class="btn primario" onclick="$('#btnSalva').click()">Salva</button>`);
+    `<button type="button" class="btn" data-stampa>🖨 Stampa conferma</button><button class="btn primario" onclick="$('#btnSalva').click()">Salva</button>`);
 
   // ---- comportamento ----
   const pg = $('#pg');
@@ -452,6 +461,37 @@ async function paginaPratica(id) {
   $('#inPartenza').addEventListener('change', durata); $('#inRientro').addEventListener('change', durata);
   ricalcola();
 
+  // Partecipanti: l'elenco segue il numero di persone (adulti + bambini + infanti)
+  const sincronizzaPartecipanti = () => {
+    const n = (parseInt($('[name=adulti]', pg).value, 10) || 0) + (parseInt($('[name=bambini]', pg).value, 10) || 0) + (parseInt($('[name=infanti]', pg).value, 10) || 0);
+    const righe = $$('#tabPart tbody tr');
+    for (let i = righe.length; i < n; i++) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart());
+    // toglie solo righe vuote in coda
+    let extra = $$('#tabPart tbody tr').length - n;
+    for (const tr of $$('#tabPart tbody tr').reverse()) { if (extra <= 0) break; if (!$('[data-k=nome]', tr).value.trim()) { tr.remove(); extra--; } }
+  };
+  for (const n of ['adulti', 'bambini', 'infanti']) $(`[name=${n}]`, pg).addEventListener('change', sincronizzaPartecipanti);
+
+  // Anteprima cliente: i servizi come li vede il cliente (niente voci nascoste, niente conti dell'agenzia)
+  let anteprima = false;
+  const renderAnteprima = () => {
+    const box = $('#anteprimaServizi');
+    if (!anteprima) { box.classList.add('hidden'); $('#listaServizi').classList.remove('hidden'); $$('.card-servizi .interno').forEach(e => e.classList.remove('hidden')); $('#btnAnteprima').classList.remove('attivo'); $('#btnAddRiga').classList.remove('hidden'); return; }
+    const righe = [];
+    for (const card of $$('#listaServizi [data-srv]')) {
+      const desc = $(':scope > .srv-h [data-k=descrizione]', card).value, pax = parseInt($(':scope > .srv-h [data-k=pax]', card).value, 10) || 0, inStampa = $(':scope > .srv-h [data-k=stampa]', card).checked;
+      let prezzo = euroACent($(':scope > .srv-h [data-k=prezzo]', card).value);
+      for (const f of $$('[data-figlio]', card)) { const v = euroACent($('[data-k=prezzo]', f).value); if ($('[data-k=stampa]', f).checked) righe.push({ desc: $('[data-k=descrizione]', f).value, prezzo: v, pax, figlio: true }); else prezzo += v; }
+      if (inStampa) righe.splice(righe.length - $$('[data-figlio]', card).filter(f => $('[data-k=stampa]', f).checked).length, 0, { desc, prezzo, pax });
+    }
+    const tot = righe.reduce((s, r) => s + r.prezzo * r.pax, 0);
+    box.innerHTML = `<table class="t"><thead><tr><th>Servizio</th><th class="num">Importo cad.</th><th class="num">Pax</th><th class="num">Totale</th></tr></thead><tbody>
+      ${righe.map(r => `<tr><td>${esc(r.desc.toUpperCase())}</td><td class="num">${eur(r.prezzo)}</td><td class="num">${r.pax}</td><td class="num"><b>${eur(r.prezzo * r.pax)}</b></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nessun servizio</td></tr>'}
+      </tbody><tfoot><tr><td colspan="3">Totale pratica</td><td class="num">${eur(tot)}</td></tr></tfoot></table>`;
+    box.classList.remove('hidden'); $('#listaServizi').classList.add('hidden'); $$('.card-servizi .interno').forEach(e => e.classList.add('hidden')); $('#btnAnteprima').classList.add('attivo'); $('#btnAddRiga').classList.add('hidden');
+  };
+  $('#btnAnteprima').onclick = () => { anteprima = !anteprima; renderAnteprima(); };
+
   // picker cliente
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => {
     sporca = true;
@@ -489,9 +529,9 @@ async function paginaPratica(id) {
     <div class="campo col2"><label>Descrizione</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="es. 1° acconto, saldo…"></div></div>`;
 
   // ---- salvataggio ----
-  const leggiPratica = () => {
+  const leggiPratica = (bozza = 0) => {
     const dati = leggiForm($('#fPratica'));
-    dati.id = P.id; dati.anno = P.anno;
+    dati.id = P.id; dati.anno = P.anno; dati.bozza = bozza;
     dati.righe = $$('#listaServizi [data-srv]').map(card => ({
       descrizione: $(':scope > .srv-h [data-k=descrizione]', card).value, fornitore_id: $(':scope > .srv-h [name=fornitore_id]', card).value,
       prezzo: $(':scope > .srv-h [data-k=prezzo]', card).value, pax: $(':scope > .srv-h [data-k=pax]', card).value, stampa: $(':scope > .srv-h [data-k=stampa]', card).checked ? 1 : 0,
@@ -501,26 +541,51 @@ async function paginaPratica(id) {
     return dati;
   };
   // ritorna la pratica salvata oppure null
-  const salvaInterno = async () => {
-    const dati = leggiPratica();
+  // bozza=1 → salvata senza che l'operatore abbia premuto Salva (etichetta "Bozza" nell'elenco)
+  const salvaInterno = async (bozza = 0) => {
+    const dati = leggiPratica(bozza);
     if (!dati.cliente_id) { toast('Scegli il cliente intestatario', 'err'); $('#pkCliente').focus(); return null; }
     const b = $('#btnSalva'); b.disabled = true;
-    try { const r = await api('pratica_salva', dati); sporca = false; return r; }
+    try { const r = await api('pratica_salva', dati); sporca = false; P.id = r.id; P.bozza = r.bozza; return r; }
     catch (err) { toast(err.message, 'err'); return null; }
     finally { b.disabled = false; }
   };
   const salva = async () => {
-    const r = await salvaInterno(); if (!r) return;
+    const r = await salvaInterno(0); if (!r) return;
     toast(`Pratica ${r.numero}/${r.anno} salvata`, 'ok');
-    if (nuova) naviga('#/pratiche/' + r.id); else aggiorna(r);
+    if (nuova) naviga('#/pratiche/' + r.id); else { aggiorna(r); $('.topbar h1').innerHTML = `Pratica <b>${r.numero}</b>/${r.anno} ${badgeStato(r.stato, r.bozza)}`; }
   };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
-  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'la pratica' };
+  GUARDIA = {
+    route: STATO.route, sporca: () => sporca, salva: () => salvaInterno(0), bozza: () => salvaInterno(1), cosa: 'la pratica',
+    beacon: () => { const dati = leggiPratica(1); if (!dati.cliente_id) return; navigator.sendBeacon('/api/pratica_salva', new Blob([JSON.stringify(dati)], { type: 'application/json' })); }
+  };
+  // Stampa: salva prima (così la carta è uguale allo schermo), poi apre il modulo
+  $$('[data-stampa]').forEach(b => b.onclick = async () => {
+    const r = await salvaInterno(0); if (!r) return;
+    window.open('stampa.html?id=' + r.id, '_blank');
+    if (nuova) naviga('#/pratiche/' + r.id); else { aggiorna(r); $('.topbar h1').innerHTML = `Pratica <b>${r.numero}</b>/${r.anno} ${badgeStato(r.stato, r.bozza)}`; }
+  });
 
+  const apriModaleAcconto = () => {
+    const n = (P.acconti || []).length + 1;
+    const residuo = Math.max(0, euroACent($('#outSaldo').value));
+    modale({
+      titolo: 'Registra acconto', ok: 'Registra',
+      corpo: `<div class="azioni" style="margin-bottom:12px"><span class="small muted">Suggerimenti:</span><button type="button" class="btn piccolo" data-sugg="acconto">${n}° acconto</button><button type="button" class="btn piccolo" data-sugg="saldo">Saldo (${eur(residuo)})</button></div>` + formMovimento({ descrizione: `${n}° acconto` }, true, false),
+      onOk: async d => aggiorna(await api('acconto_salva', { ...leggiForm(d), pratica_id: P.id }))
+    });
+    const d = document.querySelector('dialog.modal:last-of-type');
+    $$('[data-sugg]', d).forEach(b => b.onclick = () => {
+      if (b.dataset.sugg === 'saldo') { $('[name=descrizione]', d).value = 'Saldo'; $('[name=importo]', d).value = eur(residuo); }
+      else { $('[name=descrizione]', d).value = `${n}° acconto`; $('[name=importo]', d).value = ''; }
+      $('[name=importo]', d).focus();
+    });
+  };
   $('#btnAddAcc').onclick = async () => {
-    if (!P.id) { const r = await salvaInterno(); if (!r) return; naviga('#/pratiche/' + r.id + '/acconto'); return; }
-    modale({ titolo: 'Registra acconto', ok: 'Registra', corpo: formMovimento({}, true, false), onOk: async d => aggiorna(await api('acconto_salva', { ...leggiForm(d), pratica_id: P.id })) });
+    if (!P.id) { const r = await salvaInterno(1); if (!r) return; naviga('#/pratiche/' + r.id + '/acconto'); return; }
+    apriModaleAcconto();
   };
   if (!nuova) {
     $('#btnAddPag').onclick = () => modale({ titolo: 'Pagamento a fornitore', ok: 'Registra', corpo: formMovimento({}, true, true), onOk: async d => aggiorna(await api('pagamento_fornitore_salva', { ...leggiForm(d), pratica_id: P.id })) });
@@ -637,7 +702,7 @@ async function paginaCliente(id) {
       ${C.statistiche.perAnno.length ? `<table class="t compatta"><thead><tr><th>Anno</th><th class="num">Pratiche</th><th class="num">Venduto</th><th class="num">Versato</th></tr></thead><tbody>${C.statistiche.perAnno.map(r => `<tr><td>${r.anno}</td><td class="num">${r.n}</td><td class="num">${eur(r.venduto_cent)}</td><td class="num">${eur(r.versato_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Ancora nessuna pratica confermata</div>'}
       <div class="small muted" style="margin-top:8px">Cliente dal ${C.creato_ts ? new Date(C.creato_ts).toLocaleDateString('it-IT') : '—'} · ultimo contatto ${dataIt(C.ultimo_contatto) || '—'}</div></div>
     <div class="card"><h2>Pratiche</h2>${C.pratiche.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Partenza</th><th>Destinazione</th><th>Stato</th><th class="num">Saldo</th></tr></thead><tbody>
-      ${C.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono">${p.numero}/${p.anno}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.destinazione || '').split('\n')[0]).slice(0, 40)}</td><td>${badgeStato(p.stato)}</td><td class="num">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica</div>'}</div>`}
+      ${C.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono">${p.numero}/${p.anno}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.destinazione || '').split('\n')[0]).slice(0, 40)}</td><td>${badgeStato(p.stato, p.bozza)}</td><td class="num">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica</div>'}</div>`}
   </div></div>`);
   let sporca = false;
   $('#fCliente').addEventListener('input', () => { sporca = true; });

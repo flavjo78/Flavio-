@@ -261,6 +261,12 @@ function migra() {
     if (!colsU.includes('pass_chiaro')) db.exec("ALTER TABLE utenti ADD COLUMN pass_chiaro TEXT NOT NULL DEFAULT ''");
     db.exec('PRAGMA user_version = 2');
   }
+  if (v < 3) {
+    // v3: pratica "bozza" = salvata senza che l'operatore abbia premuto Salva
+    const colsP = db.prepare('PRAGMA table_info(pratiche)').all().map(c => c.name);
+    if (!colsP.includes('bozza')) db.exec('ALTER TABLE pratiche ADD COLUMN bozza INTEGER NOT NULL DEFAULT 0');
+    db.exec('PRAGMA user_version = 3');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

@@ -44,7 +44,8 @@
   .servizi { display: flex; gap: 8px; margin-top: 6px; }
   .servizi .tab { flex: 1; }
   .servizi .lato { flex: 0 0 60mm; display: flex; flex-direction: column; gap: 6px; }
-  .servizi .lato .box { flex: 1; }
+  .servizi .lato .box { flex: 0 0 auto; }
+  .servizi .lato .box.acc { flex: 1; }
   table.sv { width: 100%; border-collapse: collapse; font-size: 10pt; }
   table.sv td { padding: 2px 4px; }
   table.sv td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
@@ -94,7 +95,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     if (!p.acconti.length) accontiHtml = `<tr><td>1° Acconto<br><small>versato il ____________</small></td><td class="n"></td></tr><tr><td>2° Acconto<br><small>versato il ____________</small></td><td class="n"></td></tr>`;
     if (p.abbuono_cent) accontiHtml += `<tr><td>Abbuono</td><td class="n">− ${eur(p.abbuono_cent)}</td></tr>`;
     const indirizzoCliente = [c.indirizzo, [c.cap, c.citta, c.provincia ? '(' + c.provincia + ')' : ''].filter(Boolean).join(' ')].filter(Boolean).join(' - ');
-    const vuote = Math.max(0, 8 - righe.length);
+    const vuote = 0;
     document.getElementById('foglio').innerHTML = `
     <div class="testata">
       <div class="box sx">
@@ -147,14 +148,14 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     </div>
     <div class="servizi">
       <div class="box tab"><div class="lbl" style="margin-bottom:2px">Servizi richiesti</div>
-        <table class="sv">
+        <table class="sv" style="margin-top:4px">
           ${righe.map(r => `<tr><td>${esc(r.descrizione.toUpperCase())}</td><td class="n">${eur(r.prezzo_cent)}</td><td class="n">x Pax N. ${r.pax} =</td><td class="n"><b>${eur(r.prezzo_cent * r.pax)}</b></td></tr>`).join('')}
           ${Array.from({ length: vuote }).map(() => `<tr><td>&nbsp;</td><td class="n"></td><td class="n">x Pax N. &nbsp; =</td><td class="n"></td></tr>`).join('')}
           <tr class="tot"><td colspan="3" style="text-align:right">Totale Pratica Euro</td><td class="n">${eur(p.totale_cent)}</td></tr>
           ${p.stato === 'Annullata con penale' ? `<tr><td colspan="3" style="text-align:right">Pratica annullata — penale dovuta</td><td class="n">${eur(p.penale_cent)}</td></tr>` : ''}
         </table></div>
       <div class="lato">
-        <div class="box"><div class="lbl">Documenti Necessari</div><div>${esc(p.documenti_necessari)}</div></div>
+        <div class="box"><div class="lbl">Documenti Necessari</div><div>${esc(p.documenti_necessari) || '&nbsp;'}</div></div>
         <div class="box acc"><table>${accontiHtml}
           <tr class="saldo"><td>Saldo</td><td class="n">${eur(Math.max(0, saldo))}</td></tr>
           <tr><td>Da versare il</td><td class="n"><b>${dataIt(p.saldo_entro) || '________'}</b></td></tr></table></div>

@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const db = require('./db');
-const { AZIONI, ErroreApi } = require('./api');
+const { AZIONI, ErroreApi, VERSIONE } = require('./api');
 
 let inExe = false;
 try { inExe = require('node:sea').isSea(); } catch (e) { inExe = false; }
@@ -17,7 +17,6 @@ const BASE = inExe ? path.dirname(process.execPath) : path.resolve(__dirname, '.
 const DIR_DATI = process.env.AGENZIA_DATI || path.join(BASE, '_dati');
 const DIR_WEB = process.env.AGENZIA_WEB || path.join(BASE, 'web');
 const PORTA = parseInt(process.env.AGENZIA_PORTA || '8787', 10);
-const VERSIONE = '1.1.0';
 
 db.apri(DIR_DATI);
 

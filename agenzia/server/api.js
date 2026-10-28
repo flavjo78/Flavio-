@@ -3,6 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
+const VERSIONE = '1.2.0';
 
 class ErroreApi extends Error {
   constructor(codice, messaggio) { super(messaggio); this.codice = codice; }
@@ -60,7 +61,7 @@ function stato_installazione() {
   const n = db.get('SELECT COUNT(*) AS n FROM utenti').n;
   // Elenco degli utenti attivi (solo nome e username) per la schermata d'accesso "scegli chi sei".
   const utenti = db.all('SELECT id, username, nome FROM utenti WHERE attivo = 1 ORDER BY nome');
-  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti };
+  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti, versione: VERSIONE };
 }
 
 function installa(ctx) {
@@ -274,7 +275,7 @@ function cliente(ctx) {
   const id = N(ctx.query.id);
   const c = db.get('SELECT * FROM clienti WHERE id = ?', id);
   if (!c) err(404, 'Cliente non trovato');
-  c.pratiche = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura
+  c.pratiche = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.bozza, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura
      FROM pratiche p WHERE p.cliente_id = ? ORDER BY p.anno DESC, p.numero DESC`, id).map(arricchisciTotali);
   c.statistiche = statisticheCliente(id);
   return c;
@@ -434,7 +435,7 @@ function pratiche(ctx) {
   const clienteId = N(ctx.query.cliente_id);
   const fornitoreId = N(ctx.query.fornitore_id);
   const lim = Math.min(1000, N(ctx.query.limite) || 300);
-  let sql = `SELECT p.id, p.anno, p.numero, p.stato, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura, p.saldo_entro, p.cliente_id,
+  let sql = `SELECT p.id, p.anno, p.numero, p.stato, p.bozza, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura, p.saldo_entro, p.cliente_id,
       c.cognome || ' ' || c.nome AS cliente, u.nome AS operatore,
       (SELECT group_concat(DISTINCT f.nome) FROM pratica_righe r JOIN fornitori f ON f.id = r.fornitore_id WHERE r.pratica_id = p.id) AS fornitori
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id LEFT JOIN utenti u ON u.id = p.operatore_id WHERE 1=1`;
@@ -514,6 +515,7 @@ function pratica_salva(ctx) {
   vals.abbuono_cent = CENT(c.abbuono);
   vals.saldo_entro = DATA(c.saldo_entro);
   vals.penale_cent = stato === 'Annullata con penale' ? CENT(c.penale) : 0;
+  vals.bozza = B(c.bozza);
 
   const righe = Array.isArray(c.righe) ? c.righe : [];
   const partecipanti = Array.isArray(c.partecipanti) ? c.partecipanti : [];
@@ -775,4 +777,4 @@ function resetPassword(chi, nuova) {
   return `RESET: password di ${u.username} cambiata`;
 }
 
-module.exports = { AZIONI, ErroreApi, STATI, resetPassword };
+module.exports = { AZIONI, ErroreApi, STATI, resetPassword, VERSIONE };

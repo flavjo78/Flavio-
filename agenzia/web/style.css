@@ -172,3 +172,9 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .srv-tot>div{flex:1;background:var(--surface-2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center}
 .srv-tot .l{font-size:12px;color:var(--text-2)}.srv-tot .v{font-size:18px;font-weight:700;font-variant-numeric:tabular-nums}
 @media (max-width:1100px){.srv-h{grid-template-columns:1fr 1fr 1fr 1fr 1fr 1fr 40px}}
+
+.topbar .versione{font-size:11px;color:var(--muted);margin-left:10px;white-space:nowrap}
+.badge.bozza{background:#fff2dc;color:#8a5a00;border:1px dashed #d9a84a}
+.btn.attivo{background:var(--ok);border-color:var(--ok);color:#fff}
+.btn.attivo:hover{background:#166a3e}
+#anteprimaServizi{border:2px solid var(--ok);border-radius:8px;padding:6px;margin-bottom:10px}
