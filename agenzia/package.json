@@ -1,6 +1,6 @@
 {
   "name": "agenzia",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "private": true,
   "description": "Gestionale per agenzia di viaggi: pratiche, clienti, fornitori, acconti, scadenze, statistiche, stampa conferma.",
   "main": "server/server.js",

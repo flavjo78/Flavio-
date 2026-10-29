@@ -165,14 +165,31 @@ function renderInstalla() {
     <div class="campo"><label>Nome dell'agenzia (per l'intestazione)</label><input name="insegna" placeholder="Es. I Viaggi di ..."></div>
     <div class="campo"><label>Il tuo nome (compare nelle pratiche)</label><input name="nome" placeholder="Es. Fabio"></div>
     <div class="campo"><label>Nome utente per entrare</label><input name="username" placeholder="es. fabio"></div>
-    <div class="campo"><label>La tua password</label><input name="password" type="password"></div>
-    <div class="campo"><label>Password del PANNELLO OPZIONI (diversa, per le impostazioni delicate)</label><input name="pannello_password" type="password"></div>
+    <div class="griglia g2" style="margin-bottom:12px"><div class="campo"><label>La tua password (per entrare)</label><input name="password" type="password"></div><div class="campo"><label>Ripeti la tua password</label><input name="password2" type="password"></div></div>
+    <div class="griglia g2" style="margin-bottom:12px"><div class="campo"><label>Password del PANNELLO Opzioni (un'altra, per le impostazioni)</label><input name="pannello_password" type="password"></div><div class="campo"><label>Ripeti la password del pannello</label><input name="pannello_password2" type="password"></div></div>
     <button class="btn primario" style="width:100%;justify-content:center;margin-top:6px">Crea e entra</button>
+    <div style="text-align:center;margin:16px 0 4px" class="small muted">oppure</div>
+    <label class="btn" for="inImportaIniziale" style="width:100%;justify-content:center">⬆ Importa un file di dati (.db) già esistente</label><input type="file" id="inImportaIniziale" accept=".db" class="hidden">
+    <div class="small muted" style="margin-top:6px;text-align:center">Riparti da una copia scaricata dal pannello Opzioni di un'altra installazione: utenti, password, clienti e pratiche compresi.</div>
   </form></div>`;
+  $('#inImportaIniziale').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    e.target.value = '';
+    try {
+      const r = await fetch('/api/importa_db_iniziale', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f });
+      const d = await r.json(); if (!r.ok) throw new Error(d.errore || 'Errore');
+      toast(`Importate ${d.pratiche} pratiche. Entra con un utente del file.`, 'ok');
+      setTimeout(() => location.reload(), 800);
+    } catch (err) { toast(err.message, 'err'); }
+  };
   $('#fInst').onsubmit = async e => {
     e.preventDefault();
+    const f = leggiForm($('#fInst'));
+    if (f.password !== f.password2) { toast('Le due password personali non coincidono', 'err'); $('[name=password2]').focus(); return; }
+    if (f.pannello_password !== f.pannello_password2) { toast('Le due password del pannello non coincidono', 'err'); $('[name=pannello_password2]').focus(); return; }
+    if (f.password === f.pannello_password) { toast('La password del pannello deve essere diversa dalla tua', 'err'); $('[name=pannello_password]').focus(); return; }
     try {
-      const r = await api('installa', leggiForm($('#fInst')));
+      const r = await api('installa', f);
       STATO.utente = r.utente; STATO.imp = await api('impostazioni');
       toast('Benvenuto! Imposta i dati dell\'agenzia dal pannello Opzioni.', 'ok');
       naviga('#/scadenze');
@@ -336,6 +353,11 @@ async function paginaPratica(id) {
       <div class="campo c-st"><label>&nbsp;</label><label class="small"><input type="checkbox" data-k="stampa" ${r.stampa === 0 ? '' : 'checked'}> in stampa</label></div>
       <div class="campo c-az"><label>&nbsp;</label><button type="button" class="btn piccolo icona pericolo" data-del title="Togli servizio">✕</button></div>
     </div>
+    <div class="srv-dett">
+      <div class="campo"><label>N. pratica T.O. / riferimento</label><input data-k="rif_to" value="${esc(r.rif_to || '')}" placeholder="es. 2026IN052130"></div>
+      <div class="campo"><label>Operatore T.O.</label><input data-k="operatore_to" value="${esc(r.operatore_to || '')}"></div>
+      <div class="campo c-st"><label>&nbsp;</label><label class="small" title="Stampa riferimento e operatore sotto il servizio"><input type="checkbox" data-k="stampa_dett" ${r.stampa_dett === 0 ? '' : 'checked'}> riferimenti in stampa</label></div>
+    </div>
     <div class="srv-f">${(r.figli || []).map(rigaFiglio).join('')}</div>
     <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Aggiungi voce nascosta (provvigione, costi…)</button><span class="small muted" data-cliente></span></div>
   </div>`;
@@ -358,8 +380,7 @@ async function paginaPratica(id) {
       <div class="campo"><label>Catalogo</label><select name="in_catalogo">${opzioni([{ value: '1', label: 'In catalogo' }, { value: '0', label: 'Fuori catalogo' }], String(P.in_catalogo ?? 1))}</select></div>
       <div class="campo"><label>Nome catalogo</label><input name="catalogo" value="${esc(P.catalogo || '')}"></div>
       <div class="campo"><label>Pagina</label><input name="catalogo_pag" value="${esc(P.catalogo_pag || '')}"></div>
-      <div class="campo"><label>N. pratica del T.O. / riferimento</label><input name="riferimento_to" value="${esc(P.riferimento_to || '')}"></div>
-      <div class="campo"><label>Operatore del T.O.</label><input name="operatore_to" value="${esc(P.operatore_to || '')}"></div>
+      <input type="hidden" name="riferimento_to" value="${esc(P.riferimento_to || '')}"><input type="hidden" name="operatore_to" value="${esc(P.operatore_to || '')}">
     </div></div>
 
   <div class="card"><h2>Viaggio</h2>
@@ -535,6 +556,7 @@ async function paginaPratica(id) {
     dati.righe = $$('#listaServizi [data-srv]').map(card => ({
       descrizione: $(':scope > .srv-h [data-k=descrizione]', card).value, fornitore_id: $(':scope > .srv-h [name=fornitore_id]', card).value,
       prezzo: $(':scope > .srv-h [data-k=prezzo]', card).value, pax: $(':scope > .srv-h [data-k=pax]', card).value, stampa: $(':scope > .srv-h [data-k=stampa]', card).checked ? 1 : 0,
+      rif_to: $('.srv-dett [data-k=rif_to]', card).value, operatore_to: $('.srv-dett [data-k=operatore_to]', card).value, stampa_dett: $('.srv-dett [data-k=stampa_dett]', card).checked ? 1 : 0,
       figli: $$('[data-figlio]', card).map(f => ({ descrizione: $('[data-k=descrizione]', f).value, prezzo: $('[data-k=prezzo]', f).value, stampa: $('[data-k=stampa]', f).checked ? 1 : 0 }))
     }));
     dati.partecipanti = $$('#tabPart tbody tr').map(tr => ({ nome: $('[data-k=nome]', tr).value, nato_il: $('[data-k=nato_il]', tr).value }));

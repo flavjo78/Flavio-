@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.2.0';
+const VERSIONE = '1.3.0';
 
 class ErroreApi extends Error {
   constructor(codice, messaggio) { super(messaggio); this.codice = codice; }
@@ -70,6 +70,8 @@ function installa(ctx) {
   richiedi(S(c.username).length >= 2, 'Username troppo corto');
   richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
   richiedi(S(c.pannello_password).length >= 4, 'Password del pannello troppo corta (minimo 4)');
+  if (c.password2 !== undefined) richiedi(c.password === c.password2, 'Le due password personali non coincidono');
+  if (c.pannello_password2 !== undefined) richiedi(c.pannello_password === c.pannello_password2, 'Le due password del pannello non coincidono');
   const ts = db.adesso();
   db.run('INSERT INTO utenti(username, nome, pass_hash, pass_chiaro, attivo, creato_ts) VALUES(?,?,?,?,1,?)',
     S(c.username).toLowerCase(), S(c.nome) || S(c.username), hashPassword(c.password), S(c.password), ts);
@@ -244,6 +246,12 @@ function importa_db(ctx) {
     try { fs.unlinkSync(tmp); } catch (e2) { /* ignora */ }
     throw e;
   }
+}
+// Importazione al PRIMO AVVIO (senza login): ammessa solo finché non esiste nessun utente.
+function importa_db_iniziale(ctx) {
+  if (stato_installazione().installato) err(403, 'Il programma è già installato: importa dal pannello Opzioni');
+  // riusa la stessa logica dell'importazione dal pannello, senza il controllo del pannello
+  return importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
 }
 function log_operazioni(ctx) {
   richiediPannello(ctx);
@@ -551,8 +559,8 @@ function pratica_salva(ctx) {
       const fid = N(r.fornitore_id) || null;
       const pax = Math.max(0, N(r.pax === undefined ? 1 : r.pax));
       // Il "costo fornitore" è l'importo del padre quando c'è un fornitore: è quanto dovete a lui.
-      const ins = db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa, padre_id) VALUES(?,?,?,?,?,?,?,?,NULL)',
-        pid, ord++, desc, fid, prezzo, pax, fid ? prezzo : 0, r.stampa === undefined ? 1 : B(r.stampa));
+      const ins = db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa, padre_id, rif_to, operatore_to, stampa_dett) VALUES(?,?,?,?,?,?,?,?,NULL,?,?,?)',
+        pid, ord++, desc, fid, prezzo, pax, fid ? prezzo : 0, r.stampa === undefined ? 1 : B(r.stampa), S(r.rif_to), S(r.operatore_to), r.stampa_dett === undefined ? 1 : B(r.stampa_dett));
       const padreId = Number(ins.lastInsertRowid);
       for (const c of figli) {
         db.run('INSERT INTO pratica_righe(pratica_id, ordine, descrizione, fornitore_id, prezzo_cent, pax, costo_cent, stampa, padre_id) VALUES(?,?,?,NULL,?,?,0,?,?)',
@@ -754,6 +762,7 @@ const AZIONI = {
   prossimo_numero: { fn: prossimo_numero },
   esporta_db: { fn: esporta_db },
   importa_db: { fn: importa_db, post: true, raw: true },
+  importa_db_iniziale: { fn: importa_db_iniziale, post: true, raw: true, pubblica: true },
   pratica: { fn: pratica },
   pratica_salva: { fn: pratica_salva, post: true },
   pratica_elimina: { fn: pratica_elimina, post: true },

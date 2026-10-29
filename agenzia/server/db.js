@@ -267,6 +267,19 @@ function migra() {
     if (!colsP.includes('bozza')) db.exec('ALTER TABLE pratiche ADD COLUMN bozza INTEGER NOT NULL DEFAULT 0');
     db.exec('PRAGMA user_version = 3');
   }
+  if (v < 4) {
+    // v4: riferimento e operatore del tour operator per ogni servizio (prima erano sulla pratica)
+    const colsR = db.prepare('PRAGMA table_info(pratica_righe)').all().map(c => c.name);
+    if (!colsR.includes('rif_to')) db.exec("ALTER TABLE pratica_righe ADD COLUMN rif_to TEXT NOT NULL DEFAULT ''");
+    if (!colsR.includes('operatore_to')) db.exec("ALTER TABLE pratica_righe ADD COLUMN operatore_to TEXT NOT NULL DEFAULT ''");
+    if (!colsR.includes('stampa_dett')) db.exec('ALTER TABLE pratica_righe ADD COLUMN stampa_dett INTEGER NOT NULL DEFAULT 1');
+    // porta i vecchi valori della pratica sul primo servizio con fornitore
+    for (const p of db.prepare("SELECT id, riferimento_to, operatore_to FROM pratiche WHERE riferimento_to <> '' OR operatore_to <> ''").all()) {
+      const r = db.prepare('SELECT id FROM pratica_righe WHERE pratica_id = ? AND padre_id IS NULL ORDER BY (fornitore_id IS NULL), ordine LIMIT 1').get(p.id);
+      if (r) { db.prepare('UPDATE pratica_righe SET rif_to = ?, operatore_to = ? WHERE id = ?').run(p.riferimento_to, p.operatore_to, r.id); db.prepare("UPDATE pratiche SET riferimento_to = '', operatore_to = '' WHERE id = ?").run(p.id); }
+    }
+    db.exec('PRAGMA user_version = 4');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

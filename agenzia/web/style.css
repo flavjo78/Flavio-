@@ -178,3 +178,5 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .btn.attivo{background:var(--ok);border-color:var(--ok);color:#fff}
 .btn.attivo:hover{background:#166a3e}
 #anteprimaServizi{border:2px solid var(--ok);border-radius:8px;padding:6px;margin-bottom:10px}
+.srv-dett{display:grid;grid-template-columns:1.5fr 1fr 200px;gap:10px;align-items:end;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
+.srv-dett .c-st label.small{display:flex;align-items:center;gap:6px;padding:7px 0;color:var(--text)}

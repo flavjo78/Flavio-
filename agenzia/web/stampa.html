@@ -47,7 +47,8 @@
   .servizi .lato .box { flex: 0 0 auto; }
   .servizi .lato .box.acc { flex: 1; }
   table.sv { width: 100%; border-collapse: collapse; font-size: 10pt; }
-  table.sv td { padding: 2px 4px; }
+  table.sv td { padding: 2px 4px; vertical-align: top; }
+  table.sv .dett { font-size: 8pt; color: #333; }
   table.sv td.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
   table.sv tr.tot td { border-top: 1.2px solid #000; font-weight: 700; padding-top: 4px; }
   .acc { font-size: 10pt; }
@@ -84,7 +85,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     for (const r of p.righe) {
       const figli = r.figli || [];
       const nascosti = figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0);
-      if (r.stampa) righe.push({ descrizione: r.descrizione, prezzo_cent: r.prezzo_cent + nascosti, pax: r.pax });
+      if (r.stampa) righe.push({ descrizione: r.descrizione, prezzo_cent: r.prezzo_cent + nascosti, pax: r.pax, dett: (r.stampa_dett && (r.rif_to || r.operatore_to)) ? [r.fornitore ? esc(r.fornitore) : '', r.rif_to ? 'Pratica T.O. <b>' + esc(r.rif_to) + '</b>' : '', r.operatore_to ? 'Operatore T.O. <b>' + esc(r.operatore_to) + '</b>' : ''].filter(Boolean).join(' · ') : '' });
       for (const c of figli) if (c.stampa) righe.push({ descrizione: c.descrizione, prezzo_cent: c.prezzo_cent, pax: r.pax });
     }
     const fornitori = [...new Set(p.righe.map(r => r.fornitore).filter(Boolean))];
@@ -126,8 +127,8 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
         <div><span>N. Pratica Adv</span><b>${p.numero}/${p.anno}</b></div>
         <div><span>Operatore Adv</span><b>${esc(p.operatore || '')}</b></div>
         <div><span>Data</span><b>${dataIt(p.data_apertura)}</b></div>
-        <div><span>N. Pratica T.O.</span><b>${esc(p.riferimento_to)}</b></div>
-        <div><span>Operatore T.O.</span><b>${esc(p.operatore_to)}</b></div>
+        ${p.riferimento_to ? `<div><span>N. Pratica T.O.</span><b>${esc(p.riferimento_to)}</b></div>` : ''}
+        ${p.operatore_to ? `<div><span>Operatore T.O.</span><b>${esc(p.operatore_to)}</b></div>` : ''}
       </div>
     </div>
     <div class="inter">${esc(T.in_nome)}</div>
@@ -149,7 +150,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     <div class="servizi">
       <div class="box tab"><div class="lbl" style="margin-bottom:2px">Servizi richiesti</div>
         <table class="sv" style="margin-top:4px">
-          ${righe.map(r => `<tr><td>${esc(r.descrizione.toUpperCase())}</td><td class="n">${eur(r.prezzo_cent)}</td><td class="n">x Pax N. ${r.pax} =</td><td class="n"><b>${eur(r.prezzo_cent * r.pax)}</b></td></tr>`).join('')}
+          ${righe.map(r => `<tr><td>${esc(r.descrizione.toUpperCase())}${r.dett ? `<div class="dett">${r.dett}</div>` : ''}</td><td class="n">${eur(r.prezzo_cent)}</td><td class="n">x Pax N. ${r.pax} =</td><td class="n"><b>${eur(r.prezzo_cent * r.pax)}</b></td></tr>`).join('')}
           ${Array.from({ length: vuote }).map(() => `<tr><td>&nbsp;</td><td class="n"></td><td class="n">x Pax N. &nbsp; =</td><td class="n"></td></tr>`).join('')}
           <tr class="tot"><td colspan="3" style="text-align:right">Totale Pratica Euro</td><td class="n">${eur(p.totale_cent)}</td></tr>
           ${p.stato === 'Annullata con penale' ? `<tr><td colspan="3" style="text-align:right">Pratica annullata — penale dovuta</td><td class="n">${eur(p.penale_cent)}</td></tr>` : ''}

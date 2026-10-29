@@ -24,7 +24,8 @@
   modifiche vengono registrati con il nome di chi li ha fatti (log operazioni).
 - Tutti gli utenti sono uguali. Il **pannello opzioni** (dati agenzia, testi legali,
   numerazione, liste, backup, utenti) si apre con una **password a parte**.
-- Al primo avvio il programma chiede di creare il primo utente e la password del pannello.
+- Al primo avvio il programma chiede di creare il primo utente e la password del pannello
+  (entrambe ripetute), oppure di **importare un file di dati** già esistente.
   All'accesso si sceglie il proprio nome dall'elenco e si scrive solo la password. Le password
   degli utenti sono visibili in chiaro nel pannello (per chi le dimentica); se si dimentica anche
   la password del pannello, c'è il file `_dati/RESET-PASSWORD.txt` (vedi LEGGIMI).
@@ -53,12 +54,13 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
   tipo pratica, **stato** (Preventivo · Confermata · Annullata · Annullata con penale ·
   Chiusa; con penale si indica l'importo della penale), data apertura, intermediazione
   (sì di norma) o organizzazione propria, pacchetto/servizio, in catalogo o fuori catalogo
-  (catalogo e pagina), riferimento pratica e operatore del tour operator, destinazione/
+  (catalogo e pagina), destinazione/
   itinerario, partenza e rientro (data + "da/a" facoltativi), adulti/bambini/infanti,
   durata giorni/notti, PNR, documenti necessari, richieste specifiche, note interne.
 - **Partecipanti:** elenco nome + data di nascita.
 - **Servizi (card):** ogni servizio ha descrizione, **fornitore**, importo cad. × pax, spunta
-  "in stampa". Sotto ogni servizio si aggiungono **voci nascoste** (provvigione, diritti, costi):
+  "in stampa", più **N. pratica T.O. e operatore T.O.** del fornitore (stampati sotto il servizio,
+  spunta per toglierli). Sotto ogni servizio si aggiungono **voci nascoste** (provvigione, diritti, costi):
   si sommano all'importo del servizio e il cliente vede UNA riga col totale (una voce nascosta
   può anche essere messa "in stampa" come riga a parte). L'importo del servizio con fornitore
   è quanto dovete al fornitore; le voci nascoste restano all'agenzia (margine).
