@@ -353,13 +353,13 @@ async function paginaPratica(id) {
       <div class="campo c-st"><label>&nbsp;</label><label class="small"><input type="checkbox" data-k="stampa" ${r.stampa === 0 ? '' : 'checked'}> in stampa</label></div>
       <div class="campo c-az"><label>&nbsp;</label><button type="button" class="btn piccolo icona pericolo" data-del title="Togli servizio">✕</button></div>
     </div>
-    <div class="srv-dett">
+    <div class="srv-dett ${(r.rif_to || r.operatore_to) ? '' : 'chiuso'}">
       <div class="campo"><label>N. pratica T.O. / riferimento</label><input data-k="rif_to" value="${esc(r.rif_to || '')}" placeholder="es. 2026IN052130"></div>
       <div class="campo"><label>Operatore T.O.</label><input data-k="operatore_to" value="${esc(r.operatore_to || '')}"></div>
       <div class="campo c-st"><label>&nbsp;</label><label class="small" title="Stampa riferimento e operatore sotto il servizio"><input type="checkbox" data-k="stampa_dett" ${r.stampa_dett === 0 ? '' : 'checked'}> riferimenti in stampa</label></div>
     </div>
     <div class="srv-f">${(r.figli || []).map(rigaFiglio).join('')}</div>
-    <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Aggiungi voce nascosta (provvigione, costi…)</button><span class="small muted" data-cliente></span></div>
+    <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Voce nascosta</button><button type="button" class="btn piccolo" data-dett title="Numero pratica e operatore del tour operator">Riferimenti T.O.</button><span class="small muted" data-cliente></span></div>
   </div>`;
   const rigaPart = (q = {}) => `<tr><td><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome"></td><td style="width:170px"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
 
@@ -475,6 +475,7 @@ async function paginaPratica(id) {
   pg.addEventListener('click', e => {
     const bf = e.target.closest('[data-del-figlio]'); if (bf) { bf.closest('[data-figlio]').remove(); sporca = true; ricalcola(); return; }
     const b = e.target.closest('[data-del]'); if (b) { const el = b.closest('[data-srv]') || b.closest('tr'); el.remove(); sporca = true; ricalcola(); return; }
+    const dt = e.target.closest('[data-dett]'); if (dt) { const d = $('.srv-dett', dt.closest('[data-srv]')); d.classList.toggle('chiuso'); if (!d.classList.contains('chiuso')) $('input', d).focus(); return; }
     const af = e.target.closest('[data-add-figlio]'); if (af) { const card = af.closest('[data-srv]'); $('.srv-f', card).insertAdjacentHTML('beforeend', rigaFiglio()); $('.srv-f [data-figlio]:last-child input', card).focus(); sporca = true; }
   });
   $('#btnAddRiga').onclick = () => { $('#listaServizi').insertAdjacentHTML('beforeend', cardServizio({ pax: parseInt($('[name=adulti]', pg).value, 10) + parseInt($('[name=bambini]', pg).value, 10) || 1 })); $('#listaServizi [data-srv]:last-child input').focus(); sporca = true; ricalcola(); };
@@ -518,10 +519,15 @@ async function paginaPratica(id) {
   $('#btnAnteprima').onclick = () => { anteprima = !anteprima; renderAnteprima(); };
 
   // Vista compatta (tutto in una schermata): automatica appena c'è il cliente; il tasto ⇄ la alterna
-  let compatta = !nuova || !!P.cliente_id;
-  const applicaVista = () => { $('#fPratica').classList.toggle('compatta', compatta); $('#btnVista').textContent = compatta ? '⇄ vista larga' : '⇄ vista compatta'; };
+  let compatta = true;
+  const applicaVista = () => { $('#fPratica').classList.toggle('compatta', compatta); $('#fPratica').classList.remove('espansa'); $('#btnVista').textContent = compatta ? '⇄ vista larga' : '⇄ vista compatta'; };
   $('#btnVista').onclick = () => { compatta = !compatta; applicaVista(); };
   applicaVista();
+  // In vista compatta, la colonna destra si allarga quando ci lavori dentro e si ristringe appena tocchi il resto
+  const espandi = dentro => { if (compatta) $('#fPratica').classList.toggle('espansa', dentro); };
+  pg.addEventListener('focusin', e => espandi(!!e.target.closest('.col-dx')));
+  pg.addEventListener('mousedown', e => { if (!e.target.closest('.col-dx') && !e.target.closest('dialog')) espandi(false); });
+  if (nuova && !P.cliente_id) setTimeout(() => $('#pkCliente').focus(), 50);
 
   // Oggetto "Biglietteria": suggerimenti diversi per i servizi (le regole complete arrivano dopo)
   const SERVIZI_BIGLIETTERIA = ['Biglietto aereo', 'Biglietto treno', 'Biglietto nave / traghetto', 'Tasse aeroportuali', 'Supplemento bagaglio', 'Diritti di emissione', 'Assicurazione'];
@@ -535,12 +541,12 @@ async function paginaPratica(id) {
   // Mettere "in stampa" una voce nascosta richiede la password del pannello
   pg.addEventListener('change', async e => {
     const t = e.target;
-    if (!(t.matches('[data-figlio] [data-k=stampa]') && t.checked) || STATO.pannello) return;
+    if (!(t.matches('[data-figlio] [data-k=stampa]') && t.checked)) return;
     t.checked = false; ricalcola();
     const ok = await modale({
-      titolo: 'Voce nascosta in stampa', ok: 'Sblocca',
-      corpo: `<p>Le voci nascoste di norma non vanno in stampa. Per stamparne una serve la <b>password del pannello Opzioni</b>.</p><div class="campo"><label>Password del pannello</label><input name="password" type="password"></div>`,
-      onOk: async d => { await api('pannello_sblocca', leggiForm(d)); STATO.pannello = true; return true; }
+      titolo: 'Voce nascosta in stampa', ok: 'Conferma',
+      corpo: `<p>Le voci nascoste di norma NON vanno in stampa. Per stamparne una serve la <b>password del pannello Opzioni</b> (viene chiesta ogni volta).</p><div class="campo"><label>Password del pannello</label><input name="password" type="password"></div>`,
+      onOk: async d => { await api('pannello_verifica', leggiForm(d)); return true; }
     });
     if (ok) { t.checked = true; sporca = true; ricalcola(); }
   });
@@ -548,7 +554,6 @@ async function paginaPratica(id) {
   // picker cliente
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => {
     sporca = true;
-    if (!compatta) { compatta = true; applicaVista(); }
     $('#lnkApriCliente').classList.remove('hidden');
     $('#lnkApriCliente').href = '#/clienti/' + c.id;
     if (!$$('#tabPart tbody tr').length) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ nome: `${c.cognome} ${c.nome}`, nato_il: c.nato_il }));

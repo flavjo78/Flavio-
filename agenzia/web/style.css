@@ -214,3 +214,22 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 #tabTes{min-width:640px}
 #tabIban{min-width:720px}
 #tabIban .mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}
+
+/* ---- 1.4.1: servizi più stretti, colonna destra che si allarga ---- */
+.srv-dett.chiuso{display:none}
+.pr-layout.compatta{transition:grid-template-columns .2s ease}
+.pr-layout.compatta.espansa{grid-template-columns:minmax(0,1fr) 58%}
+.pr-layout.compatta.espansa .col-dx .griglia{grid-template-columns:repeat(4,1fr)}
+.pr-layout.compatta.espansa .col-dx .col2{grid-column:span 2}
+.pr-layout.compatta.espansa .col-dx .col3,.pr-layout.compatta.espansa .col-dx .col4,.pr-layout.compatta.espansa .col-dx .col6{grid-column:span 4}
+.pr-layout.compatta.espansa .col-dx .card{box-shadow:0 0 0 2px var(--primary-soft),var(--shadow)}
+.pr-layout.compatta .srv{padding:8px 10px;margin-bottom:6px}
+.pr-layout.compatta .srv-h{gap:5px}
+.pr-layout.compatta .srv-h .campo input,.pr-layout.compatta .srv-h .campo select{padding:5px 7px}
+.pr-layout.compatta .srv-h .tot{padding:5px 7px}
+.pr-layout.compatta .srv-f{margin:5px 0 0 14px;gap:4px}
+.pr-layout.compatta .figlio input{padding:4px 7px;font-size:13px}
+.pr-layout.compatta .srv-foot{margin:5px 0 0 14px;gap:8px}
+.pr-layout.compatta .srv-dett{margin-top:5px;padding-top:5px}
+.pr-layout.compatta .card-servizi{padding:12px 14px}
+.pr-layout.compatta .card{margin-bottom:10px}

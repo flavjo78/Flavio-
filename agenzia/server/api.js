@@ -3,7 +3,9 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.4.0';
+const VERSIONE = '1.4.1';
+// sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
+const FIGLI_OK = new Map();
 
 class ErroreApi extends Error {
   constructor(codice, messaggio) { super(messaggio); this.codice = codice; }
@@ -121,6 +123,14 @@ function pannello_sblocca(ctx) {
 function pannello_blocca(ctx) {
   db.run('UPDATE sessioni SET pannello = 0 WHERE sid = ?', ctx.sessione.sid);
   return { pannello: false };
+}
+// Verifica la password del pannello SENZA sbloccare il pannello: serve solo per le voci nascoste in stampa (vale 15 minuti).
+function pannello_verifica(ctx) {
+  const c = ctx.corpo || {};
+  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  FIGLI_OK.set(ctx.sessione.sid, Date.now());
+  db.log(ctx.utente, 'figli_stampa_sblocco', '', null, '');
+  return { ok: true };
 }
 function richiediPannello(ctx) {
   if (!ctx.sessione || !ctx.sessione.pannello) err(403, 'Serve la password del pannello opzioni');
@@ -579,9 +589,10 @@ function pratica_salva(ctx) {
   }
   // Mettere "in stampa" una voce nascosta richiede la password del pannello (sbloccato in sessione).
   const figliInStampa = righe.reduce((n, r) => n + (Array.isArray(r.figli) ? r.figli.filter(c => B(c.stampa) && (S(c.descrizione) || CENT(c.prezzo))).length : 0), 0);
-  if (figliInStampa > 0 && !(ctx.sessione && ctx.sessione.pannello)) {
+  if (figliInStampa > 0) {
     const prima = id ? db.get('SELECT COUNT(*) AS n FROM pratica_righe WHERE pratica_id = ? AND padre_id IS NOT NULL AND stampa = 1', id).n : 0;
-    if (figliInStampa > prima) err(403, 'Per mettere in stampa una voce nascosta serve la password del pannello opzioni');
+    const verificato = ctx.sessione && FIGLI_OK.has(ctx.sessione.sid) && Date.now() - FIGLI_OK.get(ctx.sessione.sid) < 15 * 60 * 1000;
+    if (figliInStampa > prima && !verificato) err(403, 'Per mettere in stampa una voce nascosta serve la password del pannello opzioni');
   }
 
   return db.transazione(() => {
@@ -795,6 +806,7 @@ const AZIONI = {
   cambia_password: { fn: cambia_password, post: true },
   pannello_sblocca: { fn: pannello_sblocca, post: true },
   pannello_blocca: { fn: pannello_blocca, post: true },
+  pannello_verifica: { fn: pannello_verifica, post: true },
   pannello_password: { fn: pannello_password, post: true },
   impostazioni: { fn: impostazioni },
   impostazioni_salva: { fn: impostazioni_salva, post: true },
