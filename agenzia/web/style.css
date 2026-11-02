@@ -180,3 +180,37 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 #anteprimaServizi{border:2px solid var(--ok);border-radius:8px;padding:6px;margin-bottom:10px}
 .srv-dett{display:grid;grid-template-columns:1.5fr 1fr 200px;gap:10px;align-items:end;margin-top:8px;padding-top:8px;border-top:1px dashed var(--border)}
 .srv-dett .c-st label.small{display:flex;align-items:center;gap:6px;padding:7px 0;color:var(--text)}
+
+/* ---- pratica: vista larga (compilazione) e compatta (tutto in una schermata) ---- */
+.pr-layout .col-dx,.pr-layout .col-sx{display:contents}
+.pr-layout.compatta{display:grid;grid-template-columns:minmax(0,1fr) 420px;gap:0 16px;align-items:start}
+.pr-layout.compatta .col-sx{display:block;grid-column:1;grid-row:1;min-width:0}
+.pr-layout.compatta .col-dx{display:block;grid-column:2;grid-row:1;position:sticky;top:64px}
+.pr-layout.compatta .col-dx .card{padding:10px 12px;margin-bottom:10px}
+.pr-layout.compatta .col-dx .card h2{font-size:13px;margin-bottom:6px}
+.pr-layout.compatta .col-dx .griglia{grid-template-columns:1fr 1fr;gap:6px 8px}
+.pr-layout.compatta .col-dx .col2,.pr-layout.compatta .col-dx .col3,.pr-layout.compatta .col-dx .col4,.pr-layout.compatta .col-dx .col6{grid-column:span 2}
+.pr-layout.compatta .col-dx .campo label{font-size:11px}
+.pr-layout.compatta .col-dx .campo input,.pr-layout.compatta .col-dx .campo select,.pr-layout.compatta .col-dx .campo textarea{padding:4px 7px;font-size:13px}
+.pr-layout.compatta .col-dx textarea{min-height:36px}
+.pr-layout.compatta .col-dx .t th,.pr-layout.compatta .col-dx .t td{padding:3px 6px}
+.pr-layout.compatta .col-dx .t input{padding:4px 6px;font-size:13px}
+.pr-layout.compatta .col-dx .avviso{display:none}
+@media (max-width:1250px){.pr-layout.compatta{grid-template-columns:minmax(0,1fr) 360px}}
+@media (max-width:1000px){.pr-layout.compatta{grid-template-columns:1fr}.pr-layout.compatta .col-dx{grid-column:1;grid-row:auto;position:static}.pr-layout.compatta .col-sx{grid-column:1;grid-row:auto}}
+/* ---- ritocchi 1.4 ---- */
+.pr-layout.compatta{grid-template-columns:minmax(0,1fr) 380px}
+.pr-layout.compatta .col-dx{max-height:calc(100vh - 80px);overflow:auto;padding-right:2px}
+.pr-layout.compatta .srv{padding:10px 12px}
+.pr-layout.compatta .srv-h{grid-template-columns:minmax(140px,2fr) minmax(110px,1.1fr) 92px 50px 96px 74px 34px;gap:6px}
+.pr-layout.compatta .srv-h .campo label{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pr-layout.compatta .srv-h .c-st label.small{font-size:11px}
+.pr-layout.compatta .srv-dett{grid-template-columns:1.3fr 1fr 170px;gap:6px}
+.pr-layout.compatta .card-servizi > .small.muted{display:none}
+.pr-layout.compatta .srv-tot .v{font-size:16px}
+.pr-layout.compatta .srv-tot>div{padding:8px 10px}
+.tab-scroll{overflow:auto}
+#tabDoc{min-width:860px}#tabDoc th{white-space:nowrap}
+#tabTes{min-width:640px}
+#tabIban{min-width:720px}
+#tabIban .mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}

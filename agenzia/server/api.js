@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.3.0';
+const VERSIONE = '1.4.0';
 
 class ErroreApi extends Error {
   constructor(codice, messaggio) { super(messaggio); this.codice = codice; }
@@ -286,7 +286,38 @@ function cliente(ctx) {
   c.pratiche = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.bozza, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura
      FROM pratiche p WHERE p.cliente_id = ? ORDER BY p.anno DESC, p.numero DESC`, id).map(arricchisciTotali);
   c.statistiche = statisticheCliente(id);
+  c.documenti = db.all('SELECT * FROM cliente_documenti WHERE cliente_id = ? ORDER BY ordine, id', id);
+  c.contatti = db.all('SELECT * FROM cliente_contatti WHERE cliente_id = ? ORDER BY ordine, id', id);
+  c.tessere = db.all('SELECT * FROM cliente_tessere WHERE cliente_id = ? ORDER BY ordine, id', id);
   return c;
+}
+// salva le liste collegate del cliente (sostituisce tutto)
+function salvaListeCliente(cid, c) {
+  if (Array.isArray(c.documenti)) {
+    db.run('DELETE FROM cliente_documenti WHERE cliente_id = ?', cid);
+    let o = 0;
+    for (const d of c.documenti) { if (!S(d.tipo) && !S(d.numero) && !S(d.scade)) continue;
+      db.run('INSERT INTO cliente_documenti(cliente_id, ordine, tipo, numero, rilasciato_da, rilasciato_il, scade, note) VALUES(?,?,?,?,?,?,?,?)', cid, o++, S(d.tipo), S(d.numero), S(d.rilasciato_da), DATA(d.rilasciato_il), DATA(d.scade), S(d.note)); }
+    // il primo documento resta anche nei campi vecchi (compatibilità)
+    const primo = db.get('SELECT * FROM cliente_documenti WHERE cliente_id = ? ORDER BY ordine, id LIMIT 1', cid) || {};
+    db.run('UPDATE clienti SET doc_tipo = ?, doc_numero = ?, doc_rilasciato_da = ?, doc_rilasciato_il = ?, doc_scade = ? WHERE id = ?', primo.tipo || '', primo.numero || '', primo.rilasciato_da || '', primo.rilasciato_il || '', primo.scade || '', cid);
+  }
+  if (Array.isArray(c.contatti)) {
+    db.run('DELETE FROM cliente_contatti WHERE cliente_id = ?', cid);
+    let o = 0;
+    for (const d of c.contatti) { if (!S(d.valore)) continue; db.run('INSERT INTO cliente_contatti(cliente_id, ordine, tipo, valore, note) VALUES(?,?,?,?,?)', cid, o++, S(d.tipo), S(d.valore), S(d.note)); }
+  }
+  if (Array.isArray(c.tessere)) {
+    db.run('DELETE FROM cliente_tessere WHERE cliente_id = ?', cid);
+    let o = 0;
+    for (const d of c.tessere) { if (!S(d.tipo) && !S(d.numero)) continue; db.run('INSERT INTO cliente_tessere(cliente_id, ordine, tipo, numero, scade, note) VALUES(?,?,?,?,?,?)', cid, o++, S(d.tipo), S(d.numero), DATA(d.scade), S(d.note)); }
+  }
+}
+function tessere_tipi() {
+  // tipi di tessera già usati (per i suggerimenti), finché non ci saranno vincoli
+  const base = ['MSC Voyagers Club', 'Costa Club', 'Trenitalia CartaFreccia', 'Italo Più', 'ITA Airways Volare', 'Lufthansa Miles & More', 'Royal Caribbean Crown & Anchor', 'Norwegian Latitudes'];
+  const usati = db.all("SELECT DISTINCT tipo FROM cliente_tessere WHERE tipo <> '' ORDER BY tipo").map(r => r.tipo);
+  return [...new Set([...usati, ...base])];
 }
 function cliente_salva(ctx) {
   const c = ctx.corpo || {};
@@ -297,31 +328,44 @@ function cliente_salva(ctx) {
   for (const k of CAMPI_CLIENTE) vals[k] = S(c[k]);
   for (const k of DATE_CLIENTE) vals[k] = DATA(c[k]);
   if (vals.cf) vals.cf = vals.cf.toUpperCase();
-  if (id) {
-    if (!db.get('SELECT id FROM clienti WHERE id = ?', id)) err(404, 'Cliente non trovato');
-    const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
-    db.run(`UPDATE clienti SET ${set}, aggiornato_ts = ?, aggiornato_da = ? WHERE id = ?`, ...Object.values(vals), ts, ctx.utente.id, id);
-    db.log(ctx.utente, 'cliente_modifica', 'cliente', id, `${vals.cognome} ${vals.nome}`);
-    return { id };
-  }
-  const cols = Object.keys(vals);
-  const r = db.run(`INSERT INTO clienti(${cols.join(',')}, creato_ts, creato_da, aggiornato_ts, aggiornato_da) VALUES(${cols.map(() => '?').join(',')},?,?,?,?)`,
-    ...Object.values(vals), ts, ctx.utente.id, ts, ctx.utente.id);
-  const nid = Number(r.lastInsertRowid);
-  db.log(ctx.utente, 'cliente_crea', 'cliente', nid, `${vals.cognome} ${vals.nome}`);
-  return { id: nid };
+  return db.transazione(() => {
+    if (id) {
+      if (!db.get('SELECT id FROM clienti WHERE id = ?', id)) err(404, 'Cliente non trovato');
+      const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
+      db.run(`UPDATE clienti SET ${set}, aggiornato_ts = ?, aggiornato_da = ? WHERE id = ?`, ...Object.values(vals), ts, ctx.utente.id, id);
+      salvaListeCliente(id, c);
+      db.log(ctx.utente, 'cliente_modifica', 'cliente', id, `${vals.cognome} ${vals.nome}`);
+      return { id };
+    }
+    const cols = Object.keys(vals);
+    const r = db.run(`INSERT INTO clienti(${cols.join(',')}, creato_ts, creato_da, aggiornato_ts, aggiornato_da) VALUES(${cols.map(() => '?').join(',')},?,?,?,?)`,
+      ...Object.values(vals), ts, ctx.utente.id, ts, ctx.utente.id);
+    const nid = Number(r.lastInsertRowid);
+    salvaListeCliente(nid, c);
+    db.log(ctx.utente, 'cliente_crea', 'cliente', nid, `${vals.cognome} ${vals.nome}`);
+    return { id: nid };
+  });
 }
 function cliente_elimina(ctx) {
   const id = N(ctx.corpo.id);
   const n = db.get('SELECT COUNT(*) AS n FROM pratiche WHERE cliente_id = ?', id).n;
   if (n > 0) err(400, `Il cliente ha ${n} pratiche: non si può cancellare`);
   db.run('DELETE FROM clienti WHERE id = ?', id);
+  for (const t of ['cliente_documenti', 'cliente_contatti', 'cliente_tessere']) db.run(`DELETE FROM ${t} WHERE cliente_id = ?`, id);
   db.log(ctx.utente, 'cliente_elimina', 'cliente', id, '');
   return { ok: true };
 }
 
 // ---------- fornitori ----------
-const CAMPI_FORNITORE = ['nome', 'tipo', 'indirizzo', 'cap', 'citta', 'provincia', 'nazione', 'telefono', 'fax', 'email', 'web', 'piva', 'cf', 'referente', 'referente_tel', 'referente_email', 'pagamento', 'iban', 'banca', 'note'];
+const CAMPI_FORNITORE = ['nome', 'tipo', 'indirizzo', 'cap', 'citta', 'provincia', 'nazione', 'telefono', 'fax', 'email', 'web', 'piva', 'cf', 'referente', 'referente_tel', 'referente_email', 'pagamento', 'iban', 'banca', 'note', 'codice_agenzia'];
+function salvaIbanFornitore(fid, c) {
+  if (!Array.isArray(c.ibans)) return;
+  db.run('DELETE FROM fornitore_iban WHERE fornitore_id = ?', fid);
+  let o = 0;
+  for (const d of c.ibans) { if (!S(d.iban) && !S(d.banca)) continue; db.run('INSERT INTO fornitore_iban(fornitore_id, ordine, intestazione, banca, iban, note) VALUES(?,?,?,?,?,?)', fid, o++, S(d.intestazione), S(d.banca), S(d.iban).replace(/\s+/g, '').toUpperCase(), S(d.note)); }
+  const primo = db.get('SELECT * FROM fornitore_iban WHERE fornitore_id = ? ORDER BY ordine, id LIMIT 1', fid) || {};
+  db.run('UPDATE fornitori SET iban = ?, banca = ? WHERE id = ?', primo.iban || '', primo.banca || '', fid);
+}
 
 function fornitori(ctx) {
   const q = S(ctx.query.q).toLowerCase();
@@ -341,6 +385,7 @@ function fornitore(ctx) {
   if (!f) err(404, 'Fornitore non trovato');
   f.situazione = situazioneFornitore(id);
   f.statistiche = statisticheFornitore(id);
+  f.ibans = db.all('SELECT * FROM fornitore_iban WHERE fornitore_id = ? ORDER BY ordine, id', id);
   return f;
 }
 function fornitore_salva(ctx) {
@@ -356,6 +401,7 @@ function fornitore_salva(ctx) {
     if (!db.get('SELECT id FROM fornitori WHERE id = ?', id)) err(404, 'Fornitore non trovato');
     const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
     db.run(`UPDATE fornitori SET ${set}, aggiornato_ts = ?, aggiornato_da = ? WHERE id = ?`, ...Object.values(vals), ts, ctx.utente.id, id);
+    salvaIbanFornitore(id, c);
     db.log(ctx.utente, 'fornitore_modifica', 'fornitore', id, vals.nome);
     return { id };
   }
@@ -363,6 +409,7 @@ function fornitore_salva(ctx) {
   const r = db.run(`INSERT INTO fornitori(${cols.join(',')}, creato_ts, creato_da, aggiornato_ts, aggiornato_da) VALUES(${cols.map(() => '?').join(',')},?,?,?,?)`,
     ...Object.values(vals), ts, ctx.utente.id, ts, ctx.utente.id);
   const nid = Number(r.lastInsertRowid);
+  salvaIbanFornitore(nid, c);
   db.log(ctx.utente, 'fornitore_crea', 'fornitore', nid, vals.nome);
   return { id: nid };
 }
@@ -511,7 +558,7 @@ function pratica_salva(ctx) {
   vals.stato = stato;
   vals.data_apertura = DATA(c.data_apertura) || db.oggi();
   vals.intermediazione = c.intermediazione === undefined ? 1 : B(c.intermediazione);
-  vals.pacchetto_servizio = S(c.pacchetto_servizio) === 'servizio' ? 'servizio' : 'pacchetto';
+  vals.pacchetto_servizio = ['servizio', 'biglietteria'].includes(S(c.pacchetto_servizio)) ? S(c.pacchetto_servizio) : 'pacchetto';
   vals.in_catalogo = c.in_catalogo === undefined ? 1 : B(c.in_catalogo);
   vals.partenza = DATA(c.partenza); vals.rientro = DATA(c.rientro);
   vals.adulti = N(c.adulti); vals.bambini = N(c.bambini); vals.infanti = N(c.infanti);
@@ -529,6 +576,12 @@ function pratica_salva(ctx) {
   const partecipanti = Array.isArray(c.partecipanti) ? c.partecipanti : [];
   for (const r of righe) {
     if (r.fornitore_id && !db.get('SELECT id FROM fornitori WHERE id = ?', N(r.fornitore_id))) err(400, 'Fornitore della riga non trovato');
+  }
+  // Mettere "in stampa" una voce nascosta richiede la password del pannello (sbloccato in sessione).
+  const figliInStampa = righe.reduce((n, r) => n + (Array.isArray(r.figli) ? r.figli.filter(c => B(c.stampa) && (S(c.descrizione) || CENT(c.prezzo))).length : 0), 0);
+  if (figliInStampa > 0 && !(ctx.sessione && ctx.sessione.pannello)) {
+    const prima = id ? db.get('SELECT COUNT(*) AS n FROM pratica_righe WHERE pratica_id = ? AND padre_id IS NOT NULL AND stampa = 1', id).n : 0;
+    if (figliInStampa > prima) err(403, 'Per mettere in stampa una voce nascosta serve la password del pannello opzioni');
   }
 
   return db.transazione(() => {
@@ -670,8 +723,8 @@ function scadenze(ctx) {
     FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id JOIN fornitori f ON f.id = r.fornitore_id JOIN clienti c ON c.id = p.cliente_id
     WHERE p.stato IN ('Confermata','Chiusa') GROUP BY f.id, p.id HAVING costo_cent - pagato_cent > 0 ORDER BY p.partenza`)
     .map(r => ({ ...r, dovuto_cent: r.costo_cent - r.pagato_cent }));
-  const documenti = db.all(`SELECT c.id, c.cognome || ' ' || c.nome AS cliente, c.doc_tipo, c.doc_scade, c.cellulare FROM clienti c
-    WHERE c.doc_scade <> '' AND c.doc_scade <= ? AND c.id IN (SELECT cliente_id FROM pratiche WHERE stato = 'Confermata' AND partenza >= ?) ORDER BY c.doc_scade`, fra90, oggi);
+  const documenti = db.all(`SELECT c.id, c.cognome || ' ' || c.nome AS cliente, d.tipo AS doc_tipo, d.scade AS doc_scade, c.cellulare FROM cliente_documenti d JOIN clienti c ON c.id = d.cliente_id
+    WHERE d.scade <> '' AND d.scade <= ? AND c.id IN (SELECT cliente_id FROM pratiche WHERE stato = 'Confermata' AND partenza >= ?) ORDER BY d.scade`, fra90, oggi);
   return { oggi, saldi, partenze, fornitori, documenti };
 }
 
@@ -753,6 +806,7 @@ const AZIONI = {
   cliente: { fn: cliente },
   cliente_salva: { fn: cliente_salva, post: true },
   cliente_elimina: { fn: cliente_elimina, post: true },
+  tessere_tipi: { fn: tessere_tipi },
   fornitori: { fn: fornitori },
   fornitore: { fn: fornitore },
   fornitore_salva: { fn: fornitore_salva, post: true },

@@ -365,8 +365,9 @@ async function paginaPratica(id) {
 
   shell('pratiche', titolo, `
   ${!nuova ? `<div class="muted small" style="margin:-8px 0 12px">Aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</div>` : `<div class="avviso info">Il numero <b>${P.numero}/${P.anno}</b> viene assegnato al primo salvataggio. Fino ad allora la pratica è una bozza.</div>`}
-  <div id="fPratica">
-  <div class="card"><h2>Cliente e pratica</h2>
+  <div id="fPratica" class="pr-layout">
+  <div class="col-dx">
+  <div class="card"><h2>Cliente e pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnVista" title="Alterna la vista larga (per compilare) e quella compatta (tutto in una schermata)">⇄ vista</button></h2>
     <div class="griglia g4">
       <div class="campo col2"><label>Cliente intestatario *</label>
         <div class="picker"><input id="pkCliente" value="${esc(P.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${P.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div>
@@ -376,7 +377,7 @@ async function paginaPratica(id) {
       <div class="campo"><label>Tipo pratica</label><input name="tipo" list="dlTipi" value="${esc(P.tipo || '')}">${datalist('dlTipi', L.tipi_pratica)}</div>
       <div class="campo"><label>Data apertura</label><input name="data_apertura" type="date" value="${esc(P.data_apertura || '')}"></div>
       <div class="campo"><label>Rapporto</label><select name="intermediazione">${opzioni([{ value: '1', label: 'Intermediazione (vendiamo per conto del T.O.)' }, { value: '0', label: 'Nostra organizzazione' }], String(P.intermediazione ?? 1))}</select></div>
-      <div class="campo"><label>Oggetto</label><select name="pacchetto_servizio">${opzioni([{ value: 'pacchetto', label: 'Pacchetto turistico' }, { value: 'servizio', label: 'Servizio turistico' }], P.pacchetto_servizio)}</select></div>
+      <div class="campo"><label>Oggetto</label><select name="pacchetto_servizio" id="selOggetto">${opzioni([{ value: 'pacchetto', label: 'Pacchetto turistico' }, { value: 'servizio', label: 'Servizio turistico' }, { value: 'biglietteria', label: 'Biglietteria' }], P.pacchetto_servizio)}</select></div>
       <div class="campo"><label>Catalogo</label><select name="in_catalogo">${opzioni([{ value: '1', label: 'In catalogo' }, { value: '0', label: 'Fuori catalogo' }], String(P.in_catalogo ?? 1))}</select></div>
       <div class="campo"><label>Nome catalogo</label><input name="catalogo" value="${esc(P.catalogo || '')}"></div>
       <div class="campo"><label>Pagina</label><input name="catalogo_pag" value="${esc(P.catalogo_pag || '')}"></div>
@@ -404,7 +405,9 @@ async function paginaPratica(id) {
 
   <div class="card"><h2>Partecipanti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPart">+ Aggiungi</button></h2>
     <table class="t compatta" data-righe id="tabPart"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th></th></tr></thead><tbody>${P.partecipanti.map(rigaPart).join('')}</tbody></table></div>
-
+  </div>
+  <div class="col-sx">
+  <div class="avviso info hidden" id="avvBiglietteria"><b>Biglietteria:</b> per le pratiche di sola biglietteria valgono regole diverse (in arrivo). Per ora i servizi suggeriti sono biglietti, tasse e diritti di emissione.</div>
   <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn" id="btnAnteprima" title="Mostra i servizi come li vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
     <div id="anteprimaServizi" class="hidden"></div>
     ${datalist('dlServizi', L.descrizioni_servizi)}${datalist('dlFigli', ['Provvigione agenzia', "Diritti d'agenzia", 'Assicurazione', 'Spese', 'Altro'])}
@@ -427,6 +430,7 @@ async function paginaPratica(id) {
     </div></div>
 
   ${nuova ? '' : `<div class="card"><h2>Fornitori di questa pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPag">+ Registra pagamento a fornitore</button></h2><div id="boxFornitori"></div></div>`}
+  </div>
   </div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>
     <button type="button" class="btn" data-stampa>🖨 Stampa conferma</button>
@@ -513,9 +517,38 @@ async function paginaPratica(id) {
   };
   $('#btnAnteprima').onclick = () => { anteprima = !anteprima; renderAnteprima(); };
 
+  // Vista compatta (tutto in una schermata): automatica appena c'è il cliente; il tasto ⇄ la alterna
+  let compatta = !nuova || !!P.cliente_id;
+  const applicaVista = () => { $('#fPratica').classList.toggle('compatta', compatta); $('#btnVista').textContent = compatta ? '⇄ vista larga' : '⇄ vista compatta'; };
+  $('#btnVista').onclick = () => { compatta = !compatta; applicaVista(); };
+  applicaVista();
+
+  // Oggetto "Biglietteria": suggerimenti diversi per i servizi (le regole complete arrivano dopo)
+  const SERVIZI_BIGLIETTERIA = ['Biglietto aereo', 'Biglietto treno', 'Biglietto nave / traghetto', 'Tasse aeroportuali', 'Supplemento bagaglio', 'Diritti di emissione', 'Assicurazione'];
+  const applicaOggetto = () => {
+    const big = $('#selOggetto').value === 'biglietteria';
+    $('#avvBiglietteria').classList.toggle('hidden', !big);
+    $('#dlServizi').innerHTML = (big ? SERVIZI_BIGLIETTERIA : L.descrizioni_servizi).map(v => `<option value="${esc(v)}">`).join('');
+  };
+  $('#selOggetto').addEventListener('change', applicaOggetto); applicaOggetto();
+
+  // Mettere "in stampa" una voce nascosta richiede la password del pannello
+  pg.addEventListener('change', async e => {
+    const t = e.target;
+    if (!(t.matches('[data-figlio] [data-k=stampa]') && t.checked) || STATO.pannello) return;
+    t.checked = false; ricalcola();
+    const ok = await modale({
+      titolo: 'Voce nascosta in stampa', ok: 'Sblocca',
+      corpo: `<p>Le voci nascoste di norma non vanno in stampa. Per stamparne una serve la <b>password del pannello Opzioni</b>.</p><div class="campo"><label>Password del pannello</label><input name="password" type="password"></div>`,
+      onOk: async d => { await api('pannello_sblocca', leggiForm(d)); STATO.pannello = true; return true; }
+    });
+    if (ok) { t.checked = true; sporca = true; ricalcola(); }
+  });
+
   // picker cliente
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => {
     sporca = true;
+    if (!compatta) { compatta = true; applicaVista(); }
     $('#lnkApriCliente').classList.remove('hidden');
     $('#lnkApriCliente').href = '#/clienti/' + c.id;
     if (!$$('#tabPart tbody tr').length) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ nome: `${c.cognome} ${c.nome}`, nato_il: c.nato_il }));
@@ -689,12 +722,17 @@ async function paginaClienti() {
 
 async function paginaCliente(id) {
   const nuovo = id === 'nuovo';
-  const C = nuovo ? { pratiche: [], statistiche: { perAnno: [], totali: { n: 0, venduto_cent: 0, versato_cent: 0 }, destinazioni: [] } } : await api('cliente', undefined, { id });
+  const C = nuovo ? { pratiche: [], documenti: [], contatti: [], tessere: [], statistiche: { perAnno: [], totali: { n: 0, venduto_cent: 0, versato_cent: 0 }, destinazioni: [] } } : await api('cliente', undefined, { id });
+  const tipiTessere = await api('tessere_tipi').catch(() => []);
   const L = STATO.imp.liste;
   const campo = (n, lab, tipo = 'text', extra = '') => `<div class="campo ${extra}"><label>${lab}</label><input name="${n}" type="${tipo}" value="${esc(C[n] || '')}"></div>`;
+  const TIPI_CONTATTO = ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'];
+  const rigaDoc = (d = {}) => `<tr><td><input data-k="tipo" list="dlDocCl" value="${esc(d.tipo || '')}" placeholder="Tipo"></td><td><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero"></td><td><input data-k="rilasciato_da" value="${esc(d.rilasciato_da || '')}" placeholder="Rilasciato da"></td><td style="width:150px"><input data-k="rilasciato_il" type="date" value="${esc(d.rilasciato_il || '')}"></td><td style="width:150px"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
+  const rigaCon = (d = {}) => `<tr><td style="width:170px"><select data-k="tipo">${opzioni(TIPI_CONTATTO, d.tipo || 'Telefono')}</select></td><td><input data-k="valore" value="${esc(d.valore || '')}" placeholder="Numero o indirizzo"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Riferimento / note (es. moglie, ufficio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
+  const rigaTes = (d = {}) => `<tr><td><input data-k="tipo" list="dlTessere" value="${esc(d.tipo || '')}" placeholder="Tessera / programma (es. MSC Voyagers Club)"></td><td><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero tessera"></td><td style="width:150px"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (livello, punti…)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   shell('clienti', nuovo ? 'Nuovo cliente' : `${esc(C.cognome)} ${esc(C.nome)}`, `
-  <div class="griglia" style="grid-template-columns: 2fr 1fr">
-  <div>
+  <div class="griglia" style="grid-template-columns: minmax(0,1fr) 340px">
+  <div style="min-width:0">
   <div id="fCliente">
   <div class="card"><h2>Anagrafica</h2><div class="griglia g4">
     ${campo('cognome', 'Cognome *')}${campo('nome', 'Nome')}${campo('azienda', 'Azienda', 'text', 'col2')}
@@ -704,13 +742,21 @@ async function paginaCliente(id) {
     ${campo('nato_il', 'Nato il', 'date')}${campo('nato_a', 'Luogo di nascita', 'text', 'col2')}
     ${campo('cf', 'Codice fiscale', 'text')}${campo('piva', 'Partita IVA')}
   </div></div>
-  <div class="card"><h2>Contatti</h2><div class="griglia g4">
+  <div class="card"><h2>Contatti <span class="spazio"></span><button type="button" class="btn piccolo" data-add="con">+ Aggiungi contatto</button></h2><div class="griglia g4">
     ${campo('cellulare', 'Cellulare')}${campo('telefono', 'Telefono')}${campo('telefono2', 'Telefono 2')}${campo('email', 'Email', 'email')}
-  </div></div>
-  <div class="card"><h2>Documento</h2><div class="griglia g4">
-    <div class="campo"><label>Tipo</label><input name="doc_tipo" list="dlDocCl" value="${esc(C.doc_tipo || '')}">${datalist('dlDocCl', L.tipi_documento_cliente)}</div>
-    ${campo('doc_numero', 'Numero')}${campo('doc_rilasciato_da', 'Rilasciato da')}${campo('doc_rilasciato_il', 'Rilasciato il', 'date')}${campo('doc_scade', 'Scade il', 'date')}
-  </div></div>
+  </div>
+  <div class="tab-scroll"><table class="t compatta" data-righe id="tabCon" style="margin-top:10px"><thead><tr><th>Tipo</th><th>Numero / indirizzo</th><th>Riferimento</th><th></th></tr></thead><tbody>${(C.contatti || []).map(rigaCon).join('')}</tbody></table></div>
+  </div>
+  <div class="card"><h2>Documenti <span class="spazio"></span><button type="button" class="btn piccolo" data-add="doc">+ Aggiungi documento</button></h2>
+    ${datalist('dlDocCl', L.tipi_documento_cliente)}
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabDoc"><thead><tr><th>Tipo</th><th>Numero</th><th>Rilasciato da</th><th>Rilasciato il</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.documenti || []).map(rigaDoc).join('')}</tbody></table></div>
+    <div class="small muted" style="margin-top:6px">Le scadenze dei documenti compaiono nella schermata Scadenze per i clienti in partenza.</div>
+  </div>
+  <div class="card"><h2>Tessere e programmi fedeltà <span class="spazio"></span><button type="button" class="btn piccolo" data-add="tes">+ Aggiungi tessera</button></h2>
+    ${datalist('dlTessere', tipiTessere)}
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabTes"><thead><tr><th>Tessera</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.tessere || []).map(rigaTes).join('')}</tbody></table></div>
+    <div class="small muted" style="margin-top:6px">Campo libero: MSC, Costa, Trenitalia, compagnie aeree… I nomi già usati vengono suggeriti.</div>
+  </div>
   <div class="card"><h2>Note</h2><div class="griglia g2">
     <div class="campo"><label>Note</label><textarea name="note">${esc(C.note || '')}</textarea></div>
     <div class="campo"><label>Viaggia con (compagni abituali)</label><textarea name="viaggia_con">${esc(C.viaggia_con || '')}</textarea></div>
@@ -718,7 +764,7 @@ async function paginaCliente(id) {
   </div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>${nuovo ? '' : `<a class="btn" href="#/pratiche/nuova/${C.id}">+ Nuova pratica per questo cliente</a>`}<span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/clienti">Torna all'elenco</a></div>
   </div>
-  <div>
+  <div style="min-width:0;overflow:auto">
     ${nuovo ? '' : `<div class="card"><h2>Statistiche</h2>
       <div class="cards-stat" style="grid-template-columns:1fr 1fr"><div class="stat"><div class="l">Pratiche</div><div class="v">${C.statistiche.totali.n}</div></div><div class="stat"><div class="l">Totale speso</div><div class="v" style="font-size:18px">${eur(C.statistiche.totali.venduto_cent)}</div></div></div>
       ${C.statistiche.perAnno.length ? `<table class="t compatta"><thead><tr><th>Anno</th><th class="num">Pratiche</th><th class="num">Venduto</th><th class="num">Versato</th></tr></thead><tbody>${C.statistiche.perAnno.map(r => `<tr><td>${r.anno}</td><td class="num">${r.n}</td><td class="num">${eur(r.venduto_cent)}</td><td class="num">${eur(r.versato_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Ancora nessuna pratica confermata</div>'}
@@ -726,10 +772,17 @@ async function paginaCliente(id) {
     <div class="card"><h2>Pratiche</h2>${C.pratiche.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Partenza</th><th>Destinazione</th><th>Stato</th><th class="num">Saldo</th></tr></thead><tbody>
       ${C.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono">${p.numero}/${p.anno}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.destinazione || '').split('\n')[0]).slice(0, 40)}</td><td>${badgeStato(p.stato, p.bozza)}</td><td class="num">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica</div>'}</div>`}
   </div></div>`);
+  const pg = $('#pg');
   let sporca = false;
   $('#fCliente').addEventListener('input', () => { sporca = true; });
+  pg.addEventListener('click', e => {
+    const a = e.target.closest('[data-add]'); if (a) { const t = { doc: ['#tabDoc', rigaDoc], con: ['#tabCon', rigaCon], tes: ['#tabTes', rigaTes] }[a.dataset.add]; $(t[0] + ' tbody').insertAdjacentHTML('beforeend', t[1]()); $(t[0] + ' tbody tr:last-child input, ' + t[0] + ' tbody tr:last-child select').focus(); sporca = true; return; }
+    const b = e.target.closest('[data-del]'); if (b) { b.closest('tr').remove(); sporca = true; }
+  });
+  const leggiRighe = sel => $$(sel + ' tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value])));
   const salvaInterno = async () => {
     const d = leggiForm($('#fCliente')); d.id = C.id || 0;
+    d.documenti = leggiRighe('#tabDoc'); d.contatti = leggiRighe('#tabCon'); d.tessere = leggiRighe('#tabTes');
     try { const r = await api('cliente_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
   const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Cliente salvato', 'ok'); if (nuovo) naviga('#/clienti/' + r.id); };
@@ -763,7 +816,8 @@ async function paginaFornitori() {
 
 async function paginaFornitore(id) {
   const nuovo = id === 'nuovo';
-  const F = nuovo ? { attivo: 1, situazione: { pratiche: [], totali: {} }, statistiche: [] } : await api('fornitore', undefined, { id });
+  const F = nuovo ? { attivo: 1, situazione: { pratiche: [], totali: {} }, statistiche: [], ibans: [] } : await api('fornitore', undefined, { id });
+  const rigaIban = (d = {}) => `<tr><td><input data-k="intestazione" value="${esc(d.intestazione || '')}" placeholder="Intestato a"></td><td><input data-k="banca" value="${esc(d.banca || '')}" placeholder="Banca"></td><td><input data-k="iban" value="${esc(d.iban || '')}" placeholder="IT00 X000 0000 0000 0000 0000 000" class="mono"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (es. per i voli)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const L = STATO.imp.liste;
   const campo = (n, lab, tipo = 'text', extra = '') => `<div class="campo ${extra}"><label>${lab}</label><input name="${n}" type="${tipo}" value="${esc(F[n] || '')}"></div>`;
   const st = F.statistiche || [];
@@ -781,9 +835,12 @@ async function paginaFornitore(id) {
   </div></div>
   <div class="card"><h2>Referente e pagamenti</h2><div class="griglia g4">
     ${campo('referente', 'Referente / promoter')}${campo('referente_tel', 'Telefono referente')}${campo('referente_email', 'Email referente', 'email', 'col2')}
-    ${campo('provvigione', 'Provvigione %')}${campo('pagamento', 'Modalità di pagamento')}${campo('iban', 'IBAN', 'text', 'col2')}${campo('banca', 'Banca', 'text', 'col2')}
+    ${campo('provvigione', 'Provvigione %')}${campo('pagamento', 'Modalità di pagamento')}${campo('codice_agenzia', 'Codice agenzia presso il fornitore', 'text', 'col2')}
     <div class="campo col4"><label>Note</label><textarea name="note">${esc(F.note || '')}</textarea></div>
-  </div></div></div>
+  </div></div>
+  <div class="card"><h2>Coordinate bancarie (IBAN) <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddIban">+ Aggiungi IBAN</button></h2>
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabIban"><thead><tr><th>Intestazione</th><th>Banca</th><th>IBAN</th><th>Note</th><th></th></tr></thead><tbody>${(F.ibans || []).map(rigaIban).join('')}</tbody></table></div>
+    <div class="small muted" style="margin-top:6px">Il primo IBAN dell'elenco è quello principale.</div></div></div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/fornitori">Torna all'elenco</a></div>
   ${nuovo ? '' : `<div class="card"><h2>Situazione pratiche</h2>
     <div class="cards-stat" style="grid-template-columns:repeat(4,1fr)">
@@ -799,8 +856,11 @@ async function paginaFornitore(id) {
       `<table class="t compatta" style="margin-top:10px"><thead><tr><th>Anno</th><th class="num">Pratiche</th><th class="num">Venduto</th><th class="num">Costo</th><th class="num">Pagato</th><th class="num">Margine</th></tr></thead><tbody>${st.map(r => `<tr><td>${r.anno}</td><td class="num">${r.n}</td><td class="num">${eur(r.venduto_cent)}</td><td class="num">${eur(r.costo_cent)}</td><td class="num">${eur(r.pagato_cent)}</td><td class="num">${eur(r.venduto_cent - r.costo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica confermata</div>'}</div>`}</div></div>`);
   let sporca = false;
   $('#fForn').addEventListener('input', () => { sporca = true; });
+  $('#btnAddIban').onclick = () => { $('#tabIban tbody').insertAdjacentHTML('beforeend', rigaIban()); $('#tabIban tbody tr:last-child input').focus(); sporca = true; };
+  $('#fForn').addEventListener('click', e => { const b = e.target.closest('[data-del]'); if (b) { b.closest('tr').remove(); sporca = true; } });
   const salvaInterno = async () => {
     const d = leggiForm($('#fForn')); d.id = F.id || 0;
+    d.ibans = $$('#tabIban tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value])));
     try { const r = await api('fornitore_salva', d); FORNITORI_CACHE = null; sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
   const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Fornitore salvato', 'ok'); if (nuovo) naviga('#/fornitori/' + r.id); };

@@ -280,6 +280,29 @@ function migra() {
     }
     db.exec('PRAGMA user_version = 4');
   }
+  if (v < 5) {
+    // v5: più documenti / contatti / tessere per cliente; più IBAN e codice agenzia per fornitore
+    db.exec(`CREATE TABLE IF NOT EXISTS cliente_documenti (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      tipo TEXT NOT NULL DEFAULT '', numero TEXT NOT NULL DEFAULT '', rilasciato_da TEXT NOT NULL DEFAULT '', rilasciato_il TEXT NOT NULL DEFAULT '', scade TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_cdoc_cliente ON cliente_documenti(cliente_id);
+      CREATE TABLE IF NOT EXISTS cliente_contatti (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      tipo TEXT NOT NULL DEFAULT '', valore TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_ccon_cliente ON cliente_contatti(cliente_id);
+      CREATE TABLE IF NOT EXISTS cliente_tessere (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      tipo TEXT NOT NULL DEFAULT '', numero TEXT NOT NULL DEFAULT '', scade TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_ctes_cliente ON cliente_tessere(cliente_id);
+      CREATE TABLE IF NOT EXISTS fornitore_iban (id INTEGER PRIMARY KEY AUTOINCREMENT, fornitore_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      intestazione TEXT NOT NULL DEFAULT '', banca TEXT NOT NULL DEFAULT '', iban TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_fiban_fornitore ON fornitore_iban(fornitore_id);`);
+    const colsF = db.prepare('PRAGMA table_info(fornitori)').all().map(c => c.name);
+    if (!colsF.includes('codice_agenzia')) db.exec("ALTER TABLE fornitori ADD COLUMN codice_agenzia TEXT NOT NULL DEFAULT ''");
+    // porta il documento unico e l'IBAN unico nelle nuove liste
+    for (const c of db.prepare("SELECT id, doc_tipo, doc_numero, doc_rilasciato_da, doc_rilasciato_il, doc_scade FROM clienti WHERE doc_tipo <> '' OR doc_numero <> '' OR doc_scade <> ''").all())
+      db.prepare('INSERT INTO cliente_documenti(cliente_id, ordine, tipo, numero, rilasciato_da, rilasciato_il, scade) VALUES(?,0,?,?,?,?,?)').run(c.id, c.doc_tipo, c.doc_numero, c.doc_rilasciato_da, c.doc_rilasciato_il, c.doc_scade);
+    for (const f of db.prepare("SELECT id, iban, banca FROM fornitori WHERE iban <> ''").all())
+      db.prepare('INSERT INTO fornitore_iban(fornitore_id, ordine, banca, iban) VALUES(?,0,?,?)').run(f.id, f.banca, f.iban);
+    db.exec('PRAGMA user_version = 5');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

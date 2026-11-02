@@ -36,15 +36,17 @@
 
 ### Clienti
 Cognome, nome, azienda, indirizzo, CAP, città, provincia, nazione, sesso, telefono,
-cellulare, telefono 2, email, nato il / luogo, codice fiscale, P.IVA, documento (tipo,
-numero, rilasciato da, rilasciato il, scade il), note, "viaggia con". Data creazione,
+cellulare, telefono 2, email + **altri contatti** (lista: tipo, numero, riferimento), nato il /
+luogo, codice fiscale, P.IVA, **documenti** (lista: tipo, numero, rilasciato da, il, scade),
+**tessere e programmi fedeltà** (lista a campo libero: MSC, Costa, Trenitalia…), note, "viaggia con". Data creazione,
 ultimo contatto, chi ha modificato. Dalla scheda si vedono le pratiche del cliente e le
 sue statistiche (quante pratiche, quanto speso, per anno).
 
 ### Fornitori
 Nome, tipo (Tour operator, Hotel, Assicurazione, Compagnia aerea, Autonoleggio, Navale,
 Trasporti, Ferrovie, Guide, Ristorante, Corrispondenti, Servizi vari), indirizzo, contatti,
-P.IVA, referente, provvigione %, modalità pagamento, IBAN/banca, note. Dalla scheda si vede
+P.IVA, referente, provvigione %, modalità pagamento, **codice agenzia presso il fornitore**,
+**più IBAN** (lista: intestazione, banca, IBAN, note), note. Dalla scheda si vede
 la **situazione**: per ogni pratica quanto l'agenzia deve al fornitore, quanto ha già pagato,
 quanto il cliente ha versato per quella quota; e le **statistiche per anno** (confronto anni).
 
@@ -53,7 +55,8 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
   imposta da quale numero partire la prima volta), cliente, operatore (chi l'ha creata),
   tipo pratica, **stato** (Preventivo · Confermata · Annullata · Annullata con penale ·
   Chiusa; con penale si indica l'importo della penale), data apertura, intermediazione
-  (sì di norma) o organizzazione propria, pacchetto/servizio, in catalogo o fuori catalogo
+  (sì di norma) o organizzazione propria, oggetto pacchetto/servizio/**biglietteria** (regole
+  dedicate in arrivo), in catalogo o fuori catalogo
   (catalogo e pagina), destinazione/
   itinerario, partenza e rientro (data + "da/a" facoltativi), adulti/bambini/infanti,
   durata giorni/notti, PNR, documenti necessari, richieste specifiche, note interne.
@@ -62,7 +65,10 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
   "in stampa", più **N. pratica T.O. e operatore T.O.** del fornitore (stampati sotto il servizio,
   spunta per toglierli). Sotto ogni servizio si aggiungono **voci nascoste** (provvigione, diritti, costi):
   si sommano all'importo del servizio e il cliente vede UNA riga col totale (una voce nascosta
-  può anche essere messa "in stampa" come riga a parte). L'importo del servizio con fornitore
+  può anche essere messa "in stampa" come riga a parte, ma solo con la password del pannello).
+- **Vista**: finché non c'è il cliente la pratica è "larga" (si compila dall'alto); appena scelto il
+  cliente passa alla **vista compatta**, tutta in una schermata: servizi e acconti al centro, cliente,
+  viaggio e partecipanti in piccolo a destra. Il tasto "⇄ vista" le alterna. L'importo del servizio con fornitore
   è quanto dovete al fornitore; le voci nascoste restano all'agenzia (margine).
 - **Acconti (illimitati):** data, importo, metodo, descrizione, fornitore a cui si
   riferisce (facoltativo), chi l'ha registrato. Abbuono e **saldo da versare entro il**.
