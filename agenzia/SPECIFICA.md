@@ -96,6 +96,14 @@ contro anno precedente); per operatore; migliori clienti. Esclude le pratiche an
 - Tutti i **testi legali** e i dati dell'intestazione si modificano dal pannello opzioni.
 - Ricevuta per singolo acconto: **rimandata** (da decidere).
 
+## 4b. Biglietteria (da costruire, regole in arrivo)
+Oggetto "Biglietteria" nella pratica. Lista dei **vettori** (modificabile da Opzioni → Liste,
+"Vettori biglietteria"), presa dal vecchio programma: ADR Parking, Air Europa, Air France, Alilauro,
+Amatori, Avis, Ease, Easyjet, Esta, Europcar, Eurowings, FCOExpress, Flixbus, Fly Dubai, Gesac, Global
+Hertz, GNV, Grimaldi, Iberia, ITA Airways, Itabus, Maggiore, Marino Bus, Miccolis, Morfimare, Neos,
+Ryanair, Satam, Siremar, SNAV, Superfast, TAP, Tirrenia, Transavia, Volotea, Vueling, Wizzair, Varie.
+Le regole dei servizi di biglietteria (campi, stampa) verranno definite con l'autore.
+
 ## 5. Fuori dalla prima versione
 Biglietteria aerea/ferroviaria come modulo a parte, voucher, buoni di consegna, estratti
 conto, newsletter, credenziali web dei fornitori, importazione dei dati dal vecchio FESTA

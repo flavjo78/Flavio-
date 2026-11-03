@@ -967,7 +967,7 @@ async function paginaOpzioni(scheda = 'agenzia') {
     ${campo(T, 'firma', 'Etichetta firma')}${campo(T, 'firma_nota', 'Nota sotto la firma')}${campo(T, 'privacy', 'Informativa privacy', 'col2', 'textarea')}
     </div><div class="azioni" style="margin-top:14px"><button class="btn primario" id="btnSalvaOpz">Salva</button></div></div>`;
   if (scheda === 'liste') {
-    const NOMI = { tipi_pratica: 'Tipi di pratica', tipi_fornitore: 'Tipi di fornitore', metodi_pagamento: 'Metodi di pagamento', documenti_necessari: 'Documenti necessari (pratica)', descrizioni_servizi: 'Descrizioni servizi (suggerimenti)', tipi_documento_cliente: 'Tipi di documento (cliente)' };
+    const NOMI = { tipi_pratica: 'Tipi di pratica', tipi_fornitore: 'Tipi di fornitore', metodi_pagamento: 'Metodi di pagamento', documenti_necessari: 'Documenti necessari (pratica)', descrizioni_servizi: 'Descrizioni servizi (suggerimenti)', tipi_documento_cliente: 'Tipi di documento (cliente)', vettori_biglietteria: 'Vettori biglietteria (compagnie, navi, bus, noleggi)' };
     corpo = `<div class="card" id="fOpz"><h2>Liste a tendina</h2><p class="muted small">Una voce per riga. Sono suggerimenti: nei campi si può comunque scrivere a mano.</p><div class="griglia g3">
       ${Object.keys(NOMI).map(k => `<div class="campo"><label>${NOMI[k]}</label><textarea name="${k}" style="min-height:160px">${esc((imp.liste[k] || []).join('\n'))}</textarea></div>`).join('')}
       </div><div class="azioni" style="margin-top:14px"><button class="btn primario" id="btnSalvaOpz">Salva</button></div></div>`;

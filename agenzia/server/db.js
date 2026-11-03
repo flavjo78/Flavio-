@@ -208,7 +208,9 @@ const IMPOSTAZIONI_DEFAULT = {
     metodi_pagamento: ['Contanti', 'Bonifico', 'Carta / POS', 'Assegno', 'Altro'],
     documenti_necessari: ["Carta d'identità", "Carta d'identità valida per l'espatrio", 'Passaporto', 'Passaporto + visto'],
     descrizioni_servizi: ['Quota pacchetto', 'Quota soggiorno', 'Quota volo', 'Tasse aeroportuali', 'Assicurazione', 'Transfer', 'Noleggio auto', 'Escursione', 'ADV fee', "Diritti d'agenzia"],
-    tipi_documento_cliente: ["Carta d'identità", 'Passaporto', 'Patente']
+    tipi_documento_cliente: ["Carta d'identità", 'Passaporto', 'Patente'],
+    // Vettori per la BIGLIETTERIA (compagnie aeree, navi, bus, treni, noleggi, parcheggi) — dal vecchio programma
+    vettori_biglietteria: ['ADR PARKING', 'AIR EUROPA', 'AIR FRANCE', 'ALILAURO', 'AMATORI', 'AVIS', 'EASE', 'EASYJET', 'ESTA', 'EUROPCAR', 'EUROWINGS', 'FCOEXPRESS', 'FLIXBUS', 'FLY DUBAI', 'GESAC', 'GLOBAL HERTZ', 'GNV', 'GRIMALDI', 'IBERIA', 'ITA AIRWAYS', 'ITABUS', 'MAGGIORE', 'MARINO BUS', 'MICCOLIS', 'MORFIMARE', 'NEOS', 'RYANAIR', 'SATAM', 'SIREMAR', 'SNAV', 'SUPERFAST', 'TAP', 'TIRRENIA', 'TRANSAVIA', 'VOLOTEA', 'VUELING', 'WIZZAIR', 'VARIE']
   },
   testi: {
     titolo: 'PROPOSTA DI COMPRAVENDITA DI PACCHETTO/SERVIZIO TURISTICO',
