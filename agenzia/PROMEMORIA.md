@@ -1,4 +1,7 @@
-# PROMEMORIA — cose da fare (NON ancora iniziate)
+# PROMEMORIA — cose da fare
+
+> Aggiornato 4 novembre 2026: le voci sotto sono state costruite nella 1.5 (prima versione);
+> restano aperte le domande sull'Excel (vedi conversazione) e le regole fini della biglietteria.
 
 > Appunti dell'autore (3 novembre 2026), da sviscerare uno alla volta nella prossima sessione.
 > Solo promemoria: nessuna di queste voci è stata costruita.

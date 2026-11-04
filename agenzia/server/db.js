@@ -200,7 +200,7 @@ const IMPOSTAZIONI_DEFAULT = {
     iban: '',
     logo: ''   // immagine (data URL) facoltativa per la stampa
   },
-  numerazione: { anno_iniziale: new Date().getFullYear(), numero_iniziale: 1 },
+  numerazione: { anno_iniziale: new Date().getFullYear(), numero_iniziale: 1, numero_iniziale_b: 1 },
   backup: { cartella: '', ora: '20:00', ultimo: '' },
   liste: {
     tipi_pratica: ['Villaggio', 'Soggiorno', 'Tour', 'Crociera', 'Volo + hotel', 'Biglietteria', 'Altro'],
@@ -209,7 +209,12 @@ const IMPOSTAZIONI_DEFAULT = {
     documenti_necessari: ["Carta d'identità", "Carta d'identità valida per l'espatrio", 'Passaporto', 'Passaporto + visto'],
     descrizioni_servizi: ['Quota pacchetto', 'Quota soggiorno', 'Quota volo', 'Tasse aeroportuali', 'Assicurazione', 'Transfer', 'Noleggio auto', 'Escursione', 'ADV fee', "Diritti d'agenzia"],
     tipi_documento_cliente: ["Carta d'identità", 'Passaporto', 'Patente'],
-    // Vettori per la BIGLIETTERIA (compagnie aeree, navi, bus, treni, noleggi, parcheggi) — dal vecchio programma
+    // Canali di emissione per la biglietteria AEREA: "Nome|pagato" (già pagato al fornitore) oppure "Nome|debito" (resta un debito)
+    canali_aereo: ['Fornitore A|pagato', 'Fornitore B|debito'],
+    vettori_treno: ['Trenitalia', 'Italo'],
+    modalita_acquisizione: ['Cash', 'Carta di credito'],
+    tipi_contatto: ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'],
+    // Vettori per la biglietteria LOW COST (compagnie, navi, bus, noleggi, parcheggi) — dal vecchio programma
     vettori_biglietteria: ['ADR PARKING', 'AIR EUROPA', 'AIR FRANCE', 'ALILAURO', 'AMATORI', 'AVIS', 'EASE', 'EASYJET', 'ESTA', 'EUROPCAR', 'EUROWINGS', 'FCOEXPRESS', 'FLIXBUS', 'FLY DUBAI', 'GESAC', 'GLOBAL HERTZ', 'GNV', 'GRIMALDI', 'IBERIA', 'ITA AIRWAYS', 'ITABUS', 'MAGGIORE', 'MARINO BUS', 'MICCOLIS', 'MORFIMARE', 'NEOS', 'RYANAIR', 'SATAM', 'SIREMAR', 'SNAV', 'SUPERFAST', 'TAP', 'TIRRENIA', 'TRANSAVIA', 'VOLOTEA', 'VUELING', 'WIZZAIR', 'VARIE']
   },
   testi: {
@@ -304,6 +309,36 @@ function migra() {
     for (const f of db.prepare("SELECT id, iban, banca FROM fornitori WHERE iban <> ''").all())
       db.prepare('INSERT INTO fornitore_iban(fornitore_id, ordine, banca, iban) VALUES(?,0,?,?)').run(f.id, f.banca, f.iban);
     db.exec('PRAGMA user_version = 5');
+  }
+  if (v < 6) {
+    // v6: BIGLIETTERIA (aereo / treno / low cost) con numerazione propria "B"
+    db.exec(`CREATE TABLE IF NOT EXISTS biglietti (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      anno INTEGER NOT NULL, numero INTEGER NOT NULL,
+      tipo TEXT NOT NULL DEFAULT 'aereo',
+      operazione TEXT NOT NULL DEFAULT 'emissione',
+      data TEXT NOT NULL,
+      cliente_id INTEGER, pratica_id INTEGER,
+      passeggero TEXT NOT NULL DEFAULT '',
+      vettore TEXT NOT NULL DEFAULT '',
+      canale TEXT NOT NULL DEFAULT '',
+      modalita TEXT NOT NULL DEFAULT '',
+      acquisizione TEXT NOT NULL DEFAULT '',
+      codice TEXT NOT NULL DEFAULT '',
+      itinerario TEXT NOT NULL DEFAULT '',
+      partenza TEXT NOT NULL DEFAULT '',
+      segmenti INTEGER NOT NULL DEFAULT 0,
+      importo_cent INTEGER NOT NULL DEFAULT 0,
+      adv_fee_cent INTEGER NOT NULL DEFAULT 0,
+      commissione_cent INTEGER NOT NULL DEFAULT 0,
+      note TEXT NOT NULL DEFAULT '',
+      operatore_id INTEGER,
+      creato_ts TEXT NOT NULL, aggiornato_ts TEXT NOT NULL,
+      UNIQUE(anno, numero));
+      CREATE INDEX IF NOT EXISTS idx_bigl_cliente ON biglietti(cliente_id);
+      CREATE INDEX IF NOT EXISTS idx_bigl_pratica ON biglietti(pratica_id);
+      CREATE INDEX IF NOT EXISTS idx_bigl_data ON biglietti(data);`);
+    db.exec('PRAGMA user_version = 6');
   }
 }
 

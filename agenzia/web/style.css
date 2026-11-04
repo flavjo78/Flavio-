@@ -233,3 +233,22 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .pr-layout.compatta .srv-dett{margin-top:5px;padding-top:5px}
 .pr-layout.compatta .card-servizi{padding:12px 14px}
 .pr-layout.compatta .card{margin-bottom:10px}
+
+/* ---- 1.5: colonne invertite (compatta a SINISTRA), barra totali, biglietteria ---- */
+.pr-layout.compatta{grid-template-columns:380px minmax(0,1fr)}
+.pr-layout.compatta .col-dx{grid-column:1;grid-row:1}
+.pr-layout.compatta .col-sx{grid-column:2;grid-row:1}
+.pr-layout.compatta.espansa{grid-template-columns:58% minmax(0,1fr)}
+@media (max-width:1250px){.pr-layout.compatta{grid-template-columns:360px minmax(0,1fr)}}
+@media (max-width:1000px){.pr-layout.compatta{grid-template-columns:1fr}}
+.barra-tot{display:flex;gap:10px;margin:0 0 14px;position:sticky;top:64px;z-index:3}
+.barra-tot>div{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--shadow)}
+.barra-tot .l{font-size:12px;color:var(--text-2)}.barra-tot .v{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.riga-bigl td{background:#f0f6ff}
+.t tr.click.riga-bigl:hover td{background:#e3eefb}
+.card-servizi.bigl{border-left-color:#6250d6;background:#f8f6ff}
+.card-bigl{border-left:4px solid #6250d6}
+.bg-aereo td{background:#f0f6ff}.bg-treno td{background:#eef9f3}.bg-lowcost td{background:#fff7e8}
+.t tr.click.bg-aereo:hover td{background:#e3eefb}.t tr.click.bg-treno:hover td{background:#def3e7}.t tr.click.bg-lowcost:hover td{background:#ffefd2}
+.badge.bg-badge-aereo{background:#e5eef9;color:#174a84}.badge.bg-badge-treno{background:#e3f3ea;color:#1d7f4b}.badge.bg-badge-lowcost{background:#fff2dc;color:#8a5a00}
+.bg-form.bg-aereo .card:first-child{border-left:4px solid #2a78d6}.bg-form.bg-treno .card:first-child{border-left:4px solid #1baf7a}.bg-form.bg-lowcost .card:first-child{border-left:4px solid #eda100}

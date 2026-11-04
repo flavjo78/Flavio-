@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.4.1';
+const VERSIONE = '1.5.0';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -162,7 +162,7 @@ function impostazioni_salva(ctx) {
       }
       v = cur;
     } else if (k === 'numerazione') {
-      v = { anno_iniziale: N(v.anno_iniziale) || new Date().getFullYear(), numero_iniziale: Math.max(1, N(v.numero_iniziale) || 1) };
+      v = { anno_iniziale: N(v.anno_iniziale) || new Date().getFullYear(), numero_iniziale: Math.max(1, N(v.numero_iniziale) || 1), numero_iniziale_b: Math.max(1, N(v.numero_iniziale_b) || 1) };
     } else if (k === 'backup') {
       const cur = db.impostazione('backup');
       cur.cartella = S(v.cartella); cur.ora = S(v.ora) || '20:00';
@@ -178,6 +178,15 @@ function impostazioni_salva(ctx) {
   return db.tutteImpostazioni();
 }
 
+// Le liste a tendina le può modificare qualunque utente (voce di menù "Liste")
+function liste_salva(ctx) {
+  const c = ctx.corpo || {};
+  const cur = db.impostazione('liste');
+  for (const nome of Object.keys(cur)) if (Array.isArray(c[nome])) cur[nome] = c[nome].map(S).filter(Boolean);
+  db.impostazioneSalva('liste', cur);
+  db.log(ctx.utente, 'liste_salva', '', null, Object.keys(c).join(','));
+  return cur;
+}
 function utenti(ctx) { richiediPannello(ctx); return listaUtentiPannello(); }
 function utenti_salva(ctx) {
   richiediPannello(ctx);
@@ -472,13 +481,13 @@ function prossimoNumero(anno) {
 // Totali calcolati di una pratica (aggiunti alla riga di lista o alla scheda).
 function arricchisciTotali(p) {
   const t = db.get(`SELECT
-      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) AS totale_cent,
-      (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) AS costo_cent,
+      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
+      (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent),0) FROM biglietti WHERE pratica_id = ?) AS costo_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM acconti WHERE pratica_id = ?) AS versato_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM pagamenti_fornitore WHERE pratica_id = ?) AS pagato_fornitori_cent,
       (SELECT abbuono_cent FROM pratiche WHERE id = ?) AS abbuono_cent,
       (SELECT penale_cent FROM pratiche WHERE id = ?) AS penale_cent,
-      (SELECT stato FROM pratiche WHERE id = ?) AS stato`, p.id, p.id, p.id, p.id, p.id, p.id, p.id);
+      (SELECT stato FROM pratiche WHERE id = ?) AS stato`, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id);
   p.totale_cent = t.totale_cent;
   p.costo_cent = t.costo_cent;
   p.versato_cent = t.versato_cent;
@@ -500,7 +509,8 @@ function pratiche(ctx) {
   const clienteId = N(ctx.query.cliente_id);
   const fornitoreId = N(ctx.query.fornitore_id);
   const lim = Math.min(1000, N(ctx.query.limite) || 300);
-  let sql = `SELECT p.id, p.anno, p.numero, p.stato, p.bozza, p.tipo, p.destinazione, p.partenza, p.rientro, p.data_apertura, p.saldo_entro, p.cliente_id,
+  let sql = `SELECT p.id, p.anno, p.numero, p.stato, p.bozza, p.tipo, p.pacchetto_servizio, p.destinazione, p.partenza, p.rientro, p.data_apertura, p.saldo_entro, p.cliente_id,
+      (SELECT COUNT(*) FROM biglietti b WHERE b.pratica_id = p.id) AS n_biglietti,
       c.cognome || ' ' || c.nome AS cliente, u.nome AS operatore,
       (SELECT group_concat(DISTINCT f.nome) FROM pratica_righe r JOIN fornitori f ON f.id = r.fornitore_id WHERE r.pratica_id = p.id) AS fornitori
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id LEFT JOIN utenti u ON u.id = p.operatore_id WHERE 1=1`;
@@ -530,6 +540,7 @@ function caricaPratica(id) {
   p.righe = tutteRighe.filter(r => !r.padre_id).map(r => ({ ...r, figli: tutteRighe.filter(c => c.padre_id === r.id) }));
   for (const r of p.righe) r.nascosti_cent = r.figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0); // per persona
   p.partecipanti = db.all('SELECT * FROM pratica_partecipanti WHERE pratica_id = ? ORDER BY ordine, id', id);
+  p.biglietti = db.all(`SELECT b.*, u.nome AS operatore FROM biglietti b LEFT JOIN utenti u ON u.id = b.operatore_id WHERE b.pratica_id = ? ORDER BY b.data, b.id`, id);
   p.acconti = db.all(`SELECT a.*, f.nome AS fornitore, u.nome AS operatore FROM acconti a LEFT JOIN fornitori f ON f.id = a.fornitore_id LEFT JOIN utenti u ON u.id = a.operatore_id WHERE a.pratica_id = ? ORDER BY a.data, a.id`, id);
   p.pagamenti_fornitore = db.all(`SELECT g.*, f.nome AS fornitore, u.nome AS operatore FROM pagamenti_fornitore g LEFT JOIN fornitori f ON f.id = g.fornitore_id LEFT JOIN utenti u ON u.id = g.operatore_id WHERE g.pratica_id = ? ORDER BY g.data, g.id`, id);
   arricchisciTotali(p);
@@ -652,6 +663,7 @@ function pratica_elimina(ctx) {
     db.run('DELETE FROM pratica_righe WHERE pratica_id = ?', id);
     db.run('DELETE FROM pratica_partecipanti WHERE pratica_id = ?', id);
     db.run('DELETE FROM pagamenti_fornitore WHERE pratica_id = ?', id);
+    db.run('UPDATE biglietti SET pratica_id = NULL WHERE pratica_id = ?', id);
     db.run('DELETE FROM pratiche WHERE id = ?', id);
   });
   db.log(ctx.utente, 'pratica_elimina', 'pratica', id, `${p.anno}/${p.numero}`);
@@ -714,6 +726,117 @@ function pagamento_fornitore_elimina(ctx) {
   return caricaPratica(g.pratica_id);
 }
 
+// ---------- BIGLIETTERIA ----------
+const TIPI_BIGLIETTO = ['aereo', 'treno', 'lowcost'];
+const OPERAZIONI_BIGLIETTO = ['emissione', 'cambio', 'rimborso'];
+function prossimoNumeroB(anno) {
+  const num = db.impostazione('numerazione');
+  const max = db.get('SELECT MAX(numero) AS m FROM biglietti WHERE anno = ?', anno).m;
+  if (max) return max + 1;
+  return (anno === N(num.anno_iniziale)) ? Math.max(1, N(num.numero_iniziale_b)) : 1;
+}
+function prossimo_numero_b(ctx) { const anno = N(ctx.query.anno) || new Date().getFullYear(); return { anno, numero: prossimoNumeroB(anno) }; }
+function arricchisciBiglietto(b) {
+  b.totale_cent = b.importo_cent + b.adv_fee_cent;
+  b.etichetta = `B${b.numero}/${b.anno}`;
+  return b;
+}
+function biglietti(ctx) {
+  const q = S(ctx.query.q).toLowerCase();
+  const anno = N(ctx.query.anno), mese = N(ctx.query.mese), tipo = S(ctx.query.tipo);
+  const clienteId = N(ctx.query.cliente_id), praticaId = N(ctx.query.pratica_id);
+  const vettore = S(ctx.query.vettore), canale = S(ctx.query.canale);
+  let sql = `SELECT b.*, c.cognome || ' ' || c.nome AS cliente, u.nome AS operatore, p.numero AS pratica_numero, p.anno AS pratica_anno
+    FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id LEFT JOIN utenti u ON u.id = b.operatore_id LEFT JOIN pratiche p ON p.id = b.pratica_id WHERE 1=1`;
+  const pr = [];
+  if (anno) { sql += ' AND b.anno = ?'; pr.push(anno); }
+  if (mese) { sql += " AND CAST(substr(b.data,6,2) AS INTEGER) = ?"; pr.push(mese); }
+  if (tipo) { sql += ' AND b.tipo = ?'; pr.push(tipo); }
+  if (clienteId) { sql += ' AND b.cliente_id = ?'; pr.push(clienteId); }
+  if (praticaId) { sql += ' AND b.pratica_id = ?'; pr.push(praticaId); }
+  if (vettore) { sql += ' AND b.vettore = ?'; pr.push(vettore); }
+  if (canale) { sql += ' AND b.canale = ?'; pr.push(canale); }
+  if (q) { sql += ` AND (lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(b.passeggero) LIKE ? OR lower(b.itinerario) LIKE ? OR lower(b.codice) LIKE ? OR CAST(b.numero AS TEXT) = ? OR lower(b.note) LIKE ?)`; const l = `%${q}%`; pr.push(l, l, l, l, q.replace(/^b/, ''), l); }
+  sql += ' ORDER BY b.data DESC, b.id DESC LIMIT 2000';
+  const lista = db.all(sql, ...pr).map(arricchisciBiglietto);
+  // riepilogo come nell'Excel: per tipo e per canale/vettore
+  const tot = {};
+  for (const b of lista) {
+    const k = b.tipo + '|' + (b.tipo === 'aereo' ? b.canale : b.vettore);
+    tot[k] = tot[k] || { tipo: b.tipo, gruppo: b.tipo === 'aereo' ? b.canale : b.vettore, n: 0, importo_cent: 0, adv_fee_cent: 0, commissione_cent: 0, totale_cent: 0, segmenti: 0 };
+    const t = tot[k]; t.n++; t.importo_cent += b.importo_cent; t.adv_fee_cent += b.adv_fee_cent; t.commissione_cent += b.commissione_cent; t.totale_cent += b.totale_cent; t.segmenti += b.segmenti;
+  }
+  return { lista, riepilogo: Object.values(tot), anni: db.all('SELECT DISTINCT anno FROM biglietti ORDER BY anno DESC').map(r => r.anno) };
+}
+function biglietto(ctx) {
+  const b = db.get(`SELECT b.*, c.cognome || ' ' || c.nome AS cliente, u.nome AS operatore, p.numero AS pratica_numero, p.anno AS pratica_anno
+    FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id LEFT JOIN utenti u ON u.id = b.operatore_id LEFT JOIN pratiche p ON p.id = b.pratica_id WHERE b.id = ?`, N(ctx.query.id));
+  if (!b) err(404, 'Biglietto non trovato');
+  return arricchisciBiglietto(b);
+}
+function biglietto_salva(ctx) {
+  const c = ctx.corpo || {};
+  const id = N(c.id);
+  const tipo = S(c.tipo); richiedi(TIPI_BIGLIETTO.includes(tipo), 'Tipo biglietto non valido');
+  const operazione = OPERAZIONI_BIGLIETTO.includes(S(c.operazione)) ? S(c.operazione) : 'emissione';
+  const clienteId = N(c.cliente_id) || null;
+  if (clienteId && !db.get('SELECT id FROM clienti WHERE id = ?', clienteId)) err(400, 'Cliente non trovato');
+  const praticaId = N(c.pratica_id) || null;
+  if (praticaId && !db.get('SELECT id FROM pratiche WHERE id = ?', praticaId)) err(400, 'Pratica collegata non trovata');
+  richiedi(clienteId || S(c.passeggero), 'Serve il cliente oppure il nome del passeggero');
+  const L = db.impostazione('liste');
+  let canale = S(c.canale), modalita = S(c.modalita);
+  if (tipo === 'aereo') {
+    // la modalità (pagato/debito) la decide il canale configurato nelle liste: "Nome|pagato"
+    const voce = (L.canali_aereo || []).map(x => x.split('|')).find(x => x[0].trim() === canale);
+    if (voce) modalita = (voce[1] || '').trim() === 'debito' ? 'debito' : 'pagato';
+  } else { canale = ''; modalita = ''; }
+  const vals = {
+    tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,
+    passeggero: S(c.passeggero), vettore: S(c.vettore), canale, modalita, acquisizione: S(c.acquisizione),
+    codice: S(c.codice).toUpperCase(), itinerario: S(c.itinerario).toUpperCase(), partenza: DATA(c.partenza), segmenti: N(c.segmenti),
+    importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note)
+  };
+  const ts = db.adesso();
+  return db.transazione(() => {
+    let bid = id;
+    if (id) {
+      const old = db.get('SELECT * FROM biglietti WHERE id = ?', id);
+      if (!old) err(404, 'Biglietto non trovato');
+      const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
+      db.run(`UPDATE biglietti SET ${set}, aggiornato_ts = ? WHERE id = ?`, ...Object.values(vals), ts, id);
+      db.log(ctx.utente, 'biglietto_modifica', 'biglietto', id, `B${old.numero}/${old.anno} ${vals.itinerario}`);
+    } else {
+      const anno = N(c.anno) || N(vals.data.slice(0, 4)) || new Date().getFullYear();
+      const numero = prossimoNumeroB(anno);
+      const cols = Object.keys(vals);
+      const r = db.run(`INSERT INTO biglietti(anno, numero, ${cols.join(',')}, operatore_id, creato_ts, aggiornato_ts) VALUES(?,?,${cols.map(() => '?').join(',')},?,?,?)`, anno, numero, ...Object.values(vals), ctx.utente.id, ts, ts);
+      bid = Number(r.lastInsertRowid);
+      db.log(ctx.utente, 'biglietto_crea', 'biglietto', bid, `B${numero}/${anno} ${tipo} ${vals.itinerario}`);
+    }
+    if (clienteId) db.run('UPDATE clienti SET ultimo_contatto = ? WHERE id = ?', db.oggi(), clienteId);
+    return biglietto({ query: { id: bid } });
+  });
+}
+function biglietto_elimina(ctx) {
+  const b = db.get('SELECT * FROM biglietti WHERE id = ?', N(ctx.corpo.id));
+  if (!b) err(404, 'Biglietto non trovato');
+  db.run('DELETE FROM biglietti WHERE id = ?', b.id);
+  db.log(ctx.utente, 'biglietto_elimina', 'biglietto', b.id, `B${b.numero}/${b.anno} ${b.itinerario}`);
+  return { ok: true };
+}
+// cerca una pratica per numero (per collegare un biglietto)
+function pratiche_cerca(ctx) {
+  const q = S(ctx.query.q).toLowerCase();
+  const m = q.match(/^(\d+)(?:\/(\d{2,4}))?$/);
+  let sql = `SELECT p.id, p.anno, p.numero, p.stato, p.destinazione, p.partenza, c.cognome || ' ' || c.nome AS cliente FROM pratiche p JOIN clienti c ON c.id = p.cliente_id WHERE 1=1`;
+  const pr = [];
+  if (m) { sql += ' AND p.numero = ?'; pr.push(N(m[1])); if (m[2]) { sql += ' AND p.anno = ?'; pr.push(N(m[2].length === 2 ? '20' + m[2] : m[2])); } }
+  else if (q) { sql += ` AND (lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(p.destinazione) LIKE ?)`; pr.push(`%${q}%`, `%${q}%`); }
+  sql += ' ORDER BY p.anno DESC, p.numero DESC LIMIT 12';
+  return db.all(sql, ...pr);
+}
+
 // ---------- scadenze ----------
 function scadenze(ctx) {
   const oggi = db.oggi();
@@ -743,11 +866,11 @@ function scadenze(ctx) {
 function filtroVendite() {
   // Valore "venduto" di una pratica: totale righe, oppure la penale se annullata con penale. Escluse annullate e preventivi.
   return `CASE WHEN p.stato = 'Annullata con penale' THEN p.penale_cent
-          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) - p.abbuono_cent
+          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
           ELSE 0 END`;
 }
 function filtroCosti() {
-  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) ELSE 0 END`;
+  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
 }
 function statistiche(ctx) {
   const anno = N(ctx.query.anno) || new Date().getFullYear();
@@ -819,6 +942,13 @@ const AZIONI = {
   cliente_salva: { fn: cliente_salva, post: true },
   cliente_elimina: { fn: cliente_elimina, post: true },
   tessere_tipi: { fn: tessere_tipi },
+  liste_salva: { fn: liste_salva, post: true },
+  biglietti: { fn: biglietti },
+  biglietto: { fn: biglietto },
+  biglietto_salva: { fn: biglietto_salva, post: true },
+  biglietto_elimina: { fn: biglietto_elimina, post: true },
+  prossimo_numero_b: { fn: prossimo_numero_b },
+  pratiche_cerca: { fn: pratiche_cerca },
   fornitori: { fn: fornitori },
   fornitore: { fn: fornitore },
   fornitore_salva: { fn: fornitore_salva, post: true },
