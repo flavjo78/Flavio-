@@ -411,7 +411,7 @@ async function paginaPratica(id) {
       <div class="campo"><label>Tipo pratica</label><input name="tipo" list="dlTipi" value="${esc(P.tipo || '')}">${datalist('dlTipi', L.tipi_pratica)}</div>
       <div class="campo"><label>Data apertura</label><input name="data_apertura" type="date" value="${esc(P.data_apertura || '')}"></div>
       <div class="campo"><label>Rapporto</label><select name="intermediazione">${opzioni([{ value: '1', label: 'Intermediazione (vendiamo per conto del T.O.)' }, { value: '0', label: 'Nostra organizzazione' }], String(P.intermediazione ?? 1))}</select></div>
-      <div class="campo"><label>Oggetto</label><select name="pacchetto_servizio" id="selOggetto">${opzioni([{ value: 'pacchetto', label: 'Pacchetto turistico' }, { value: 'servizio', label: 'Servizio turistico' }, { value: 'biglietteria', label: 'Biglietteria' }], P.pacchetto_servizio)}</select></div>
+      <div class="campo"><label>Oggetto</label><select name="pacchetto_servizio" id="selOggetto">${opzioni([{ value: 'pacchetto', label: 'Pacchetto turistico' }, { value: 'servizio', label: 'Servizio turistico' }, ...(P.pacchetto_servizio === 'biglietteria' ? [{ value: 'biglietteria', label: 'Biglietteria (vecchia)' }] : [])], P.pacchetto_servizio)}</select></div>
       <div class="campo"><label>Catalogo</label><select name="in_catalogo">${opzioni([{ value: '1', label: 'In catalogo' }, { value: '0', label: 'Fuori catalogo' }], String(P.in_catalogo ?? 1))}</select></div>
       <div class="campo"><label>Nome catalogo</label><input name="catalogo" value="${esc(P.catalogo || '')}"></div>
       <div class="campo"><label>Pagina</label><input name="catalogo_pag" value="${esc(P.catalogo_pag || '')}"></div>
