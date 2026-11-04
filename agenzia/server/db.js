@@ -340,6 +340,13 @@ function migra() {
       CREATE INDEX IF NOT EXISTS idx_bigl_data ON biglietti(data);`);
     db.exec('PRAGMA user_version = 6');
   }
+  if (v < 7) {
+    // v7: acconti anche sui biglietti "da soli" (non collegati a una pratica)
+    const colsA = db.prepare('PRAGMA table_info(acconti)').all().map(c => c.name);
+    if (!colsA.includes('biglietto_id')) db.exec('ALTER TABLE acconti ADD COLUMN biglietto_id INTEGER');
+    db.exec('CREATE INDEX IF NOT EXISTS idx_acconti_biglietto ON acconti(biglietto_id)');
+    db.exec('PRAGMA user_version = 7');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

@@ -263,7 +263,7 @@ async function render() {
 // ================= SCADENZE =================
 async function paginaScadenze() {
   const d = await api('scadenze');
-  const rigaP = p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')">`;
+  const rigaP = p => `<tr class="click ${p.biglietto ? 'bg-aereo' : ''}" onclick="naviga('${p.biglietto ? '#/biglietteria/' : '#/pratiche/'}${p.id}')">`;
   const saldi = d.saldi.length ? `<table class="t compatta"><thead><tr><th>Scadenza</th><th>Pratica</th><th>Cliente</th><th>Destinazione</th><th class="num">Totale</th><th class="num">Versato</th><th class="num">Saldo</th></tr></thead><tbody>
     ${d.saldi.map(p => `${rigaP(p)}<td class="${p.scaduto ? 'err' : ''}">${p.scaduto ? '⚠ ' : ''}${dataIt(p.scadenza) || '<span class="muted">—</span>'}</td><td class="mono">${p.numero}/${p.anno}</td><td>${esc(p.cliente)}</td><td>${esc(p.destinazione)}</td><td class="num">${eur(p.dovuto_cent)}</td><td class="num">${eur(p.versato_cent)}</td><td class="num"><b>${eur(p.saldo_cent)}</b></td></tr>`).join('')}
     </tbody><tfoot><tr><td colspan="6">Totale da incassare</td><td class="num">${eur(d.saldi.reduce((s, p) => s + p.saldo_cent, 0))}</td></tr></tfoot></table>` : '<div class="vuoto">Nessun saldo in sospeso</div>';
@@ -1098,9 +1098,9 @@ async function paginaBiglietteria() {
       <div class="stat"><div class="l">ADV fee</div><div class="v ok">${eur(tot.fee)}</div></div>
       ${tot.comm ? `<div class="stat"><div class="l">Commissioni (low cost)</div><div class="v ok">${eur(tot.comm)}</div></div>` : ''}
       ${d.riepilogo.map(r => `<div class="stat"><div class="l">${nomeTipoBigl(r.tipo)} · ${esc(r.gruppo || '—')}</div><div class="v" style="font-size:16px">${eur(r.totale_cent)}</div><div class="s">${r.n} bigl. · importo ${eur(r.importo_cent)} · fee ${eur(r.adv_fee_cent)}${r.segmenti ? ' · ' + r.segmenti + ' seg.' : ''}</div></div>`).join('')}`;
-    $('#bgTab').innerHTML = d.lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore · canale</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Seg.</th><th class="num">Importo</th><th class="num">ADV fee</th><th class="num">Totale</th><th>Pagam.</th><th>Pratica</th><th>Note</th></tr></thead><tbody>
-      ${d.lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}${b.canale ? ` <span class="small muted">· ${esc(b.canale)} (${b.modalita})</span>` : ''}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num">${b.segmenti || ''}</td><td class="num">${eur(b.importo_cent)}</td><td class="num">${eur(b.adv_fee_cent)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="small">${esc(b.acquisizione)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td><td class="small">${esc(b.note)}</td></tr>`).join('')}
-      </tbody><tfoot><tr><td colspan="8">Totali</td><td class="num">${tot.seg}</td><td class="num">${eur(tot.importo)}</td><td class="num">${eur(tot.fee)}</td><td class="num">${eur(tot.totale)}</td><td colspan="3"></td></tr></tfoot></table>` : '<div class="vuoto">Nessun biglietto</div>';
+    $('#bgTab').innerHTML = d.lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore · canale</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Seg.</th><th class="num">Importo</th><th class="num">ADV fee</th><th class="num">Totale</th><th class="num">Versato</th><th class="num">Saldo</th><th>Pagam.</th><th>Pratica</th><th>Note</th></tr></thead><tbody>
+      ${d.lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}${b.canale ? ` <span class="small muted">· ${esc(b.canale)} (${b.modalita})</span>` : ''}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num">${b.segmenti || ''}</td><td class="num">${eur(b.importo_cent)}</td><td class="num">${eur(b.adv_fee_cent)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.versato_cent)}</td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '' : eur(b.saldo_cent)}</td><td class="small">${esc(b.acquisizione)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td><td class="small">${esc(b.note)}</td></tr>`).join('')}
+      </tbody><tfoot><tr><td colspan="8">Totali</td><td class="num">${tot.seg}</td><td class="num">${eur(tot.importo)}</td><td class="num">${eur(tot.fee)}</td><td class="num">${eur(tot.totale)}</td><td class="num">${eur(d.lista.reduce((s, b) => s + (b.versato_cent || 0), 0))}</td><td class="num">${eur(d.lista.reduce((s, b) => s + (b.saldo_cent || 0), 0))}</td><td colspan="3"></td></tr></tfoot></table>` : '<div class="vuoto">Nessun biglietto</div>';
   };
   $$('[data-tipo]').forEach(a => a.onclick = e => { e.preventDefault(); FILTRI_BG.tipo = a.dataset.tipo; $$('[data-tipo]').forEach(x => x.classList.toggle('attivo', x === a)); carica(); });
   $('#bgQ').oninput = e => { FILTRI_BG.q = e.target.value; clearTimeout(timer); timer = setTimeout(carica, 250); };
@@ -1133,8 +1133,8 @@ async function paginaBiglietto(id) {
   <div>
   <div class="card"><h2>Biglietto</h2><div class="griglia g4">
     <div class="campo"><label>Tipo</label><select name="tipo" id="selTipoB">${opzioni(TIPI_BIGL.map(([v, l]) => ({ value: v, label: l })), B.tipo)}</select></div>
-    <div class="campo"><label>Operazione</label><select name="operazione">${opzioni([{ value: 'emissione', label: 'Emissione' }, { value: 'cambio', label: 'Cambio' }, { value: 'rimborso', label: 'Rimborso' }], B.operazione)}</select></div>
-    <div class="campo"><label>Data</label><input name="data" type="date" value="${esc(B.data || '')}"></div>
+    <input type="hidden" name="operazione" value="emissione">
+    <div class="campo"><label>Data emissione</label><input name="data" type="date" value="${esc(B.data || '')}"></div>
     <div class="campo"><label>Partenza</label><input name="partenza" type="date" value="${esc(B.partenza || '')}"></div>
     <div class="campo col2"><label>Cliente</label><div class="picker"><input id="pkCliente" value="${esc(B.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${B.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div></div>
     <div class="campo col2"><label>Passeggero (se diverso dal cliente)</label><input name="passeggero" value="${esc(B.passeggero || '')}"></div>
@@ -1148,9 +1148,11 @@ async function paginaBiglietto(id) {
     <div class="campo"><label>ADV fee €</label><input name="adv_fee" class="num soldi" value="${B.adv_fee_cent ? eur(B.adv_fee_cent) : ''}"></div>
     <div class="campo solo-lowcost"><label>Commissione € (dal fornitore)</label><input name="commissione" class="num soldi" value="${B.commissione_cent ? eur(B.commissione_cent) : ''}"></div>
     <div class="campo"><label>Totale al cliente</label><input readonly id="outTotB" value="${eur(B.importo_cent + B.adv_fee_cent)}" style="font-weight:600"></div>
-    <div class="campo col4"><label>Note (es. CARTA, FATT. …, chi l'ha venduto)</label><input name="note" value="${esc(B.note || '')}"></div>
+    <div class="campo col4"><label>Note</label><input name="note" value="${esc(B.note || '')}"></div>
   </div></div>
-  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/biglietteria">Torna all'elenco</a></div>
+  <div class="card" id="cardAccB"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAccB">+ Registra acconto</button></h2><div id="boxAccB"></div>
+    <div class="griglia g3" style="margin-top:10px"><div class="campo"><label>Totale al cliente</label><input readonly id="outTotB2" value="${eur(B.importo_cent + B.adv_fee_cent)}"></div><div class="campo"><label>Versato</label><input readonly id="outVersB" value="${eur(B.versato_cent || 0)}"></div><div class="campo"><label>Saldo residuo</label><input readonly id="outSaldoB" value="${eur(B.saldo_cent || 0)}" style="font-weight:600"></div></div></div>
+  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><button type="button" class="btn" id="btnStampaB">🖨 Stampa conferma</button><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/biglietteria">Torna all'elenco</a></div>
   </div>
   <div>
     <div class="card"><h2>Pratica collegata</h2>
@@ -1170,8 +1172,17 @@ async function paginaBiglietto(id) {
     $$('.solo-lowcost', pg).forEach(e => e.style.display = t === 'lowcost' ? '' : 'none');
     $('#pkAero').parentElement.style.display = t === 'aereo' ? '' : 'none';
   };
-  const ricalcola = () => { $('#outTotB').value = eur(euroACent($('[name=importo]', pg).value) + euroACent($('[name=adv_fee]', pg).value)); };
-  $('#selTipoB').addEventListener('change', applicaTipo); applicaTipo();
+  const ricalcola = () => { const tot = euroACent($('[name=importo]', pg).value) + euroACent($('[name=adv_fee]', pg).value); $('#outTotB').value = eur(tot); $('#outTotB2').value = eur(tot); $('#outVersB').value = eur(B.versato_cent || 0); $('#outSaldoB').value = eur(tot - (B.versato_cent || 0)); };
+  const renderAccB = () => {
+    const collegato = !!$('[name=pratica_id]', pg).value;
+    $('#cardAccB').classList.toggle('hidden', collegato);
+    const l = B.acconti || [];
+    $('#boxAccB').innerHTML = l.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Descrizione</th><th>Metodo</th><th>Registrato da</th><th class="num">Importo</th><th></th></tr></thead><tbody>
+      ${l.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo pericolo" data-accb-del="${a.id}">✕</button></td></tr>`).join('')}</tbody></table>` : `<div class="muted small">Nessun acconto${nuovo ? ' (al primo acconto il biglietto viene salvato)' : ''}. Se il biglietto è collegato a una pratica, gli acconti si registrano sulla pratica.</div>`;
+    ricalcola();
+  };
+  const aggiornaB = r => { Object.assign(B, r); renderAccB(); };
+  $('#selTipoB').addEventListener('change', applicaTipo); applicaTipo(); renderAccB();
   $('#fBigl').addEventListener('input', () => { sporca = true; ricalcola(); });
   pg.addEventListener('focusin', e => { if (e.target.classList && e.target.classList.contains('soldi')) e.target.select(); });
   pg.addEventListener('focusout', e => { const t = e.target; if (t.classList && t.classList.contains('soldi') && t.value.trim()) { t.value = eur(euroACent(t.value)); ricalcola(); } });
@@ -1184,7 +1195,8 @@ async function paginaBiglietto(id) {
     inp.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
     lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (!d) return; e.preventDefault(); const p = ris[+d.dataset.i]; hid.value = p.id; inp.value = `${p.numero}/${p.anno}`; lista.classList.add('hidden'); sporca = true; });
   })();
-  if ($('#btnScollega')) $('#btnScollega').onclick = () => { $('[name=pratica_id]', pg).value = ''; $('#pkPratica').value = ''; sporca = true; toast('Scollegato: premi Salva'); };
+  if ($('#btnScollega')) $('#btnScollega').onclick = () => { $('[name=pratica_id]', pg).value = ''; $('#pkPratica').value = ''; sporca = true; renderAccB(); toast('Scollegato: premi Salva'); };
+  $('#pkPratica').addEventListener('input', () => setTimeout(renderAccB, 250));
   // picker aeroporti → aggiunge il codice all'itinerario
   (() => {
     const inp = $('#pkAero'), lista = $('#pkAeroLista'), it = $('[name=itinerario]', pg); let ris = [];
@@ -1210,7 +1222,23 @@ async function paginaBiglietto(id) {
     const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno;
     try { const r = await api('biglietto_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
-  const salva = async () => { const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (nuovo) naviga(r.pratica_id && parti[3] === 'pratica' ? '#/pratiche/' + r.pratica_id : '#/biglietteria/' + r.id); };
+  const salva = async () => { const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (nuovo) naviga(r.pratica_id && parti[3] === 'pratica' ? '#/pratiche/' + r.pratica_id : '#/biglietteria/' + r.id); else aggiornaB(r); };
+  const apriAccB = () => {
+    const n = (B.acconti || []).length + 1, residuo = Math.max(0, euroACent($('#outSaldoB').value));
+    modale({ titolo: 'Registra acconto sul biglietto', ok: 'Registra',
+      corpo: `<div class="azioni" style="margin-bottom:12px"><span class="small muted">Suggerimenti:</span><button type="button" class="btn piccolo" data-sugg="acconto">${n}° acconto</button><button type="button" class="btn piccolo" data-sugg="saldo">Saldo (${eur(residuo)})</button></div>
+        <div class="griglia g2"><div class="campo"><label>Data</label><input name="data" type="date" value="${oggiIso()}"></div><div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" placeholder="es. 100 oppure 100,50"></div>
+        <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(L.metodi_pagamento, L.metodi_pagamento[0])}</select></div><div class="campo"><label>Descrizione</label><input name="descrizione" value="${n}° acconto"></div></div>`,
+      onOk: async d => aggiornaB(await api('acconto_salva', { ...leggiForm(d), biglietto_id: B.id })) });
+    const d = document.querySelector('dialog.modal:last-of-type');
+    $$('[data-sugg]', d).forEach(b => b.onclick = () => { if (b.dataset.sugg === 'saldo') { $('[name=descrizione]', d).value = 'Saldo'; $('[name=importo]', d).value = eur(residuo); } else { $('[name=descrizione]', d).value = `${n}° acconto`; $('[name=importo]', d).value = ''; } $('[name=importo]', d).focus(); });
+  };
+  $('#btnAddAccB').onclick = async () => {
+    if (!B.id) { const r = await salvaInterno(); if (!r) return; B.id = r.id; history.replaceState(null, '', '#/biglietteria/' + r.id); STATO.route = 'biglietteria/' + r.id; GUARDIA.route = STATO.route; Object.assign(B, r); $('.topbar h1').innerHTML = `Biglietto <b>B${r.numero}</b>/${r.anno} <span class="badge bg-badge-${r.tipo}">${nomeTipoBigl(r.tipo)}</span>`; }
+    apriAccB();
+  };
+  pg.addEventListener('click', async e => { const t = e.target; if (t.dataset.accbDel) { if (await conferma('Cancellare l\'acconto?', '')) { try { aggiornaB(await api('acconto_elimina', { id: +t.dataset.accbDel })); } catch (err) { toast(err.message, 'err'); } } } });
+  $('#btnStampaB').onclick = async () => { const r = await salvaInterno(); if (!r) return; Object.assign(B, r); if (nuovo) { history.replaceState(null, '', '#/biglietteria/' + r.id); STATO.route = 'biglietteria/' + r.id; GUARDIA.route = STATO.route; } window.open(r.pratica_id ? 'stampa.html?id=' + r.pratica_id : 'stampa.html?b=' + r.id, '_blank'); };
   GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'il biglietto' };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };

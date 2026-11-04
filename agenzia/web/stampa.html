@@ -76,8 +76,19 @@ const dataBreve = d => { if (!d) return ''; const m = String(d).match(/^(\d{4})-
 async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new URLSearchParams(q) : '')); const d = await r.json(); if (!r.ok) throw new Error(d.errore || 'errore'); return d; }
 (async () => {
   try {
-    const id = new URLSearchParams(location.search).get('id');
-    const [p, imp] = await Promise.all([api('pratica', { id }), api('impostazioni')]);
+    const qs = new URLSearchParams(location.search);
+    const id = qs.get('id'), bId = qs.get('b');
+    let p;
+    const imp = await api('impostazioni');
+    if (bId) {
+      // Biglietto da solo: usa lo stesso modulo, costruendo una "pratica" dal biglietto
+      const b = await api('biglietto', { id: bId });
+      const cl = b.cliente_id ? await api('cliente', { id: b.cliente_id }) : { cognome: b.passeggero || '', nome: '' };
+      p = { numero: 'B' + b.numero, anno: b.anno, operatore: b.operatore, data_apertura: b.data, riferimento_to: '', operatore_to: '', cliente_dati: cl,
+        partecipanti: [{ nome: b.passeggero || `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il || '' }], pacchetto_servizio: 'biglietteria', in_catalogo: 0, intermediazione: 1,
+        destinazione: `${b.vettore} ${b.itinerario}`.trim(), partenza: b.partenza, rientro: '', partenza_da: '', partenza_a: '', durata_giorni: '', durata_notti: '', adulti: 1, bambini: 0, infanti: 0, pnr: b.codice, richieste: '',
+        righe: [], biglietti: [b], documenti_necessari: '', acconti: b.acconti || [], abbuono_cent: 0, saldo_entro: '', stato: 'Confermata', totale_cent: b.totale_cent, dovuto_cent: b.totale_cent, saldo_cent: b.saldo_cent };
+    } else p = await api('pratica', { id });
     const A = imp.agenzia, T = imp.testi, c = p.cliente_dati;
     document.title = `Pratica ${p.numero}-${p.anno} ${c.cognome} ${c.nome}`;
     // Righe in stampa: il padre porta l'importo suo + le voci nascoste; le voci "in stampa" vanno come righe a parte.
@@ -125,7 +136,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
         <div>${esc(indirizzoCliente)}</div>
         <div>${c.cellulare ? 'Cell. ' + esc(c.cellulare) : ''} ${c.telefono ? ' Tel. ' + esc(c.telefono) : ''} ${c.email ? ' ' + esc(c.email) : ''}</div></div>
       <div class="box pratica">
-        <div><span>N. Pratica Adv</span><b>${p.numero}/${p.anno}</b></div>
+        <div><span>${bId ? 'N. Biglietto' : 'N. Pratica Adv'}</span><b>${p.numero}/${p.anno}</b></div>
         <div><span>Operatore Adv</span><b>${esc(p.operatore || '')}</b></div>
         <div><span>Data</span><b>${dataIt(p.data_apertura)}</b></div>
         ${p.riferimento_to ? `<div><span>N. Pratica T.O.</span><b>${esc(p.riferimento_to)}</b></div>` : ''}

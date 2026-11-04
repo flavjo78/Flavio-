@@ -21,3 +21,9 @@
 
 ## Menù di sinistra
 - Aggiungere la voce **Liste** (oggi le liste stanno dentro Opzioni).
+
+## Da fare più avanti (richieste del 4 novembre)
+- **Statistiche → premio da raggiungere**: per la biglietteria (es. "over" Italo / Frecce) poter impostare
+  un obiettivo di vendite per vettore/canale e vedere quanto manca. Non ancora costruito.
+- Biglietteria: operazioni **cambio / rimborso** tolte dall'interfaccia per ora (il campo resta nell'archivio).
+- Nomi veri dei due fornitori aerei da mettere in Liste (oggi "Fornitore A|pagato", "Fornitore B|debito").

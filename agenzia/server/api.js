@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.5.0';
+const VERSIONE = '1.5.1';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -673,29 +673,36 @@ function pratica_elimina(ctx) {
 function acconto_salva(ctx) {
   const c = ctx.corpo || {};
   const pid = N(c.pratica_id);
-  if (!db.get('SELECT id FROM pratiche WHERE id = ?', pid)) err(404, 'Pratica non trovata');
+  const bid = N(c.biglietto_id);
+  if (!pid && !bid) err(400, 'Manca la pratica o il biglietto');
+  if (pid && !db.get('SELECT id FROM pratiche WHERE id = ?', pid)) err(404, 'Pratica non trovata');
+  if (bid) {
+    const b = db.get('SELECT id, pratica_id FROM biglietti WHERE id = ?', bid);
+    if (!b) err(404, 'Biglietto non trovato');
+    if (b.pratica_id) err(400, 'Il biglietto è collegato a una pratica: registra l\'acconto sulla pratica');
+  }
   const importo = CENT(c.importo);
   richiedi(importo !== 0, 'Importo mancante');
   const data = DATA(c.data) || db.oggi();
   const fid = N(c.fornitore_id) || null;
   const id = N(c.id);
+  const su = pid ? 'pratica' : 'biglietto';
   if (id) {
-    db.run('UPDATE acconti SET data = ?, importo_cent = ?, metodo = ?, descrizione = ?, fornitore_id = ? WHERE id = ? AND pratica_id = ?',
-      data, importo, S(c.metodo), S(c.descrizione), fid, id, pid);
-    db.log(ctx.utente, 'acconto_modifica', 'pratica', pid, `${importo / 100} €`);
+    db.run('UPDATE acconti SET data = ?, importo_cent = ?, metodo = ?, descrizione = ?, fornitore_id = ? WHERE id = ?', data, importo, S(c.metodo), S(c.descrizione), fid, id);
+    db.log(ctx.utente, 'acconto_modifica', su, pid || bid, `${importo / 100} €`);
   } else {
-    db.run('INSERT INTO acconti(pratica_id, data, importo_cent, metodo, descrizione, fornitore_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,?)',
-      pid, data, importo, S(c.metodo), S(c.descrizione), fid, ctx.utente.id, db.adesso());
-    db.log(ctx.utente, 'acconto_crea', 'pratica', pid, `${importo / 100} € ${S(c.metodo)}`);
+    db.run('INSERT INTO acconti(pratica_id, biglietto_id, data, importo_cent, metodo, descrizione, fornitore_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,?,?)',
+      pid || 0, bid || null, data, importo, S(c.metodo), S(c.descrizione), fid, ctx.utente.id, db.adesso());
+    db.log(ctx.utente, 'acconto_crea', su, pid || bid, `${importo / 100} € ${S(c.metodo)}`);
   }
-  return caricaPratica(pid);
+  return pid ? caricaPratica(pid) : biglietto({ query: { id: bid } });
 }
 function acconto_elimina(ctx) {
   const a = db.get('SELECT * FROM acconti WHERE id = ?', N(ctx.corpo.id));
   if (!a) err(404, 'Acconto non trovato');
   db.run('DELETE FROM acconti WHERE id = ?', a.id);
-  db.log(ctx.utente, 'acconto_elimina', 'pratica', a.pratica_id, `${a.importo_cent / 100} € del ${a.data}`);
-  return caricaPratica(a.pratica_id);
+  db.log(ctx.utente, 'acconto_elimina', a.pratica_id ? 'pratica' : 'biglietto', a.pratica_id || a.biglietto_id, `${a.importo_cent / 100} € del ${a.data}`);
+  return a.pratica_id ? caricaPratica(a.pratica_id) : biglietto({ query: { id: a.biglietto_id } });
 }
 function pagamento_fornitore_salva(ctx) {
   const c = ctx.corpo || {};
@@ -739,6 +746,9 @@ function prossimo_numero_b(ctx) { const anno = N(ctx.query.anno) || new Date().g
 function arricchisciBiglietto(b) {
   b.totale_cent = b.importo_cent + b.adv_fee_cent;
   b.etichetta = `B${b.numero}/${b.anno}`;
+  // acconti propri solo se il biglietto NON è collegato a una pratica (altrimenti si incassa dalla pratica)
+  b.versato_cent = b.pratica_id ? 0 : (db.get('SELECT COALESCE(SUM(importo_cent),0) AS v FROM acconti WHERE biglietto_id = ?', b.id).v);
+  b.saldo_cent = b.pratica_id ? 0 : b.totale_cent - b.versato_cent;
   return b;
 }
 function biglietti(ctx) {
@@ -772,7 +782,9 @@ function biglietto(ctx) {
   const b = db.get(`SELECT b.*, c.cognome || ' ' || c.nome AS cliente, u.nome AS operatore, p.numero AS pratica_numero, p.anno AS pratica_anno
     FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id LEFT JOIN utenti u ON u.id = b.operatore_id LEFT JOIN pratiche p ON p.id = b.pratica_id WHERE b.id = ?`, N(ctx.query.id));
   if (!b) err(404, 'Biglietto non trovato');
-  return arricchisciBiglietto(b);
+  arricchisciBiglietto(b);
+  b.acconti = db.all(`SELECT a.*, u.nome AS operatore FROM acconti a LEFT JOIN utenti u ON u.id = a.operatore_id WHERE a.biglietto_id = ? ORDER BY a.data, a.id`, b.id);
+  return b;
 }
 function biglietto_salva(ctx) {
   const c = ctx.corpo || {};
@@ -805,6 +817,8 @@ function biglietto_salva(ctx) {
       if (!old) err(404, 'Biglietto non trovato');
       const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
       db.run(`UPDATE biglietti SET ${set}, aggiornato_ts = ? WHERE id = ?`, ...Object.values(vals), ts, id);
+      // se viene collegato a una pratica, gli acconti già registrati sul biglietto passano alla pratica
+      if (praticaId && !old.pratica_id) db.run('UPDATE acconti SET pratica_id = ?, biglietto_id = NULL WHERE biglietto_id = ?', praticaId, id);
       db.log(ctx.utente, 'biglietto_modifica', 'biglietto', id, `B${old.numero}/${old.anno} ${vals.itinerario}`);
     } else {
       const anno = N(c.anno) || N(vals.data.slice(0, 4)) || new Date().getFullYear();
@@ -821,6 +835,8 @@ function biglietto_salva(ctx) {
 function biglietto_elimina(ctx) {
   const b = db.get('SELECT * FROM biglietti WHERE id = ?', N(ctx.corpo.id));
   if (!b) err(404, 'Biglietto non trovato');
+  const nAcc = db.get('SELECT COUNT(*) AS n FROM acconti WHERE biglietto_id = ?', b.id).n;
+  if (nAcc > 0) err(400, 'Il biglietto ha acconti registrati: cancellali prima');
   db.run('DELETE FROM biglietti WHERE id = ?', b.id);
   db.log(ctx.utente, 'biglietto_elimina', 'biglietto', b.id, `B${b.numero}/${b.anno} ${b.itinerario}`);
   return { ok: true };
@@ -846,7 +862,10 @@ function scadenze(ctx) {
       c.cognome || ' ' || c.nome AS cliente, c.cellulare, c.telefono
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id
     WHERE p.stato IN ('Confermata','Chiusa','Annullata con penale')`).map(arricchisciTotali);
-  const saldi = attive.filter(p => p.saldo_cent > 0).map(p => ({ ...p, scadenza: p.saldo_entro || p.partenza || '', scaduto: !!((p.saldo_entro || p.partenza) && (p.saldo_entro || p.partenza) < oggi) }))
+  const saldiBigl = db.all(`SELECT b.*, c.cognome || ' ' || c.nome AS cliente, c.cellulare FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id WHERE b.pratica_id IS NULL`)
+    .map(arricchisciBiglietto).filter(b => b.saldo_cent > 0)
+    .map(b => ({ id: b.id, biglietto: true, anno: b.anno, numero: 'B' + b.numero, stato: 'Biglietto', destinazione: `${b.vettore} ${b.itinerario}`.trim(), partenza: b.partenza, cliente: b.cliente || b.passeggero, dovuto_cent: b.totale_cent, versato_cent: b.versato_cent, saldo_cent: b.saldo_cent, scadenza: b.partenza || '', scaduto: !!(b.partenza && b.partenza < oggi) }));
+  const saldi = [...attive.filter(p => p.saldo_cent > 0).map(p => ({ ...p, scadenza: p.saldo_entro || p.partenza || '', scaduto: !!((p.saldo_entro || p.partenza) && (p.saldo_entro || p.partenza) < oggi) })), ...saldiBigl]
     .sort((a, b) => (a.scadenza || '9999') < (b.scadenza || '9999') ? -1 : 1);
   const partenze = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.destinazione, p.partenza, p.rientro, c.cognome || ' ' || c.nome AS cliente, c.cellulare
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id
