@@ -263,3 +263,5 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .badge.tessera{background:#fff2dc;color:#8a5a00;border:1px solid #eda100;font-weight:600}
 #tabPass{min-width:760px}
 .barra-tot .azione{flex:0 0 auto;background:none;border:none;box-shadow:none;padding:0}
+.data-it.errata{border-color:var(--err)!important;background:var(--err-soft)}
+#tabPass .picker .lista{min-width:360px}

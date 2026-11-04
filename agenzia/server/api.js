@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.6.1';
+const VERSIONE = '1.6.2';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -806,12 +806,14 @@ function biglietto_salva(ctx) {
   const L = db.impostazione('liste');
   let canale = S(c.canale), modalita = S(c.modalita);
   if (tipo === 'aereo') {
-    // il canale arriva come "Nome|pagato" o "Nome|debito" (voce della lista canali_aereo); lo stesso fornitore può avere le due opzioni
+    // Canale = solo il nome del fornitore. La modalità la decide l'ACQUISIZIONE: Carta di credito = già pagato, Cash = resta un debito.
+    // Le voci "Nome|pagato" / "Nome|debito" in Liste dicono quali modalità ammette ogni fornitore.
     const voci = (L.canali_aereo || []).map(x => x.split('|').map(y => y.trim()));
-    const [nome, mod] = canale.split('|').map(y => y.trim());
-    const voce = voci.find(x => x[0] === nome && (mod ? (x[1] || 'pagato') === mod : true)) || voci.find(x => x[0] === nome);
-    canale = nome;
-    modalita = voce ? ((voce[1] || 'pagato') === 'debito' ? 'debito' : 'pagato') : (mod === 'debito' ? 'debito' : 'pagato');
+    canale = canale.split('|')[0].trim();
+    const ammesse = voci.filter(x => x[0] === canale).map(x => (x[1] || 'pagato') === 'debito' ? 'debito' : 'pagato');
+    const acq = S(c.acquisizione).toLowerCase();
+    modalita = acq.startsWith('cash') || acq.startsWith('contant') ? 'debito' : 'pagato';
+    if (ammesse.length && !ammesse.includes(modalita)) err(400, `${canale} ammette solo "${ammesse[0] === 'debito' ? 'Cash' : 'Carta di credito'}" come acquisizione`);
   } else { canale = ''; modalita = ''; }
   const vals = {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,

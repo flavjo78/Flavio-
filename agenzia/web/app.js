@@ -78,10 +78,39 @@ function leggiForm(el) {
     if (i.closest('[data-righe]')) continue;
     if (i.type === 'checkbox') o[i.name] = i.checked ? 1 : 0;
     else if (i.type === 'radio') { if (i.checked) o[i.name] = i.value; }
+    else if (i.dataset.dataIt) { const r = dataIsoDaTesto(i.value); o[i.name] = r === null ? i.value : r; }
     else o[i.name] = i.value;
   }
   return o;
 }
+
+// ================= date all'italiana =================
+// I campi data sono caselle di testo "gg/mm/aaaa": si scrive 25/12/2028, 25/12/28, 251228 o 25.12.2028 e viene messo a posto.
+function dataIsoDaTesto(v) {
+  let t = String(v || '').trim();
+  if (!t) return '';
+  let m = t.match(/^(\d{4})-(\d{2})-(\d{2})$/); if (m) return t;
+  m = t.match(/^(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{2,4})$/);
+  if (!m) { const d = t.replace(/\D/g, ''); if (d.length === 6) m = [0, d.slice(0, 2), d.slice(2, 4), d.slice(4)]; else if (d.length === 8) m = [0, d.slice(0, 2), d.slice(2, 4), d.slice(4)]; else if (d.length === 4) m = [0, d.slice(0, 2), d.slice(2, 4), String(new Date().getFullYear())]; }
+  if (!m) return null;
+  let g = +m[1], me = +m[2], a = m[3]; if (a.length === 2) a = '20' + a;
+  if (g < 1 || g > 31 || me < 1 || me > 12) return null;
+  return `${a}-${String(me).padStart(2, '0')}-${String(g).padStart(2, '0')}`;
+}
+const isoVal = el => { const v = (el && el.value) || ''; const iso = dataIsoDaTesto(v); return iso === null ? '' : iso; };
+function rendiDataIt(inp) {
+  if (inp.dataset.dataIt) return;
+  inp.dataset.dataIt = '1';
+  const iso = inp.value;
+  inp.type = 'text'; inp.placeholder = 'gg/mm/aaaa'; inp.inputMode = 'numeric'; inp.autocomplete = 'off'; inp.classList.add('data-it');
+  inp.value = iso ? dataIt(iso) : '';
+  inp.addEventListener('blur', () => {
+    const r = dataIsoDaTesto(inp.value);
+    if (r === null) { inp.classList.add('errata'); inp.title = 'Data non capita: scrivi gg/mm/aaaa'; }
+    else { inp.classList.remove('errata'); inp.title = ''; inp.value = r ? dataIt(r) : ''; if (r !== undefined) inp.dispatchEvent(new Event('change', { bubbles: true })); }
+  });
+}
+new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType !== 1) continue; if (n.matches && n.matches('input[type=date]')) rendiDataIt(n); n.querySelectorAll && n.querySelectorAll('input[type=date]').forEach(rendiDataIt); } }).observe(document.documentElement, { childList: true, subtree: true });
 
 // ================= stato globale e router =================
 const STATO = { utente: null, pannello: false, imp: null, route: '', versione: '' };
@@ -492,7 +521,7 @@ async function paginaPratica(id) {
   $('#btnAddRiga').onclick = () => { $('#listaServizi').insertAdjacentHTML('beforeend', cardServizio({ pax: parseInt($('[name=adulti]', pg).value, 10) + parseInt($('[name=bambini]', pg).value, 10) || 1 })); $('#listaServizi [data-srv]:last-child input').focus(); sporca = true; ricalcola(); };
   $('#btnAddPart').onclick = () => { $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart()); $('#tabPart tbody tr:last-child input').focus(); sporca = true; };
   const durata = () => {
-    const a = $('#inPartenza').value, b = $('#inRientro').value;
+    const a = isoVal($('#inPartenza')), b = isoVal($('#inRientro'));
     if (a && b && b >= a) { const g = Math.round((Date.parse(b) - Date.parse(a)) / 86400000); $('#inGiorni').value = g + 1; $('#inNotti').value = g; }
   };
   $('#inPartenza').addEventListener('change', durata); $('#inRientro').addEventListener('change', durata);
@@ -1124,7 +1153,10 @@ async function aeroporti() {
   return AEROPORTI;
 }
 function canaliAereo() {
-  return (STATO.imp.liste.canali_aereo || []).map(x => { const [n, m] = x.split('|'); return { nome: n.trim(), modalita: (m || '').trim() === 'debito' ? 'debito' : 'pagato' }; });
+  // un fornitore per riga, con le modalità ammesse ("Nome|pagato" + "Nome|debito" = tutte e due)
+  const out = [];
+  for (const x of (STATO.imp.liste.canali_aereo || [])) { const [n, m] = x.split('|'); const nome = n.trim(); const mod = (m || '').trim() === 'debito' ? 'debito' : 'pagato'; let v = out.find(o => o.nome === nome); if (!v) { v = { nome, modalita: [] }; out.push(v); } if (!v.modalita.includes(mod)) v.modalita.push(mod); }
+  return out;
 }
 
 const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
@@ -1200,7 +1232,7 @@ async function paginaBiglietto(id) {
   const canali = canaliAereo();
   const vettoriPer = { aereo: [...new Set([...(L.vettori_biglietteria || []), 'ITA AIRWAYS', 'RYANAIR', 'EASYJET'])], treno: L.vettori_treno || ['Trenitalia', 'Italo'], lowcost: L.vettori_biglietteria || [] };
   const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>`;
-  const rigaPass = (q = {}) => `<tr><td><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome"></td><td style="width:150px"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td style="width:170px"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td style="width:150px"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
+  const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca tra i clienti o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td style="width:150px"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td style="width:170px"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td style="width:150px"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
   if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [{ nome: B.passeggero }];
   shell('biglietteria', titolo, `
   <div id="fBigl" class="bg-form bg-${B.tipo}">
@@ -1213,9 +1245,9 @@ async function paginaBiglietto(id) {
     <div class="campo"><label>Partenza</label><input name="partenza" type="date" value="${esc(B.partenza || '')}"></div>
     <div class="campo col2"><label>Cliente</label><div class="picker"><input id="pkCliente" value="${esc(B.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${B.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div></div>
     <div class="campo col2" id="boxTessere"><label>Tessere del cliente</label><div class="tessere-box muted small">—</div></div>
-    <div class="campo col2 solo-aereo"><label>Canale di emissione (fornitore)</label><select name="canale" id="selCanale">${opzioni(canali.map(c => ({ value: c.nome + '|' + c.modalita, label: `${c.nome} — ${c.modalita === 'debito' ? 'resta un debito' : 'già pagato'}` })), B.canale ? B.canale + '|' + (B.modalita || 'pagato') : (canali[0] ? canali[0].nome + '|' + canali[0].modalita : ''), canali.length ? undefined : '— nessun canale: aggiungilo in Liste —')}</select></div>
+    <div class="campo col2 solo-aereo"><label>Fornitore (canale di emissione)</label><select name="canale" id="selCanale">${opzioni(canali.map(c => ({ value: c.nome, label: c.nome })), B.canale || (canali[0] || {}).nome || '', canali.length ? undefined : '— nessun fornitore: aggiungilo in Liste —')}</select></div>
     <div class="campo col2"><label>Vettore</label><input name="vettore" list="dlVettori" value="${esc(B.vettore || '')}" id="inVettore"><select id="selVettore" class="hidden"></select>${datalist('dlVettori', vettoriPer[B.tipo])}</div>
-    <div class="campo solo-aereo"><label>Acquisizione</label><select name="acquisizione">${opzioni(L.modalita_acquisizione || ['Cash', 'Carta di credito'], B.acquisizione, '—')}</select></div>
+    <div class="campo solo-aereo"><label>Acquisizione <span class="muted">(carta = già pagato · cash = debito)</span></label><select name="acquisizione" id="selAcq">${opzioni(L.modalita_acquisizione || ['Cash', 'Carta di credito'], B.acquisizione || (B.modalita === 'debito' ? 'Cash' : 'Carta di credito'))}</select></div>
     <div class="campo"><label>Codice / PNR</label><input name="codice" value="${esc(B.codice || '')}" class="mono"></div>
     <div class="campo col2"><label>Itinerario (es. FCO/VXE/FCO)</label><div class="riga"><input name="itinerario" value="${esc(B.itinerario || '')}" class="mono" style="text-transform:uppercase"><span class="picker" style="flex:0 0 260px"><input id="pkAero" placeholder="aggiungi scalo: codice o città" autocomplete="off" class="inp solo-aereo-inp"><div class="lista hidden" id="pkAeroLista"></div></span></div></div>
     <div class="campo solo-aereo"><label>Segmenti (tratte)</label><input name="segmenti" class="num" value="${B.segmenti || ''}"></div>
@@ -1256,13 +1288,22 @@ async function paginaBiglietto(id) {
         const d = (c.documenti || [])[0] || {};
         const righe = $$('#tabPass tbody tr');
         const q = { nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, doc_tipo: d.tipo || '', doc_numero: d.numero || '', doc_scade: d.scade || '' };
-        if (!righe.length || !$('[data-k=nome]', righe[0]).value.trim()) { if (righe.length) righe[0].remove(); $('#tabPass tbody').insertAdjacentHTML('afterbegin', rigaPass(q)); }
+        if (!righe.length || !$('[data-k=nome]', righe[0]).value.trim()) { if (righe.length) righe[0].remove(); $('#tabPass tbody').insertAdjacentHTML('afterbegin', rigaPass(q)); attivaPickerPass($('#tabPass tbody tr')); }
       }
     } catch (e) { box.textContent = '—'; }
   };
+  // acquisizione ammessa dal fornitore scelto (Only Ticket = solo carta)
+  const applicaCanale = () => {
+    const c = canali.find(x => x.nome === $('#selCanale').value); const sel = $('#selAcq'); if (!c || !sel) return;
+    const tutte = L.modalita_acquisizione || ['Cash', 'Carta di credito'];
+    const ok = tutte.filter(a => c.modalita.includes(/^(cash|contant)/i.test(a) ? 'debito' : 'pagato'));
+    const cur = sel.value; sel.innerHTML = opzioni(ok.length ? ok : tutte, ok.includes(cur) ? cur : (ok[0] || cur));
+  };
+  $('#selCanale').addEventListener('change', applicaCanale);
   const applicaTipo = () => {
     const t = $('#selTipoB').value;
     $('#fBigl').className = 'bg-form bg-' + t;
+    if (t === 'aereo') applicaCanale();
     $('#dlVettori').innerHTML = (vettoriPer[t] || []).map(v => `<option value="${esc(v)}">`).join('');
     // treno e low cost: vettore a tendina dalla lista; aereo: testo libero con suggerimenti
     const inp = $('#inVettore'), sel = $('#selVettore');
@@ -1288,7 +1329,18 @@ async function paginaBiglietto(id) {
   pg.addEventListener('focusout', e => { const t = e.target; if (t.classList && t.classList.contains('soldi') && t.value.trim()) { t.value = eur(euroACent(t.value)); ricalcola(); } });
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => { sporca = true; mostraCliente(c.id, true); });
   if (B.cliente_id) mostraCliente(B.cliente_id, nuovo && !(B.passeggeri || []).length);
-  $('#btnAddPass').onclick = () => { $('#tabPass tbody').insertAdjacentHTML('beforeend', rigaPass()); $('#tabPass tbody tr:last-child input').focus(); sporca = true; };
+  // ogni riga passeggero: il nome si può prendere dai clienti (porta anche data di nascita e documento)
+  const attivaPickerPass = tr => {
+    const inp = $('[data-k=nome]', tr); if (!inp || inp.dataset.picker) return; inp.dataset.picker = '1';
+    pickerCliente(inp, $('[data-cid]', tr), $('.lista', tr), async c => {
+      sporca = true;
+      try { const cl = await api('cliente', undefined, { id: c.id }); const d = (cl.documenti || [])[0] || {};
+        $('[data-k=nome]', tr).value = `${cl.cognome} ${cl.nome}`.trim(); $('[data-k=nato_il]', tr).value = cl.nato_il ? dataIt(cl.nato_il) : '';
+        $('[data-k=doc_tipo]', tr).value = d.tipo || ''; $('[data-k=doc_numero]', tr).value = d.numero || ''; $('[data-k=doc_scade]', tr).value = d.scade ? dataIt(d.scade) : ''; } catch (e) { /* lascia solo il nome */ }
+    });
+  };
+  $$('#tabPass tbody tr').forEach(attivaPickerPass);
+  $('#btnAddPass').onclick = () => { $('#tabPass tbody').insertAdjacentHTML('beforeend', rigaPass()); const tr = $('#tabPass tbody tr:last-child'); attivaPickerPass(tr); $('input', tr).focus(); sporca = true; };
   pg.addEventListener('click', e => { const b = e.target.closest('[data-del-pass]'); if (b) { b.closest('tr').remove(); sporca = true; } });
   // picker pratica
   (() => {
@@ -1303,12 +1355,12 @@ async function paginaBiglietto(id) {
   // picker aeroporti → aggiunge il codice all'itinerario
   (() => {
     const inp = $('#pkAero'), lista = $('#pkAeroLista'), it = $('[name=itinerario]', pg); let ris = [];
-    const mostra = () => { lista.innerHTML = ris.map((a, i) => `<div data-i="${i}"><b>${a.c}</b> ${esc(a.ci)} <span class="muted small">${esc(a.n)} · ${a.p}</span></div>`).join('') || '<div class="muted">nessun aeroporto</div>'; lista.classList.remove('hidden'); };
+    const mostra = () => { lista.innerHTML = ris.map((a, i) => `<div data-i="${i}"><b>${a.c}</b> ${esc(a.ci)} <span class="muted small">${esc(a.n)}${a.k ? ' · ' + esc(a.k) : ''} · ${a.p}</span></div>`).join('') || '<div class="muted">nessun aeroporto: premi Invio per aggiungere quello che hai scritto</div>'; lista.classList.remove('hidden'); };
     inp.addEventListener('input', async () => {
       const q = inp.value.trim().toLowerCase(); if (q.length < 2) { lista.classList.add('hidden'); return; }
       const tutti = await aeroporti();
       const perCodice = tutti.filter(a => a.c.toLowerCase().startsWith(q));
-      const perNome = tutti.filter(a => !perCodice.includes(a) && ((a.ci || '').toLowerCase().includes(q) || (a.n || '').toLowerCase().includes(q)));
+      const perNome = tutti.filter(a => !perCodice.includes(a) && ((a.ci || '').toLowerCase().includes(q) || (a.n || '').toLowerCase().includes(q) || (a.k || '').toLowerCase().includes(q)));
       ris = [...perCodice, ...perNome].slice(0, 12); mostra();
     });
     inp.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
@@ -1319,7 +1371,7 @@ async function paginaBiglietto(id) {
       if (n > 1 && (!seg.value || seg.dataset.auto === seg.value)) { seg.value = n - 1; seg.dataset.auto = seg.value; }
     };
     lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (d) { e.preventDefault(); scegli(ris[+d.dataset.i]); } });
-    inp.addEventListener('keydown', e => { if (e.key === 'Enter' && ris.length) { e.preventDefault(); scegli(ris[0]); } });
+    inp.addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); if (ris.length) scegli(ris[0]); else if (inp.value.trim()) scegli({ c: inp.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/\s+/g, '-') }); });
   })();
   const salvaInterno = async () => {
     const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno;
