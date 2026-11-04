@@ -347,6 +347,15 @@ function migra() {
     db.exec('CREATE INDEX IF NOT EXISTS idx_acconti_biglietto ON acconti(biglietto_id)');
     db.exec('PRAGMA user_version = 7');
   }
+  if (v < 8) {
+    // v8: più passeggeri per biglietto, ognuno col suo documento
+    db.exec(`CREATE TABLE IF NOT EXISTS biglietto_passeggeri (id INTEGER PRIMARY KEY AUTOINCREMENT, biglietto_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      nome TEXT NOT NULL DEFAULT '', nato_il TEXT NOT NULL DEFAULT '', doc_tipo TEXT NOT NULL DEFAULT '', doc_numero TEXT NOT NULL DEFAULT '', doc_scade TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_bpass_biglietto ON biglietto_passeggeri(biglietto_id);`);
+    for (const b of db.prepare("SELECT id, passeggero FROM biglietti WHERE passeggero <> ''").all())
+      db.prepare('INSERT INTO biglietto_passeggeri(biglietto_id, ordine, nome) VALUES(?,0,?)').run(b.id, b.passeggero);
+    db.exec('PRAGMA user_version = 8');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

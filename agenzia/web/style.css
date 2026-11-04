@@ -252,3 +252,13 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .t tr.click.bg-aereo:hover td{background:#e3eefb}.t tr.click.bg-treno:hover td{background:#def3e7}.t tr.click.bg-lowcost:hover td{background:#ffefd2}
 .badge.bg-badge-aereo{background:#e5eef9;color:#174a84}.badge.bg-badge-treno{background:#e3f3ea;color:#1d7f4b}.badge.bg-badge-lowcost{background:#fff2dc;color:#8a5a00}
 .bg-form.bg-aereo .card:first-child{border-left:4px solid #2a78d6}.bg-form.bg-treno .card:first-child{border-left:4px solid #1baf7a}.bg-form.bg-lowcost .card:first-child{border-left:4px solid #eda100}
+
+/* ---- 1.6 ---- */
+.scelta-bigl{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:18px}
+.scelta-bigl .sc{display:flex;flex-direction:column;align-items:center;gap:6px;padding:26px 16px;background:var(--surface);border:2px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);box-shadow:var(--shadow)}
+.scelta-bigl .sc .ic{font-size:34px}.scelta-bigl .sc b{font-size:18px}.scelta-bigl .sc small{color:var(--text-2)}
+.scelta-bigl .sc.aereo:hover{border-color:#2a78d6;background:#f0f6ff}.scelta-bigl .sc.treno:hover{border-color:#1baf7a;background:#eef9f3}.scelta-bigl .sc.lowcost:hover{border-color:#eda100;background:#fff7e8}
+.tessere-box{min-height:36px;padding:6px 8px;border:1px dashed var(--border-2);border-radius:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.tessere-box.con{border-style:solid;border-color:#eda100;background:#fff7e8}
+.badge.tessera{background:#fff2dc;color:#8a5a00;border:1px solid #eda100;font-weight:600}
+#tabPass{min-width:760px}

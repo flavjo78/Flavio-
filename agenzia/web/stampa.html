@@ -85,7 +85,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
       const b = await api('biglietto', { id: bId });
       const cl = b.cliente_id ? await api('cliente', { id: b.cliente_id }) : { cognome: b.passeggero || '', nome: '' };
       p = { numero: 'B' + b.numero, anno: b.anno, operatore: b.operatore, data_apertura: b.data, riferimento_to: '', operatore_to: '', cliente_dati: cl,
-        partecipanti: [{ nome: b.passeggero || `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il || '' }], pacchetto_servizio: 'biglietteria', in_catalogo: 0, intermediazione: 1,
+        partecipanti: (b.passeggeri && b.passeggeri.length) ? b.passeggeri.map(q => ({ nome: q.nome, nato_il: q.nato_il })) : [{ nome: b.passeggero || `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il || '' }], pacchetto_servizio: 'biglietteria', in_catalogo: 0, intermediazione: 1,
         destinazione: `${b.vettore} ${b.itinerario}`.trim(), partenza: b.partenza, rientro: '', partenza_da: '', partenza_a: '', durata_giorni: '', durata_notti: '', adulti: 1, bambini: 0, infanti: 0, pnr: b.codice, richieste: '',
         righe: [], biglietti: [b], documenti_necessari: '', acconti: b.acconti || [], abbuono_cent: 0, saldo_entro: '', stato: 'Confermata', totale_cent: b.totale_cent, dovuto_cent: b.totale_cent, saldo_cent: b.saldo_cent };
     } else p = await api('pratica', { id });
