@@ -369,7 +369,7 @@ async function paginaPratica(id) {
 
   shell('pratiche', titolo, `
   ${!nuova ? `<div class="muted small" style="margin:-8px 0 12px">Aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</div>` : `<div class="avviso info">Il numero <b>${P.numero}/${P.anno}</b> viene assegnato al primo salvataggio. Fino ad allora la pratica è una bozza.</div>`}
-  <div class="barra-tot" id="barraTot"><div><span class="l">Totale pratica</span><span class="v" id="bt_tot">0,00</span></div><div><span class="l">Versato</span><span class="v" id="bt_vers">0,00</span></div><div><span class="l">Saldo residuo</span><span class="v" id="bt_saldo">0,00</span></div><div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="bt_costo">0,00</span></div><div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="bt_marg">0,00</span></div></div>
+  <div class="barra-tot" id="barraTot"><div><span class="l">Totale pratica</span><span class="v" id="bt_tot">0,00</span></div><div><span class="l">Versato</span><span class="v" id="bt_vers">0,00</span></div><div><span class="l">Saldo residuo</span><span class="v" id="bt_saldo">0,00</span></div><div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="bt_costo">0,00</span></div><div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="bt_marg">0,00</span></div><div class="azione"><button type="button" class="btn" id="btnAnteprima" title="Mostra la pratica come la vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button></div></div>
   <div id="fPratica" class="pr-layout">
   <div class="col-dx">
   <div class="card"><h2>Cliente e pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnVista" title="Alterna la vista larga (per compilare) e quella compatta (tutto in una schermata)">⇄ vista</button></h2>
@@ -413,7 +413,7 @@ async function paginaPratica(id) {
   </div>
   <div class="col-sx">
   <div class="avviso info hidden" id="avvBiglietteria"><b>Biglietteria:</b> per le pratiche di sola biglietteria valgono regole diverse (in arrivo). Per ora i servizi suggeriti sono biglietti, tasse e diritti di emissione.</div>
-  <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn" id="btnAnteprima" title="Mostra i servizi come li vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
+  <div class="card card-servizi"><h2>Servizi richiesti <span class="spazio"></span><button type="button" class="btn primario" id="btnAddRiga">+ Aggiungi servizio</button></h2>
     <div id="anteprimaServizi" class="hidden"></div>
     ${datalist('dlServizi', L.descrizioni_servizi)}${datalist('dlFigli', ['Provvigione agenzia', "Diritti d'agenzia", 'Assicurazione', 'Spese', 'Altro'])}
     <div id="listaServizi" data-righe>${P.righe.map(cardServizio).join('')}</div>
