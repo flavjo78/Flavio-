@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.6.3';
+const VERSIONE = '1.6.4';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 

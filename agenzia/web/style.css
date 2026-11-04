@@ -265,3 +265,4 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .barra-tot .azione{flex:0 0 auto;background:none;border:none;box-shadow:none;padding:0}
 .data-it.errata{border-color:var(--err)!important;background:var(--err-soft)}
 #tabPass .picker .lista{min-width:360px}
+.sola-lettura{background:var(--surface-2)!important;color:var(--text);font-weight:600;letter-spacing:.5px}

@@ -1254,7 +1254,7 @@ async function paginaBiglietto(id) {
     <div class="campo col2"><label>Vettore</label><input name="vettore" list="dlVettori" value="${esc(B.vettore || '')}" id="inVettore"><select id="selVettore" class="hidden"></select>${datalist('dlVettori', vettoriPer[B.tipo])}</div>
     <div class="campo solo-aereo"><label>Acquisizione <span class="muted">(carta = già pagato · cash = debito)</span></label><select name="acquisizione" id="selAcq">${opzioni(L.modalita_acquisizione || ['Cash', 'Carta di credito'], B.acquisizione || (B.modalita === 'debito' ? 'Cash' : 'Carta di credito'))}</select></div>
     <div class="campo"><label>Codice / PNR</label><input name="codice" value="${esc(B.codice || '')}" class="mono"></div>
-    <div class="campo col2"><label>Itinerario (es. FCO/VXE/FCO)</label><div class="riga"><input name="itinerario" value="${esc(B.itinerario || '')}" class="mono" style="text-transform:uppercase"><span class="picker" style="flex:0 0 260px"><input id="pkAero" placeholder="aggiungi scalo: codice o città" autocomplete="off" class="inp solo-aereo-inp"><div class="lista hidden" id="pkAeroLista"></div></span></div></div>
+    <div class="campo col2"><label>Itinerario (es. FCO/VXE/FCO) <span class="muted solo-aereo-txt">— si compone con "aggiungi scalo"</span></label><div class="riga"><input name="itinerario" id="inItin" value="${esc(B.itinerario || '')}" class="mono" style="text-transform:uppercase"><span class="picker" style="flex:0 0 240px"><input id="pkAero" placeholder="aggiungi scalo: città o codice" autocomplete="off" class="inp"><div class="lista hidden" id="pkAeroLista"></div></span><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinUndo" title="Togli l'ultimo scalo">⌫</button><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinVuota" title="Svuota l'itinerario">✕</button></div></div>
     <div class="campo solo-aereo"><label>Segmenti (tratte)</label><input name="segmenti" class="num" value="${B.segmenti || ''}"></div>
     <div class="campo"><label>Importo biglietto € (al fornitore)</label><input name="importo" class="num soldi" value="${B.importo_cent ? eur(B.importo_cent) : ''}"></div>
     <div class="campo"><label>ADV fee €</label><input name="adv_fee" class="num soldi" value="${B.adv_fee_cent ? eur(B.adv_fee_cent) : ''}"></div>
@@ -1314,9 +1314,11 @@ async function paginaBiglietto(id) {
     const inp = $('#inVettore'), sel = $('#selVettore');
     if (t === 'aereo') { inp.classList.remove('hidden'); sel.classList.add('hidden'); sel.removeAttribute('name'); inp.setAttribute('name', 'vettore'); }
     else { sel.innerHTML = opzioni(vettoriPer[t] || [], inp.value || (vettoriPer[t] || [])[0], '— scegli —'); sel.classList.remove('hidden'); inp.classList.add('hidden'); inp.removeAttribute('name'); sel.setAttribute('name', 'vettore'); sel.onchange = () => { inp.value = sel.value; sporca = true; }; }
-    $$('.solo-aereo', pg).forEach(e => e.style.display = t === 'aereo' ? '' : 'none');
+    $$('.solo-aereo, .solo-aereo-btn, .solo-aereo-txt', pg).forEach(e => e.style.display = t === 'aereo' ? '' : 'none');
     $$('.solo-lowcost', pg).forEach(e => e.style.display = t === 'lowcost' ? '' : 'none');
     $('#pkAero').parentElement.style.display = t === 'aereo' ? '' : 'none';
+    // aereo: l'itinerario si compone solo con gli scali (non si scrive a mano); treno e low cost: testo libero
+    $('#inItin').readOnly = t === 'aereo'; $('#inItin').classList.toggle('sola-lettura', t === 'aereo');
   };
   const ricalcola = () => { const tot = euroACent($('[name=importo]', pg).value) + euroACent($('[name=adv_fee]', pg).value); $('#outTotB').value = eur(tot); $('#outTotB2').value = eur(tot); $('#outVersB').value = eur(B.versato_cent || 0); $('#outSaldoB').value = eur(tot - (B.versato_cent || 0)); };
   const renderAccB = () => {
@@ -1388,6 +1390,9 @@ async function paginaBiglietto(id) {
     };
     lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (d) { e.preventDefault(); scegli(ris[+d.dataset.i]); } });
     inp.addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); if (ris.length) scegli(ris[0]); else if (inp.value.trim()) scegli({ c: inp.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/\s+/g, '-') }); });
+    const aggiornaSeg = () => { const seg = $('[name=segmenti]', pg), n = it.value.split('/').filter(Boolean).length; if (!seg.value || seg.dataset.auto === seg.value) { seg.value = n > 1 ? n - 1 : ''; seg.dataset.auto = seg.value; } };
+    $('#btnItinUndo').onclick = () => { const parti = it.value.split('/').filter(Boolean); parti.pop(); it.value = parti.join('/'); aggiornaSeg(); sporca = true; inp.focus(); };
+    $('#btnItinVuota').onclick = () => { it.value = ''; aggiornaSeg(); sporca = true; inp.focus(); };
   })();
   const salvaInterno = async (bozza = 0) => {
     const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno; d.bozza = bozza;
