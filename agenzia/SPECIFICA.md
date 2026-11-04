@@ -38,7 +38,9 @@
 Cognome, nome, azienda, indirizzo, CAP, città, provincia, nazione, sesso, telefono,
 cellulare, telefono 2, email + **altri contatti** (lista: tipo, numero, riferimento), nato il /
 luogo, codice fiscale, P.IVA, **documenti** (lista: tipo, numero, rilasciato da, il, scade),
-**tessere e programmi fedeltà** (lista a campo libero: MSC, Costa, Trenitalia…), note, "viaggia con". Data creazione,
+**tessere e programmi fedeltà** (lista a campo libero: MSC, Costa, Trenitalia…), **compagni di viaggio**
+(persone senza scheda propria: nome, nascita, documento; cercandole si arriva al cliente; si aggiungono da
+sole dai biglietti), note, "viaggia con". Data creazione,
 ultimo contatto, chi ha modificato. Dalla scheda si vedono le pratiche del cliente e le
 sue statistiche (quante pratiche, quanto speso, per anno).
 

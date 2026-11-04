@@ -371,6 +371,19 @@ function migra() {
     }
     db.exec('PRAGMA user_version = 9');
   }
+  if (v < 10) {
+    // v10: compagni di viaggio del cliente (senza scheda propria, ma ricercabili)
+    db.exec(`CREATE TABLE IF NOT EXISTS cliente_compagni (id INTEGER PRIMARY KEY AUTOINCREMENT, cliente_id INTEGER NOT NULL, ordine INTEGER NOT NULL DEFAULT 0,
+      nome TEXT NOT NULL DEFAULT '', nato_il TEXT NOT NULL DEFAULT '', doc_tipo TEXT NOT NULL DEFAULT '', doc_numero TEXT NOT NULL DEFAULT '', doc_scade TEXT NOT NULL DEFAULT '', note TEXT NOT NULL DEFAULT '');
+      CREATE INDEX IF NOT EXISTS idx_ccomp_cliente ON cliente_compagni(cliente_id);
+      CREATE INDEX IF NOT EXISTS idx_ccomp_nome ON cliente_compagni(nome);`);
+    db.exec('PRAGMA user_version = 10');
+  }
+  if (v < 11) {
+    const colsB = db.prepare('PRAGMA table_info(biglietti)').all().map(c => c.name);
+    if (!colsB.includes('bozza')) db.exec('ALTER TABLE biglietti ADD COLUMN bozza INTEGER NOT NULL DEFAULT 0');
+    db.exec('PRAGMA user_version = 11');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

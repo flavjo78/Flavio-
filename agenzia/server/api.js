@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.6.2';
+const VERSIONE = '1.6.3';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -290,13 +290,19 @@ function clienti(ctx) {
     FROM clienti c`;
   const p = [];
   if (q) {
-    sql += ` WHERE lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ? OR lower(c.azienda) LIKE ? OR lower(c.cf) LIKE ? OR c.cellulare LIKE ? OR c.telefono LIKE ? OR lower(c.email) LIKE ?`;
+    sql += ` WHERE lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ? OR lower(c.azienda) LIKE ? OR lower(c.cf) LIKE ? OR c.cellulare LIKE ? OR c.telefono LIKE ? OR lower(c.email) LIKE ?
+      OR c.id IN (SELECT cliente_id FROM cliente_compagni WHERE lower(nome) LIKE ?)`;
     const like = `%${q}%`;
-    p.push(like, like, like, like, like, like, like);
+    p.push(like, like, like, like, like, like, like, like);
   }
   sql += ' ORDER BY c.cognome, c.nome LIMIT ?';
   p.push(lim);
-  return db.all(sql, ...p);
+  const lista = db.all(sql, ...p);
+  if (q) for (const c of lista) { // se trovato tramite un compagno di viaggio, lo dice
+    const comp = db.get('SELECT nome FROM cliente_compagni WHERE cliente_id = ? AND lower(nome) LIKE ? LIMIT 1', c.id, `%${q}%`);
+    if (comp && !(`${c.cognome} ${c.nome} ${c.nome} ${c.cognome} ${c.azienda}`.toLowerCase().includes(q))) c.compagno = comp.nome;
+  }
+  return lista;
 }
 function cliente(ctx) {
   const id = N(ctx.query.id);
@@ -308,7 +314,30 @@ function cliente(ctx) {
   c.documenti = db.all('SELECT * FROM cliente_documenti WHERE cliente_id = ? ORDER BY ordine, id', id);
   c.contatti = db.all('SELECT * FROM cliente_contatti WHERE cliente_id = ? ORDER BY ordine, id', id);
   c.tessere = db.all('SELECT * FROM cliente_tessere WHERE cliente_id = ? ORDER BY ordine, id', id);
+  c.compagni = db.all('SELECT * FROM cliente_compagni WHERE cliente_id = ? ORDER BY ordine, id', id);
   return c;
+}
+// aggiunge/aggiorna i compagni di viaggio di un cliente (per nome, senza doppioni)
+function aggiornaCompagni(cid, lista) {
+  for (const q of lista) {
+    const nome = S(q.nome); if (!nome) continue;
+    const ex = db.get('SELECT id FROM cliente_compagni WHERE cliente_id = ? AND lower(nome) = lower(?)', cid, nome);
+    if (ex) db.run("UPDATE cliente_compagni SET nato_il = CASE WHEN ? <> '' THEN ? ELSE nato_il END, doc_tipo = CASE WHEN ? <> '' THEN ? ELSE doc_tipo END, doc_numero = CASE WHEN ? <> '' THEN ? ELSE doc_numero END, doc_scade = CASE WHEN ? <> '' THEN ? ELSE doc_scade END WHERE id = ?",
+      DATA(q.nato_il), DATA(q.nato_il), S(q.doc_tipo), S(q.doc_tipo), S(q.doc_numero), S(q.doc_numero), DATA(q.doc_scade), DATA(q.doc_scade), ex.id);
+    else db.run('INSERT INTO cliente_compagni(cliente_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', cid, db.get('SELECT COUNT(*) AS n FROM cliente_compagni WHERE cliente_id = ?', cid).n, nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
+  }
+}
+// ricerca passeggeri: compagni del cliente, altri compagni, clienti
+function passeggeri_cerca(ctx) {
+  const q = S(ctx.query.q).toLowerCase(); const cid = N(ctx.query.cliente_id);
+  if (!q) return [];
+  const like = `%${q}%`;
+  const comp = db.all(`SELECT k.*, c.cognome || ' ' || c.nome AS cliente FROM cliente_compagni k JOIN clienti c ON c.id = k.cliente_id WHERE lower(k.nome) LIKE ? ORDER BY (k.cliente_id = ?) DESC, k.nome LIMIT 10`, like, cid)
+    .map(k => ({ tipo: 'compagno', nome: k.nome, nato_il: k.nato_il, doc_tipo: k.doc_tipo, doc_numero: k.doc_numero, doc_scade: k.doc_scade, cliente_id: k.cliente_id, cliente: k.cliente }));
+  const cl = db.all(`SELECT c.*, (SELECT tipo FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_tipo, (SELECT numero FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_numero, (SELECT scade FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_scade
+    FROM clienti c WHERE lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ? ORDER BY c.cognome, c.nome LIMIT 8`, like, like)
+    .map(c => ({ tipo: 'cliente', nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, doc_tipo: c.d_tipo || '', doc_numero: c.d_numero || '', doc_scade: c.d_scade || '', cliente_id: c.id, cliente: '' }));
+  return [...comp, ...cl];
 }
 // salva le liste collegate del cliente (sostituisce tutto)
 function salvaListeCliente(cid, c) {
@@ -325,6 +354,11 @@ function salvaListeCliente(cid, c) {
     db.run('DELETE FROM cliente_contatti WHERE cliente_id = ?', cid);
     let o = 0;
     for (const d of c.contatti) { if (!S(d.valore)) continue; db.run('INSERT INTO cliente_contatti(cliente_id, ordine, tipo, valore, note) VALUES(?,?,?,?,?)', cid, o++, S(d.tipo), S(d.valore), S(d.note)); }
+  }
+  if (Array.isArray(c.compagni)) {
+    db.run('DELETE FROM cliente_compagni WHERE cliente_id = ?', cid);
+    let o = 0;
+    for (const d of c.compagni) { if (!S(d.nome)) continue; db.run('INSERT INTO cliente_compagni(cliente_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade, note) VALUES(?,?,?,?,?,?,?,?)', cid, o++, S(d.nome), DATA(d.nato_il), S(d.doc_tipo), S(d.doc_numero), DATA(d.doc_scade), S(d.note)); }
   }
   if (Array.isArray(c.tessere)) {
     db.run('DELETE FROM cliente_tessere WHERE cliente_id = ?', cid);
@@ -370,7 +404,7 @@ function cliente_elimina(ctx) {
   const n = db.get('SELECT COUNT(*) AS n FROM pratiche WHERE cliente_id = ?', id).n;
   if (n > 0) err(400, `Il cliente ha ${n} pratiche: non si può cancellare`);
   db.run('DELETE FROM clienti WHERE id = ?', id);
-  for (const t of ['cliente_documenti', 'cliente_contatti', 'cliente_tessere']) db.run(`DELETE FROM ${t} WHERE cliente_id = ?`, id);
+  for (const t of ['cliente_documenti', 'cliente_contatti', 'cliente_tessere', 'cliente_compagni']) db.run(`DELETE FROM ${t} WHERE cliente_id = ?`, id);
   db.log(ctx.utente, 'cliente_elimina', 'cliente', id, '');
   return { ok: true };
 }
@@ -801,7 +835,8 @@ function biglietto_salva(ctx) {
   const praticaId = N(c.pratica_id) || null;
   if (praticaId && !db.get('SELECT id FROM pratiche WHERE id = ?', praticaId)) err(400, 'Pratica collegata non trovata');
   const passeggeri = (Array.isArray(c.passeggeri) ? c.passeggeri : []).filter(q => S(q.nome));
-  richiedi(clienteId || passeggeri.length || S(c.passeggero), 'Serve il cliente oppure almeno un passeggero');
+  const bozza = B(c.bozza);
+  if (!bozza) richiedi(clienteId || passeggeri.length || S(c.passeggero), 'Serve il cliente oppure almeno un passeggero');
   if (!passeggeri.length && S(c.passeggero)) passeggeri.push({ nome: S(c.passeggero) });
   const L = db.impostazione('liste');
   let canale = S(c.canale), modalita = S(c.modalita);
@@ -813,13 +848,13 @@ function biglietto_salva(ctx) {
     const ammesse = voci.filter(x => x[0] === canale).map(x => (x[1] || 'pagato') === 'debito' ? 'debito' : 'pagato');
     const acq = S(c.acquisizione).toLowerCase();
     modalita = acq.startsWith('cash') || acq.startsWith('contant') ? 'debito' : 'pagato';
-    if (ammesse.length && !ammesse.includes(modalita)) err(400, `${canale} ammette solo "${ammesse[0] === 'debito' ? 'Cash' : 'Carta di credito'}" come acquisizione`);
+    if (!bozza && ammesse.length && !ammesse.includes(modalita)) err(400, `${canale} ammette solo "${ammesse[0] === 'debito' ? 'Cash' : 'Carta di credito'}" come acquisizione`);
   } else { canale = ''; modalita = ''; }
   const vals = {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,
     passeggero: passeggeri.length ? S(passeggeri[0].nome) + (passeggeri.length > 1 ? ` +${passeggeri.length - 1}` : '') : S(c.passeggero), vettore: S(c.vettore), canale, modalita, acquisizione: S(c.acquisizione),
     codice: S(c.codice).toUpperCase(), itinerario: S(c.itinerario).toUpperCase(), partenza: DATA(c.partenza), segmenti: N(c.segmenti),
-    importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note)
+    importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note), bozza
   };
   const ts = db.adesso();
   return db.transazione(() => {
@@ -840,6 +875,7 @@ function biglietto_salva(ctx) {
       bid = Number(r.lastInsertRowid);
       db.log(ctx.utente, 'biglietto_crea', 'biglietto', bid, `B${numero}/${anno} ${tipo} ${vals.itinerario}`);
     }
+    if (clienteId && passeggeri.length > 1) aggiornaCompagni(clienteId, passeggeri.slice(1));
     db.run('DELETE FROM biglietto_passeggeri WHERE biglietto_id = ?', bid);
     passeggeri.forEach((q, i) => db.run('INSERT INTO biglietto_passeggeri(biglietto_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', bid, i, S(q.nome), DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade)));
     if (clienteId) db.run('UPDATE clienti SET ultimo_contatto = ? WHERE id = ?', db.oggi(), clienteId);
@@ -990,6 +1026,7 @@ const AZIONI = {
   cliente_salva: { fn: cliente_salva, post: true },
   cliente_elimina: { fn: cliente_elimina, post: true },
   tessere_tipi: { fn: tessere_tipi },
+  passeggeri_cerca: { fn: passeggeri_cerca },
   liste_salva: { fn: liste_salva, post: true },
   biglietti: { fn: biglietti },
   biglietto: { fn: biglietto },

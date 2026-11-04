@@ -778,7 +778,7 @@ function euroACent(v) {
 function pickerCliente(input, hidden, lista, onScelto) {
   let timer, risultati = [], sel = -1;
   const mostra = () => {
-    lista.innerHTML = risultati.map((c, i) => `<div data-i="${i}" class="${i === sel ? 'sel' : ''}"><b>${esc(c.cognome)} ${esc(c.nome)}</b> <span class="muted small">${esc(c.citta || '')} ${esc(c.cellulare || c.telefono || '')} ${c.cf ? '· ' + esc(c.cf) : ''}</span></div>`).join('') + `<div class="nuovo" data-nuovo>+ Nuovo cliente "${esc(input.value)}"</div>`;
+    lista.innerHTML = risultati.map((c, i) => `<div data-i="${i}" class="${i === sel ? 'sel' : ''}"><b>${esc(c.cognome)} ${esc(c.nome)}</b> <span class="muted small">${esc(c.citta || '')} ${esc(c.cellulare || c.telefono || '')} ${c.cf ? '· ' + esc(c.cf) : ''}</span>${c.compagno ? `<div class="small" style="color:var(--warn)">compagno di viaggio: ${esc(c.compagno)}</div>` : ''}</div>`).join('') + `<div class="nuovo" data-nuovo>+ Nuovo cliente "${esc(input.value)}"</div>`;
     lista.classList.remove('hidden');
   };
   const scegli = c => { hidden.value = c.id; input.value = `${c.cognome} ${c.nome}`.trim(); lista.classList.add('hidden'); onScelto && onScelto(c); };
@@ -820,7 +820,7 @@ async function paginaClienti() {
     const l = await api('clienti', undefined, { q: FILTRI_CL.q });
     $('#clN').textContent = `${l.length} clienti`;
     $('#clTab').innerHTML = l.length ? `<table class="t"><thead><tr><th>Cognome e nome</th><th>Azienda</th><th>Città</th><th>Cellulare</th><th>Telefono</th><th>Email</th><th>Cod. fiscale</th><th class="num">Pratiche</th><th>Ultimo contatto</th></tr></thead><tbody>
-      ${l.map(c => `<tr class="click" onclick="naviga('#/clienti/${c.id}')"><td><b>${esc(c.cognome)}</b> ${esc(c.nome)}</td><td>${esc(c.azienda)}</td><td>${esc(c.citta)}</td><td>${esc(c.cellulare)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td class="small">${esc(c.cf)}</td><td class="num">${c.n_pratiche}</td><td>${dataIt(c.ultimo_contatto)}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun cliente</div>';
+      ${l.map(c => `<tr class="click" onclick="naviga('#/clienti/${c.id}')"><td><b>${esc(c.cognome)}</b> ${esc(c.nome)}${c.compagno ? `<div class="small" style="color:var(--warn)">compagno di viaggio: ${esc(c.compagno)}</div>` : ''}</td><td>${esc(c.azienda)}</td><td>${esc(c.citta)}</td><td>${esc(c.cellulare)}</td><td>${esc(c.telefono)}</td><td>${esc(c.email)}</td><td class="small">${esc(c.cf)}</td><td class="num">${c.n_pratiche}</td><td>${dataIt(c.ultimo_contatto)}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun cliente</div>';
   };
   $('#clQ').oninput = e => { FILTRI_CL.q = e.target.value; clearTimeout(timer); timer = setTimeout(carica, 250); };
   await carica(); $('#clQ').focus();
@@ -835,6 +835,7 @@ async function paginaCliente(id) {
   const TIPI_CONTATTO = L.tipi_contatto || ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'];
   const rigaDoc = (d = {}) => `<tr><td><input data-k="tipo" list="dlDocCl" value="${esc(d.tipo || '')}" placeholder="Tipo"></td><td><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero"></td><td><input data-k="rilasciato_da" value="${esc(d.rilasciato_da || '')}" placeholder="Rilasciato da"></td><td style="width:150px"><input data-k="rilasciato_il" type="date" value="${esc(d.rilasciato_il || '')}"></td><td style="width:150px"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const rigaCon = (d = {}) => `<tr><td style="width:170px"><select data-k="tipo">${opzioni(TIPI_CONTATTO, d.tipo || 'Telefono')}</select></td><td><input data-k="valore" value="${esc(d.valore || '')}" placeholder="Numero o indirizzo"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Riferimento / note (es. moglie, ufficio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
+  const rigaComp = (d = {}) => `<tr><td><input data-k="nome" value="${esc(d.nome || '')}" placeholder="Cognome e nome"></td><td style="width:150px"><input data-k="nato_il" type="date" value="${esc(d.nato_il || '')}"></td><td style="width:160px"><input data-k="doc_tipo" list="dlDocCl" value="${esc(d.doc_tipo || '')}" placeholder="Documento"></td><td><input data-k="doc_numero" value="${esc(d.doc_numero || '')}" placeholder="Numero"></td><td style="width:150px"><input data-k="doc_scade" type="date" value="${esc(d.doc_scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (es. figlio, moglie)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const rigaTes = (d = {}) => `<tr><td><input data-k="tipo" list="dlTessere" value="${esc(d.tipo || '')}" placeholder="Tessera / programma (es. MSC Voyagers Club)"></td><td><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero tessera"></td><td style="width:150px"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (livello, punti…)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   shell('clienti', nuovo ? 'Nuovo cliente' : `${esc(C.cognome)} ${esc(C.nome)}`, `
   <div class="griglia" style="grid-template-columns: minmax(0,1fr) 340px">
@@ -857,6 +858,10 @@ async function paginaCliente(id) {
     ${datalist('dlDocCl', L.tipi_documento_cliente)}
     <div class="tab-scroll"><table class="t compatta" data-righe id="tabDoc"><thead><tr><th>Tipo</th><th>Numero</th><th>Rilasciato da</th><th>Rilasciato il</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.documenti || []).map(rigaDoc).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:6px">Le scadenze dei documenti compaiono nella schermata Scadenze per i clienti in partenza.</div>
+  </div>
+  <div class="card"><h2>Compagni di viaggio <span class="spazio"></span><button type="button" class="btn piccolo" data-add="comp">+ Aggiungi compagno</button></h2>
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabComp"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.compagni || []).map(rigaComp).join('')}</tbody></table></div>
+    <div class="small muted" style="margin-top:6px">Persone che viaggiano con questo cliente (figli, coniuge, amici): non hanno una scheda propria, ma cercandole si arriva qui. Si aggiungono anche da sole dai biglietti.</div>
   </div>
   <div class="card"><h2>Tessere e programmi fedeltà <span class="spazio"></span><button type="button" class="btn piccolo" data-add="tes">+ Aggiungi tessera</button></h2>
     ${datalist('dlTessere', tipiTessere)}
@@ -882,13 +887,13 @@ async function paginaCliente(id) {
   let sporca = false;
   $('#fCliente').addEventListener('input', () => { sporca = true; });
   pg.addEventListener('click', e => {
-    const a = e.target.closest('[data-add]'); if (a) { const t = { doc: ['#tabDoc', rigaDoc], con: ['#tabCon', rigaCon], tes: ['#tabTes', rigaTes] }[a.dataset.add]; $(t[0] + ' tbody').insertAdjacentHTML('beforeend', t[1]()); $(t[0] + ' tbody tr:last-child input, ' + t[0] + ' tbody tr:last-child select').focus(); sporca = true; return; }
+    const a = e.target.closest('[data-add]'); if (a) { const t = { doc: ['#tabDoc', rigaDoc], con: ['#tabCon', rigaCon], tes: ['#tabTes', rigaTes], comp: ['#tabComp', rigaComp] }[a.dataset.add]; $(t[0] + ' tbody').insertAdjacentHTML('beforeend', t[1]()); $(t[0] + ' tbody tr:last-child input, ' + t[0] + ' tbody tr:last-child select').focus(); sporca = true; return; }
     const b = e.target.closest('[data-del]'); if (b) { b.closest('tr').remove(); sporca = true; }
   });
   const leggiRighe = sel => $$(sel + ' tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value])));
   const salvaInterno = async () => {
     const d = leggiForm($('#fCliente')); d.id = C.id || 0;
-    d.documenti = leggiRighe('#tabDoc'); d.contatti = leggiRighe('#tabCon'); d.tessere = leggiRighe('#tabTes');
+    d.documenti = leggiRighe('#tabDoc'); d.contatti = leggiRighe('#tabCon'); d.tessere = leggiRighe('#tabTes'); d.compagni = leggiRighe('#tabComp');
     try { const r = await api('cliente_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
   const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Cliente salvato', 'ok'); if (nuovo) naviga('#/clienti/' + r.id); };
@@ -1172,7 +1177,7 @@ async function paginaBiglietteria() {
     <div class="card"><h2>Ultimi biglietti <span class="spazio"></span><input class="inp" id="bgQ" placeholder="Cerca…" style="width:260px"><a class="btn piccolo" href="#/statistiche/biglietteria">Riepilogo e totali →</a></h2><div id="bgTab"></div></div>`);
   const render = lista => {
     $('#bgTab').innerHTML = lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Totale</th><th class="num">Saldo</th><th>Pratica</th></tr></thead><tbody>
-      ${lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.saldo_cent)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun biglietto</div>';
+      ${lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}${b.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.saldo_cent)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun biglietto</div>';
   };
   render(ultimi);
   let timer;
@@ -1231,7 +1236,7 @@ async function paginaBiglietto(id) {
   const L = STATO.imp.liste;
   const canali = canaliAereo();
   const vettoriPer = { aereo: [...new Set([...(L.vettori_biglietteria || []), 'ITA AIRWAYS', 'RYANAIR', 'EASYJET'])], treno: L.vettori_treno || ['Trenitalia', 'Italo'], lowcost: L.vettori_biglietteria || [] };
-  const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>`;
+  const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>${B.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}`;
   const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca tra i clienti o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td style="width:150px"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td style="width:170px"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td style="width:150px"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
   if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [{ nome: B.passeggero }];
   shell('biglietteria', titolo, `
@@ -1330,14 +1335,25 @@ async function paginaBiglietto(id) {
   pickerCliente($('#pkCliente'), $('[name=cliente_id]', pg), $('#pkLista'), c => { sporca = true; mostraCliente(c.id, true); });
   if (B.cliente_id) mostraCliente(B.cliente_id, nuovo && !(B.passeggeri || []).length);
   // ogni riga passeggero: il nome si può prendere dai clienti (porta anche data di nascita e documento)
+  const riempiRiga = (tr, q) => { $('[data-k=nome]', tr).value = q.nome || ''; $('[data-k=nato_il]', tr).value = q.nato_il ? dataIt(q.nato_il) : ''; $('[data-k=doc_tipo]', tr).value = q.doc_tipo || ''; $('[data-k=doc_numero]', tr).value = q.doc_numero || ''; $('[data-k=doc_scade]', tr).value = q.doc_scade ? dataIt(q.doc_scade) : ''; };
   const attivaPickerPass = tr => {
     const inp = $('[data-k=nome]', tr); if (!inp || inp.dataset.picker) return; inp.dataset.picker = '1';
-    pickerCliente(inp, $('[data-cid]', tr), $('.lista', tr), async c => {
-      sporca = true;
-      try { const cl = await api('cliente', undefined, { id: c.id }); const d = (cl.documenti || [])[0] || {};
-        $('[data-k=nome]', tr).value = `${cl.cognome} ${cl.nome}`.trim(); $('[data-k=nato_il]', tr).value = cl.nato_il ? dataIt(cl.nato_il) : '';
-        $('[data-k=doc_tipo]', tr).value = d.tipo || ''; $('[data-k=doc_numero]', tr).value = d.numero || ''; $('[data-k=doc_scade]', tr).value = d.scade ? dataIt(d.scade) : ''; } catch (e) { /* lascia solo il nome */ }
-    });
+    const primo = () => $('#tabPass tbody tr') === tr;
+    if (primo()) {
+      // primo passeggero = il cliente: si cerca tra i clienti o si crea al volo; diventa anche il cliente del biglietto
+      pickerCliente(inp, $('[data-cid]', tr), $('.lista', tr), async c => {
+        sporca = true;
+        try { const cl = await api('cliente', undefined, { id: c.id }); const d = (cl.documenti || [])[0] || {}; riempiRiga(tr, { nome: `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il, doc_tipo: d.tipo, doc_numero: d.numero, doc_scade: d.scade }); } catch (e) { /* solo il nome */ }
+        if (!$('[name=cliente_id]', pg).value) { $('[name=cliente_id]', pg).value = c.id; $('#pkCliente').value = `${c.cognome} ${c.nome}`.trim(); mostraCliente(c.id, false); }
+      });
+      return;
+    }
+    // altri passeggeri: compagni di viaggio del cliente, altri compagni, clienti; oppure nome scritto a mano
+    const lista = $('.lista', tr); let timer, ris = [];
+    const mostra = () => { lista.innerHTML = ris.map((r, i) => `<div data-i="${i}"><b>${esc(r.nome)}</b> <span class="muted small">${r.tipo === 'compagno' ? 'compagno di ' + esc(r.cliente) : 'cliente'}${r.doc_tipo ? ' · ' + esc(r.doc_tipo) : ''}</span></div>`).join('') || '<div class="muted small">nessuno trovato: resta il nome scritto (sarà salvato come compagno di viaggio del cliente)</div>'; lista.classList.remove('hidden'); };
+    inp.addEventListener('input', () => { sporca = true; clearTimeout(timer); timer = setTimeout(async () => { if (inp.value.trim().length < 2) { lista.classList.add('hidden'); return; } ris = await api('passeggeri_cerca', undefined, { q: inp.value, cliente_id: $('[name=cliente_id]', pg).value }); mostra(); }, 200); });
+    inp.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
+    lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (!d) return; e.preventDefault(); riempiRiga(tr, ris[+d.dataset.i]); lista.classList.add('hidden'); sporca = true; });
   };
   $$('#tabPass tbody tr').forEach(attivaPickerPass);
   $('#btnAddPass').onclick = () => { $('#tabPass tbody').insertAdjacentHTML('beforeend', rigaPass()); const tr = $('#tabPass tbody tr:last-child'); attivaPickerPass(tr); $('input', tr).focus(); sporca = true; };
@@ -1373,10 +1389,10 @@ async function paginaBiglietto(id) {
     lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (d) { e.preventDefault(); scegli(ris[+d.dataset.i]); } });
     inp.addEventListener('keydown', e => { if (e.key !== 'Enter') return; e.preventDefault(); if (ris.length) scegli(ris[0]); else if (inp.value.trim()) scegli({ c: inp.value.trim().toUpperCase().replace(/[^A-Z0-9 ]/g, '').replace(/\s+/g, '-') }); });
   })();
-  const salvaInterno = async () => {
-    const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno;
+  const salvaInterno = async (bozza = 0) => {
+    const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno; d.bozza = bozza;
     d.passeggeri = $$('#tabPass tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value])));
-    try { const r = await api('biglietto_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
+    try { const r = await api('biglietto_salva', d); sporca = false; B.id = r.id; B.bozza = r.bozza; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
   const salva = async () => { const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (nuovo) naviga(r.pratica_id && parti[3] === 'pratica' ? '#/pratiche/' + r.pratica_id : '#/biglietteria/' + r.id); else aggiornaB(r); };
   const apriAccB = () => {
@@ -1395,7 +1411,8 @@ async function paginaBiglietto(id) {
   };
   pg.addEventListener('click', async e => { const t = e.target; if (t.dataset.accbDel) { if (await conferma('Cancellare l\'acconto?', '')) { try { aggiornaB(await api('acconto_elimina', { id: +t.dataset.accbDel })); } catch (err) { toast(err.message, 'err'); } } } });
   $('#btnStampaB').onclick = async () => { const r = await salvaInterno(); if (!r) return; Object.assign(B, r); if (nuovo) { history.replaceState(null, '', '#/biglietteria/' + r.id); STATO.route = 'biglietteria/' + r.id; GUARDIA.route = STATO.route; } window.open(r.pratica_id ? 'stampa.html?id=' + r.pratica_id : 'stampa.html?b=' + r.id, '_blank'); };
-  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'il biglietto' };
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: () => salvaInterno(0), bozza: () => salvaInterno(1), cosa: 'il biglietto',
+    beacon: () => { const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno; d.bozza = 1; d.passeggeri = $$('#tabPass tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value]))); navigator.sendBeacon('/api/biglietto_salva', new Blob([JSON.stringify(d)], { type: 'application/json' })); } };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
   if (!nuovo) $('#btnElimina').onclick = async () => {
