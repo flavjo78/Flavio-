@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.6.0';
+const VERSIONE = '1.6.1';
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -806,9 +806,12 @@ function biglietto_salva(ctx) {
   const L = db.impostazione('liste');
   let canale = S(c.canale), modalita = S(c.modalita);
   if (tipo === 'aereo') {
-    // la modalità (pagato/debito) la decide il canale configurato nelle liste: "Nome|pagato"
-    const voce = (L.canali_aereo || []).map(x => x.split('|')).find(x => x[0].trim() === canale);
-    if (voce) modalita = (voce[1] || '').trim() === 'debito' ? 'debito' : 'pagato';
+    // il canale arriva come "Nome|pagato" o "Nome|debito" (voce della lista canali_aereo); lo stesso fornitore può avere le due opzioni
+    const voci = (L.canali_aereo || []).map(x => x.split('|').map(y => y.trim()));
+    const [nome, mod] = canale.split('|').map(y => y.trim());
+    const voce = voci.find(x => x[0] === nome && (mod ? (x[1] || 'pagato') === mod : true)) || voci.find(x => x[0] === nome);
+    canale = nome;
+    modalita = voce ? ((voce[1] || 'pagato') === 'debito' ? 'debito' : 'pagato') : (mod === 'debito' ? 'debito' : 'pagato');
   } else { canale = ''; modalita = ''; }
   const vals = {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,

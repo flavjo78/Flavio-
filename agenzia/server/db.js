@@ -210,7 +210,7 @@ const IMPOSTAZIONI_DEFAULT = {
     descrizioni_servizi: ['Quota pacchetto', 'Quota soggiorno', 'Quota volo', 'Tasse aeroportuali', 'Assicurazione', 'Transfer', 'Noleggio auto', 'Escursione', 'ADV fee', "Diritti d'agenzia"],
     tipi_documento_cliente: ["Carta d'identità", 'Passaporto', 'Patente'],
     // Canali di emissione per la biglietteria AEREA: "Nome|pagato" (già pagato al fornitore) oppure "Nome|debito" (resta un debito)
-    canali_aereo: ['Fornitore A|pagato', 'Fornitore B|debito'],
+    canali_aereo: ['Fancy Tour|pagato', 'Fancy Tour|debito', 'Only Ticket|pagato'],
     vettori_treno: ['Trenitalia', 'Italo'],
     modalita_acquisizione: ['Cash', 'Carta di credito'],
     tipi_contatto: ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'],
@@ -355,6 +355,21 @@ function migra() {
     for (const b of db.prepare("SELECT id, passeggero FROM biglietti WHERE passeggero <> ''").all())
       db.prepare('INSERT INTO biglietto_passeggeri(biglietto_id, ordine, nome) VALUES(?,0,?)').run(b.id, b.passeggero);
     db.exec('PRAGMA user_version = 8');
+  }
+  if (v < 9) {
+    // v9: nomi veri dei canali aerei al posto dei segnaposto "Fornitore A/B"
+    const r = db.prepare("SELECT valore FROM impostazioni WHERE chiave = 'liste'").get();
+    if (r) {
+      const l = JSON.parse(r.valore);
+      const vecchi = ['Fornitore A|pagato', 'Fornitore B|debito'];
+      if (Array.isArray(l.canali_aereo) && l.canali_aereo.every(x => vecchi.includes(x))) {
+        l.canali_aereo = ['Fancy Tour|pagato', 'Fancy Tour|debito', 'Only Ticket|pagato'];
+        db.prepare("UPDATE impostazioni SET valore = ? WHERE chiave = 'liste'").run(JSON.stringify(l));
+      }
+      db.prepare("UPDATE biglietti SET canale = 'Fancy Tour' WHERE canale = 'Fornitore A'").run();
+      db.prepare("UPDATE biglietti SET canale = 'Only Ticket' WHERE canale = 'Fornitore B'").run();
+    }
+    db.exec('PRAGMA user_version = 9');
   }
 }
 

@@ -26,4 +26,4 @@
 - **Statistiche → premio da raggiungere**: per la biglietteria (es. "over" Italo / Frecce) poter impostare
   un obiettivo di vendite per vettore/canale e vedere quanto manca. Non ancora costruito.
 - Biglietteria: cambio / rimborso ci sono; da definire le regole di calcolo (importo negativo nel rimborso?).
-- Nomi veri dei due fornitori aerei da mettere in Liste (oggi "Fornitore A|pagato", "Fornitore B|debito").
+- Nomi veri dei due fornitori aerei da mettere in Liste (fatto: Fancy Tour pagato/debito, Only Ticket pagato — da confermare la modalità di Only Ticket).
