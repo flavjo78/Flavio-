@@ -612,9 +612,16 @@ async function paginaPratica(id) {
   renderAcconti(); renderFornitori(); renderBiglietti();
   const aggiorna = p => { Object.assign(P, p); renderAcconti(); renderFornitori(); renderBiglietti(); ricalcola(); };
 
+  // fornitori presenti nei servizi di questa pratica (dalle righe a video, così vale anche prima del salvataggio)
+  const fornitoriPratica = () => {
+    const ids = new Set($$('#listaServizi [data-srv] > .srv-h [name=fornitore_id]').map(s => +s.value).filter(Boolean));
+    for (const f of (P.fornitori || [])) ids.add(f.fornitore_id);
+    return forn.filter(f => ids.has(f.id));
+  };
   const selRiferito = m => {
-    const opts = [{ value: '', label: '— nessuno in particolare —' }, ...forn.map(f => ({ value: 'f:' + f.id, label: f.nome })), ...(P.biglietti || []).map(b => ({ value: 'b:' + b.id, label: `Biglietteria · B${b.numero}/${b.anno} ${b.vettore}${b.canale ? ' · ' + b.canale : ''}` }))];
+    const opts = [{ value: '', label: '— nessuno in particolare —' }, ...fornitoriPratica().map(f => ({ value: 'f:' + f.id, label: f.nome })), ...(P.biglietti || []).map(b => ({ value: 'b:' + b.id, label: `Biglietteria ${nomeTipoBigl(b.tipo)} · ${b.tipo === 'aereo' && b.canale ? b.canale + ' (' + b.vettore + ')' : b.vettore} · B${b.numero}/${b.anno}` }))];
     const sel = m.biglietto_id ? 'b:' + m.biglietto_id : (m.fornitore_id ? 'f:' + m.fornitore_id : '');
+    if (m.fornitore_id && !opts.some(o => o.value === sel)) { const f = forn.find(x => x.id === m.fornitore_id); if (f) opts.push({ value: sel, label: f.nome + ' (non più in pratica)' }); }
     return `<select name="riferito">${opzioni(opts, sel)}</select>`;
   };
   const formMovimento = (m, conFornitore, obbligaFornitore) => `<div class="griglia g2">
@@ -679,7 +686,7 @@ async function paginaPratica(id) {
     if (res === null || importo <= res || res < 0) { aggiorna(await api('acconto_salva', { ...f, pratica_id: P.id })); return true; }
     const resto = importo - res;
     // chiede a chi assegnare la parte che eccede la quota
-    const altri = [{ value: '', label: '— nessuno in particolare (resta sulla pratica) —' }, ...forn.filter(x => x.id !== f.fornitore_id).map(x => ({ value: 'f:' + x.id, label: x.nome })), ...(P.biglietti || []).filter(b => b.id !== f.biglietto_id).map(b => ({ value: 'b:' + b.id, label: `Biglietteria · B${b.numero}/${b.anno} ${b.vettore}` }))];
+    const altri = [{ value: '', label: '— nessuno in particolare (resta sulla pratica) —' }, ...fornitoriPratica().filter(x => x.id !== f.fornitore_id).map(x => ({ value: 'f:' + x.id, label: x.nome })), ...(P.biglietti || []).filter(b => b.id !== f.biglietto_id).map(b => ({ value: 'b:' + b.id, label: `Biglietteria ${nomeTipoBigl(b.tipo)} · ${b.tipo === 'aereo' && b.canale ? b.canale : b.vettore} · B${b.numero}/${b.anno}` }))];
     const scelta = await modale({ titolo: 'Importo superiore alla quota', ok: 'Registra in due parti',
       corpo: `<p>Per <b>${esc(etichettaRif(f.fornitore_id, f.biglietto_id))}</b> restavano da versare <b>${eur(Math.max(0, res))} €</b>, ma l'acconto è di <b>${eur(importo)} €</b>.<br>A chi va la parte restante di <b>${eur(resto)} €</b>?</p><div class="campo"><label>Resto riferito a</label><select name="riferito">${opzioni(altri, '')}</select></div>`,
       onOk: d => leggiForm(d).riferito || ' ' });
