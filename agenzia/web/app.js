@@ -692,9 +692,13 @@ async function paginaPratica(id) {
       onOk: d => leggiForm(d).riferito || ' ' });
     if (scelta === null) return false;
     const r = scelta.trim();
-    const prima = await api('acconto_salva', { ...f, importo: Math.max(0, res) / 100, pratica_id: P.id });
-    const seconda = await api('acconto_salva', { ...f, importo: resto / 100, fornitore_id: r.startsWith('f:') ? +r.slice(2) : '', biglietto_id: r.startsWith('b:') ? +r.slice(2) : '', descrizione: (f.descrizione || 'acconto') + ' (resto)', pratica_id: P.id });
-    aggiorna(seconda); void prima; return true;
+    const secondo = { ...f, importo: resto / 100, fornitore_id: r.startsWith('f:') ? +r.slice(2) : '', biglietto_id: r.startsWith('b:') ? +r.slice(2) : '', pratica_id: P.id };
+    if (res > 0) {
+      // due acconti: la quota ancora dovuta al riferimento scelto + il resto a chi indicato
+      await api('acconto_salva', { ...f, importo: res / 100, pratica_id: P.id });
+      secondo.descrizione = (f.descrizione || 'acconto') + ' (resto)';
+    }
+    aggiorna(await api('acconto_salva', secondo)); return true;
   };
   const apriModaleAcconto = () => {
     const n = (P.acconti || []).length + 1;
