@@ -93,7 +93,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     document.title = `Pratica ${p.numero}-${p.anno} ${c.cognome} ${c.nome}`;
     // Righe in stampa: il padre porta l'importo suo + le voci nascoste; le voci "in stampa" vanno come righe a parte.
     const righe = [];
-    for (const b of (p.biglietti || [])) righe.push({ descrizione: `Biglietto ${b.tipo === 'lowcost' ? 'low cost' : b.tipo} ${b.vettore} ${b.itinerario}`.trim(), prezzo_cent: b.importo_cent + b.adv_fee_cent, pax: 1, dett: [b.codice ? 'Codice <b>' + esc(b.codice) + '</b>' : '', b.partenza ? 'partenza ' + dataIt(b.partenza) : ''].filter(Boolean).join(' · ') });
+    for (const b of (p.biglietti || [])) righe.push({ descrizione: `Biglietto ${b.tipo === 'lowcost' ? 'low cost' : b.tipo} ${b.vettore} ${b.itinerario}`.trim(), prezzo_cent: b.importo_cent + b.adv_fee_cent + (b.commissione_cent || 0), pax: 1, dett: [b.codice ? 'Codice <b>' + esc(b.codice) + '</b>' : '', b.partenza ? 'partenza ' + dataIt(b.partenza) : ''].filter(Boolean).join(' · ') });
     for (const r of p.righe) {
       const figli = r.figli || [];
       const nascosti = figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0);

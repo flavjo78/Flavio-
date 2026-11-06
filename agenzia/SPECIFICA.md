@@ -22,8 +22,10 @@
 
 - Ogni persona entra con **username e password propri**: pratiche, acconti, pagamenti e
   modifiche vengono registrati con il nome di chi li ha fatti (log operazioni).
-- Tutti gli utenti sono uguali. Il **pannello opzioni** (dati agenzia, testi legali,
-  numerazione, liste, backup, utenti) si apre con una **password a parte**.
+- Per ogni utente si scelgono le **voci del menù** che può usare con la propria password; le altre
+  restano visibili con un lucchetto e si aprono, per quella sessione, con la password del pannello.
+  Il **pannello opzioni** (dati agenzia, testi legali, numerazione, liste, backup, utenti) si apre
+  con una **password a parte**.
 - Al primo avvio il programma chiede di creare il primo utente e la password del pannello
   (entrambe ripetute), oppure di **importare un file di dati** già esistente.
   All'accesso si sceglie il proprio nome dall'elenco e si scrive solo la password. Le password
@@ -62,7 +64,8 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
   (catalogo e pagina), destinazione/
   itinerario, partenza e rientro (data + "da/a" facoltativi), adulti/bambini/infanti,
   durata giorni/notti, PNR, documenti necessari, richieste specifiche, note interne.
-- **Partecipanti:** elenco nome + data di nascita.
+- **Partecipanti:** nome, data di nascita e documento (tipo, numero, scadenza); il tasto 📇 li prende
+  dall'anagrafica del cliente o dei suoi compagni di viaggio; i nomi nuovi diventano compagni.
 - **Servizi (card):** ogni servizio ha descrizione, **fornitore**, importo cad. × pax, spunta
   "in stampa", più **N. pratica T.O. e operatore T.O.** del fornitore (stampati sotto il servizio,
   spunta per toglierli). Sotto ogni servizio si aggiungono **voci nascoste** (provvigione, diritti, costi):
@@ -75,7 +78,11 @@ quanto il cliente ha versato per quella quota; e le **statistiche per anno** (co
 - **Acconti (illimitati):** data, importo, metodo, descrizione, fornitore a cui si
   riferisce (facoltativo), chi l'ha registrato. Abbuono e **saldo da versare entro il**.
 - **Pagamenti al fornitore:** data, importo, fornitore, metodo, descrizione.
-- Totali calcolati: totale pratica, versato, saldo; per fornitore: costo, pagato, dovuto.
+- Totali calcolati: totale pratica, versato, saldo; per fornitore (compresi i biglietti collegati):
+  costo, pagato, dovuto, versato dal cliente per quella quota. Gli acconti riferiti a un fornitore vanno
+  a lui; quelli senza riferimento si ripartiscono in proporzione al costo, prima i fornitori e poi
+  l'agenzia ("Incassato per l'agenzia"). La tabella fornitori è di sola lettura.
+- Le tendine con molte voci sono **ricercabili**: al click mostrano tutto, scrivendo filtrano.
 
 ### Scadenze (schermata iniziale)
 Saldi clienti in arrivo o scaduti, pagamenti dovuti ai fornitori per le pratiche

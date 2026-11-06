@@ -9,7 +9,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 const db = require('./db');
-const { AZIONI, ErroreApi, VERSIONE } = require('./api');
+const { AZIONI, ErroreApi, VERSIONE, controllaPermesso } = require('./api');
 
 let inExe = false;
 try { inExe = require('node:sea').isSea(); } catch (e) { inExe = false; }
@@ -104,6 +104,7 @@ async function gestisciApi(req, res, url) {
     metodo: req.method, query, corpo, corpoRaw, utente, sessione: utente ? sessione : null,
     setSessione: sid => { cookie = sid ? `agenzia_sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 86400}` : 'agenzia_sid=; Path=/; HttpOnly; Max-Age=0'; }
   };
+  if (utente) controllaPermesso(ctx, nome);
   const r = await az.fn(ctx);
   if (r && r.__file) {
     // risposta = un file da scaricare

@@ -266,3 +266,17 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .data-it.errata{border-color:var(--err)!important;background:var(--err-soft)}
 #tabPass .picker .lista{min-width:360px}
 .sola-lettura{background:var(--surface-2)!important;color:var(--text);font-weight:600;letter-spacing:.5px}
+
+/* ---- 1.7 ---- */
+.combo{position:relative;display:block}
+.combo input{width:100%}
+.combo .lista{position:absolute;left:0;right:0;top:100%;background:#fff;border:1px solid var(--border-2);border-radius:6px;box-shadow:0 8px 24px rgba(0,0,0,.15);z-index:30;max-height:240px;overflow:auto}
+.combo .lista div{padding:6px 10px;cursor:pointer}.combo .lista div:hover,.combo .lista div.sel{background:var(--primary-soft)}
+.t .combo input{padding:5px 7px}
+.nav a.bloccata{opacity:.55}.nav a.bloccata .lucch{margin-left:auto;font-size:12px}
+.permessi{display:flex;flex-wrap:wrap;gap:8px 16px;padding:6px 0}.permessi label{display:flex;align-items:center;gap:6px}
+.bg-griglia .campo label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.c-stretto{max-width:90px}
+.c-soldi{max-width:170px}
+.scelta-bigl .sc .ic svg{width:44px;height:44px;color:#1a1d21}
+#tabPart{min-width:820px}

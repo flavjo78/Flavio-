@@ -3,7 +3,10 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.6.5';
+const VERSIONE = '1.7.0';
+// pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
+const SBLOCCHI = new Map();
+const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
 // sessioni che hanno appena verificato la password del pannello per stampare una voce nascosta (sid → ts)
 const FIGLI_OK = new Map();
 
@@ -54,9 +57,42 @@ function DATA(v) {
 }
 function richiedi(cond, msg) { if (!cond) err(400, msg); }
 
-function utentePubblico(u) { return u ? { id: u.id, username: u.username, nome: u.nome, attivo: u.attivo } : null; }
+function permessiDi(u) { try { const p = JSON.parse(u.permessi || '[]'); return Array.isArray(p) && p.length ? p : PAGINE_MENU.slice(); } catch (e) { return PAGINE_MENU.slice(); } }
+function utentePubblico(u) { return u ? { id: u.id, username: u.username, nome: u.nome, attivo: u.attivo, permessi: permessiDi(u) } : null; }
 function listaUtenti() { return db.all('SELECT id, username, nome, attivo FROM utenti ORDER BY nome'); }
-function listaUtentiPannello() { return db.all('SELECT id, username, nome, attivo, pass_chiaro FROM utenti ORDER BY nome'); }
+function listaUtentiPannello() { return db.all('SELECT id, username, nome, attivo, pass_chiaro, permessi FROM utenti ORDER BY nome').map(u => ({ ...u, permessi: permessiDi(u) })); }
+// pagina del menù a cui appartiene un'azione (per i permessi); null = libera
+function paginaDiAzione(nome) {
+  if (/^(clienti?|cliente_|tessere_tipi|passeggeri_cerca)/.test(nome)) return 'clienti';
+  if (/^fornitor/.test(nome)) return 'fornitori';
+  if (/^(pratic|acconto|pagamento_fornitore|prossimo_numero$)/.test(nome)) return 'pratiche';
+  if (/^(bigliett|prossimo_numero_b)/.test(nome)) return 'biglietteria';
+  if (nome === 'scadenze') return 'scadenze';
+  if (nome === 'statistiche') return 'statistiche';
+  if (nome === 'liste_salva') return 'liste';
+  return null;
+}
+function controllaPermesso(ctx, nome) {
+  const pag = paginaDiAzione(nome); if (!pag) return;
+  // la ricerca clienti serve anche nelle pratiche e nei biglietti
+  if (pag === 'clienti' && ['clienti', 'cliente', 'tessere_tipi', 'passeggeri_cerca', 'cliente_salva'].includes(nome)) { const perm = permessiDi(ctx.utente); if (perm.some(p => ['pratiche', 'biglietteria', 'clienti'].includes(p))) return; }
+  if (pag === 'pratiche' && ['pratiche_cerca', 'pratica'].includes(nome) && permessiDi(ctx.utente).includes('biglietteria')) return;
+  if (pag === 'fornitori' && nome === 'fornitori' && permessiDi(ctx.utente).some(p => ['pratiche', 'biglietteria'].includes(p))) return;
+  if (permessiDi(ctx.utente).includes(pag)) return;
+  const sb = ctx.sessione && SBLOCCHI.get(ctx.sessione.sid);
+  if (sb && sb.has(pag)) return;
+  err(403, 'Questa parte del programma non è abilitata per il tuo utente: serve la password del pannello');
+}
+// sblocca una pagina del menù per questa sessione con la password del pannello
+function pagina_sblocca(ctx) {
+  const c = ctx.corpo || {};
+  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  const pag = S(c.pagina); richiedi(PAGINE_MENU.includes(pag), 'Pagina non valida');
+  if (!SBLOCCHI.has(ctx.sessione.sid)) SBLOCCHI.set(ctx.sessione.sid, new Set());
+  SBLOCCHI.get(ctx.sessione.sid).add(pag);
+  db.log(ctx.utente, 'pagina_sblocca', '', null, pag);
+  return { ok: true, sbloccate: [...SBLOCCHI.get(ctx.sessione.sid)] };
+}
 
 // ---------- primo avvio / accesso ----------
 function stato_installazione() {
@@ -101,7 +137,8 @@ function logout(ctx) {
   return { ok: true };
 }
 function me(ctx) {
-  return { utente: utentePubblico(ctx.utente), pannello: !!(ctx.sessione && ctx.sessione.pannello) };
+  const sb = ctx.sessione && SBLOCCHI.get(ctx.sessione.sid);
+  return { utente: utentePubblico(ctx.utente), pannello: !!(ctx.sessione && ctx.sessione.pannello), sbloccate: sb ? [...sb] : [] };
 }
 function cambia_password(ctx) {
   const c = ctx.corpo || {};
@@ -202,6 +239,7 @@ function utenti_salva(ctx) {
     const altro = db.get('SELECT id FROM utenti WHERE username = ? AND id <> ?', username, id);
     if (altro) err(400, 'Username già usato');
     db.run('UPDATE utenti SET username = ?, nome = ?, attivo = ? WHERE id = ?', username, nome, c.attivo === undefined ? u.attivo : B(c.attivo), id);
+    if (Array.isArray(c.permessi)) db.run('UPDATE utenti SET permessi = ? WHERE id = ?', JSON.stringify(c.permessi.filter(p => PAGINE_MENU.includes(p))), id);
     if (S(c.password)) {
       richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
       db.run('UPDATE utenti SET pass_hash = ?, pass_chiaro = ? WHERE id = ?', hashPassword(c.password), S(c.password), id);
@@ -211,7 +249,7 @@ function utenti_salva(ctx) {
   }
   richiedi(S(c.password).length >= 4, 'Password troppo corta (minimo 4)');
   if (db.get('SELECT id FROM utenti WHERE username = ?', username)) err(400, 'Username già usato');
-  const r = db.run('INSERT INTO utenti(username, nome, pass_hash, pass_chiaro, attivo, creato_ts) VALUES(?,?,?,?,1,?)', username, nome, hashPassword(c.password), S(c.password), db.adesso());
+  const r = db.run('INSERT INTO utenti(username, nome, pass_hash, pass_chiaro, attivo, creato_ts, permessi) VALUES(?,?,?,?,1,?,?)', username, nome, hashPassword(c.password), S(c.password), db.adesso(), Array.isArray(c.permessi) ? JSON.stringify(c.permessi.filter(p => PAGINE_MENU.includes(p))) : '');
   db.log(ctx.utente, 'utente_crea', 'utente', Number(r.lastInsertRowid), username);
   return { id: Number(r.lastInsertRowid) };
 }
@@ -515,7 +553,7 @@ function prossimoNumero(anno) {
 // Totali calcolati di una pratica (aggiunti alla riga di lista o alla scheda).
 function arricchisciTotali(p) {
   const t = db.get(`SELECT
-      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
+      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent + commissione_cent),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
       (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent),0) FROM biglietti WHERE pratica_id = ?) AS costo_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM acconti WHERE pratica_id = ?) AS versato_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM pagamenti_fornitore WHERE pratica_id = ?) AS pagato_fornitori_cent,
@@ -596,7 +634,26 @@ function caricaPratica(id) {
   for (const a of p.acconti) {
     if (a.fornitore_id && perF[a.fornitore_id]) perF[a.fornitore_id].cliente_versato_cent += a.importo_cent;
   }
-  p.fornitori = Object.values(perF).map(f => ({ ...f, dovuto_cent: f.costo_cent - f.pagato_cent }));
+  for (const b of p.biglietti) { // i biglietti collegati: il loro fornitore (canale o vettore) compare tra i fornitori della pratica
+    const k = 'b' + b.id; const nomeF = (b.tipo === 'aereo' && b.canale) ? b.canale : b.vettore;
+    perF[k] = { fornitore_id: null, biglietto_id: b.id, fornitore: `${nomeF || 'Biglietto'} · B${b.numero}/${b.anno}`, venduto_cent: b.importo_cent + b.adv_fee_cent + b.commissione_cent, costo_cent: b.importo_cent, pagato_cent: b.modalita === 'pagato' ? b.importo_cent : 0, cliente_versato_cent: 0 };
+    for (const a of p.acconti) if (a.biglietto_id === b.id) perF[k].cliente_versato_cent += a.importo_cent;
+  }
+  // acconti senza riferimento: ripartiti in proporzione al costo, finché ogni fornitore è coperto; il resto è dell'agenzia
+  const lista = Object.values(perF);
+  let libero = p.acconti.filter(a => !a.fornitore_id && !a.biglietto_id).reduce((s, a) => s + a.importo_cent, 0);
+  const totCosto = lista.reduce((s, f) => s + f.costo_cent, 0);
+  for (const f of lista) f.da_riparto_cent = 0;
+  if (libero > 0 && totCosto > 0) {
+    let resta = libero;
+    for (const f of lista) { const quota = Math.min(Math.max(0, f.costo_cent - f.cliente_versato_cent), Math.round(libero * f.costo_cent / totCosto)); f.da_riparto_cent = quota; resta -= quota; }
+    // eventuale avanzo del riparto va ai fornitori ancora scoperti, in ordine
+    for (const f of lista) { if (resta <= 0) break; const scoperto = f.costo_cent - f.cliente_versato_cent - f.da_riparto_cent; if (scoperto > 0) { const q = Math.min(scoperto, resta); f.da_riparto_cent += q; resta -= q; } }
+    p.agenzia_incassato_cent = resta;
+  } else p.agenzia_incassato_cent = libero;
+  p.fornitori = lista.map(f => ({ ...f, cliente_versato_cent: f.cliente_versato_cent + f.da_riparto_cent, dovuto_cent: f.costo_cent - f.pagato_cent }));
+  // all'agenzia resta tutto ciò che supera le quote dei fornitori (anche se versato "riferito" oltre il costo)
+  p.agenzia_incassato_cent = Math.max(0, p.versato_cent - p.fornitori.reduce((s, f) => s + Math.min(f.cliente_versato_cent, f.costo_cent), 0));
   return p;
 }
 function pratica(ctx) { return caricaPratica(N(ctx.query.id)); }
@@ -683,8 +740,11 @@ function pratica_salva(ctx) {
     for (const q of partecipanti) {
       const nome = S(q.nome);
       if (!nome) continue;
-      db.run('INSERT INTO pratica_partecipanti(pratica_id, ordine, nome, nato_il) VALUES(?,?,?,?)', pid, ord++, nome, DATA(q.nato_il));
+      db.run('INSERT INTO pratica_partecipanti(pratica_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', pid, ord++, nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
     }
+    const cl = db.get('SELECT cognome, nome FROM clienti WHERE id = ?', clienteId);
+    const nomeCl = `${cl.cognome} ${cl.nome}`.trim().toLowerCase();
+    aggiornaCompagni(clienteId, partecipanti.filter(q => { const n = S(q.nome).toLowerCase(); return n && n !== nomeCl && n !== `${cl.nome} ${cl.cognome}`.trim().toLowerCase(); }));
     db.run('UPDATE clienti SET ultimo_contatto = ? WHERE id = ?', db.oggi(), clienteId);
     return caricaPratica(pid);
   });
@@ -781,7 +841,7 @@ function prossimoNumeroB(anno) {
 }
 function prossimo_numero_b(ctx) { const anno = N(ctx.query.anno) || new Date().getFullYear(); return { anno, numero: prossimoNumeroB(anno) }; }
 function arricchisciBiglietto(b) {
-  b.totale_cent = b.importo_cent + b.adv_fee_cent;
+  b.totale_cent = b.importo_cent + b.adv_fee_cent + b.commissione_cent;
   b.etichetta = `B${b.numero}/${b.anno}`;
   // acconti propri solo se il biglietto NON è collegato a una pratica (altrimenti si incassa dalla pratica)
   b.versato_cent = b.pratica_id ? 0 : (db.get('SELECT COALESCE(SUM(importo_cent),0) AS v FROM acconti WHERE biglietto_id = ? AND pratica_id = 0', b.id).v);
@@ -841,14 +901,10 @@ function biglietto_salva(ctx) {
   const L = db.impostazione('liste');
   let canale = S(c.canale), modalita = S(c.modalita);
   if (tipo === 'aereo') {
-    // Canale = solo il nome del fornitore. La modalità la decide l'ACQUISIZIONE: Carta di credito = già pagato, Cash = resta un debito.
-    // Le voci "Nome|pagato" / "Nome|debito" in Liste dicono quali modalità ammette ogni fornitore.
-    const voci = (L.canali_aereo || []).map(x => x.split('|').map(y => y.trim()));
+    // Canale = il fornitore (Fancy Tour / Only Ticket). La modalità la decide l'ACQUISIZIONE: Carta di credito = già pagato, Cash = resta un debito.
     canale = canale.split('|')[0].trim();
-    const ammesse = voci.filter(x => x[0] === canale).map(x => (x[1] || 'pagato') === 'debito' ? 'debito' : 'pagato');
     const acq = S(c.acquisizione).toLowerCase();
     modalita = acq.startsWith('cash') || acq.startsWith('contant') ? 'debito' : 'pagato';
-    if (!bozza && ammesse.length && !ammesse.includes(modalita)) err(400, `${canale} ammette solo "${ammesse[0] === 'debito' ? 'Cash' : 'Carta di credito'}" come acquisizione`);
   } else { canale = ''; modalita = ''; }
   const vals = {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,
@@ -950,7 +1006,7 @@ function scadenze(ctx) {
 function filtroVendite() {
   // Valore "venduto" di una pratica: totale righe, oppure la penale se annullata con penale. Escluse annullate e preventivi.
   return `CASE WHEN p.stato = 'Annullata con penale' THEN p.penale_cent
-          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
+          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent + commissione_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
           ELSE 0 END`;
 }
 function filtroCosti() {
@@ -1014,6 +1070,7 @@ const AZIONI = {
   pannello_sblocca: { fn: pannello_sblocca, post: true },
   pannello_blocca: { fn: pannello_blocca, post: true },
   pannello_verifica: { fn: pannello_verifica, post: true },
+  pagina_sblocca: { fn: pagina_sblocca, post: true },
   pannello_password: { fn: pannello_password, post: true },
   impostazioni: { fn: impostazioni },
   impostazioni_salva: { fn: impostazioni_salva, post: true },
@@ -1068,4 +1125,4 @@ function resetPassword(chi, nuova) {
   return `RESET: password di ${u.username} cambiata`;
 }
 
-module.exports = { AZIONI, ErroreApi, STATI, resetPassword, VERSIONE };
+module.exports = { AZIONI, ErroreApi, STATI, resetPassword, VERSIONE, controllaPermesso };

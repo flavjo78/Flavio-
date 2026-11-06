@@ -210,7 +210,7 @@ const IMPOSTAZIONI_DEFAULT = {
     descrizioni_servizi: ['Quota pacchetto', 'Quota soggiorno', 'Quota volo', 'Tasse aeroportuali', 'Assicurazione', 'Transfer', 'Noleggio auto', 'Escursione', 'ADV fee', "Diritti d'agenzia"],
     tipi_documento_cliente: ["Carta d'identità", 'Passaporto', 'Patente'],
     // Canali di emissione per la biglietteria AEREA: "Nome|pagato" (già pagato al fornitore) oppure "Nome|debito" (resta un debito)
-    canali_aereo: ['Fancy Tour|pagato', 'Fancy Tour|debito', 'Only Ticket|pagato'],
+    canali_aereo: ['Fancy Tour', 'Only Ticket'],
     vettori_treno: ['Trenitalia', 'Italo'],
     modalita_acquisizione: ['Cash', 'Carta di credito'],
     tipi_contatto: ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'],
@@ -383,6 +383,19 @@ function migra() {
     const colsB = db.prepare('PRAGMA table_info(biglietti)').all().map(c => c.name);
     if (!colsB.includes('bozza')) db.exec('ALTER TABLE biglietti ADD COLUMN bozza INTEGER NOT NULL DEFAULT 0');
     db.exec('PRAGMA user_version = 11');
+  }
+  if (v < 12) {
+    // v12: documento per partecipante della pratica; permessi per utente; canali aerei = solo nomi
+    const colsP = db.prepare('PRAGMA table_info(pratica_partecipanti)').all().map(c => c.name);
+    for (const c of ['doc_tipo', 'doc_numero', 'doc_scade']) if (!colsP.includes(c)) db.exec(`ALTER TABLE pratica_partecipanti ADD COLUMN ${c} TEXT NOT NULL DEFAULT ''`);
+    const colsU = db.prepare('PRAGMA table_info(utenti)').all().map(c => c.name);
+    if (!colsU.includes('permessi')) db.exec("ALTER TABLE utenti ADD COLUMN permessi TEXT NOT NULL DEFAULT ''");
+    const r = db.prepare("SELECT valore FROM impostazioni WHERE chiave = 'liste'").get();
+    if (r) {
+      const l = JSON.parse(r.valore);
+      if (Array.isArray(l.canali_aereo)) { l.canali_aereo = [...new Set(l.canali_aereo.map(x => x.split('|')[0].trim()).filter(Boolean))]; db.prepare("UPDATE impostazioni SET valore = ? WHERE chiave = 'liste'").run(JSON.stringify(l)); }
+    }
+    db.exec('PRAGMA user_version = 12');
   }
 }
 
