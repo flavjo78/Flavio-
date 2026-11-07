@@ -407,7 +407,7 @@ async function paginaPratica(id) {
   if (nuova) { const pn = await api('prossimo_numero', undefined, { anno: P.anno }); P.numero = pn.numero; }
   const forn = await fornitoriAttivi();
   const L = STATO.imp.liste;
-  const titolo = nuova ? `Nuova pratica <span class="muted" style="font-weight:400">· sarà la n. <b>${P.numero}</b>/${P.anno}</span>` : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato, P.bozza)}`;
+  const titolo = nuova ? `Nuova pratica <span class="muted" style="font-weight:400">· sarà la n. <b>${P.numero}</b>/${P.anno}</span>` : `Pratica <b>${P.numero}</b>/${P.anno} ${badgeStato(P.stato, P.bozza)} <span class="muted small" style="font-weight:400;margin-left:10px">aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</span>`;
 
   // ---- card di un servizio (padre) con le sue voci nascoste (figli) ----
   const rigaFiglio = (c = {}) => `<div class="figlio" data-figlio>
@@ -431,21 +431,22 @@ async function paginaPratica(id) {
       <div class="campo"><label>Operatore T.O.</label><input data-k="operatore_to" value="${esc(r.operatore_to || '')}"></div>
       <div class="campo c-st"><label>&nbsp;</label><label class="small" title="Stampa riferimento e operatore sotto il servizio"><input type="checkbox" data-k="stampa_dett" ${r.stampa_dett === 0 ? '' : 'checked'}> riferimenti in stampa</label></div>
     </div>
-    <div class="srv-f">${(r.figli || []).map(rigaFiglio).join('')}</div>
-    <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Voce nascosta</button><button type="button" class="btn piccolo" data-dett title="Numero pratica e operatore del tour operator">Riferimenti T.O.</button><span class="small muted" data-cliente></span></div>
+    <div class="srv-b">
+      <div class="srv-foot"><button type="button" class="btn piccolo" data-add-figlio>+ Voce nascosta</button><button type="button" class="btn piccolo" data-dett title="Numero pratica e operatore del tour operator">Riferimenti T.O.</button></div>
+      <div class="srv-f">${(r.figli || []).map(rigaFiglio).join('')}</div>
+      <span class="small muted" data-cliente></span>
+    </div>
   </div>`;
   const rigaPart = (q = {}) => `<tr><td><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocP" value="${esc(q.doc_tipo || '')}" placeholder="Doc."></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="N."></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
 
   shell('pratiche', titolo, `
-  ${!nuova ? `<div class="muted small" style="margin:-8px 0 10px">Aperta il ${dataIt(P.data_apertura)} da <b>${esc(P.operatore || '—')}</b> · ultima modifica ${P.aggiornato_ts ? new Date(P.aggiornato_ts).toLocaleString('it-IT') : ''}</div>` : ''}
   <div class="barra-tot" id="barraTot"><div><span class="l">Totale pratica</span><span class="v" id="bt_tot">0,00</span></div><div><span class="l">Versato</span><span class="v" id="bt_vers">0,00</span></div><div><span class="l">Saldo residuo</span><span class="v" id="bt_saldo">0,00</span></div><div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="bt_costo">0,00</span></div><div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="bt_marg">0,00</span></div><div class="azione"><button type="button" class="btn" id="btnAnteprima" title="Mostra la pratica come la vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button></div></div>
   <div id="fPratica" class="pr-layout">
   <div class="col-dx">
   <div class="card"><h2>Cliente e pratica <span class="spazio"></span><button type="button" class="btn piccolo" id="btnVista" title="Alterna la vista larga (per compilare) e quella compatta (tutto in una schermata)">⇄ vista</button></h2>
     <div class="griglia g4">
-      <div class="campo col2"><label>Cliente intestatario *</label>
-        <div class="picker"><input id="pkCliente" value="${esc(P.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${P.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div>
-        <div class="small"><a href="#" id="lnkApriCliente" class="${P.cliente_id ? '' : 'hidden'}">apri la scheda del cliente</a></div></div>
+      <div class="campo col2"><label>Cliente intestatario * <a href="#" id="lnkApriCliente" class="${P.cliente_id ? '' : 'hidden'}" style="margin-left:8px">apri la scheda</a></label>
+        <div class="picker"><input id="pkCliente" value="${esc(P.cliente || '')}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${P.cliente_id || ''}"><div class="lista hidden" id="pkLista"></div></div></div>
       <div class="campo"><label>Stato</label><select name="stato" id="selStato">${opzioni(STATI, P.stato)}</select></div>
       <div class="campo" id="campoPenale" style="${P.stato === 'Annullata con penale' ? '' : 'display:none'}"><label>Penale dovuta dal cliente (€)</label><input name="penale" class="num soldi" value="${P.penale_cent ? eur(P.penale_cent) : ''}"></div>
       <div class="campo"><label>Tipo pratica</label><input name="tipo" list="dlTipi" value="${esc(P.tipo || '')}">${datalist('dlTipi', L.tipi_pratica)}</div>
@@ -460,7 +461,7 @@ async function paginaPratica(id) {
 
   <div class="card"><h2>Viaggio</h2>
     <div class="griglia g6">
-      <div class="campo col6"><label>Destinazione / itinerario (va in stampa)</label><textarea name="destinazione">${esc(P.destinazione || '')}</textarea></div>
+      <div class="campo col2"><label>Destinazione / itinerario (va in stampa)</label><textarea name="destinazione" class="una-riga">${esc(P.destinazione || '')}</textarea></div>
       <div class="campo"><label>Data partenza</label><input name="partenza" type="date" id="inPartenza" value="${esc(P.partenza || '')}"></div>
       <div class="campo"><label>Parte da (luogo)</label><input name="partenza_da" value="${esc(P.partenza_da || '')}" placeholder="es. Napoli"></div>
       <div class="campo"><label>Arriva a (luogo)</label><input name="partenza_a" value="${esc(P.partenza_a || '')}" placeholder="es. Madrid"></div>
@@ -471,10 +472,10 @@ async function paginaPratica(id) {
       <div class="campo"><label>Adulti</label><input name="adulti" class="num" value="${P.adulti ?? 0}"></div>
       <div class="campo"><label>Bambini</label><input name="bambini" class="num" value="${P.bambini ?? 0}"></div>
       <div class="campo"><label>Infanti</label><input name="infanti" class="num" value="${P.infanti ?? 0}"></div>
-      <div class="campo col3"><label>PNR / biglietti</label><input name="pnr" value="${esc(P.pnr || '')}"></div>
-      <div class="campo col3"><label>Documenti necessari</label><input name="documenti_necessari" list="dlDoc" value="${esc(P.documenti_necessari || '')}">${datalist('dlDoc', L.documenti_necessari)}</div>
-      <div class="campo col3"><label>Richieste specifiche (va in stampa)</label><input name="richieste" value="${esc(P.richieste || '')}"></div>
-      <div class="campo col6"><label>Note interne (NON in stampa)</label><textarea name="note" style="min-height:44px">${esc(P.note || '')}</textarea></div>
+      <div class="campo"><label>PNR / biglietti</label><input name="pnr" value="${esc(P.pnr || '')}"></div>
+      <div class="campo col2"><label>Documenti necessari</label><input name="documenti_necessari" list="dlDoc" value="${esc(P.documenti_necessari || '')}">${datalist('dlDoc', L.documenti_necessari)}</div>
+      <div class="campo col2"><label>Richieste specifiche (va in stampa)</label><input name="richieste" value="${esc(P.richieste || '')}"></div>
+      <div class="campo col2"><label>Note interne (NON in stampa)</label><textarea name="note" class="una-riga">${esc(P.note || '')}</textarea></div>
     </div></div>
 
   <div class="card"><h2>Partecipanti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPart">+ Aggiungi</button></h2>
@@ -499,14 +500,12 @@ async function paginaPratica(id) {
   <div class="card card-bigl"><h2 class="nowrap">Biglietti collegati <span class="spazio"></span>${nuova ? '<span class="small muted">salva la pratica per aggiungere biglietti</span>' : `<a class="btn piccolo" href="#/biglietteria/nuovo/aereo/pratica/${P.id}">+ Aereo</a><a class="btn piccolo" href="#/biglietteria/nuovo/treno/pratica/${P.id}">+ Treno</a><a class="btn piccolo" href="#/biglietteria/nuovo/lowcost/pratica/${P.id}">+ Low cost</a><button type="button" class="btn piccolo" id="btnCollegaB">🔗 Collega biglietto esistente</button>`}</h2>
     <div id="boxBiglietti"></div></div>
 
-  <div class="card"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAcc">+ Registra acconto</button></h2>
-    <div id="boxAcconti"></div>
-    <div class="griglia g4" style="margin-top:12px">
-      <div class="campo"><label>Versato</label><input readonly id="outVersato" value="${eur(P.versato_cent)}"></div>
-      <div class="campo"><label>Saldo residuo</label><input readonly id="outSaldo" value="${eur(P.saldo_cent)}" style="font-weight:600"></div>
-      <div class="campo"><label>Saldo da versare entro il</label><input name="saldo_entro" type="date" value="${esc(P.saldo_entro || '')}"></div>
-      <div class="campo"><label>Abbuono / sconto finale € <span class="muted">(facoltativo)</span></label><input name="abbuono" class="num soldi" id="inAbbuono" value="${P.abbuono_cent ? eur(P.abbuono_cent) : ''}"></div>
-    </div></div>
+  <div class="card card-acc"><h2>Acconti e saldo <span class="spazio"></span>
+      <span class="acc-campo"><label>Saldo entro</label><input name="saldo_entro" type="date" value="${esc(P.saldo_entro || '')}"></span>
+      <span class="acc-campo" title="Facoltativo: sconto tolto a fine pratica"><label>Abbuono €</label><input name="abbuono" class="num soldi" id="inAbbuono" value="${P.abbuono_cent ? eur(P.abbuono_cent) : ''}"></span>
+      <input type="hidden" id="outVersato" value="${eur(P.versato_cent)}"><input type="hidden" id="outSaldo" value="${eur(P.saldo_cent)}">
+      <button type="button" class="btn piccolo primario" id="btnAddAcc">+ Registra acconto</button></h2>
+    <div id="boxAcconti"></div></div>
 
   ${nuova ? '' : `<div class="card"><h2>Fornitori di questa pratica</h2><div id="boxFornitori"></div></div>`}
   </div>
@@ -534,7 +533,7 @@ async function paginaPratica(id) {
       }
       const alCliente = prezzo + nascosti;
       $('[data-tot]', card).textContent = eur((prezzo + nascosti + figliStampa) * pax);
-      $('[data-cliente]', card).textContent = (nascosti || figliStampa) ? `Il cliente vede: ${eur(alCliente)} cad. × ${pax} = ${eur(alCliente * pax)}${figliStampa ? ` + voci in stampa ${eur(figliStampa * pax)}` : ''}` : '';
+      $('[data-cliente]', card).textContent = (nascosti || figliStampa) ? `Cliente vede ${eur(alCliente)} × ${pax} = ${eur(alCliente * pax)}${figliStampa ? ` + voci in stampa ${eur(figliStampa * pax)}` : ''}` : '';
       tot += (prezzo + nascosti + figliStampa) * pax;
       if (forn) costo += prezzo * pax;
     }

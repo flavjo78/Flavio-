@@ -338,3 +338,56 @@ h2.nowrap{white-space:nowrap}
 .pr-layout.compatta.espansa .col-dx .campo input,.pr-layout.compatta.espansa .col-dx .campo select,.pr-layout.compatta.espansa .col-dx .campo textarea{padding:4px 7px;font-size:13px}
 .pr-layout.compatta.espansa .col-dx textarea{min-height:34px;max-height:56px}
 .pr-layout.compatta.espansa .col-dx .campo textarea[name=note]{min-height:30px}
+
+/* ---- 1.9.2: pratica più compatta in verticale (6 partecipanti a sinistra, 5 servizi + biglietti + acconti a destra) ---- */
+.pr-layout.compatta .col-dx .card,.pr-layout.compatta.espansa .col-dx .card{padding:6px 10px 8px;margin-bottom:6px}
+.pr-layout.compatta .col-dx .card h2,.pr-layout.compatta.espansa .col-dx .card h2{margin-bottom:2px;min-height:22px}
+.pr-layout.compatta .col-dx .griglia{gap:2px 6px}
+.pr-layout.compatta.espansa .col-dx .griglia{gap:2px 8px}
+.pr-layout.compatta .col-dx .campo{gap:1px}
+.pr-layout.compatta .col-dx textarea.una-riga,.pr-layout.compatta.espansa .col-dx textarea.una-riga{min-height:28px;height:28px;max-height:120px;resize:vertical;line-height:1.3}
+.pr-layout.compatta .col-dx .t th,.pr-layout.compatta .col-dx .t td{padding:1px 3px}
+.pr-layout.compatta .col-dx .t input{padding:3px 4px}
+.pr-layout.compatta .col-dx #lnkApriCliente{font-size:10px;font-weight:400}
+/* colonna destra */
+.pr-layout.compatta .col-sx .card{padding:8px 12px;margin-bottom:6px}
+.pr-layout.compatta .col-sx .card h2{font-size:14px;margin-bottom:4px}
+.pr-layout.compatta .col-sx .card h2 .btn.primario{padding:5px 10px;font-size:13px}
+.pr-layout.compatta .srv{padding:5px 10px 6px;margin-bottom:5px}
+.pr-layout.compatta .srv-h{align-items:end}
+.pr-layout.compatta .srv-h .campo{gap:1px}
+.pr-layout.compatta .srv-h .campo label{font-size:10px}
+.pr-layout.compatta .srv-h .campo input,.pr-layout.compatta .srv-h .campo select,.pr-layout.compatta .srv-h .tot{padding:4px 7px;font-size:13px}
+.pr-layout.compatta .srv-h .c-st label.small{padding:4px 0}
+.srv-b{display:flex;align-items:flex-start;gap:8px;margin-top:4px}
+.srv-b .srv-foot{margin:0;gap:6px;flex:0 0 auto}
+.srv-b .srv-f{margin:0;flex:1;min-width:0;gap:3px}
+.srv-b [data-cliente]{flex:0 0 auto;align-self:center;white-space:nowrap}
+.pr-layout.compatta .srv-b .srv-foot .btn.piccolo{padding:3px 8px;font-size:12px}
+.pr-layout.compatta .figlio{grid-template-columns:16px minmax(160px,1fr) 100px 92px 30px;gap:6px}
+.pr-layout.compatta .figlio input{padding:3px 6px}
+.pr-layout.compatta .figlio label.small{font-size:11px}
+.pr-layout.compatta .srv-dett{margin-top:4px;padding-top:4px}
+.pr-layout.compatta .col-sx .t.compatta th,.pr-layout.compatta .col-sx .t.compatta td{padding:3px 6px}
+.pr-layout.compatta .col-sx .campo label{font-size:11px}
+.pr-layout.compatta .col-sx .campo input{padding:4px 7px;font-size:13px}
+.barra-tot{margin-bottom:8px}
+.barra-tot>div{padding:5px 12px}
+.barra-tot .v{font-size:16px}
+.pr-layout+.sticky-azioni{padding:6px 0;margin-top:4px}
+/* servizi: le etichette dei campi solo sulla prima card (le colonne restano allineate) */
+.pr-layout.compatta #listaServizi .srv:not(:first-child) .srv-h .campo > label:not(.small){display:none}
+.srv-b{flex-wrap:nowrap}
+.srv-b [data-cliente]{flex:0 1 auto;min-width:0;white-space:normal;text-align:right;font-size:11px;line-height:1.2;max-width:230px}
+.pr-layout.compatta.espansa .srv-b [data-cliente]{display:none}
+.pr-layout.compatta .figlio{grid-template-columns:14px minmax(110px,1fr) 88px 84px 26px;gap:5px}
+.pr-layout.compatta .figlio input[data-k=descrizione]{min-width:0}
+.contenuto:has(.pr-layout){padding:12px 24px 8px}
+.contenuto:has(.pr-layout) .sticky-azioni{padding:6px 0;margin-top:4px}
+.pr-layout.compatta .col-sx .card h2{min-height:30px}
+/* acconti: saldo entro / abbuono nella testata della card */
+.card-acc h2{flex-wrap:wrap}
+.acc-campo{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:400;color:var(--text-2)}
+.acc-campo input{width:120px;padding:4px 7px;border:1px solid var(--border-2);border-radius:6px;background:#fff;font-size:13px;outline:none}
+.acc-campo input.num{width:96px;text-align:right}
+.acc-campo input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
