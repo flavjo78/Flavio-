@@ -306,9 +306,9 @@ h2.nowrap{white-space:nowrap}
 .pr-layout.compatta .col-dx #lnkApriCliente{font-size:11px}
 .pr-layout.compatta .col-dx .picker + .small{display:block}
 /* partecipanti ridotti: solo nome, nascita, tipo documento */
-.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(4),.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(5),.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(6),
-.pr-layout.compatta:not(.espansa) #tabPart td.c-num,.pr-layout.compatta:not(.espansa) #tabPart td.c-data:nth-child(5),.pr-layout.compatta:not(.espansa) #tabPart td.az{display:none}
-.pr-layout.compatta:not(.espansa) #tabPart td.c-data{width:92px}.pr-layout.compatta:not(.espansa) #tabPart td.c-doc{width:110px}
+.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(4),.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(5),.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(6),.pr-layout.compatta:not(.espansa) #tabPart th:nth-child(7),
+.pr-layout.compatta:not(.espansa) #tabPart td.c-num,.pr-layout.compatta:not(.espansa) #tabPart td.c-doc,.pr-layout.compatta:not(.espansa) #tabPart td.c-data:nth-child(6),.pr-layout.compatta:not(.espansa) #tabPart td.az{display:none}
+.pr-layout.compatta:not(.espansa) #tabPart td.c-data{width:92px}
 .pr-layout.compatta.espansa .col-dx .griglia{grid-template-columns:repeat(4,1fr);gap:8px 10px}
 .pr-layout.compatta.espansa .col-dx .campo label{font-size:11px}
 .pr-layout.compatta.espansa .col-dx .campo input,.pr-layout.compatta.espansa .col-dx .campo select,.pr-layout.compatta.espansa .col-dx .campo textarea{padding:5px 7px;font-size:13px}
@@ -391,3 +391,17 @@ h2.nowrap{white-space:nowrap}
 .acc-campo input{width:120px;padding:4px 7px;border:1px solid var(--border-2);border-radius:6px;background:#fff;font-size:13px;outline:none}
 .acc-campo input.num{width:96px;text-align:right}
 .acc-campo input:focus{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+
+/* ---- 1.10: cognome e nome in due celle ---- */
+.t td.c-cogn,.t td.c-nome{min-width:110px}
+.cl-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}
+.cl-layout .t td.c-data{width:96px}.cl-layout .t td.c-doc{width:104px}.cl-layout .t td.c-num{width:100px}
+@media (max-width:1500px){.cl-layout{grid-template-columns:1fr}}
+/* titoli di colonna cliccabili per ordinare */
+.t th.ord{cursor:pointer;user-select:none;white-space:nowrap}
+.t th.ord:hover{color:var(--primary)}
+.t th.ord.attivo{color:var(--primary)}
+/* tastini Tutti / Aereo / Treno / Low cost dentro il titolo della card */
+.tabs.tabs-inline{display:inline-flex;border-bottom:none;margin:0 0 0 12px;gap:2px;font-weight:400;font-size:13px}
+.tabs.tabs-inline a{padding:3px 10px;border:1px solid var(--border);border-radius:999px;margin:0;color:var(--text-2)}
+.tabs.tabs-inline a.attivo{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}

@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.9.2';
+const VERSIONE = '1.10.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -329,16 +329,16 @@ function clienti(ctx) {
   const p = [];
   if (q) {
     sql += ` WHERE lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ? OR lower(c.azienda) LIKE ? OR lower(c.cf) LIKE ? OR c.cellulare LIKE ? OR c.telefono LIKE ? OR lower(c.email) LIKE ?
-      OR c.id IN (SELECT cliente_id FROM cliente_compagni WHERE lower(nome) LIKE ?)`;
+      OR c.id IN (SELECT cliente_id FROM cliente_compagni WHERE lower(cognome || ' ' || nome) LIKE ? OR lower(nome || ' ' || cognome) LIKE ?)`;
     const like = `%${q}%`;
-    p.push(like, like, like, like, like, like, like, like);
+    p.push(like, like, like, like, like, like, like, like, like);
   }
   sql += ' ORDER BY c.cognome, c.nome LIMIT ?';
   p.push(lim);
   const lista = db.all(sql, ...p);
   if (q) for (const c of lista) { // se trovato tramite un compagno di viaggio, lo dice
-    const comp = db.get('SELECT nome FROM cliente_compagni WHERE cliente_id = ? AND lower(nome) LIKE ? LIMIT 1', c.id, `%${q}%`);
-    if (comp && !(`${c.cognome} ${c.nome} ${c.nome} ${c.cognome} ${c.azienda}`.toLowerCase().includes(q))) c.compagno = comp.nome;
+    const comp = db.get("SELECT cognome || ' ' || nome AS nome FROM cliente_compagni WHERE cliente_id = ? AND (lower(cognome || ' ' || nome) LIKE ? OR lower(nome || ' ' || cognome) LIKE ?) LIMIT 1", c.id, `%${q}%`, `%${q}%`);
+    if (comp && !(`${c.cognome} ${c.nome} ${c.nome} ${c.cognome} ${c.azienda}`.toLowerCase().includes(q))) c.compagno = comp.nome.trim();
   }
   return lista;
 }
@@ -356,13 +356,21 @@ function cliente(ctx) {
   return c;
 }
 // aggiunge/aggiorna i compagni di viaggio di un cliente (per nome, senza doppioni)
+// Cognome e nome in due celle. Se arriva solo "nome" con dentro anche il cognome (schermate vecchie), la prima parola è il cognome.
+function SPEZZA(q) {
+  let cg = S(q.cognome), nm = S(q.nome);
+  if (!cg && nm.includes(' ')) { const i = nm.indexOf(' '); cg = nm.slice(0, i); nm = nm.slice(i + 1).trim(); }
+  else if (!cg) { cg = nm; nm = ''; }
+  return { cognome: cg, nome: nm };
+}
+const NOMEC = q => [S(q.cognome), S(q.nome)].filter(Boolean).join(' ');
 function aggiornaCompagni(cid, lista) {
-  for (const q of lista) {
-    const nome = S(q.nome); if (!nome) continue;
-    const ex = db.get('SELECT id FROM cliente_compagni WHERE cliente_id = ? AND lower(nome) = lower(?)', cid, nome);
+  for (const q0 of lista) {
+    const q = { ...q0, ...SPEZZA(q0) }; const nome = q.nome, cognome = q.cognome; if (!cognome && !nome) continue;
+    const ex = db.get('SELECT id FROM cliente_compagni WHERE cliente_id = ? AND lower(cognome) = lower(?) AND lower(nome) = lower(?)', cid, cognome, nome);
     if (ex) db.run("UPDATE cliente_compagni SET nato_il = CASE WHEN ? <> '' THEN ? ELSE nato_il END, doc_tipo = CASE WHEN ? <> '' THEN ? ELSE doc_tipo END, doc_numero = CASE WHEN ? <> '' THEN ? ELSE doc_numero END, doc_scade = CASE WHEN ? <> '' THEN ? ELSE doc_scade END WHERE id = ?",
       DATA(q.nato_il), DATA(q.nato_il), S(q.doc_tipo), S(q.doc_tipo), S(q.doc_numero), S(q.doc_numero), DATA(q.doc_scade), DATA(q.doc_scade), ex.id);
-    else db.run('INSERT INTO cliente_compagni(cliente_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', cid, db.get('SELECT COUNT(*) AS n FROM cliente_compagni WHERE cliente_id = ?', cid).n, nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
+    else db.run('INSERT INTO cliente_compagni(cliente_id, ordine, cognome, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?,?)', cid, db.get('SELECT COUNT(*) AS n FROM cliente_compagni WHERE cliente_id = ?', cid).n, cognome, nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
   }
 }
 // ricerca passeggeri: compagni del cliente, altri compagni, clienti
@@ -370,11 +378,11 @@ function passeggeri_cerca(ctx) {
   const q = S(ctx.query.q).toLowerCase(); const cid = N(ctx.query.cliente_id);
   if (!q) return [];
   const like = `%${q}%`;
-  const comp = db.all(`SELECT k.*, c.cognome || ' ' || c.nome AS cliente FROM cliente_compagni k JOIN clienti c ON c.id = k.cliente_id WHERE lower(k.nome) LIKE ? ORDER BY (k.cliente_id = ?) DESC, k.nome LIMIT 10`, like, cid)
-    .map(k => ({ tipo: 'compagno', nome: k.nome, nato_il: k.nato_il, doc_tipo: k.doc_tipo, doc_numero: k.doc_numero, doc_scade: k.doc_scade, cliente_id: k.cliente_id, cliente: k.cliente }));
+  const comp = db.all(`SELECT k.*, c.cognome || ' ' || c.nome AS cliente FROM cliente_compagni k JOIN clienti c ON c.id = k.cliente_id WHERE lower(k.cognome || ' ' || k.nome) LIKE ? OR lower(k.nome || ' ' || k.cognome) LIKE ? ORDER BY (k.cliente_id = ?) DESC, k.cognome, k.nome LIMIT 10`, like, like, cid)
+    .map(k => ({ tipo: 'compagno', cognome: k.cognome, nome: k.nome, nato_il: k.nato_il, doc_tipo: k.doc_tipo, doc_numero: k.doc_numero, doc_scade: k.doc_scade, cliente_id: k.cliente_id, cliente: k.cliente }));
   const cl = db.all(`SELECT c.*, (SELECT tipo FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_tipo, (SELECT numero FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_numero, (SELECT scade FROM cliente_documenti d WHERE d.cliente_id = c.id ORDER BY ordine, id LIMIT 1) AS d_scade
     FROM clienti c WHERE lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ? ORDER BY c.cognome, c.nome LIMIT 8`, like, like)
-    .map(c => ({ tipo: 'cliente', nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, doc_tipo: c.d_tipo || '', doc_numero: c.d_numero || '', doc_scade: c.d_scade || '', cliente_id: c.id, cliente: '' }));
+    .map(c => ({ tipo: 'cliente', cognome: c.cognome, nome: c.nome, nato_il: c.nato_il, doc_tipo: c.d_tipo || '', doc_numero: c.d_numero || '', doc_scade: c.d_scade || '', cliente_id: c.id, cliente: '' }));
   return [...comp, ...cl];
 }
 // salva le liste collegate del cliente (sostituisce tutto)
@@ -396,7 +404,7 @@ function salvaListeCliente(cid, c) {
   if (Array.isArray(c.compagni)) {
     db.run('DELETE FROM cliente_compagni WHERE cliente_id = ?', cid);
     let o = 0;
-    for (const d of c.compagni) { if (!S(d.nome)) continue; db.run('INSERT INTO cliente_compagni(cliente_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade, note) VALUES(?,?,?,?,?,?,?,?)', cid, o++, S(d.nome), DATA(d.nato_il), S(d.doc_tipo), S(d.doc_numero), DATA(d.doc_scade), S(d.note)); }
+    for (const d of c.compagni) { const n = SPEZZA(d); if (!n.cognome && !n.nome) continue; db.run('INSERT INTO cliente_compagni(cliente_id, ordine, cognome, nome, nato_il, doc_tipo, doc_numero, doc_scade, note) VALUES(?,?,?,?,?,?,?,?,?)', cid, o++, n.cognome, n.nome, DATA(d.nato_il), S(d.doc_tipo), S(d.doc_numero), DATA(d.doc_scade), S(d.note)); }
   }
   if (Array.isArray(c.tessere)) {
     db.run('DELETE FROM cliente_tessere WHERE cliente_id = ?', cid);
@@ -567,15 +575,17 @@ function prossimoNumero(anno) {
 // Totali calcolati di una pratica (aggiunti alla riga di lista o alla scheda).
 function arricchisciTotali(p) {
   const t = db.get(`SELECT
-      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent + commissione_cent) * pax),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
+      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent) * pax),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
+      (SELECT COALESCE(SUM(commissione_cent * pax),0) FROM biglietti WHERE pratica_id = ?) AS commissioni_cent,
       (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent * pax),0) FROM biglietti WHERE pratica_id = ?) AS costo_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM acconti WHERE pratica_id = ?) AS versato_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM pagamenti_fornitore WHERE pratica_id = ?) AS pagato_fornitori_cent,
       (SELECT abbuono_cent FROM pratiche WHERE id = ?) AS abbuono_cent,
       (SELECT penale_cent FROM pratiche WHERE id = ?) AS penale_cent,
-      (SELECT stato FROM pratiche WHERE id = ?) AS stato`, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id);
+      (SELECT stato FROM pratiche WHERE id = ?) AS stato`, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id, p.id);
   p.totale_cent = t.totale_cent;
   p.costo_cent = t.costo_cent;
+  p.commissioni_cent = t.commissioni_cent; // commissioni dei biglietti: le paghiamo al fornitore nel prezzo, ma ci tornano indietro
   p.versato_cent = t.versato_cent;
   p.pagato_fornitori_cent = t.pagato_fornitori_cent;
   // Dovuto dal cliente: totale − abbuono; se annullata con penale → la penale; se annullata → 0
@@ -584,7 +594,7 @@ function arricchisciTotali(p) {
   if (t.stato === 'Annullata') dovuto = 0;
   p.dovuto_cent = dovuto;
   p.saldo_cent = dovuto - t.versato_cent;
-  p.margine_cent = (t.stato === 'Annullata' || t.stato === 'Annullata con penale') ? 0 : t.totale_cent - t.costo_cent;
+  p.margine_cent = (t.stato === 'Annullata' || t.stato === 'Annullata con penale') ? 0 : t.totale_cent - t.costo_cent + t.commissioni_cent;
   return p;
 }
 
@@ -650,7 +660,7 @@ function caricaPratica(id) {
   }
   for (const b of p.biglietti) { // i biglietti collegati: il loro fornitore (canale o vettore) compare tra i fornitori della pratica
     const k = 'b' + b.id; const nomeF = (b.tipo === 'aereo' && b.canale) ? b.canale : b.vettore;
-    perF[k] = { fornitore_id: null, biglietto_id: b.id, fornitore: `${nomeF || 'Biglietto'} · B${b.numero}/${b.anno}`, venduto_cent: (b.importo_cent + b.adv_fee_cent + b.commissione_cent) * (b.pax || 1), costo_cent: b.importo_cent * (b.pax || 1), pagato_cent: 0, cliente_versato_cent: 0 };
+    perF[k] = { fornitore_id: null, biglietto_id: b.id, fornitore: `${nomeF || 'Biglietto'} · B${b.numero}/${b.anno}`, venduto_cent: (b.importo_cent + b.adv_fee_cent) * (b.pax || 1), costo_cent: b.importo_cent * (b.pax || 1), commissione_cent: b.commissione_cent * (b.pax || 1), pagato_cent: 0, cliente_versato_cent: 0 };
     for (const a of p.acconti) if (a.biglietto_id === b.id) perF[k].cliente_versato_cent += a.importo_cent;
   }
   // acconti senza riferimento: ripartiti in proporzione al costo, finché ogni fornitore è coperto; il resto è dell'agenzia
@@ -753,13 +763,13 @@ function pratica_salva(ctx) {
     db.run('DELETE FROM pratica_partecipanti WHERE pratica_id = ?', pid);
     ord = 0;
     for (const q of partecipanti) {
-      const nome = S(q.nome);
-      if (!nome) continue;
-      db.run('INSERT INTO pratica_partecipanti(pratica_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', pid, ord++, nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
+      const n = SPEZZA(q);
+      if (!n.cognome && !n.nome) continue;
+      db.run('INSERT INTO pratica_partecipanti(pratica_id, ordine, cognome, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?,?)', pid, ord++, n.cognome, n.nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade));
     }
     const cl = db.get('SELECT cognome, nome FROM clienti WHERE id = ?', clienteId);
     const nomeCl = `${cl.cognome} ${cl.nome}`.trim().toLowerCase();
-    aggiornaCompagni(clienteId, partecipanti.filter(q => { const n = S(q.nome).toLowerCase(); return n && n !== nomeCl && n !== `${cl.nome} ${cl.cognome}`.trim().toLowerCase(); }));
+    aggiornaCompagni(clienteId, partecipanti.filter(q => { const n = NOMEC(SPEZZA(q)).toLowerCase(); return n && n !== nomeCl && n !== `${cl.nome} ${cl.cognome}`.trim().toLowerCase(); }));
     db.run('UPDATE clienti SET ultimo_contatto = ? WHERE id = ?', db.oggi(), clienteId);
     return caricaPratica(pid);
   });
@@ -857,8 +867,10 @@ function prossimoNumeroB(anno) {
 function prossimo_numero_b(ctx) { const anno = N(ctx.query.anno) || new Date().getFullYear(); return { anno, numero: prossimoNumeroB(anno) }; }
 function arricchisciBiglietto(b) {
   b.pax = b.pax || 1;
-  b.unitario_cent = b.importo_cent + b.adv_fee_cent + b.commissione_cent;
+  b.unitario_cent = b.importo_cent + b.adv_fee_cent; // la commissione NON si somma al cliente: è un ritorno dal fornitore
   b.totale_cent = b.unitario_cent * b.pax;
+  b.commissione_tot_cent = b.commissione_cent * b.pax;
+  b.guadagno_cent = (b.adv_fee_cent + b.commissione_cent) * b.pax;
   b.etichetta = `B${b.numero}/${b.anno}`;
   // acconti propri solo se il biglietto NON è collegato a una pratica (altrimenti si incassa dalla pratica)
   b.versato_cent = b.pratica_id ? 0 : (db.get('SELECT COALESCE(SUM(importo_cent),0) AS v FROM acconti WHERE biglietto_id = ? AND pratica_id = 0', b.id).v);
@@ -911,10 +923,10 @@ function biglietto_salva(ctx) {
   if (clienteId && !db.get('SELECT id FROM clienti WHERE id = ?', clienteId)) err(400, 'Cliente non trovato');
   const praticaId = N(c.pratica_id) || null;
   if (praticaId && !db.get('SELECT id FROM pratiche WHERE id = ?', praticaId)) err(400, 'Pratica collegata non trovata');
-  const passeggeri = (Array.isArray(c.passeggeri) ? c.passeggeri : []).filter(q => S(q.nome));
+  const passeggeri = (Array.isArray(c.passeggeri) ? c.passeggeri : []).filter(q => S(q.nome) || S(q.cognome)).map(q => ({ ...q, ...SPEZZA(q) }));
   const bozza = B(c.bozza);
   if (!bozza) richiedi(clienteId || passeggeri.length || S(c.passeggero), 'Serve il cliente oppure almeno un passeggero');
-  if (!passeggeri.length && S(c.passeggero)) passeggeri.push({ nome: S(c.passeggero) });
+  if (!passeggeri.length && S(c.passeggero)) passeggeri.push(SPEZZA({ nome: S(c.passeggero) }));
   const L = db.impostazione('liste');
   let canale = S(c.canale), modalita = S(c.modalita);
   if (tipo === 'aereo') {
@@ -925,7 +937,7 @@ function biglietto_salva(ctx) {
   } else { canale = ''; modalita = ''; }
   const vals = {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,
-    passeggero: passeggeri.length ? S(passeggeri[0].nome) + (passeggeri.length > 1 ? ` +${passeggeri.length - 1}` : '') : S(c.passeggero), vettore: S(c.vettore), canale, modalita, acquisizione: S(c.acquisizione),
+    passeggero: passeggeri.length ? NOMEC(passeggeri[0]) + (passeggeri.length > 1 ? ` +${passeggeri.length - 1}` : '') : S(c.passeggero), vettore: S(c.vettore), canale, modalita, acquisizione: S(c.acquisizione),
     codice: S(c.codice).toUpperCase(), itinerario: S(c.itinerario).toUpperCase(), partenza: DATA(c.partenza), segmenti: N(c.segmenti),
     importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note), bozza,
     pax: Math.max(1, N(c.pax) || passeggeri.length || 1)
@@ -951,7 +963,7 @@ function biglietto_salva(ctx) {
     }
     if (clienteId && passeggeri.length > 1) aggiornaCompagni(clienteId, passeggeri.slice(1));
     db.run('DELETE FROM biglietto_passeggeri WHERE biglietto_id = ?', bid);
-    passeggeri.forEach((q, i) => db.run('INSERT INTO biglietto_passeggeri(biglietto_id, ordine, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?)', bid, i, S(q.nome), DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade)));
+    passeggeri.forEach((q, i) => db.run('INSERT INTO biglietto_passeggeri(biglietto_id, ordine, cognome, nome, nato_il, doc_tipo, doc_numero, doc_scade) VALUES(?,?,?,?,?,?,?,?)', bid, i, q.cognome, q.nome, DATA(q.nato_il), S(q.doc_tipo), S(q.doc_numero), DATA(q.doc_scade)));
     if (clienteId) db.run('UPDATE clienti SET ultimo_contatto = ? WHERE id = ?', db.oggi(), clienteId);
     return biglietto({ query: { id: bid } });
   });
@@ -1023,11 +1035,12 @@ function scadenze(ctx) {
 function filtroVendite() {
   // Valore "venduto" di una pratica: totale righe, oppure la penale se annullata con penale. Escluse annullate e preventivi.
   return `CASE WHEN p.stato = 'Annullata con penale' THEN p.penale_cent
-          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent + commissione_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
+          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
           ELSE 0 END`;
 }
 function filtroCosti() {
-  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
+  // costo dei biglietti al netto delle commissioni che tornano indietro dal fornitore
+  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent - commissione_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
 }
 function statistiche(ctx) {
   const anno = N(ctx.query.anno) || new Date().getFullYear();

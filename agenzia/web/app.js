@@ -358,6 +358,17 @@ async function paginaScadenze() {
 
 // ================= PRATICHE: elenco =================
 const FILTRI_PR = { q: '', anno: '', stato: '' };
+const ORD_PR = { k: '', dir: 1 };
+// ordinamento di una lista cliccando sui titoli delle colonne (th con data-ord)
+function ordinaLista(lista, ord, chiavi) {
+  if (!ord.k || !chiavi[ord.k]) return lista;
+  const f = chiavi[ord.k];
+  return [...lista].sort((a, b) => { const x = f(a), y = f(b); const r = (typeof x === 'number' && typeof y === 'number') ? x - y : String(x || '').localeCompare(String(y || ''), 'it', { numeric: true, sensitivity: 'base' }); return r * ord.dir; });
+}
+const thOrd = (k, label, ord, cls = '') => `<th class="ord ${cls} ${ord.k === k ? 'attivo' : ''}" data-ord="${k}" title="Clicca per ordinare">${label}${ord.k === k ? (ord.dir > 0 ? ' ▲' : ' ▼') : ''}</th>`;
+function attivaOrdinamento(tab, ord, ricarica) {
+  $$('th[data-ord]', tab).forEach(th => th.onclick = () => { const k = th.dataset.ord; if (ord.k === k) { ord.dir = -ord.dir; } else { ord.k = k; ord.dir = 1; } ricarica(); });
+}
 async function paginaPratiche() {
   const anni = await api('pratiche_anni');
   if (FILTRI_PR.anno === '' && anni.length) { const cur = new Date().getFullYear(); FILTRI_PR.anno = String(anni.includes(cur) ? cur : anni[0]); }
@@ -372,11 +383,14 @@ async function paginaPratiche() {
     `<a class="btn primario" href="#/pratiche/nuova">+ Nuova pratica</a>`);
   let timer;
   const carica = async () => {
-    const lista = await api('pratiche', undefined, { q: FILTRI_PR.q, anno: FILTRI_PR.anno === 'tutti' ? '' : FILTRI_PR.anno, stato: FILTRI_PR.stato });
-    $('#prN').textContent = `${lista.length} pratiche`;
-    $('#prTab').innerHTML = lista.length ? `<table class="t"><thead><tr><th>N.</th><th>Apertura</th><th>Cliente</th><th>Destinazione</th><th>Partenza</th><th>Fornitori</th><th>Stato</th><th class="num">Totale</th><th class="num">Versato</th><th class="num">Saldo</th><th>Operatore</th></tr></thead><tbody>
+    const lista0 = await api('pratiche', undefined, { q: FILTRI_PR.q, anno: FILTRI_PR.anno === 'tutti' ? '' : FILTRI_PR.anno, stato: FILTRI_PR.stato });
+    $('#prN').textContent = `${lista0.length} pratiche`;
+    const CH = { numero: p => p.anno * 100000 + p.numero, apertura: p => p.data_apertura || '', cliente: p => p.cliente, destinazione: p => p.destinazione, partenza: p => p.partenza || '', fornitori: p => p.fornitori, stato: p => p.stato, totale: p => p.totale_cent, versato: p => p.versato_cent, saldo: p => p.saldo_cent, operatore: p => p.operatore };
+    const lista = ordinaLista(lista0, ORD_PR, CH);
+    const render = () => { $('#prTab').innerHTML = lista.length ? `<table class="t"><thead><tr>${thOrd('numero', 'N.', ORD_PR)}${thOrd('apertura', 'Apertura', ORD_PR)}${thOrd('cliente', 'Cliente', ORD_PR)}${thOrd('destinazione', 'Destinazione', ORD_PR)}${thOrd('partenza', 'Partenza', ORD_PR)}${thOrd('fornitori', 'Fornitori', ORD_PR)}${thOrd('stato', 'Stato', ORD_PR)}${thOrd('totale', 'Totale', ORD_PR, 'num')}${thOrd('versato', 'Versato', ORD_PR, 'num')}${thOrd('saldo', 'Saldo', ORD_PR, 'num')}${thOrd('operatore', 'Operatore', ORD_PR)}</tr></thead><tbody>
       ${lista.map(p => `<tr class="click ${p.pacchetto_servizio === 'biglietteria' || p.n_biglietti ? 'riga-bigl' : ''}" onclick="naviga('#/pratiche/${p.id}')"><td class="mono"><b>${p.numero}</b>/${p.anno}${p.n_biglietti ? ` <span class="badge bg-badge-aereo" title="biglietti collegati">${p.n_biglietti} bigl.</span>` : ''}</td><td>${dataIt(p.data_apertura)}</td><td>${esc(p.cliente)}</td><td>${esc((p.destinazione || '').split('\n')[0]).slice(0, 60)}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.fornitori || '').replace(/,/g, ', '))}</td><td>${badgeStato(p.stato, p.bozza)}</td><td class="num">${eur(p.totale_cent)}</td><td class="num">${eur(p.versato_cent)}</td><td class="num ${p.saldo_cent > 0 ? 'warn' : ''}">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td><td class="small">${esc(p.operatore || '')}</td></tr>`).join('')}
-      </tbody></table>` : '<div class="vuoto">Nessuna pratica trovata</div>';
+      </tbody></table>` : '<div class="vuoto">Nessuna pratica trovata</div>'; attivaOrdinamento($('#prTab'), ORD_PR, carica); };
+    render();
   };
   $('#prQ').oninput = e => { FILTRI_PR.q = e.target.value; clearTimeout(timer); timer = setTimeout(carica, 250); };
   $('#prAnno').onchange = e => { FILTRI_PR.anno = e.target.value; carica(); };
@@ -437,7 +451,7 @@ async function paginaPratica(id) {
       <span class="small muted" data-cliente></span>
     </div>
   </div>`;
-  const rigaPart = (q = {}) => `<tr><td><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocP" value="${esc(q.doc_tipo || '')}" placeholder="Doc."></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="N."></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
+  const rigaPart = (q = {}) => `<tr><td class="c-cogn"><input data-k="cognome" value="${esc(q.cognome || '')}" placeholder="Cognome"></td><td class="c-nome"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocP" value="${esc(q.doc_tipo || '')}" placeholder="Doc."></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="N."></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
 
   shell('pratiche', titolo, `
   <div class="barra-tot" id="barraTot"><div><span class="l">Totale pratica</span><span class="v" id="bt_tot">0,00</span></div><div><span class="l">Versato</span><span class="v" id="bt_vers">0,00</span></div><div><span class="l">Saldo residuo</span><span class="v" id="bt_saldo">0,00</span></div><div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="bt_costo">0,00</span></div><div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="bt_marg">0,00</span></div><div class="azione"><button type="button" class="btn" id="btnAnteprima" title="Mostra la pratica come la vede il cliente: senza voci nascoste e senza i conti dell'agenzia">👁 Anteprima cliente</button></div></div>
@@ -480,7 +494,7 @@ async function paginaPratica(id) {
 
   <div class="card"><h2>Partecipanti <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPart">+ Aggiungi</button></h2>
     ${datalist('dlDocP', L.tipi_documento_cliente || [])}
-    <div class="tab-scroll"><table class="t compatta" data-righe id="tabPart"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th></th></tr></thead><tbody>${P.partecipanti.map(rigaPart).join('')}</tbody></table></div>
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabPart"><thead><tr><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th></th></tr></thead><tbody>${P.partecipanti.map(rigaPart).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:4px">📇 prende nome e documento dall'anagrafica (cliente o compagni di viaggio). I nomi nuovi diventano compagni di viaggio del cliente.</div></div>
   </div>
   <div class="col-sx">
@@ -537,14 +551,15 @@ async function paginaPratica(id) {
       tot += (prezzo + nascosti + figliStampa) * pax;
       if (forn) costo += prezzo * pax;
     }
-    for (const b of (P.biglietti || [])) { const n = b.pax || 1; tot += (b.importo_cent + b.adv_fee_cent + (b.commissione_cent || 0)) * n; costo += b.importo_cent * n; }
-    $('#totPratica').textContent = eur(tot); $('#totCosto').textContent = eur(costo); $('#totMargine').textContent = eur(tot - costo);
+    let comm = 0; // commissioni dei biglietti: nel prezzo pagato al fornitore, ma tornano all'agenzia
+    for (const b of (P.biglietti || [])) { const n = b.pax || 1; tot += (b.importo_cent + b.adv_fee_cent) * n; costo += b.importo_cent * n; comm += (b.commissione_cent || 0) * n; }
+    $('#totPratica').textContent = eur(tot); $('#totCosto').textContent = eur(costo); $('#totMargine').textContent = eur(tot - costo + comm);
     const stato = $('#selStato').value;
     let dovuto = tot - euroACent($('#inAbbuono').value);
     if (stato === 'Annullata con penale') dovuto = euroACent($('[name=penale]', pg).value);
     if (stato === 'Annullata') dovuto = 0;
     $('#outSaldo').value = eur(dovuto - (P.versato_cent || 0));
-    $('#bt_tot').textContent = eur(tot); $('#bt_vers').textContent = eur(P.versato_cent || 0); $('#bt_saldo').textContent = eur(dovuto - (P.versato_cent || 0)); $('#bt_costo').textContent = eur(costo); $('#bt_marg').textContent = eur(tot - costo);
+    $('#bt_tot').textContent = eur(tot); $('#bt_vers').textContent = eur(P.versato_cent || 0); $('#bt_saldo').textContent = eur(dovuto - (P.versato_cent || 0)); $('#bt_costo').textContent = eur(costo); $('#bt_marg').textContent = eur(tot - costo + comm); $('#bt_marg').title = comm ? `di cui ${eur(comm)} di commissioni sui biglietti che tornano dal fornitore` : '';
     $('#bt_saldo').classList.toggle('warn', dovuto - (P.versato_cent || 0) > 0);
   };
   $('#fPratica').addEventListener('input', () => { sporca = true; ricalcola(); });
@@ -566,11 +581,11 @@ async function paginaPratica(id) {
     const cid = $('[name=cliente_id]', pg).value; if (!cid) { toast('Scegli prima il cliente', 'err'); return; }
     const tr = b.closest('tr');
     const c = await api('cliente', undefined, { id: cid });
-    const voci = [{ nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, docs: c.documenti || [], chi: 'cliente' }, ...(c.compagni || []).map(k => ({ nome: k.nome, nato_il: k.nato_il, docs: [{ tipo: k.doc_tipo, numero: k.doc_numero, scade: k.doc_scade }].filter(d => d.tipo || d.numero), chi: 'compagno di viaggio' }))];
+    const voci = [{ cognome: c.cognome, nome: c.nome, nato_il: c.nato_il, docs: c.documenti || [], chi: 'cliente' }, ...(c.compagni || []).map(k => ({ cognome: k.cognome || '', nome: k.nome, nato_il: k.nato_il, docs: [{ tipo: k.doc_tipo, numero: k.doc_numero, scade: k.doc_scade }].filter(d => d.tipo || d.numero), chi: 'compagno di viaggio' }))];
     const righe = voci.flatMap((v, vi) => (v.docs.length ? v.docs : [{}]).map((d, di) => ({ v, d, k: vi + ':' + di })));
-    modale({ titolo: 'Dall\'anagrafica', senzaOk: true, annulla: 'Chiudi', corpo: `<table class="t compatta"><thead><tr><th>Nome</th><th>Nato il</th><th>Documento</th><th></th></tr></thead><tbody>${righe.map(r => `<tr><td>${esc(r.v.nome)} <span class="muted small">${r.v.chi}</span></td><td>${dataIt(r.v.nato_il)}</td><td>${r.d.tipo ? esc(r.d.tipo) + ' ' + esc(r.d.numero || '') + (r.d.scade ? ' · scade ' + dataIt(r.d.scade) : '') : '<span class="muted">nessun documento</span>'}</td><td class="az"><button type="button" class="btn piccolo primario" data-scegli="${r.k}">usa</button></td></tr>`).join('')}</tbody></table>` });
+    modale({ titolo: 'Dall\'anagrafica', senzaOk: true, annulla: 'Chiudi', corpo: `<table class="t compatta"><thead><tr><th>Cognome e nome</th><th>Nato il</th><th>Documento</th><th></th></tr></thead><tbody>${righe.map(r => `<tr><td>${esc(nomeCompleto(r.v))} <span class="muted small">${r.v.chi}</span></td><td>${dataIt(r.v.nato_il)}</td><td>${r.d.tipo ? esc(r.d.tipo) + ' ' + esc(r.d.numero || '') + (r.d.scade ? ' · scade ' + dataIt(r.d.scade) : '') : '<span class="muted">nessun documento</span>'}</td><td class="az"><button type="button" class="btn piccolo primario" data-scegli="${r.k}">usa</button></td></tr>`).join('')}</tbody></table>` });
     const d = document.querySelector('dialog.modal:last-of-type');
-    $$('[data-scegli]', d).forEach(x => x.onclick = () => { const r = righe.find(y => y.k === x.dataset.scegli); $('[data-k=nome]', tr).value = r.v.nome; $('[data-k=nato_il]', tr).value = r.v.nato_il ? dataIt(r.v.nato_il) : ''; $('[data-k=doc_tipo]', tr).value = r.d.tipo || ''; $('[data-k=doc_numero]', tr).value = r.d.numero || ''; $('[data-k=doc_scade]', tr).value = r.d.scade ? dataIt(r.d.scade) : ''; sporca = true; d.close(); d.remove(); });
+    $$('[data-scegli]', d).forEach(x => x.onclick = () => { const r = righe.find(y => y.k === x.dataset.scegli); $('[data-k=cognome]', tr).value = r.v.cognome || ''; $('[data-k=nome]', tr).value = r.v.nome || ''; $('[data-k=nato_il]', tr).value = r.v.nato_il ? dataIt(r.v.nato_il) : ''; $('[data-k=doc_tipo]', tr).value = r.d.tipo || ''; $('[data-k=doc_numero]', tr).value = r.d.numero || ''; $('[data-k=doc_scade]', tr).value = r.d.scade ? dataIt(r.d.scade) : ''; sporca = true; d.close(); d.remove(); });
   });
   const durata = () => {
     const a = isoVal($('#inPartenza')), b = isoVal($('#inRientro'));
@@ -586,7 +601,7 @@ async function paginaPratica(id) {
     for (let i = righe.length; i < n; i++) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart());
     // toglie solo righe vuote in coda
     let extra = $$('#tabPart tbody tr').length - n;
-    for (const tr of $$('#tabPart tbody tr').reverse()) { if (extra <= 0) break; if (!$('[data-k=nome]', tr).value.trim()) { tr.remove(); extra--; } }
+    for (const tr of $$('#tabPart tbody tr').reverse()) { if (extra <= 0) break; if (!$('[data-k=nome]', tr).value.trim() && !$('[data-k=cognome]', tr).value.trim()) { tr.remove(); extra--; } }
   };
   for (const n of ['adulti', 'bambini', 'infanti']) $(`[name=${n}]`, pg).addEventListener('change', sincronizzaPartecipanti);
 
@@ -603,7 +618,7 @@ async function paginaPratica(id) {
       for (const f of $$('[data-figlio]', card)) { const v = euroACent($('[data-k=prezzo]', f).value); if ($('[data-k=stampa]', f).checked) righe.push({ desc: $('[data-k=descrizione]', f).value, prezzo: v, pax, figlio: true }); else prezzo += v; }
       if (inStampa) righe.splice(righe.length - $$('[data-figlio]', card).filter(f => $('[data-k=stampa]', f).checked).length, 0, { desc, prezzo, pax });
     }
-    for (const b of (P.biglietti || [])) righe.push({ desc: `Biglietto ${nomeTipoBigl(b.tipo)} ${b.vettore} ${b.itinerario}`.trim(), prezzo: b.importo_cent + b.adv_fee_cent + (b.commissione_cent || 0), pax: b.pax || 1 });
+    for (const b of (P.biglietti || [])) righe.push({ desc: `Biglietto ${nomeTipoBigl(b.tipo)} ${b.vettore} ${b.itinerario}`.trim(), prezzo: b.importo_cent + b.adv_fee_cent, pax: b.pax || 1 });
     const tot = righe.reduce((s, r) => s + r.prezzo * r.pax, 0);
     box.innerHTML = `<table class="t"><thead><tr><th>Servizio</th><th class="num">Importo cad.</th><th class="num">Pax</th><th class="num">Totale</th></tr></thead><tbody>
       ${righe.map(r => `<tr><td>${esc(r.desc.toUpperCase())}</td><td class="num">${eur(r.prezzo)}</td><td class="num">${r.pax}</td><td class="num"><b>${eur(r.prezzo * r.pax)}</b></td></tr>`).join('') || '<tr><td colspan="4" class="muted">Nessun servizio</td></tr>'}
@@ -619,8 +634,14 @@ async function paginaPratica(id) {
   applicaVista();
   // In vista compatta, la colonna destra si allarga quando ci lavori dentro e si ristringe appena tocchi il resto
   const espandi = dentro => { if (compatta) $('#fPratica').classList.toggle('espansa', dentro); };
-  pg.addEventListener('focusin', e => espandi(!!e.target.closest('.col-dx')));
-  pg.addEventListener('mousedown', e => { const percorso = e.composedPath(); const dentro = percorso.some(n => n.classList && (n.classList.contains('col-dx') || n.tagName === 'DIALOG')); if (!dentro) espandi(false); });
+  // La colonna si allarga/restringe al CLICK (dopo il mouseup), non al mousedown o al focus: se la pagina si
+  // spostasse tra mousedown e mouseup, il tasto sotto il mouse cambierebbe posto e il click andrebbe perso.
+  const zonaDi = e => { const p = e.composedPath(); return p.some(n => n.tagName === 'DIALOG') ? 'dialog' : (p.some(n => n.classList && n.classList.contains('col-dx')) ? 'dx' : 'fuori'); };
+  let zonaMouse = null;
+  pg.addEventListener('mousedown', e => { zonaMouse = zonaDi(e); });
+  pg.addEventListener('mouseup', () => setTimeout(() => { zonaMouse = null; }, 0));
+  pg.addEventListener('focusin', e => { if (zonaMouse === null) espandi(!!e.target.closest('.col-dx')); }); // da tastiera (Tab)
+  pg.addEventListener('click', e => { const z = zonaMouse || zonaDi(e); if (z === 'dx') espandi(true); else if (z === 'fuori') espandi(false); });
   if (nuova && !P.cliente_id) setTimeout(() => $('#pkCliente').focus(), 50);
 
   // Oggetto "Biglietteria": suggerimenti diversi per i servizi (le regole complete arrivano dopo)
@@ -651,7 +672,7 @@ async function paginaPratica(id) {
     sporca = true;
     $('#lnkApriCliente').classList.remove('hidden');
     $('#lnkApriCliente').href = '#/clienti/' + c.id;
-    if (!$$('#tabPart tbody tr').length) { api('cliente', undefined, { id: c.id }).then(cl => { const d = (cl.documenti || [])[0] || {}; if (!$$('#tabPart tbody tr').length) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ nome: `${cl.cognome} ${cl.nome}`, nato_il: cl.nato_il, doc_tipo: d.tipo, doc_numero: d.numero, doc_scade: d.scade })); }).catch(() => $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ nome: `${c.cognome} ${c.nome}`, nato_il: c.nato_il }))); }
+    if (!$$('#tabPart tbody tr').length) { api('cliente', undefined, { id: c.id }).then(cl => { const d = (cl.documenti || [])[0] || {}; if (!$$('#tabPart tbody tr').length) $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ cognome: cl.cognome, nome: cl.nome, nato_il: cl.nato_il, doc_tipo: d.tipo, doc_numero: d.numero, doc_scade: d.scade })); }).catch(() => $('#tabPart tbody').insertAdjacentHTML('beforeend', rigaPart({ cognome: c.cognome, nome: c.nome, nato_il: c.nato_il }))); }
   });
   if (P.cliente_id) $('#lnkApriCliente').href = '#/clienti/' + P.cliente_id;
 
@@ -667,7 +688,7 @@ async function paginaPratica(id) {
     if (nuova) return;
     const tutti = P.fornitori || [];
     $('#boxFornitori').innerHTML = `${tutti.length ? `<table class="t compatta"><thead><tr><th>Fornitore</th><th class="num">Venduto al cliente</th><th class="num">Dovuto al fornitore</th><th class="num">Pagato al fornitore (dagli acconti)</th><th class="num">Ancora da pagare</th><th class="num">Il cliente ha versato per questa quota</th></tr></thead><tbody>
-      ${tutti.map(f => `<tr class="click" onclick="naviga('${f.biglietto_id ? '#/biglietteria/' + f.biglietto_id : '#/fornitori/' + f.fornitore_id}')"><td>${esc(f.fornitore)}</td><td class="num">${eur(f.venduto_cent)}</td><td class="num">${eur(f.costo_cent)}</td><td class="num">${eur(f.pagato_cent)}</td><td class="num ${f.dovuto_cent > 0 ? 'warn' : 'ok'}"><b>${eur(f.dovuto_cent)}</b></td><td class="num">${eur(f.cliente_versato_cent)}${f.da_riparto_cent ? ` <span class="muted small" title="di cui ripartiti dagli acconti senza riferimento">(${eur(f.da_riparto_cent)} rip.)</span>` : ''}</td></tr>`).join('')}
+      ${tutti.map(f => `<tr class="click" onclick="naviga('${f.biglietto_id ? '#/biglietteria/' + f.biglietto_id : '#/fornitori/' + f.fornitore_id}')"><td>${esc(f.fornitore)}${f.commissione_cent ? `<div class="small muted">commissione ${eur(f.commissione_cent)} di ritorno</div>` : ''}</td><td class="num">${eur(f.venduto_cent)}</td><td class="num">${eur(f.costo_cent)}</td><td class="num">${eur(f.pagato_cent)}</td><td class="num ${f.dovuto_cent > 0 ? 'warn' : 'ok'}"><b>${eur(f.dovuto_cent)}</b></td><td class="num">${eur(f.cliente_versato_cent)}${f.da_riparto_cent ? ` <span class="muted small" title="di cui ripartiti dagli acconti senza riferimento">(${eur(f.da_riparto_cent)} rip.)</span>` : ''}</td></tr>`).join('')}
       </tbody><tfoot><tr><td colspan="5">Incassato per l'agenzia (oltre le quote dei fornitori)</td><td class="num ok">${eur(P.agenzia_incassato_cent || 0)}</td></tr></tfoot></table>
       <div class="small muted" style="margin-top:4px">Tabella di sola lettura. Gli acconti riferiti a un fornitore vanno a lui; quelli senza riferimento si ripartiscono in proporzione al costo, prima i fornitori e poi l'agenzia. "Pagato al fornitore" è la parte del suo costo già coperta dagli acconti.</div>` : '<div class="muted small">Nessun fornitore sui servizi (scegli il fornitore in ogni servizio)</div>'}`;
   };
@@ -904,7 +925,7 @@ async function paginaCliente(id) {
   const TIPI_CONTATTO = L.tipi_contatto || ['Telefono', 'Cellulare', 'Email', 'WhatsApp', 'Telefono lavoro', 'Altro'];
   const rigaDoc = (d = {}) => `<tr><td class="c-doc"><input data-k="tipo" list="dlDocCl" value="${esc(d.tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero"></td><td><input data-k="rilasciato_da" value="${esc(d.rilasciato_da || '')}" placeholder="Rilasciato da"></td><td class="c-data"><input data-k="rilasciato_il" type="date" value="${esc(d.rilasciato_il || '')}"></td><td class="c-data"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const rigaCon = (d = {}) => `<tr><td style="width:170px"><select data-k="tipo">${opzioni(TIPI_CONTATTO, d.tipo || 'Telefono')}</select></td><td><input data-k="valore" value="${esc(d.valore || '')}" placeholder="Numero o indirizzo"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Riferimento / note (es. moglie, ufficio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
-  const rigaComp = (d = {}) => `<tr><td><input data-k="nome" value="${esc(d.nome || '')}" placeholder="Cognome e nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(d.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocCl" value="${esc(d.doc_tipo || '')}" placeholder="Documento"></td><td class="c-num"><input data-k="doc_numero" value="${esc(d.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(d.doc_scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (es. figlio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
+  const rigaComp = (d = {}) => `<tr><td class="c-cogn"><input data-k="cognome" value="${esc(d.cognome || '')}" placeholder="Cognome"></td><td class="c-nome"><input data-k="nome" value="${esc(d.nome || '')}" placeholder="Nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(d.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocCl" value="${esc(d.doc_tipo || '')}" placeholder="Documento"></td><td class="c-num"><input data-k="doc_numero" value="${esc(d.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(d.doc_scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (es. figlio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const rigaTes = (d = {}) => `<tr><td><input data-k="tipo" list="dlTessere" value="${esc(d.tipo || '')}" placeholder="Tessera / programma (es. MSC Voyagers Club)"></td><td class="c-num"><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero tessera"></td><td class="c-data"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (livello, punti…)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   shell('clienti', nuovo ? 'Nuovo cliente' : `${esc(C.cognome)} ${esc(C.nome)}`, `
   <div id="fCliente" class="cl-layout">
@@ -932,7 +953,7 @@ async function paginaCliente(id) {
     <div class="small muted" style="margin-top:6px">Le scadenze dei documenti compaiono nella schermata Scadenze per i clienti in partenza.</div>
   </div>
   <div class="card"><h2>Compagni di viaggio <span class="spazio"></span><button type="button" class="btn piccolo" data-add="comp">+ Aggiungi compagno</button></h2>
-    <div class="tab-scroll"><table class="t compatta" data-righe id="tabComp"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.compagni || []).map(rigaComp).join('')}</tbody></table></div>
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabComp"><thead><tr><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.compagni || []).map(rigaComp).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:6px">Persone che viaggiano con questo cliente (figli, coniuge, amici): non hanno una scheda propria, ma cercandole si arriva qui. Si aggiungono anche da sole dai biglietti.</div>
   </div>
   <div class="card"><h2>Tessere e programmi fedeltà <span class="spazio"></span><button type="button" class="btn piccolo" data-add="tes">+ Aggiungi tessera</button></h2>
@@ -1219,6 +1240,9 @@ async function paginaOpzioni(scheda = 'agenzia') {
 
 // ================= BIGLIETTERIA =================
 const TIPI_BIGL = [['aereo', 'Aereo'], ['treno', 'Treno'], ['lowcost', 'Low cost']];
+// nomi in due celle: "Cognome Nome" a video, cognome/nome separati nei dati
+const nomeCompleto = q => `${(q && q.cognome) || ''} ${(q && q.nome) || ''}`.trim();
+const spezzaNome = s => { s = (s || '').trim(); const i = s.indexOf(' '); return i < 0 ? { cognome: s, nome: '' } : { cognome: s.slice(0, i), nome: s.slice(i + 1).trim() }; };
 const nomeTipoBigl = t => (TIPI_BIGL.find(x => x[0] === t) || [t, t])[1];
 const FILTRI_BG = { q: '', anno: '', mese: '', tipo: '' };
 let AEROPORTI = null;
@@ -1232,8 +1256,9 @@ function canaliAereo() {
 }
 
 const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
+let TIPO_BG_HOME = '';
 async function paginaBiglietteria() {
-  const d = await api('biglietti', undefined, { anno: new Date().getFullYear() });
+  const d = await api('biglietti', undefined, { anno: new Date().getFullYear(), tipo: TIPO_BG_HOME });
   const ultimi = d.lista.slice(0, 40);
   shell('biglietteria', 'Biglietteria', `
     <div class="scelta-bigl">
@@ -1241,14 +1266,16 @@ async function paginaBiglietteria() {
       <a class="sc treno" href="#/biglietteria/nuovo/treno"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M9 14h.01M15 14h.01M8 21l2-4M16 21l-2-4M7 21h10"/></svg></span><b>Treno</b><small>Trenitalia, Italo</small></a>
       <a class="sc lowcost" href="#/biglietteria/nuovo/lowcost"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M3 11h18M7 17v2M17 17v2M7.5 14h.01M16.5 14h.01"/></svg></span><b>Low cost</b><small>bus, navi, low cost, noleggi</small></a>
     </div>
-    <div class="card"><h2>Ultimi biglietti <span class="spazio"></span><input class="inp" id="bgQ" placeholder="Cerca…" style="width:260px"><a class="btn piccolo" href="#/statistiche/biglietteria">Riepilogo e totali →</a></h2><div id="bgTab"></div></div>`);
+    <div class="card"><h2>Ultimi biglietti <span class="tabs tabs-inline" id="bgTipi">${[['', 'Tutti'], ...TIPI_BIGL].map(([k, l]) => `<a href="#" data-tipo-h="${k}" class="${TIPO_BG_HOME === k ? 'attivo' : ''}">${l}</a>`).join('')}</span><span class="spazio"></span><input class="inp" id="bgQ" placeholder="Cerca…" style="width:260px"><a class="btn piccolo" href="#/statistiche/biglietteria">Riepilogo e totali →</a></h2><div id="bgTab"></div></div>`);
   const render = lista => {
     $('#bgTab').innerHTML = lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Totale</th><th class="num">Saldo</th><th>Pratica</th></tr></thead><tbody>
       ${lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}${b.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.saldo_cent)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun biglietto</div>';
   };
   render(ultimi);
   let timer;
-  $('#bgQ').oninput = e => { clearTimeout(timer); timer = setTimeout(async () => { const r = await api('biglietti', undefined, { q: e.target.value }); render(r.lista.slice(0, 60)); }, 250); };
+  const ricarica = async () => { const q = $('#bgQ').value.trim(); const r = await api('biglietti', undefined, q ? { q, tipo: TIPO_BG_HOME } : { anno: new Date().getFullYear(), tipo: TIPO_BG_HOME }); render(r.lista.slice(0, q ? 60 : 40)); };
+  $('#bgQ').oninput = () => { clearTimeout(timer); timer = setTimeout(ricarica, 250); };
+  $$('[data-tipo-h]').forEach(a => a.onclick = e => { e.preventDefault(); TIPO_BG_HOME = a.dataset.tipoH; $$('[data-tipo-h]').forEach(x => x.classList.toggle('attivo', x === a)); ricarica(); });
 }
 
 async function paginaStatBiglietteria() {
@@ -1273,7 +1300,7 @@ async function paginaStatBiglietteria() {
     $('#bgRiep').innerHTML = `<div class="stat"><div class="l">Totale incassato (al cliente)</div><div class="v">${eur(tot.totale)}</div><div class="s">${d.lista.length} biglietti · ${tot.seg} segmenti</div></div>
       <div class="stat"><div class="l">Importo biglietti (ai fornitori)</div><div class="v">${eur(tot.importo)}</div></div>
       <div class="stat"><div class="l">ADV fee</div><div class="v ok">${eur(tot.fee)}</div></div>
-      ${tot.comm ? `<div class="stat"><div class="l">Royalty (guadagno extra)</div><div class="v ok">${eur(tot.comm)}</div></div>` : ''}
+      ${tot.comm ? `<div class="stat"><div class="l">Commissioni (ritorno dai fornitori)</div><div class="v ok">${eur(tot.comm)}</div><div class="s">non sommate al cliente</div></div>` : ''}
       ${d.riepilogo.map(r => `<div class="stat"><div class="l">${nomeTipoBigl(r.tipo)} · ${esc(r.gruppo || '—')}</div><div class="v" style="font-size:16px">${eur(r.totale_cent)}</div><div class="s">${r.n} bigl. · importo ${eur(r.importo_cent)} · fee ${eur(r.adv_fee_cent)}${r.segmenti ? ' · ' + r.segmenti + ' seg.' : ''}</div></div>`).join('')}`;
     $('#bgTab').innerHTML = d.lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore · canale</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Seg.</th><th class="num">Pax</th><th class="num">Importo cad.</th><th class="num">ADV fee cad.</th><th class="num">Totale</th><th class="num">Versato</th><th class="num">Saldo</th><th>Pagam.</th><th>Pratica</th><th>Note</th></tr></thead><tbody>
       ${d.lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}${b.canale ? ` <span class="small muted">· ${esc(b.canale)} (${b.modalita})</span>` : ''}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num">${b.segmenti || ''}</td><td class="num">${b.pax || 1}</td><td class="num">${eur(b.importo_cent)}</td><td class="num">${eur(b.adv_fee_cent)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.versato_cent)}</td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '' : eur(b.saldo_cent)}</td><td class="small">${esc(b.acquisizione)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td><td class="small">${esc(b.note)}</td></tr>`).join('')}
@@ -1297,8 +1324,8 @@ async function paginaBiglietto(id) {
     if (parti[3] === 'pratica' && parti[4]) {
       const p = await api('pratica', undefined, { id: parti[4] }).catch(() => null);
       if (p) { B.pratica_id = p.id; B.pratica_numero = p.numero; B.pratica_anno = p.anno; B.cliente_id = p.cliente_id; B.cliente = p.cliente; B.passeggero = p.cliente;
-        B.passeggeri = (p.partecipanti || []).map(q => ({ nome: q.nome, nato_il: q.nato_il, doc_tipo: q.doc_tipo || '', doc_numero: q.doc_numero || '', doc_scade: q.doc_scade || '' }));
-        if (!B.passeggeri.length) B.passeggeri = [{ nome: p.cliente }]; }
+        B.passeggeri = (p.partecipanti || []).map(q => ({ cognome: q.cognome || '', nome: q.nome, nato_il: q.nato_il, doc_tipo: q.doc_tipo || '', doc_numero: q.doc_numero || '', doc_scade: q.doc_scade || '' }));
+        if (!B.passeggeri.length) B.passeggeri = [spezzaNome(p.cliente)]; }
     }
     const pn = await api('prossimo_numero_b', undefined, { anno: B.anno }); B.numero = pn.numero;
   } else B = await api('biglietto', undefined, { id });
@@ -1308,8 +1335,8 @@ async function paginaBiglietto(id) {
   const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>${B.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}`;
   // se si arriva da una pratica (o il biglietto nasce da una pratica) si torna lì dopo il salvataggio
   const tornaA = (B.pratica_id && ((STATO.prev || '').startsWith('pratiche/') || parti[3] === 'pratica')) ? '#/pratiche/' + B.pratica_id : null;
-  const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag-pass title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
-  if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [{ nome: B.passeggero }];
+  const rigaPass = (q = {}) => `<tr><td class="c-cogn"><div class="picker"><input data-k="cognome" value="${esc(q.cognome || '')}" placeholder="Cognome (cerca o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td class="c-nome"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag-pass title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
+  if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [spezzaNome(B.passeggero)];
   shell('biglietteria', titolo, `
   <div id="fBigl" class="bg-form bg-${B.tipo}">
   <div class="griglia" style="grid-template-columns: minmax(0,1fr) 300px">
@@ -1330,12 +1357,12 @@ async function paginaBiglietto(id) {
     <div class="campo"><label>N. biglietti</label><input name="pax" class="num c-stretto" id="inPax" value="${B.pax || 1}" maxlength="2" title="Numero di persone: segue i passeggeri, si può correggere"></div>
     <div class="campo"><label>Importo € cad.</label><input name="importo" class="num soldi c-soldi" value="${B.importo_cent ? eur(B.importo_cent) : ''}" title="Importo del biglietto, quanto si deve al fornitore"></div>
     <div class="campo"><label>ADV fee € cad.</label><input name="adv_fee" class="num soldi c-soldi" value="${B.adv_fee_cent ? eur(B.adv_fee_cent) : ''}"></div>
-    <div class="campo solo-lowcost"><label>Royalty € cad.</label><input name="commissione" class="num soldi c-soldi" value="${B.commissione_cent ? eur(B.commissione_cent) : ''}" title="Guadagno extra dell'agenzia: si somma al totale del cliente"></div>
-    <div class="campo"><label>Totale al cliente</label><input readonly id="outTotB" value="${eur((B.importo_cent + B.adv_fee_cent + (B.commissione_cent || 0)) * (B.pax || 1))}" style="font-weight:600" class="c-soldi"></div>
+    <div class="campo solo-lowcost"><label>Commissione € cad.</label><input name="commissione" class="num soldi c-soldi" value="${B.commissione_cent ? eur(B.commissione_cent) : ''}" title="Commissione che il fornitore ci riconosce: NON si somma al prezzo del cliente. Al fornitore si paga l'importo intero, la commissione torna indietro."></div>
+    <div class="campo"><label>Totale al cliente</label><input readonly id="outTotB" value="${eur((B.importo_cent + B.adv_fee_cent) * (B.pax || 1))}" style="font-weight:600" class="c-soldi" title="Importo + ADV fee, per il numero di biglietti. La commissione non c'entra: resta all'agenzia."></div>
     <div class="campo col6"><label>Note</label><input name="note" value="${esc(B.note || '')}"></div>
   </div><div class="small muted solo-aereo-txt" style="margin-top:6px">Acquisizione: carta di credito = già pagato al fornitore · cash = resta un debito.</div></div>
   <div class="card"><h2>Passeggeri <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPass">+ Aggiungi passeggero</button></h2>
-    <div class="tab-scroll"><table class="t compatta" data-righe id="tabPass"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th></th></tr></thead><tbody>${(B.passeggeri || []).map(q => rigaPass(q)).join('')}</tbody></table></div>
+    <div class="tab-scroll"><table class="t compatta" data-righe id="tabPass"><thead><tr><th>Cognome</th><th>Nome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th></th></tr></thead><tbody>${(B.passeggeri || []).map(q => rigaPass(q)).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:6px">Il primo passeggero è il cliente. Per gli altri scrivi il nome (cerca tra compagni di viaggio e clienti) oppure usa 📇 per prenderli dall'anagrafica con il documento.</div></div>
   <div class="card" id="cardAccB"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAccB">+ Registra acconto</button></h2><div id="boxAccB"></div>
     <div class="griglia g3" style="margin-top:10px"><div class="campo"><label>Totale al cliente</label><input readonly id="outTotB2" value="${eur(B.importo_cent + B.adv_fee_cent)}"></div><div class="campo"><label>Versato</label><input readonly id="outVersB" value="${eur(B.versato_cent || 0)}"></div><div class="campo"><label>Saldo residuo</label><input readonly id="outSaldoB" value="${eur(B.saldo_cent || 0)}" style="font-weight:600"></div></div></div>
@@ -1364,8 +1391,8 @@ async function paginaBiglietto(id) {
       if (proponi) {
         const d = (c.documenti || [])[0] || {};
         const righe = $$('#tabPass tbody tr');
-        const q = { nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, doc_tipo: d.tipo || '', doc_numero: d.numero || '', doc_scade: d.scade || '' };
-        if (!righe.length || !$('[data-k=nome]', righe[0]).value.trim()) { if (righe.length) righe[0].remove(); $('#tabPass tbody').insertAdjacentHTML('afterbegin', rigaPass(q)); attivaPickerPass($('#tabPass tbody tr')); }
+        const q = { cognome: c.cognome, nome: c.nome, nato_il: c.nato_il, doc_tipo: d.tipo || '', doc_numero: d.numero || '', doc_scade: d.scade || '' };
+        if (!righe.length || !nomeRiga(righe[0])) { if (righe.length) righe[0].remove(); $('#tabPass tbody').insertAdjacentHTML('afterbegin', rigaPass(q)); attivaPickerPass($('#tabPass tbody tr')); }
       }
     } catch (e) { box.textContent = '—'; }
   };
@@ -1383,7 +1410,7 @@ async function paginaBiglietto(id) {
     // aereo: l'itinerario si compone solo con gli scali (non si scrive a mano); treno e low cost: testo libero
     $('#inItin').readOnly = t === 'aereo'; $('#inItin').classList.toggle('sola-lettura', t === 'aereo');
   };
-  const ricalcola = () => { const n = Math.max(1, parseInt($('#inPax').value, 10) || 1); const tot = (euroACent($('[name=importo]', pg).value) + euroACent($('[name=adv_fee]', pg).value) + ($('#selTipoB').value === 'lowcost' ? euroACent($('[name=commissione]', pg).value) : 0)) * n; $('#outTotB').value = eur(tot); $('#outTotB2').value = eur(tot); $('#outVersB').value = eur(B.versato_cent || 0); $('#outSaldoB').value = eur(tot - (B.versato_cent || 0)); };
+  const ricalcola = () => { const n = Math.max(1, parseInt($('#inPax').value, 10) || 1); const tot = (euroACent($('[name=importo]', pg).value) + euroACent($('[name=adv_fee]', pg).value)) * n; $('#outTotB').value = eur(tot); $('#outTotB2').value = eur(tot); $('#outVersB').value = eur(B.versato_cent || 0); $('#outSaldoB').value = eur(tot - (B.versato_cent || 0)); };
   const renderAccB = () => {
     const collegato = !!$('[name=pratica_id]', pg).value;
     $('#cardAccB').classList.toggle('hidden', collegato);
@@ -1402,33 +1429,34 @@ async function paginaBiglietto(id) {
   // partecipanti arrivati dalla pratica senza documento: lo prende dall'anagrafica (cliente o compagni)
   if (nuovo && B.cliente_id && (B.passeggeri || []).some(q => !q.doc_tipo && !q.doc_numero)) api('cliente', undefined, { id: B.cliente_id }).then(cl => {
     const nomeCl = `${cl.cognome} ${cl.nome}`.trim().toLowerCase(); const d0 = (cl.documenti || [])[0] || {};
-    for (const tr of $$('#tabPass tbody tr')) { if ($('[data-k=doc_tipo]', tr).value || $('[data-k=doc_numero]', tr).value) continue; const n = $('[data-k=nome]', tr).value.trim().toLowerCase();
-      const src = n === nomeCl ? { doc_tipo: d0.tipo, doc_numero: d0.numero, doc_scade: d0.scade, nato_il: cl.nato_il } : (cl.compagni || []).find(k => k.nome.trim().toLowerCase() === n);
+    for (const tr of $$('#tabPass tbody tr')) { if ($('[data-k=doc_tipo]', tr).value || $('[data-k=doc_numero]', tr).value) continue; const n = nomeRiga(tr).toLowerCase();
+      const src = n === nomeCl ? { doc_tipo: d0.tipo, doc_numero: d0.numero, doc_scade: d0.scade, nato_il: cl.nato_il } : (cl.compagni || []).find(k => nomeCompleto(k).toLowerCase() === n);
       if (src) { $('[data-k=doc_tipo]', tr).value = src.doc_tipo || ''; $('[data-k=doc_numero]', tr).value = src.doc_numero || ''; if (src.doc_scade) $('[data-k=doc_scade]', tr).value = dataIt(src.doc_scade); if (!$('[data-k=nato_il]', tr).value && src.nato_il) $('[data-k=nato_il]', tr).value = dataIt(src.nato_il); } }
   }).catch(() => {});
   // ogni riga passeggero: il nome si può prendere dai clienti (porta anche data di nascita e documento)
-  const riempiRiga = (tr, q) => { $('[data-k=nome]', tr).value = q.nome || ''; $('[data-k=nato_il]', tr).value = q.nato_il ? dataIt(q.nato_il) : ''; $('[data-k=doc_tipo]', tr).value = q.doc_tipo || ''; $('[data-k=doc_numero]', tr).value = q.doc_numero || ''; $('[data-k=doc_scade]', tr).value = q.doc_scade ? dataIt(q.doc_scade) : ''; };
+  const nomeRiga = tr => `${$('[data-k=cognome]', tr).value.trim()} ${$('[data-k=nome]', tr).value.trim()}`.trim();
+  const riempiRiga = (tr, q) => { $('[data-k=cognome]', tr).value = q.cognome || ''; $('[data-k=nome]', tr).value = q.nome || ''; $('[data-k=nato_il]', tr).value = q.nato_il ? dataIt(q.nato_il) : ''; $('[data-k=doc_tipo]', tr).value = q.doc_tipo || ''; $('[data-k=doc_numero]', tr).value = q.doc_numero || ''; $('[data-k=doc_scade]', tr).value = q.doc_scade ? dataIt(q.doc_scade) : ''; };
   const attivaPickerPass = tr => {
-    const inp = $('[data-k=nome]', tr); if (!inp || inp.dataset.picker) return; inp.dataset.picker = '1';
+    const inp = $('[data-k=cognome]', tr); if (!inp || inp.dataset.picker) return; inp.dataset.picker = '1';
     const primo = () => $('#tabPass tbody tr') === tr;
     if (primo()) {
       // primo passeggero = il cliente: si cerca tra i clienti o si crea al volo; diventa anche il cliente del biglietto
       pickerCliente(inp, $('[data-cid]', tr), $('.lista', tr), async c => {
         sporca = true;
-        try { const cl = await api('cliente', undefined, { id: c.id }); const d = (cl.documenti || [])[0] || {}; riempiRiga(tr, { nome: `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il, doc_tipo: d.tipo, doc_numero: d.numero, doc_scade: d.scade }); } catch (e) { /* solo il nome */ }
+        try { const cl = await api('cliente', undefined, { id: c.id }); const d = (cl.documenti || [])[0] || {}; riempiRiga(tr, { cognome: cl.cognome, nome: cl.nome, nato_il: cl.nato_il, doc_tipo: d.tipo, doc_numero: d.numero, doc_scade: d.scade }); } catch (e) { riempiRiga(tr, { cognome: c.cognome, nome: c.nome, nato_il: c.nato_il }); }
         if (!$('[name=cliente_id]', pg).value) { $('[name=cliente_id]', pg).value = c.id; $('#pkCliente').value = `${c.cognome} ${c.nome}`.trim(); mostraCliente(c.id, false); }
       });
       return;
     }
     // altri passeggeri: compagni di viaggio del cliente, altri compagni, clienti; oppure nome scritto a mano
     const lista = $('.lista', tr); let timer, ris = [];
-    const mostra = () => { lista.innerHTML = ris.map((r, i) => `<div data-i="${i}"><b>${esc(r.nome)}</b> <span class="muted small">${r.tipo === 'compagno' ? 'compagno di ' + esc(r.cliente) : 'cliente'}${r.doc_tipo ? ' · ' + esc(r.doc_tipo) : ''}</span></div>`).join('') || '<div class="muted small">nessuno trovato: resta il nome scritto (sarà salvato come compagno di viaggio del cliente)</div>'; lista.classList.remove('hidden'); };
+    const mostra = () => { lista.innerHTML = ris.map((r, i) => `<div data-i="${i}"><b>${esc(nomeCompleto(r))}</b> <span class="muted small">${r.tipo === 'compagno' ? 'compagno di ' + esc(r.cliente) : 'cliente'}${r.doc_tipo ? ' · ' + esc(r.doc_tipo) : ''}</span></div>`).join('') || '<div class="muted small">nessuno trovato: resta il nome scritto (sarà salvato come compagno di viaggio del cliente)</div>'; lista.classList.remove('hidden'); };
     inp.addEventListener('input', () => { sporca = true; clearTimeout(timer); timer = setTimeout(async () => { if (inp.value.trim().length < 2) { lista.classList.add('hidden'); return; } ris = await api('passeggeri_cerca', undefined, { q: inp.value, cliente_id: $('[name=cliente_id]', pg).value }); mostra(); }, 200); });
     inp.addEventListener('blur', () => setTimeout(() => lista.classList.add('hidden'), 150));
     lista.addEventListener('mousedown', e => { const d = e.target.closest('[data-i]'); if (!d) return; e.preventDefault(); riempiRiga(tr, ris[+d.dataset.i]); lista.classList.add('hidden'); sporca = true; });
   };
   $$('#tabPass tbody tr').forEach(attivaPickerPass);
-  const sincronizzaPax = () => { const n = $$('#tabPass tbody tr').filter(tr => $('[data-k=nome]', tr).value.trim()).length; const inp = $('#inPax'); if (n && (!inp.dataset.manuale)) { inp.value = n; ricalcola(); } };
+  const sincronizzaPax = () => { const n = $$('#tabPass tbody tr').filter(tr => nomeRiga(tr)).length; const inp = $('#inPax'); if (n && (!inp.dataset.manuale)) { inp.value = n; ricalcola(); } };
   $('#inPax').addEventListener('input', () => { $('#inPax').dataset.manuale = '1'; });
   $('#tabPass').addEventListener('input', sincronizzaPax); $('#tabPass').addEventListener('change', sincronizzaPax);
   new MutationObserver(sincronizzaPax).observe($('#tabPass tbody'), { childList: true });
@@ -1441,11 +1469,11 @@ async function paginaBiglietto(id) {
     const cid = $('[name=cliente_id]', pg).value; if (!cid) { toast('Scegli prima il cliente', 'err'); return; }
     const tr = b.closest('tr');
     const c = await api('cliente', undefined, { id: cid });
-    const voci = [{ nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, docs: c.documenti || [], chi: 'cliente' }, ...(c.compagni || []).map(k => ({ nome: k.nome, nato_il: k.nato_il, docs: [{ tipo: k.doc_tipo, numero: k.doc_numero, scade: k.doc_scade }].filter(d => d.tipo || d.numero), chi: 'compagno di viaggio' }))];
+    const voci = [{ cognome: c.cognome, nome: c.nome, nato_il: c.nato_il, docs: c.documenti || [], chi: 'cliente' }, ...(c.compagni || []).map(k => ({ cognome: k.cognome || '', nome: k.nome, nato_il: k.nato_il, docs: [{ tipo: k.doc_tipo, numero: k.doc_numero, scade: k.doc_scade }].filter(d => d.tipo || d.numero), chi: 'compagno di viaggio' }))];
     const righe = voci.flatMap((v, vi) => (v.docs.length ? v.docs : [{}]).map((d, di) => ({ v, d, k: vi + ':' + di })));
-    modale({ titolo: 'Dall\'anagrafica', senzaOk: true, annulla: 'Chiudi', corpo: `<table class="t compatta"><thead><tr><th>Nome</th><th>Nato il</th><th>Documento</th><th></th></tr></thead><tbody>${righe.map(r => `<tr><td>${esc(r.v.nome)} <span class="muted small">${r.v.chi}</span></td><td>${dataIt(r.v.nato_il)}</td><td>${r.d.tipo ? esc(r.d.tipo) + ' ' + esc(r.d.numero || '') + (r.d.scade ? ' · scade ' + dataIt(r.d.scade) : '') : '<span class="muted">nessun documento</span>'}</td><td class="az"><button type="button" class="btn piccolo primario" data-scegli="${r.k}">usa</button></td></tr>`).join('')}</tbody></table>` });
+    modale({ titolo: 'Dall\'anagrafica', senzaOk: true, annulla: 'Chiudi', corpo: `<table class="t compatta"><thead><tr><th>Cognome e nome</th><th>Nato il</th><th>Documento</th><th></th></tr></thead><tbody>${righe.map(r => `<tr><td>${esc(nomeCompleto(r.v))} <span class="muted small">${r.v.chi}</span></td><td>${dataIt(r.v.nato_il)}</td><td>${r.d.tipo ? esc(r.d.tipo) + ' ' + esc(r.d.numero || '') + (r.d.scade ? ' · scade ' + dataIt(r.d.scade) : '') : '<span class="muted">nessun documento</span>'}</td><td class="az"><button type="button" class="btn piccolo primario" data-scegli="${r.k}">usa</button></td></tr>`).join('')}</tbody></table>` });
     const d = document.querySelector('dialog.modal:last-of-type');
-    $$('[data-scegli]', d).forEach(x => x.onclick = () => { const r = righe.find(y => y.k === x.dataset.scegli); riempiRiga(tr, { nome: r.v.nome, nato_il: r.v.nato_il, doc_tipo: r.d.tipo, doc_numero: r.d.numero, doc_scade: r.d.scade }); sporca = true; d.close(); d.remove(); });
+    $$('[data-scegli]', d).forEach(x => x.onclick = () => { const r = righe.find(y => y.k === x.dataset.scegli); riempiRiga(tr, { cognome: r.v.cognome, nome: r.v.nome, nato_il: r.v.nato_il, doc_tipo: r.d.tipo, doc_numero: r.d.numero, doc_scade: r.d.scade }); sporca = true; d.close(); d.remove(); });
   });
   // picker pratica
   (() => {
@@ -1488,9 +1516,9 @@ async function paginaBiglietto(id) {
   };
   const proponiCliente = async () => {
     if ($('[name=cliente_id]', pg).value) return true;
-    const tr = $('#tabPass tbody tr'); const nome = tr ? $('[data-k=nome]', tr).value.trim() : '';
+    const tr = $('#tabPass tbody tr'); const nome = tr ? nomeRiga(tr) : '';
     if (!nome) return true;
-    const parti = nome.split(/\s+/);
+    const sp = tr && $('[data-k=nome]', tr).value.trim() ? { cognome: $('[data-k=cognome]', tr).value.trim(), nome: $('[data-k=nome]', tr).value.trim() } : spezzaNome(nome); const parti = [sp.cognome, sp.nome];
     const scelta = await modale({ titolo: 'Cliente non in anagrafica', ok: 'Crea il cliente e salva', annulla: 'Salva senza cliente',
       corpo: `<p><b>${esc(nome)}</b> non è un cliente in anagrafica. Lo aggiungo come cliente (gli altri passeggeri diventano suoi compagni di viaggio)?</p><div class="griglia g2"><div class="campo"><label>Cognome</label><input name="cognome" value="${esc(parti[0] || '')}"></div><div class="campo"><label>Nome</label><input name="nome" value="${esc(parti.slice(1).join(' '))}"></div><div class="campo"><label>Cellulare</label><input name="cellulare"></div><div class="campo"><label>Email</label><input name="email"></div></div>`,
       onOk: async d => { const f = leggiForm(d); const doc = { tipo: $('[data-k=doc_tipo]', tr).value, numero: $('[data-k=doc_numero]', tr).value, scade: $('[data-k=doc_scade]', tr).value }; const r = await api('cliente_salva', { ...f, nato_il: $('[data-k=nato_il]', tr).value, documenti: (doc.tipo || doc.numero) ? [doc] : [] }); $('[name=cliente_id]', pg).value = r.id; $('#pkCliente').value = `${f.cognome} ${f.nome}`.trim(); return true; } });

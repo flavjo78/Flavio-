@@ -85,7 +85,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
       const b = await api('biglietto', { id: bId });
       const cl = b.cliente_id ? await api('cliente', { id: b.cliente_id }) : { cognome: b.passeggero || '', nome: '' };
       p = { numero: 'B' + b.numero, anno: b.anno, operatore: b.operatore, data_apertura: b.data, riferimento_to: '', operatore_to: '', cliente_dati: cl,
-        partecipanti: (b.passeggeri && b.passeggeri.length) ? b.passeggeri.map(q => ({ nome: q.nome, nato_il: q.nato_il })) : [{ nome: b.passeggero || `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il || '' }], pacchetto_servizio: 'biglietteria', in_catalogo: 0, intermediazione: 1,
+        partecipanti: (b.passeggeri && b.passeggeri.length) ? b.passeggeri.map(q => ({ nome: `${q.cognome || ''} ${q.nome || ''}`.trim(), nato_il: q.nato_il })) : [{ nome: b.passeggero || `${cl.cognome} ${cl.nome}`.trim(), nato_il: cl.nato_il || '' }], pacchetto_servizio: 'biglietteria', in_catalogo: 0, intermediazione: 1,
         destinazione: `${b.vettore} ${b.itinerario}`.trim(), partenza: b.partenza, rientro: '', partenza_da: '', partenza_a: '', durata_giorni: '', durata_notti: '', adulti: 1, bambini: 0, infanti: 0, pnr: b.codice, richieste: '',
         righe: [], biglietti: [b], documenti_necessari: '', acconti: b.acconti || [], abbuono_cent: 0, saldo_entro: '', stato: 'Confermata', totale_cent: b.totale_cent, dovuto_cent: b.totale_cent, saldo_cent: b.saldo_cent };
     } else p = await api('pratica', { id });
@@ -93,7 +93,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
     document.title = `Pratica ${p.numero}-${p.anno} ${c.cognome} ${c.nome}`;
     // Righe in stampa: il padre porta l'importo suo + le voci nascoste; le voci "in stampa" vanno come righe a parte.
     const righe = [];
-    for (const b of (p.biglietti || [])) righe.push({ descrizione: `Biglietto ${b.tipo === 'lowcost' ? 'low cost' : b.tipo} ${b.vettore} ${b.itinerario}`.trim(), prezzo_cent: b.importo_cent + b.adv_fee_cent + (b.commissione_cent || 0), pax: b.pax || 1, dett: [b.codice ? 'Codice <b>' + esc(b.codice) + '</b>' : '', b.partenza ? 'partenza ' + dataIt(b.partenza) : ''].filter(Boolean).join(' · ') });
+    for (const b of (p.biglietti || [])) righe.push({ descrizione: `Biglietto ${b.tipo === 'lowcost' ? 'low cost' : b.tipo} ${b.vettore} ${b.itinerario}`.trim(), prezzo_cent: b.importo_cent + b.adv_fee_cent, pax: b.pax || 1, dett: [b.codice ? 'Codice <b>' + esc(b.codice) + '</b>' : '', b.partenza ? 'partenza ' + dataIt(b.partenza) : ''].filter(Boolean).join(' · ') });
     for (const r of p.righe) {
       const figli = r.figli || [];
       const nascosti = figli.filter(c => !c.stampa).reduce((s, c) => s + c.prezzo_cent, 0);
@@ -144,7 +144,7 @@ async function api(a, q) { const r = await fetch('/api/' + a + (q ? '?' + new UR
       </div>
     </div>
     <div class="inter">${esc(T.in_nome)}</div>
-    <div class="box" style="min-height:14mm">${p.partecipanti.map(q => `<b>${esc(q.nome.toUpperCase())}</b>${q.nato_il ? ' ' + dataIt(q.nato_il) : ''}`).join(' &nbsp;·&nbsp; ')}</div>
+    <div class="box" style="min-height:14mm">${p.partecipanti.map(q => `<b>${esc(`${q.cognome || ''} ${q.nome || ''}`.trim().toUpperCase())}</b>${q.nato_il ? ' ' + dataIt(q.nato_il) : ''}`).join(' &nbsp;·&nbsp; ')}</div>
     <div class="box dichiara" style="margin-top:6px">
       <table><tr><td class="k">Dichiara</td><td>${T.dichiara.split('\n').filter(Boolean).map(r => `- ${esc(r)}`).join('<br>')}</td></tr>
       <tr><td class="k" style="padding-top:4px">Propone</td><td style="padding-top:4px"><span style="font-size:9.5pt">${esc(T.propone)} <b>${esc(fornitori.join(' / ').toUpperCase())}</b></span>

@@ -404,6 +404,17 @@ function migra() {
     db.exec("UPDATE biglietti SET pax = (SELECT COUNT(*) FROM biglietto_passeggeri q WHERE q.biglietto_id = biglietti.id) WHERE (SELECT COUNT(*) FROM biglietto_passeggeri q WHERE q.biglietto_id = biglietti.id) > 1");
     db.exec('PRAGMA user_version = 13');
   }
+  if (v < 14) {
+    // v14: cognome e nome in due celle separate per partecipanti, passeggeri e compagni di viaggio.
+    // I nomi già salvati ("Cognome Nome") vengono spezzati alla prima parola: la prima è il cognome, il resto il nome.
+    for (const t of ['pratica_partecipanti', 'biglietto_passeggeri', 'cliente_compagni']) {
+      const cols = db.prepare(`PRAGMA table_info(${t})`).all().map(c => c.name);
+      if (!cols.includes('cognome')) db.exec(`ALTER TABLE ${t} ADD COLUMN cognome TEXT NOT NULL DEFAULT ''`);
+      db.exec(`UPDATE ${t} SET cognome = CASE WHEN instr(trim(nome), ' ') > 0 THEN substr(trim(nome), 1, instr(trim(nome), ' ') - 1) ELSE trim(nome) END,
+        nome = CASE WHEN instr(trim(nome), ' ') > 0 THEN trim(substr(trim(nome), instr(trim(nome), ' ') + 1)) ELSE '' END WHERE cognome = '' AND nome <> ''`);
+    }
+    db.exec('PRAGMA user_version = 14');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).
