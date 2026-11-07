@@ -397,6 +397,13 @@ function migra() {
     }
     db.exec('PRAGMA user_version = 12');
   }
+  if (v < 13) {
+    // v13: numero di biglietti (pax) per biglietto: importo e fee sono a persona
+    const colsB = db.prepare('PRAGMA table_info(biglietti)').all().map(c => c.name);
+    if (!colsB.includes('pax')) db.exec('ALTER TABLE biglietti ADD COLUMN pax INTEGER NOT NULL DEFAULT 1');
+    db.exec("UPDATE biglietti SET pax = (SELECT COUNT(*) FROM biglietto_passeggeri q WHERE q.biglietto_id = biglietti.id) WHERE (SELECT COUNT(*) FROM biglietto_passeggeri q WHERE q.biglietto_id = biglietti.id) > 1");
+    db.exec('PRAGMA user_version = 13');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

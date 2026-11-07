@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.7.0';
+const VERSIONE = '1.8.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -513,8 +513,22 @@ function fornitore_elimina(ctx) {
   return { ok: true };
 }
 
-// Situazione dare/avere di un fornitore, pratica per pratica.
+// Situazione dare/avere di un fornitore, pratica per pratica (il "pagato" viene dagli acconti del cliente assegnati a lui).
 function situazioneFornitore(fid) {
+  const ids = db.all(`SELECT DISTINCT p.id FROM pratiche p WHERE p.id IN (SELECT pratica_id FROM pratica_righe WHERE fornitore_id = ?) ORDER BY p.anno DESC, p.numero DESC`, fid).map(r => r.id);
+  const righe = [];
+  for (const id of ids) {
+    const p = caricaPratica(id);
+    const f = (p.fornitori || []).find(x => x.fornitore_id === fid); if (!f) continue;
+    righe.push({ id: p.id, anno: p.anno, numero: p.numero, stato: p.stato, partenza: p.partenza, destinazione: p.destinazione, cliente_id: p.cliente_id, cliente: p.cliente,
+      costo_cent: f.costo_cent, venduto_cent: f.venduto_cent, pagato_cent: f.pagato_cent, cliente_versato_cent: f.cliente_versato_cent,
+      dovuto_cent: (p.stato === 'Annullata' || p.stato === 'Preventivo') ? 0 : f.dovuto_cent });
+  }
+  const tot = { costo_cent: 0, pagato_cent: 0, dovuto_cent: 0, venduto_cent: 0 };
+  for (const r of righe) if (r.stato !== 'Annullata' && r.stato !== 'Preventivo') { tot.costo_cent += r.costo_cent; tot.pagato_cent += r.pagato_cent; tot.dovuto_cent += r.dovuto_cent; tot.venduto_cent += r.venduto_cent; }
+  return { pratiche: righe, totali: tot };
+}
+function situazioneFornitoreVecchia(fid) {
   const righe = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.partenza, p.destinazione, p.cliente_id,
       c.cognome || ' ' || c.nome AS cliente,
       (SELECT COALESCE(SUM(r.costo_cent * r.pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id AND r.fornitore_id = ?) AS costo_cent,
@@ -553,8 +567,8 @@ function prossimoNumero(anno) {
 // Totali calcolati di una pratica (aggiunti alla riga di lista o alla scheda).
 function arricchisciTotali(p) {
   const t = db.get(`SELECT
-      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent + commissione_cent),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
-      (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent),0) FROM biglietti WHERE pratica_id = ?) AS costo_cent,
+      (SELECT COALESCE(SUM(prezzo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent + commissione_cent) * pax),0) FROM biglietti WHERE pratica_id = ?) AS totale_cent,
+      (SELECT COALESCE(SUM(costo_cent * pax),0) FROM pratica_righe WHERE pratica_id = ?) + (SELECT COALESCE(SUM(importo_cent * pax),0) FROM biglietti WHERE pratica_id = ?) AS costo_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM acconti WHERE pratica_id = ?) AS versato_cent,
       (SELECT COALESCE(SUM(importo_cent),0) FROM pagamenti_fornitore WHERE pratica_id = ?) AS pagato_fornitori_cent,
       (SELECT abbuono_cent FROM pratiche WHERE id = ?) AS abbuono_cent,
@@ -636,7 +650,7 @@ function caricaPratica(id) {
   }
   for (const b of p.biglietti) { // i biglietti collegati: il loro fornitore (canale o vettore) compare tra i fornitori della pratica
     const k = 'b' + b.id; const nomeF = (b.tipo === 'aereo' && b.canale) ? b.canale : b.vettore;
-    perF[k] = { fornitore_id: null, biglietto_id: b.id, fornitore: `${nomeF || 'Biglietto'} · B${b.numero}/${b.anno}`, venduto_cent: b.importo_cent + b.adv_fee_cent + b.commissione_cent, costo_cent: b.importo_cent, pagato_cent: b.modalita === 'pagato' ? b.importo_cent : 0, cliente_versato_cent: 0 };
+    perF[k] = { fornitore_id: null, biglietto_id: b.id, fornitore: `${nomeF || 'Biglietto'} · B${b.numero}/${b.anno}`, venduto_cent: (b.importo_cent + b.adv_fee_cent + b.commissione_cent) * (b.pax || 1), costo_cent: b.importo_cent * (b.pax || 1), pagato_cent: 0, cliente_versato_cent: 0 };
     for (const a of p.acconti) if (a.biglietto_id === b.id) perF[k].cliente_versato_cent += a.importo_cent;
   }
   // acconti senza riferimento: ripartiti in proporzione al costo, finché ogni fornitore è coperto; il resto è dell'agenzia
@@ -651,7 +665,8 @@ function caricaPratica(id) {
     for (const f of lista) { if (resta <= 0) break; const scoperto = f.costo_cent - f.cliente_versato_cent - f.da_riparto_cent; if (scoperto > 0) { const q = Math.min(scoperto, resta); f.da_riparto_cent += q; resta -= q; } }
     p.agenzia_incassato_cent = resta;
   } else p.agenzia_incassato_cent = libero;
-  p.fornitori = lista.map(f => ({ ...f, cliente_versato_cent: f.cliente_versato_cent + f.da_riparto_cent, dovuto_cent: f.costo_cent - f.pagato_cent }));
+  // "Pagato al fornitore" = la parte del suo costo già coperta dagli acconti del cliente (riferiti o ripartiti); "ancora da pagare" = il resto
+  p.fornitori = lista.map(f => { const vers = f.cliente_versato_cent + f.da_riparto_cent; const pagato = Math.min(vers, f.costo_cent); return { ...f, cliente_versato_cent: vers, pagato_cent: pagato, dovuto_cent: f.costo_cent - pagato }; });
   // all'agenzia resta tutto ciò che supera le quote dei fornitori (anche se versato "riferito" oltre il costo)
   p.agenzia_incassato_cent = Math.max(0, p.versato_cent - p.fornitori.reduce((s, f) => s + Math.min(f.cliente_versato_cent, f.costo_cent), 0));
   return p;
@@ -841,7 +856,9 @@ function prossimoNumeroB(anno) {
 }
 function prossimo_numero_b(ctx) { const anno = N(ctx.query.anno) || new Date().getFullYear(); return { anno, numero: prossimoNumeroB(anno) }; }
 function arricchisciBiglietto(b) {
-  b.totale_cent = b.importo_cent + b.adv_fee_cent + b.commissione_cent;
+  b.pax = b.pax || 1;
+  b.unitario_cent = b.importo_cent + b.adv_fee_cent + b.commissione_cent;
+  b.totale_cent = b.unitario_cent * b.pax;
   b.etichetta = `B${b.numero}/${b.anno}`;
   // acconti propri solo se il biglietto NON è collegato a una pratica (altrimenti si incassa dalla pratica)
   b.versato_cent = b.pratica_id ? 0 : (db.get('SELECT COALESCE(SUM(importo_cent),0) AS v FROM acconti WHERE biglietto_id = ? AND pratica_id = 0', b.id).v);
@@ -872,7 +889,7 @@ function biglietti(ctx) {
   for (const b of lista) {
     const k = b.tipo + '|' + (b.tipo === 'aereo' ? b.canale : b.vettore);
     tot[k] = tot[k] || { tipo: b.tipo, gruppo: b.tipo === 'aereo' ? b.canale : b.vettore, n: 0, importo_cent: 0, adv_fee_cent: 0, commissione_cent: 0, totale_cent: 0, segmenti: 0 };
-    const t = tot[k]; t.n++; t.importo_cent += b.importo_cent; t.adv_fee_cent += b.adv_fee_cent; t.commissione_cent += b.commissione_cent; t.totale_cent += b.totale_cent; t.segmenti += b.segmenti;
+    const t = tot[k]; t.n++; t.importo_cent += b.importo_cent * b.pax; t.adv_fee_cent += b.adv_fee_cent * b.pax; t.commissione_cent += b.commissione_cent * b.pax; t.totale_cent += b.totale_cent; t.segmenti += b.segmenti;
   }
   return { lista, riepilogo: Object.values(tot), anni: db.all('SELECT DISTINCT anno FROM biglietti ORDER BY anno DESC').map(r => r.anno) };
 }
@@ -910,7 +927,8 @@ function biglietto_salva(ctx) {
     tipo, operazione, data: DATA(c.data) || db.oggi(), cliente_id: clienteId, pratica_id: praticaId,
     passeggero: passeggeri.length ? S(passeggeri[0].nome) + (passeggeri.length > 1 ? ` +${passeggeri.length - 1}` : '') : S(c.passeggero), vettore: S(c.vettore), canale, modalita, acquisizione: S(c.acquisizione),
     codice: S(c.codice).toUpperCase(), itinerario: S(c.itinerario).toUpperCase(), partenza: DATA(c.partenza), segmenti: N(c.segmenti),
-    importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note), bozza
+    importo_cent: CENT(c.importo), adv_fee_cent: CENT(c.adv_fee), commissione_cent: CENT(c.commissione), note: S(c.note), bozza,
+    pax: Math.max(1, N(c.pax) || passeggeri.length || 1)
   };
   const ts = db.adesso();
   return db.transazione(() => {
@@ -991,12 +1009,11 @@ function scadenze(ctx) {
   const partenze = db.all(`SELECT p.id, p.anno, p.numero, p.stato, p.destinazione, p.partenza, p.rientro, c.cognome || ' ' || c.nome AS cliente, c.cellulare
     FROM pratiche p JOIN clienti c ON c.id = p.cliente_id
     WHERE p.stato IN ('Confermata') AND p.partenza >= ? AND p.partenza <= ? ORDER BY p.partenza`, oggi, fra30);
-  const fornitori = db.all(`SELECT f.id AS fornitore_id, f.nome AS fornitore, p.id, p.anno, p.numero, p.partenza, p.destinazione, c.cognome || ' ' || c.nome AS cliente,
-      COALESCE(SUM(r.costo_cent * r.pax),0) AS costo_cent,
-      (SELECT COALESCE(SUM(g.importo_cent),0) FROM pagamenti_fornitore g WHERE g.pratica_id = p.id AND g.fornitore_id = f.id) AS pagato_cent
-    FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id JOIN fornitori f ON f.id = r.fornitore_id JOIN clienti c ON c.id = p.cliente_id
-    WHERE p.stato IN ('Confermata','Chiusa') GROUP BY f.id, p.id HAVING costo_cent - pagato_cent > 0 ORDER BY p.partenza`)
-    .map(r => ({ ...r, dovuto_cent: r.costo_cent - r.pagato_cent }));
+  const fornitori = [];
+  for (const pr of db.all(`SELECT id FROM pratiche WHERE stato IN ('Confermata','Chiusa') ORDER BY partenza`)) {
+    const p = caricaPratica(pr.id);
+    for (const f of p.fornitori) if (f.dovuto_cent > 0) fornitori.push({ fornitore_id: f.fornitore_id, biglietto_id: f.biglietto_id, fornitore: f.fornitore, id: p.id, anno: p.anno, numero: p.numero, partenza: p.partenza, destinazione: p.destinazione, cliente: p.cliente, costo_cent: f.costo_cent, pagato_cent: f.pagato_cent, dovuto_cent: f.dovuto_cent });
+  }
   const documenti = db.all(`SELECT c.id, c.cognome || ' ' || c.nome AS cliente, d.tipo AS doc_tipo, d.scade AS doc_scade, c.cellulare FROM cliente_documenti d JOIN clienti c ON c.id = d.cliente_id
     WHERE d.scade <> '' AND d.scade <= ? AND c.id IN (SELECT cliente_id FROM pratiche WHERE stato = 'Confermata' AND partenza >= ?) ORDER BY d.scade`, fra90, oggi);
   return { oggi, saldi, partenze, fornitori, documenti };
@@ -1006,11 +1023,11 @@ function scadenze(ctx) {
 function filtroVendite() {
   // Valore "venduto" di una pratica: totale righe, oppure la penale se annullata con penale. Escluse annullate e preventivi.
   return `CASE WHEN p.stato = 'Annullata con penale' THEN p.penale_cent
-          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent + adv_fee_cent + commissione_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
+          WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(prezzo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent + adv_fee_cent + commissione_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) - p.abbuono_cent
           ELSE 0 END`;
 }
 function filtroCosti() {
-  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
+  return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM(importo_cent * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
 }
 function statistiche(ctx) {
   const anno = N(ctx.query.anno) || new Date().getFullYear();
@@ -1039,14 +1056,17 @@ function statistiche(ctx) {
   const perStato = db.all(`SELECT p.stato, COUNT(*) AS n FROM pratiche p WHERE p.anno = ? GROUP BY p.stato`, anno);
   const daIncassare = db.all(`SELECT p.id FROM pratiche p WHERE p.anno = ? AND p.stato IN ('Confermata','Chiusa','Annullata con penale')`, anno)
     .map(arricchisciTotali).reduce((s, p) => s + Math.max(0, p.saldo_cent), 0);
-  const daPagare = db.get(`SELECT COALESCE(SUM(r.costo_cent*r.pax),0) - (SELECT COALESCE(SUM(g.importo_cent),0) FROM pagamenti_fornitore g JOIN pratiche q ON q.id = g.pratica_id WHERE q.anno = ? AND q.stato IN ('Confermata','Chiusa')) AS v
-    FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id WHERE p.anno = ? AND p.stato IN ('Confermata','Chiusa')`, anno, anno).v;
+  const daPagare = db.all(`SELECT id FROM pratiche WHERE anno = ? AND stato IN ('Confermata','Chiusa')`, anno).reduce((s, r) => s + caricaPratica(r.id).fornitori.reduce((t, f) => t + Math.max(0, f.dovuto_cent), 0), 0);
   return { anno, anni: pratiche_anni(), perAnno, perMese, perTipo, perFornitore, perOperatore, topClienti, perStato, da_incassare_cent: daIncassare, da_pagare_fornitori_cent: daPagare };
 }
 function statisticheFornitore(fid) {
   return db.all(`SELECT p.anno, COUNT(DISTINCT p.id) AS n, SUM((r.prezzo_cent + COALESCE((SELECT SUM(c.prezzo_cent) FROM pratica_righe c WHERE c.padre_id = r.id),0))*r.pax) AS venduto_cent, SUM(r.costo_cent*r.pax) AS costo_cent,
-      (SELECT COALESCE(SUM(g.importo_cent),0) FROM pagamenti_fornitore g JOIN pratiche q ON q.id = g.pratica_id WHERE q.anno = p.anno AND g.fornitore_id = ?) AS pagato_cent
-    FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id WHERE r.fornitore_id = ? AND p.stato IN ('Confermata','Chiusa') GROUP BY p.anno ORDER BY p.anno`, fid, fid);
+      0 AS pagato_cent
+    FROM pratica_righe r JOIN pratiche p ON p.id = r.pratica_id WHERE r.fornitore_id = ? AND p.stato IN ('Confermata','Chiusa') GROUP BY p.anno ORDER BY p.anno`, fid).map(r => {
+      // pagato nell'anno = quote coperte dagli acconti, pratica per pratica
+      r.pagato_cent = db.all(`SELECT DISTINCT p.id FROM pratiche p JOIN pratica_righe x ON x.pratica_id = p.id WHERE x.fornitore_id = ? AND p.anno = ? AND p.stato IN ('Confermata','Chiusa')`, fid, r.anno)
+        .reduce((s, q) => { const f = caricaPratica(q.id).fornitori.find(y => y.fornitore_id === fid); return s + (f ? f.pagato_cent : 0); }, 0);
+      return r; });
 }
 function statisticheCliente(cid) {
   const V = filtroVendite();

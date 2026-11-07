@@ -36,7 +36,7 @@ h1{font-size:20px}h2{font-size:16px}h3{font-size:14px;color:var(--text-2);text-t
 .main{flex:1;min-width:0;display:flex;flex-direction:column}
 .topbar{display:flex;align-items:center;gap:12px;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
 .topbar .spazio{flex:1}
-.contenuto{padding:20px 24px 60px;max-width:1400px}
+.contenuto{padding:20px 24px 60px}
 
 /* ---- cards & grid ---- */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:16px 18px;margin-bottom:16px}
@@ -200,7 +200,7 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 @media (max-width:1000px){.pr-layout.compatta{grid-template-columns:1fr}.pr-layout.compatta .col-dx{grid-column:1;grid-row:auto;position:static}.pr-layout.compatta .col-sx{grid-column:1;grid-row:auto}}
 /* ---- ritocchi 1.4 ---- */
 .pr-layout.compatta{grid-template-columns:minmax(0,1fr) 380px}
-.pr-layout.compatta .col-dx{max-height:calc(100vh - 80px);overflow:auto;padding-right:2px}
+.pr-layout.compatta .col-dx{position:static;max-height:none;overflow:visible}
 .pr-layout.compatta .srv{padding:10px 12px}
 .pr-layout.compatta .srv-h{grid-template-columns:minmax(140px,2fr) minmax(110px,1.1fr) 92px 50px 96px 74px 34px;gap:6px}
 .pr-layout.compatta .srv-h .campo label{font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -209,10 +209,8 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .pr-layout.compatta .card-servizi > .small.muted{display:none}
 .pr-layout.compatta .srv-tot .v{font-size:16px}
 .pr-layout.compatta .srv-tot>div{padding:8px 10px}
-.tab-scroll{overflow:auto}
-#tabDoc{min-width:860px}#tabDoc th{white-space:nowrap}
-#tabTes{min-width:640px}
-#tabIban{min-width:720px}
+.tab-scroll{overflow:visible}
+#tabDoc th{white-space:nowrap}
 #tabIban .mono{font-variant-numeric:tabular-nums;letter-spacing:.3px}
 
 /* ---- 1.4.1: servizi più stretti, colonna destra che si allarga ---- */
@@ -261,7 +259,6 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .tessere-box{min-height:36px;padding:6px 8px;border:1px dashed var(--border-2);border-radius:6px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .tessere-box.con{border-style:solid;border-color:#eda100;background:#fff7e8}
 .badge.tessera{background:#fff2dc;color:#8a5a00;border:1px solid #eda100;font-weight:600}
-#tabPass{min-width:760px}
 .barra-tot .azione{flex:0 0 auto;background:none;border:none;box-shadow:none;padding:0}
 .data-it.errata{border-color:var(--err)!important;background:var(--err-soft)}
 #tabPass .picker .lista{min-width:360px}
@@ -279,4 +276,15 @@ kbd{font:11px monospace;background:#eef0f3;padding:1px 5px;border-radius:3px;bor
 .c-stretto{max-width:90px}
 .c-soldi{max-width:170px}
 .scelta-bigl .sc .ic svg{width:44px;height:44px;color:#1a1d21}
-#tabPart{min-width:820px}
+
+/* ---- 1.8 ---- */
+.pr-layout.compatta{grid-template-columns:400px minmax(0,1fr)}
+.pr-layout.compatta.espansa{grid-template-columns:minmax(560px,55%) minmax(0,1fr)}
+@media (max-width:1250px){.pr-layout.compatta{grid-template-columns:360px minmax(0,1fr)}}
+.pr-layout.compatta .col-dx{position:static}
+.t td.c-data{width:112px}.t td.c-doc{width:150px}.t td.c-num{width:120px}
+.t.compatta td{padding:4px 5px}.t.compatta input{padding:5px 6px;font-size:13px}
+.t td.az .btn.icona{padding:4px 6px;margin-left:2px}
+.picker .lista,.combo .lista{z-index:60}
+h2.nowrap{white-space:nowrap}
+.c-stretto{max-width:80px}
