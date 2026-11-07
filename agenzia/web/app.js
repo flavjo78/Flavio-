@@ -125,8 +125,9 @@ function rendiCombo(inp) {
   const mostra = () => { lista.innerHTML = ris.map((v, i) => `<div data-i="${i}" class="${i === sel ? 'sel' : ''}">${esc(v)}</div>`).join('') || '<div class="muted small">nessuna voce: resta quello che scrivi</div>'; lista.classList.remove('hidden'); if (sel >= 0 && lista.children[sel]) lista.children[sel].scrollIntoView({ block: 'nearest' }); };
   // al click / focus mostra TUTTE le voci (anche se la casella è già compilata); scrivendo si filtra
   const filtra = (tutteVoci = false) => { const q = tutteVoci ? '' : inp.value.trim().toLowerCase(); const tutte = voci(); ris = q ? tutte.filter(v => v.toLowerCase().includes(q)) : tutte; sel = ris.length && q ? 0 : Math.max(-1, tutte.indexOf(inp.value)); mostra(); };
-  const scegli = v => { inp.value = v; lista.classList.add('hidden'); inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); };
-  inp.addEventListener('focus', () => filtra(true)); inp.addEventListener('click', () => filtra(true)); inp.addEventListener('input', () => filtra(false));
+  let scegliendo = false;
+  const scegli = v => { inp.value = v; lista.classList.add('hidden'); scegliendo = true; try { inp.dispatchEvent(new Event('input', { bubbles: true })); inp.dispatchEvent(new Event('change', { bubbles: true })); } finally { scegliendo = false; } };
+  inp.addEventListener('focus', () => filtra(true)); inp.addEventListener('click', () => filtra(true)); inp.addEventListener('input', () => { if (!scegliendo) filtra(false); });
   inp.addEventListener('keydown', e => {
     if (lista.classList.contains('hidden')) { if (e.key === 'ArrowDown') { filtra(true); e.preventDefault(); } return; }
     if (e.key === 'ArrowDown') { sel = Math.min(ris.length - 1, sel + 1); mostra(); e.preventDefault(); }
@@ -619,7 +620,7 @@ async function paginaPratica(id) {
   // In vista compatta, la colonna destra si allarga quando ci lavori dentro e si ristringe appena tocchi il resto
   const espandi = dentro => { if (compatta) $('#fPratica').classList.toggle('espansa', dentro); };
   pg.addEventListener('focusin', e => espandi(!!e.target.closest('.col-dx')));
-  pg.addEventListener('mousedown', e => { if (!e.target.closest('.col-dx') && !e.target.closest('dialog')) espandi(false); });
+  pg.addEventListener('mousedown', e => { const percorso = e.composedPath(); const dentro = percorso.some(n => n.classList && (n.classList.contains('col-dx') || n.tagName === 'DIALOG')); if (!dentro) espandi(false); });
   if (nuova && !P.cliente_id) setTimeout(() => $('#pkCliente').focus(), 50);
 
   // Oggetto "Biglietteria": suggerimenti diversi per i servizi (le regole complete arrivano dopo)
