@@ -311,6 +311,7 @@ async function render() {
     if (scelta === 'bozza') { const r = await GUARDIA.bozza(); if (!r) { IGNORA_HASH = true; location.hash = '#/' + GUARDIA.route; return; } toast('Messa da parte come bozza', 'ok'); }
   }
   GUARDIA = null;
+  STATO.prev = STATO.route;
   const [pagina, id, extra] = h.split('/');
   if (!paginaPermessa(pagina || 'scadenze')) { if (!await sbloccaPagina(pagina)) { const prima = PAGINE.find(x => paginaPermessa(x[0])); location.hash = '#/' + (prima ? prima[0] : 'opzioni'); return; } }
   STATO.route = h;
@@ -487,7 +488,7 @@ async function paginaPratica(id) {
     <div id="anteprimaServizi" class="hidden"></div>
     ${datalist('dlServizi', L.descrizioni_servizi)}${datalist('dlFigli', ['Provvigione agenzia', "Diritti d'agenzia", 'Assicurazione', 'Spese', 'Altro'])}
     <div id="listaServizi" data-righe>${P.righe.map(cardServizio).join('')}</div>
-    <div class="srv-tot">
+    <div class="srv-tot hidden">
       <div><span class="l">Totale pratica (al cliente)</span><span class="v" id="totPratica">0,00</span></div>
       <div class="interno"><span class="l">Dovuto ai fornitori</span><span class="v" id="totCosto">0,00</span></div>
       <div class="interno"><span class="l">Resta all'agenzia</span><span class="v ok" id="totMargine">0,00</span></div>
@@ -708,7 +709,7 @@ async function paginaPratica(id) {
     <div class="campo"><label>Data</label><input name="data" type="date" value="${esc(m.data || oggiIso())}"></div>
     <div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" value="${m.importo_cent ? eur(m.importo_cent) : ''}" placeholder="es. 300 oppure 300,50"></div>
     <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(L.metodi_pagamento, m.metodo || L.metodi_pagamento[0])}</select></div>
-    ${conFornitore ? (obbligaFornitore ? `<div class="campo"><label>Fornitore *</label>${selFornitore(m.fornitore_id || '', forn, '— scegli —')}</div>` : `<div class="campo"><label>Riferito a (facoltativo: fornitore o biglietto)</label>${selRiferito(m)}</div>`) : ''}
+    ${conFornitore ? (obbligaFornitore ? `<div class="campo"><label>Fornitore *</label>${selFornitore(m.fornitore_id || '', forn, '— scegli —')}</div>` : `<div class="campo"><label>Destinato a (fornitore o biglietto; se supera la sua quota si chiede dove va il resto)</label>${selRiferito(m)}</div>`) : ''}
     <div class="campo col2"><label>Descrizione</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="es. 1° acconto, saldo…"></div></div>`;
 
   // ---- salvataggio ----
@@ -753,32 +754,51 @@ async function paginaPratica(id) {
   });
 
   const leggiAcconto = d => { const f = leggiForm(d); const r = f.riferito || ''; delete f.riferito; f.fornitore_id = r.startsWith('f:') ? +r.slice(2) : ''; f.biglietto_id = r.startsWith('b:') ? +r.slice(2) : ''; return f; };
-  // quota ancora da versare per un riferimento (fornitore o biglietto collegato)
-  const residuoRif = (fid, bid) => {
-    if (bid) { const b = (P.biglietti || []).find(x => x.id === bid); if (!b) return null; const vers = (P.acconti || []).filter(a => a.biglietto_id === bid).reduce((s, a) => s + a.importo_cent, 0); return (b.importo_cent + b.adv_fee_cent + (b.commissione_cent || 0)) * (b.pax || 1) - vers; }
-    if (fid) { const f = (P.fornitori || []).find(x => x.fornitore_id === fid); if (!f) return null; return f.venduto_cent - f.cliente_versato_cent; }
-    return null;
+  // quota ancora scoperta di un riferimento = costo del fornitore (o del biglietto) − già versato per lui
+  const quotaRif = (fid, bid) => {
+    const f = (P.fornitori || []).find(x => bid ? x.biglietto_id === bid : (x.fornitore_id === fid && !x.biglietto_id));
+    if (!f) return null;
+    return { nome: f.fornitore, residuo: f.costo_cent - f.cliente_versato_cent };
   };
-  const etichettaRif = (fid, bid) => bid ? (() => { const b = (P.biglietti || []).find(x => x.id === bid); return b ? `B${b.numero}/${b.anno} ${b.vettore}` : 'biglietto'; })() : ((forn.find(f => f.id === fid) || {}).nome || 'fornitore');
+  const tuttiRif = () => (P.fornitori || []).map(f => ({ fid: f.biglietto_id ? 0 : f.fornitore_id, bid: f.biglietto_id || 0, nome: f.fornitore, residuo: f.costo_cent - f.cliente_versato_cent }));
+  const stessoRif = (a, b) => (a.fid || 0) === (b.fid || 0) && (a.bid || 0) === (b.bid || 0);
+  // Registra un acconto; se supera la quota del riferimento scelto, chiede a chi va il resto (a cascata finché serve)
   const registraAccontoSpezzato = async f => {
     const importo = euroACent(f.importo);
-    const res = residuoRif(f.fornitore_id, f.biglietto_id);
-    if (res === null || importo <= res || res < 0) { aggiorna(await api('acconto_salva', { ...f, pratica_id: P.id })); return true; }
-    const resto = importo - res;
-    // chiede a chi assegnare la parte che eccede la quota
-    const altri = [{ value: '', label: '— nessuno in particolare (resta sulla pratica) —' }, ...fornitoriPratica().filter(x => x.id !== f.fornitore_id).map(x => ({ value: 'f:' + x.id, label: x.nome })), ...(P.biglietti || []).filter(b => b.id !== f.biglietto_id).map(b => ({ value: 'b:' + b.id, label: `Biglietteria ${nomeTipoBigl(b.tipo)} · ${b.tipo === 'aereo' && b.canale ? b.canale : b.vettore} · B${b.numero}/${b.anno}` }))];
-    const scelta = await modale({ titolo: 'Importo superiore alla quota', ok: 'Registra in due parti',
-      corpo: `<p>Per <b>${esc(etichettaRif(f.fornitore_id, f.biglietto_id))}</b> restavano da versare <b>${eur(Math.max(0, res))} €</b>, ma l'acconto è di <b>${eur(importo)} €</b>.<br>A chi va la parte restante di <b>${eur(resto)} €</b>?</p><div class="campo"><label>Resto riferito a</label><select name="riferito">${opzioni(altri, '')}</select></div>`,
-      onOk: d => leggiForm(d).riferito || ' ' });
-    if (scelta === null) return false;
-    const r = scelta.trim();
-    const secondo = { ...f, importo: resto / 100, fornitore_id: r.startsWith('f:') ? +r.slice(2) : '', biglietto_id: r.startsWith('b:') ? +r.slice(2) : '', pratica_id: P.id };
-    if (res > 0) {
-      // due acconti: la quota ancora dovuta al riferimento scelto + il resto a chi indicato
-      await api('acconto_salva', { ...f, importo: res / 100, pratica_id: P.id });
-      secondo.descrizione = (f.descrizione || 'acconto') + ' (resto)';
+    let rif = { fid: f.fornitore_id || 0, bid: f.biglietto_id || 0 };
+    if (!rif.fid && !rif.bid) { aggiorna(await api('acconto_salva', { ...f, pratica_id: P.id })); return true; }
+    const parti = []; const usati = []; let resto = importo;
+    const assegnato = r => parti.filter(x => stessoRif(x, r)).reduce((s, x) => s + x.importo, 0);
+    while (resto > 0) {
+      const q = quotaRif(rif.fid, rif.bid);
+      if (!q) { parti.push({ ...rif, importo: resto }); resto = 0; break; }
+      const disponibile = Math.max(0, q.residuo - assegnato(rif));
+      const metto = Math.min(resto, disponibile);
+      if (metto > 0) parti.push({ ...rif, importo: metto });
+      usati.push(rif); resto -= metto;
+      if (resto <= 0) break;
+      const altri = tuttiRif().filter(r => !usati.some(u => stessoRif(u, r)) && (r.residuo - assegnato(r)) > 0);
+      const opts = [{ value: 'prop', label: `In proporzione agli altri fornitori (${altri.length})` }, ...altri.map(r => ({ value: (r.bid ? 'b:' + r.bid : 'f:' + r.fid), label: `${r.nome} — restano ${eur(r.residuo - assegnato(r))} €` })), { value: '', label: '— nessuno: resta all\'agenzia —' }];
+      const scelta = await modale({ titolo: 'Importo superiore alla quota', ok: 'Continua',
+        corpo: `<p>Per <b>${esc(q.nome)}</b> la quota ancora scoperta era <b>${eur(disponibile)} €</b>.<br>Restano <b>${eur(resto)} €</b> da destinare: a chi vanno?</p><div class="campo"><label>Resto riferito a</label><select name="riferito">${opzioni(opts, altri.length ? 'prop' : '')}</select></div>`,
+        onOk: d => leggiForm(d).riferito || ' ' });
+      if (scelta === null) return false;
+      const r = scelta.trim();
+      if (r === 'prop') {
+        const tot = altri.reduce((s, x) => s + (x.residuo - assegnato(x)), 0);
+        let dist = 0;
+        altri.forEach((x, i) => { const disp = x.residuo - assegnato(x); const quota = i === altri.length - 1 ? Math.min(disp, resto - dist) : Math.min(disp, Math.round(resto * disp / tot)); if (quota > 0) { parti.push({ fid: x.fid, bid: x.bid, importo: quota }); dist += quota; } });
+        resto -= dist;
+        if (resto > 0) parti.push({ fid: 0, bid: 0, importo: resto }); // fornitori tutti coperti: il resto all'agenzia
+        resto = 0; break;
+      }
+      if (!r) { parti.push({ fid: 0, bid: 0, importo: resto }); resto = 0; break; }
+      rif = { fid: r.startsWith('f:') ? +r.slice(2) : 0, bid: r.startsWith('b:') ? +r.slice(2) : 0 };
     }
-    aggiorna(await api('acconto_salva', secondo)); return true;
+    let ultimo = null, i = 0;
+    for (const pz of parti) { ultimo = await api('acconto_salva', { ...f, importo: pz.importo / 100, fornitore_id: pz.fid || '', biglietto_id: pz.bid || '', descrizione: (f.descrizione || 'acconto') + (i++ ? ' (resto)' : ''), pratica_id: P.id }); }
+    if (ultimo) aggiorna(ultimo);
+    return true;
   };
   const apriModaleAcconto = () => {
     const n = (P.acconti || []).length + 1;
@@ -888,22 +908,25 @@ async function paginaCliente(id) {
   const rigaComp = (d = {}) => `<tr><td><input data-k="nome" value="${esc(d.nome || '')}" placeholder="Cognome e nome"></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(d.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocCl" value="${esc(d.doc_tipo || '')}" placeholder="Documento"></td><td class="c-num"><input data-k="doc_numero" value="${esc(d.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(d.doc_scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (es. figlio)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   const rigaTes = (d = {}) => `<tr><td><input data-k="tipo" list="dlTessere" value="${esc(d.tipo || '')}" placeholder="Tessera / programma (es. MSC Voyagers Club)"></td><td class="c-num"><input data-k="numero" value="${esc(d.numero || '')}" placeholder="Numero tessera"></td><td class="c-data"><input data-k="scade" type="date" value="${esc(d.scade || '')}"></td><td><input data-k="note" value="${esc(d.note || '')}" placeholder="Note (livello, punti…)"></td><td class="az"><button type="button" class="btn piccolo icona" data-del>✕</button></td></tr>`;
   shell('clienti', nuovo ? 'Nuovo cliente' : `${esc(C.cognome)} ${esc(C.nome)}`, `
-  <div class="griglia" style="grid-template-columns: minmax(0,1fr) 340px">
-  <div style="min-width:0">
-  <div id="fCliente">
-  <div class="card"><h2>Anagrafica</h2><div class="griglia g4">
-    ${campo('cognome', 'Cognome *')}${campo('nome', 'Nome')}${campo('azienda', 'Azienda', 'text', 'col2')}
-    ${campo('indirizzo', 'Indirizzo', 'text', 'col2')}${campo('cap', 'CAP')}${campo('citta', 'Città')}
-    ${campo('provincia', 'Provincia')}${campo('nazione', 'Nazione')}
-    <div class="campo"><label>Sesso</label><select name="sesso">${opzioni([{ value: '', label: '—' }, { value: 'M', label: 'M' }, { value: 'F', label: 'F' }], C.sesso || '')}</select></div>
-    ${campo('nato_il', 'Nato il', 'date')}${campo('nato_a', 'Luogo di nascita', 'text', 'col2')}
-    ${campo('cf', 'Codice fiscale', 'text')}${campo('piva', 'Partita IVA')}
+  <div id="fCliente" class="cl-layout">
+  <div class="cl-sx">
+  <div class="card"><h2>Anagrafica</h2><div class="griglia g6">
+    ${campo('cognome', 'Cognome *', 'text', 'col2')}${campo('nome', 'Nome', 'text', 'col2')}${campo('azienda', 'Azienda', 'text', 'col2')}
+    ${campo('indirizzo', 'Indirizzo', 'text', 'col3')}${campo('cap', 'CAP')}${campo('citta', 'Città')}${campo('provincia', 'Prov.')}
+    ${campo('nazione', 'Nazione')}<div class="campo"><label>Sesso</label><select name="sesso">${opzioni([{ value: '', label: '—' }, { value: 'M', label: 'M' }, { value: 'F', label: 'F' }], C.sesso || '')}</select></div>
+    ${campo('nato_il', 'Nato il', 'date')}${campo('nato_a', 'Luogo di nascita', 'text', 'col3')}
+    ${campo('cf', 'Codice fiscale', 'text', 'col3')}${campo('piva', 'Partita IVA', 'text', 'col3')}
   </div></div>
   <div class="card"><h2>Contatti <span class="spazio"></span><button type="button" class="btn piccolo" data-add="con">+ Aggiungi contatto</button></h2><div class="griglia g4">
     ${campo('cellulare', 'Cellulare')}${campo('telefono', 'Telefono')}${campo('telefono2', 'Telefono 2')}${campo('email', 'Email', 'email')}
   </div>
   <div class="tab-scroll"><table class="t compatta" data-righe id="tabCon" style="margin-top:10px"><thead><tr><th>Tipo</th><th>Numero / indirizzo</th><th>Riferimento</th><th></th></tr></thead><tbody>${(C.contatti || []).map(rigaCon).join('')}</tbody></table></div>
   </div>
+  <div class="card"><h2>Note</h2><div class="griglia g2">
+    <div class="campo"><label>Note</label><textarea name="note" style="min-height:40px">${esc(C.note || '')}</textarea></div>
+    <div class="campo"><label>Viaggia con (compagni abituali)</label><textarea name="viaggia_con" style="min-height:40px">${esc(C.viaggia_con || '')}</textarea></div>
+  </div></div>
+  </div><div class="cl-dx">
   <div class="card"><h2>Documenti <span class="spazio"></span><button type="button" class="btn piccolo" data-add="doc">+ Aggiungi documento</button></h2>
     ${datalist('dlDocCl', L.tipi_documento_cliente)}
     <div class="tab-scroll"><table class="t compatta" data-righe id="tabDoc"><thead><tr><th>Tipo</th><th>Numero</th><th>Rilasciato da</th><th>Rilasciato il</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.documenti || []).map(rigaDoc).join('')}</tbody></table></div>
@@ -918,21 +941,16 @@ async function paginaCliente(id) {
     <div class="tab-scroll"><table class="t compatta" data-righe id="tabTes"><thead><tr><th>Tessera</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.tessere || []).map(rigaTes).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:6px">Campo libero: MSC, Costa, Trenitalia, compagnie aeree… I nomi già usati vengono suggeriti.</div>
   </div>
-  <div class="card"><h2>Note</h2><div class="griglia g2">
-    <div class="campo"><label>Note</label><textarea name="note">${esc(C.note || '')}</textarea></div>
-    <div class="campo"><label>Viaggia con (compagni abituali)</label><textarea name="viaggia_con">${esc(C.viaggia_con || '')}</textarea></div>
   </div></div>
-  </div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>${nuovo ? '' : `<a class="btn" href="#/pratiche/nuova/${C.id}">+ Nuova pratica per questo cliente</a>`}<span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/clienti">Torna all'elenco</a></div>
-  </div>
-  <div style="min-width:0;overflow:auto">
+  <div class="griglia g2 cl-fondo">
     ${nuovo ? '' : `<div class="card"><h2>Statistiche</h2>
       <div class="cards-stat" style="grid-template-columns:1fr 1fr"><div class="stat"><div class="l">Pratiche</div><div class="v">${C.statistiche.totali.n}</div></div><div class="stat"><div class="l">Totale speso</div><div class="v" style="font-size:18px">${eur(C.statistiche.totali.venduto_cent)}</div></div></div>
       ${C.statistiche.perAnno.length ? `<table class="t compatta"><thead><tr><th>Anno</th><th class="num">Pratiche</th><th class="num">Venduto</th><th class="num">Versato</th></tr></thead><tbody>${C.statistiche.perAnno.map(r => `<tr><td>${r.anno}</td><td class="num">${r.n}</td><td class="num">${eur(r.venduto_cent)}</td><td class="num">${eur(r.versato_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Ancora nessuna pratica confermata</div>'}
       <div class="small muted" style="margin-top:8px">Cliente dal ${C.creato_ts ? new Date(C.creato_ts).toLocaleDateString('it-IT') : '—'} · ultimo contatto ${dataIt(C.ultimo_contatto) || '—'}</div></div>
     <div class="card"><h2>Pratiche</h2>${C.pratiche.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Partenza</th><th>Destinazione</th><th>Stato</th><th class="num">Saldo</th></tr></thead><tbody>
       ${C.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono">${p.numero}/${p.anno}</td><td>${dataIt(p.partenza)}</td><td class="small">${esc((p.destinazione || '').split('\n')[0]).slice(0, 40)}</td><td>${badgeStato(p.stato, p.bozza)}</td><td class="num">${p.stato === 'Annullata' ? '—' : eur(p.saldo_cent)}</td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna pratica</div>'}</div>`}
-  </div></div>`);
+  </div>`);
   const pg = $('#pg');
   let sporca = false;
   $('#fCliente').addEventListener('input', () => { sporca = true; });
@@ -1289,6 +1307,8 @@ async function paginaBiglietto(id) {
   const canali = canaliAereo();
   const vettoriPer = { aereo: [...new Set([...(L.vettori_biglietteria || []), 'ITA AIRWAYS', 'RYANAIR', 'EASYJET'])], treno: L.vettori_treno || ['Trenitalia', 'Italo'], lowcost: L.vettori_biglietteria || [] };
   const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>${B.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}`;
+  // se si arriva da una pratica (o il biglietto nasce da una pratica) si torna lì dopo il salvataggio
+  const tornaA = (B.pratica_id && ((STATO.prev || '').startsWith('pratiche/') || parti[3] === 'pratica')) ? '#/pratiche/' + B.pratica_id : null;
   const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag-pass title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
   if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [{ nome: B.passeggero }];
   shell('biglietteria', titolo, `
@@ -1306,7 +1326,7 @@ async function paginaBiglietto(id) {
     <div class="campo col2 solo-aereo"><label>Fornitore</label><select name="canale" id="selCanale">${opzioni(canali.map(c => ({ value: c.nome, label: c.nome })), B.canale || (canali[0] || {}).nome || '', canali.length ? undefined : '— nessun fornitore: aggiungilo in Liste —')}</select></div>
     <div class="campo col2"><label>Vettore</label><input name="vettore" list="dlVettori" value="${esc(B.vettore || '')}" id="inVettore">${datalist('dlVettori', vettoriPer[B.tipo])}</div>
     <div class="campo col2 solo-aereo"><label>Acquisizione</label><select name="acquisizione" id="selAcq">${opzioni(L.modalita_acquisizione || ['Cash', 'Carta di credito'], B.acquisizione || (B.modalita === 'debito' ? 'Cash' : 'Carta di credito'))}</select></div>
-    <div class="campo col6"><label>Itinerario <span class="muted solo-aereo-txt">(aggiungi gli scali: città o codice; a destra l'itinerario che si compone)</span></label><div class="riga"><span class="picker solo-aereo-btn" style="flex:0 0 280px"><input id="pkAero" placeholder="aggiungi scalo: città o codice" autocomplete="off" class="inp"><div class="lista hidden" id="pkAeroLista"></div></span><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinUndo" title="Togli l'ultimo scalo">⌫</button><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinVuota" title="Svuota l'itinerario">✕</button><input name="itinerario" id="inItin" value="${esc(B.itinerario || '')}" class="mono" style="text-transform:uppercase;flex:1"></div></div>
+    <div class="campo col6"><label>Itinerario <span class="muted solo-aereo-txt">(aggiungi gli scali: città o codice; a destra l'itinerario che si compone)</span></label><div class="riga"><span class="picker solo-aereo-btn" style="flex:1 1 0;min-width:0"><input id="pkAero" placeholder="aggiungi scalo: città o codice" autocomplete="off" class="inp"><div class="lista hidden" id="pkAeroLista"></div></span><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinUndo" title="Togli l'ultimo scalo">⌫</button><button type="button" class="btn piccolo solo-aereo-btn" id="btnItinVuota" title="Svuota l'itinerario">✕</button><input name="itinerario" id="inItin" value="${esc(B.itinerario || '')}" class="mono" style="text-transform:uppercase;flex:1 1 0;min-width:0"></div></div>
     <div class="campo solo-aereo"><label>Segmenti</label><input name="segmenti" class="num c-stretto sola-lettura" value="${B.segmenti || ''}" maxlength="2" title="Si calcola dagli scali (scali − 1); si può correggere"></div>
     <div class="campo"><label>N. biglietti</label><input name="pax" class="num c-stretto" id="inPax" value="${B.pax || 1}" maxlength="2" title="Numero di persone: segue i passeggeri, si può correggere"></div>
     <div class="campo"><label>Importo € cad.</label><input name="importo" class="num soldi c-soldi" value="${B.importo_cent ? eur(B.importo_cent) : ''}" title="Importo del biglietto, quanto si deve al fornitore"></div>
@@ -1320,7 +1340,7 @@ async function paginaBiglietto(id) {
     <div class="small muted" style="margin-top:6px">Il primo passeggero è il cliente. Per gli altri scrivi il nome (cerca tra compagni di viaggio e clienti) oppure usa 📇 per prenderli dall'anagrafica con il documento.</div></div>
   <div class="card" id="cardAccB"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAccB">+ Registra acconto</button></h2><div id="boxAccB"></div>
     <div class="griglia g3" style="margin-top:10px"><div class="campo"><label>Totale al cliente</label><input readonly id="outTotB2" value="${eur(B.importo_cent + B.adv_fee_cent)}"></div><div class="campo"><label>Versato</label><input readonly id="outVersB" value="${eur(B.versato_cent || 0)}"></div><div class="campo"><label>Saldo residuo</label><input readonly id="outSaldoB" value="${eur(B.saldo_cent || 0)}" style="font-weight:600"></div></div></div>
-  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><button type="button" class="btn" id="btnStampaB">🖨 Stampa conferma</button><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/biglietteria">Torna all'elenco</a></div>
+  <div class="sticky-azioni"><button class="btn primario" id="btnSalva">${tornaA ? 'Salva e torna alla pratica' : 'Salva'}</button><span class="small muted">oppure Ctrl+S</span><button type="button" class="btn" id="btnStampaB">🖨 Stampa conferma</button><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="${tornaA || '#/biglietteria'}">${tornaA ? 'Torna alla pratica' : "Torna all'elenco"}</a></div>
   </div>
   <div>
     <div class="card"><h2>Pratica collegata</h2>
@@ -1477,7 +1497,7 @@ async function paginaBiglietto(id) {
       onOk: async d => { const f = leggiForm(d); const doc = { tipo: $('[data-k=doc_tipo]', tr).value, numero: $('[data-k=doc_numero]', tr).value, scade: $('[data-k=doc_scade]', tr).value }; const r = await api('cliente_salva', { ...f, nato_il: $('[data-k=nato_il]', tr).value, documenti: (doc.tipo || doc.numero) ? [doc] : [] }); $('[name=cliente_id]', pg).value = r.id; $('#pkCliente').value = `${f.cognome} ${f.nome}`.trim(); return true; } });
     return true;
   };
-  const salva = async () => { await proponiCliente(); const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (nuovo) naviga(r.pratica_id && parti[3] === 'pratica' ? '#/pratiche/' + r.pratica_id : '#/biglietteria/' + r.id); else aggiornaB(r); };
+  const salva = async () => { await proponiCliente(); const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (tornaA && r.pratica_id) naviga('#/pratiche/' + r.pratica_id); else if (nuovo) naviga('#/biglietteria/' + r.id); else aggiornaB(r); };
   const apriAccB = () => {
     const n = (B.acconti || []).length + 1, residuo = Math.max(0, euroACent($('#outSaldoB').value));
     modale({ titolo: 'Registra acconto sul biglietto', ok: 'Registra',
@@ -1494,7 +1514,7 @@ async function paginaBiglietto(id) {
   };
   pg.addEventListener('click', async e => { const t = e.target; if (t.dataset.accbDel) { if (await conferma('Cancellare l\'acconto?', '')) { try { aggiornaB(await api('acconto_elimina', { id: +t.dataset.accbDel })); } catch (err) { toast(err.message, 'err'); } } } });
   $('#btnStampaB').onclick = async () => { const r = await salvaInterno(); if (!r) return; Object.assign(B, r); if (nuovo) { history.replaceState(null, '', '#/biglietteria/' + r.id); STATO.route = 'biglietteria/' + r.id; GUARDIA.route = STATO.route; } window.open(r.pratica_id ? 'stampa.html?id=' + r.pratica_id : 'stampa.html?b=' + r.id, '_blank'); };
-  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: () => salvaInterno(0), bozza: () => salvaInterno(1), cosa: 'il biglietto',
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: () => salvaInterno(0), bozza: () => salvaInterno(1), cosa: 'il biglietto', tornaA,
     beacon: () => { const d = leggiForm($('#fBigl')); d.id = B.id || 0; d.anno = B.anno; d.bozza = 1; d.passeggeri = $$('#tabPass tbody tr').map(tr => Object.fromEntries($$('[data-k]', tr).map(i => [i.dataset.k, i.value]))); navigator.sendBeacon('/api/biglietto_salva', new Blob([JSON.stringify(d)], { type: 'application/json' })); } };
   $('#btnSalva').onclick = salva;
   document.onkeydown = e => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') { e.preventDefault(); salva(); } };
