@@ -1288,7 +1288,7 @@ async function paginaBiglietto(id) {
   const canali = canaliAereo();
   const vettoriPer = { aereo: [...new Set([...(L.vettori_biglietteria || []), 'ITA AIRWAYS', 'RYANAIR', 'EASYJET'])], treno: L.vettori_treno || ['Trenitalia', 'Italo'], lowcost: L.vettori_biglietteria || [] };
   const titolo = (nuovo ? `Nuovo biglietto <span class="muted" style="font-weight:400">· sarà il <b>B${B.numero}</b>/${B.anno}</span>` : `Biglietto <b>B${B.numero}</b>/${B.anno}`) + ` <span class="badge bg-badge-${B.tipo}">${nomeTipoBigl(B.tipo)}</span>${B.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}`;
-  const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az"><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
+  const rigaPass = (q = {}) => `<tr><td><div class="picker"><input data-k="nome" value="${esc(q.nome || '')}" placeholder="Cognome e nome (cerca o scrivi)" autocomplete="off"><input type="hidden" data-cid><div class="lista hidden"></div></div></td><td class="c-data"><input data-k="nato_il" type="date" value="${esc(q.nato_il || '')}"></td><td class="c-doc"><input data-k="doc_tipo" list="dlDocB" value="${esc(q.doc_tipo || '')}" placeholder="Tipo"></td><td class="c-num"><input data-k="doc_numero" value="${esc(q.doc_numero || '')}" placeholder="Numero"></td><td class="c-data"><input data-k="doc_scade" type="date" value="${esc(q.doc_scade || '')}"></td><td class="az nowrap"><button type="button" class="btn piccolo icona" data-anag-pass title="Prendi nome e documento dall'anagrafica del cliente o dei suoi compagni di viaggio">📇</button><button type="button" class="btn piccolo icona" data-del-pass>✕</button></td></tr>`;
   if (nuovo && !B.passeggeri && B.passeggero) B.passeggeri = [{ nome: B.passeggero }];
   shell('biglietteria', titolo, `
   <div id="fBigl" class="bg-form bg-${B.tipo}">
@@ -1316,7 +1316,7 @@ async function paginaBiglietto(id) {
   </div><div class="small muted solo-aereo-txt" style="margin-top:6px">Acquisizione: carta di credito = già pagato al fornitore · cash = resta un debito.</div></div>
   <div class="card"><h2>Passeggeri <span class="spazio"></span><button type="button" class="btn piccolo" id="btnAddPass">+ Aggiungi passeggero</button></h2>
     <div class="tab-scroll"><table class="t compatta" data-righe id="tabPass"><thead><tr><th>Nome e cognome</th><th>Nato il</th><th>Documento</th><th>Numero</th><th>Scade il</th><th></th></tr></thead><tbody>${(B.passeggeri || []).map(q => rigaPass(q)).join('')}</tbody></table></div>
-    <div class="small muted" style="margin-top:6px">Il primo passeggero viene proposto dal cliente (con il suo documento). Per gli altri scrivi nome e documento.</div></div>
+    <div class="small muted" style="margin-top:6px">Il primo passeggero è il cliente. Per gli altri scrivi il nome (cerca tra compagni di viaggio e clienti) oppure usa 📇 per prenderli dall'anagrafica con il documento.</div></div>
   <div class="card" id="cardAccB"><h2>Acconti e saldo <span class="spazio"></span><button type="button" class="btn piccolo primario" id="btnAddAccB">+ Registra acconto</button></h2><div id="boxAccB"></div>
     <div class="griglia g3" style="margin-top:10px"><div class="campo"><label>Totale al cliente</label><input readonly id="outTotB2" value="${eur(B.importo_cent + B.adv_fee_cent)}"></div><div class="campo"><label>Versato</label><input readonly id="outVersB" value="${eur(B.versato_cent || 0)}"></div><div class="campo"><label>Saldo residuo</label><input readonly id="outSaldoB" value="${eur(B.saldo_cent || 0)}" style="font-weight:600"></div></div></div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span><button type="button" class="btn" id="btnStampaB">🖨 Stampa conferma</button><span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/biglietteria">Torna all'elenco</a></div>
@@ -1415,6 +1415,18 @@ async function paginaBiglietto(id) {
   setTimeout(sincronizzaPax, 300);
   $('#btnAddPass').onclick = () => { $('#tabPass tbody').insertAdjacentHTML('beforeend', rigaPass()); const tr = $('#tabPass tbody tr:last-child'); attivaPickerPass(tr); $('input', tr).focus(); sporca = true; };
   pg.addEventListener('click', e => { const b = e.target.closest('[data-del-pass]'); if (b) { b.closest('tr').remove(); sporca = true; } });
+  // 📇 dall'anagrafica: il cliente con tutti i suoi documenti e i compagni di viaggio
+  pg.addEventListener('click', async e => {
+    const b = e.target.closest('[data-anag-pass]'); if (!b) return;
+    const cid = $('[name=cliente_id]', pg).value; if (!cid) { toast('Scegli prima il cliente', 'err'); return; }
+    const tr = b.closest('tr');
+    const c = await api('cliente', undefined, { id: cid });
+    const voci = [{ nome: `${c.cognome} ${c.nome}`.trim(), nato_il: c.nato_il, docs: c.documenti || [], chi: 'cliente' }, ...(c.compagni || []).map(k => ({ nome: k.nome, nato_il: k.nato_il, docs: [{ tipo: k.doc_tipo, numero: k.doc_numero, scade: k.doc_scade }].filter(d => d.tipo || d.numero), chi: 'compagno di viaggio' }))];
+    const righe = voci.flatMap((v, vi) => (v.docs.length ? v.docs : [{}]).map((d, di) => ({ v, d, k: vi + ':' + di })));
+    modale({ titolo: 'Dall\'anagrafica', senzaOk: true, annulla: 'Chiudi', corpo: `<table class="t compatta"><thead><tr><th>Nome</th><th>Nato il</th><th>Documento</th><th></th></tr></thead><tbody>${righe.map(r => `<tr><td>${esc(r.v.nome)} <span class="muted small">${r.v.chi}</span></td><td>${dataIt(r.v.nato_il)}</td><td>${r.d.tipo ? esc(r.d.tipo) + ' ' + esc(r.d.numero || '') + (r.d.scade ? ' · scade ' + dataIt(r.d.scade) : '') : '<span class="muted">nessun documento</span>'}</td><td class="az"><button type="button" class="btn piccolo primario" data-scegli="${r.k}">usa</button></td></tr>`).join('')}</tbody></table>` });
+    const d = document.querySelector('dialog.modal:last-of-type');
+    $$('[data-scegli]', d).forEach(x => x.onclick = () => { const r = righe.find(y => y.k === x.dataset.scegli); riempiRiga(tr, { nome: r.v.nome, nato_il: r.v.nato_il, doc_tipo: r.d.tipo, doc_numero: r.d.numero, doc_scade: r.d.scade }); sporca = true; d.close(); d.remove(); });
+  });
   // picker pratica
   (() => {
     const inp = $('#pkPratica'), hid = $('[name=pratica_id]', pg), lista = $('#pkPraticaLista'); let timer, ris = [];

@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.8.0';
+const VERSIONE = '1.8.1';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
