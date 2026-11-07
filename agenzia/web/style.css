@@ -327,3 +327,14 @@ h2.nowrap{white-space:nowrap}
 .pr-layout.compatta .col-dx .col3{grid-column:span 2}
 .pr-layout.compatta .col-dx .barra-tot{margin-bottom:8px}
 .pr-layout.compatta .col-dx .campo textarea[name=note]{min-height:26px}
+
+/* ---- 1.9.1: vista allargata della colonna sinistra su 6 campi per riga ---- */
+.pr-layout.compatta.espansa .col-dx .card{padding:10px 12px;margin-bottom:8px}
+.pr-layout.compatta.espansa .col-dx .griglia{grid-template-columns:repeat(6,1fr);gap:6px 8px}
+.pr-layout.compatta.espansa .col-dx .col2{grid-column:span 2}
+.pr-layout.compatta.espansa .col-dx .col3{grid-column:span 3}
+.pr-layout.compatta.espansa .col-dx .col4{grid-column:span 4}
+.pr-layout.compatta.espansa .col-dx .col6{grid-column:span 6}
+.pr-layout.compatta.espansa .col-dx .campo input,.pr-layout.compatta.espansa .col-dx .campo select,.pr-layout.compatta.espansa .col-dx .campo textarea{padding:4px 7px;font-size:13px}
+.pr-layout.compatta.espansa .col-dx textarea{min-height:34px;max-height:56px}
+.pr-layout.compatta.espansa .col-dx .campo textarea[name=note]{min-height:30px}
