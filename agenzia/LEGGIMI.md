@@ -23,10 +23,15 @@ che avvia `server\server.js`.)
 Se non si vuole l'avvio automatico: doppio clic su `avvia.bat` (la finestra nera va lasciata aperta).
 
 ## 3. Gli altri PC
-Nel browser (Edge o Chrome) aprire `http://NOME-DEL-PC-CENTRALE:8787` (il nome lo stampa
-`installa-avvio-automatico.bat`; si può usare anche l'indirizzo IP). Per avere l'icona sul
-desktop: menù del browser → "Installa app" / "Crea collegamento".
-Il PC centrale deve essere acceso quando lavorano gli altri.
+Sugli altri PC non si installa niente: si usa il browser (Edge o Chrome) verso il PC centrale.
+- Modo facile: copiare `collega-questo-pc.bat` sull'altro PC (chiavetta o cartella condivisa) e
+  farci doppio clic. Chiede il nome del PC centrale (quello che si vede in Esplora file → Rete,
+  es. `PC01-FABIO`), controlla che risponda e mette l'icona **AGENZIA** sul desktop.
+- A mano: aprire `http://NOME-DEL-PC-CENTRALE:8787` (il nome lo stampa anche
+  `installa-avvio-automatico.bat`; va bene anche l'indirizzo IP). Per l'icona sul desktop:
+  menù del browser → "Installa app" / "Crea collegamento".
+Il PC centrale deve essere acceso quando lavorano gli altri. Ogni persona entra con il proprio
+utente (Opzioni → Utenti): così il registro delle operazioni dice chi ha fatto cosa.
 
 ## 4. Dati e backup
 - Tutto l'archivio sta in `_dati\agenzia.db` accanto al programma. Non cancellarlo.
