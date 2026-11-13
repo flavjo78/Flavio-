@@ -26,12 +26,7 @@ if errorlevel 1 (
 ) else (
   echo  OK: %SERVER% risponde.
 )
-for /f "delims=" %%D in ('powershell -NoProfile -Command "[Environment]::GetFolderPath('Desktop')"') do set DESK=%%D
-if "%DESK%"=="" set DESK=%USERPROFILE%\Desktop
-(
-  echo [InternetShortcut]
-  echo URL=%URL%
-) > "%DESK%\AGENZIA.url"
+powershell -NoProfile -Command "$d=[Environment]::GetFolderPath('Desktop'); Set-Content -Path (Join-Path $d 'AGENZIA.url') -Value '[InternetShortcut]','URL=%URL%'"
 echo.
 echo  Creata l'icona "AGENZIA" sul desktop: apre %URL%
 echo  Consiglio: nel browser, menu' ^> "Installa app" / "Crea collegamento" per averlo come programma.

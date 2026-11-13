@@ -5,7 +5,7 @@ rem 2) crea un'attività pianificata che avvia il programma all'accensione del P
 cd /d "%~dp0"
 net session >nul 2>&1
 if %errorlevel% neq 0 (
-  echo Devi eseguire questo file come AMMINISTRATORE (tasto destro - Esegui come amministratore).
+  echo Devi eseguire questo file come AMMINISTRATORE: tasto destro, poi Esegui come amministratore.
   pause
   exit /b 1
 )
