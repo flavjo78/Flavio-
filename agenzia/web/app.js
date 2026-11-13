@@ -184,6 +184,10 @@ async function avvio() {
     if (!me || !me.utente) return renderLogin();
     STATO.utente = me.utente; STATO.pannello = me.pannello; STATO.sbloccate = me.sbloccate || [];
     STATO.imp = await api('impostazioni');
+    // A ogni apertura del programma (nuova finestra o nuova scheda) si sceglie di nuovo l'utente e si scrive la password.
+    // Il segno "già entrato" vive solo finché la finestra resta aperta: aggiornare la pagina non richiede un nuovo accesso.
+    let acceduto = false; try { acceduto = sessionStorage.getItem('agenzia_acceduto') === '1'; } catch (e) { acceduto = true; }
+    if (STATO.imp.accesso && STATO.imp.accesso.chiedi_ogni_volta === 'si' && !acceduto) { await api('logout', {}).catch(() => {}); STATO.utente = null; return renderLogin(); }
     render();
   } catch (e) { toast(e.message, 'err'); renderLogin(); }
 }
@@ -216,7 +220,7 @@ function renderLogin() {
       if (!f.username) { toast('Scegli chi sei', 'err'); return; }
       try {
         const r = await api('login', f);
-        try { localStorage.setItem('agenzia_ultimo_utente', r.utente.username); } catch (err) { /* ignora */ }
+        try { localStorage.setItem('agenzia_ultimo_utente', r.utente.username); sessionStorage.setItem('agenzia_acceduto', '1'); } catch (err) { /* ignora */ }
         STATO.utente = r.utente; STATO.pannello = r.pannello;
         STATO.imp = await api('impostazioni');
         if (!location.hash || location.hash === '#/') naviga('#/scadenze'); else render();
@@ -256,6 +260,7 @@ function renderInstalla() {
     if (f.password === f.pannello_password) { toast('La password del pannello deve essere diversa dalla tua', 'err'); $('[name=pannello_password]').focus(); return; }
     try {
       const r = await api('installa', f);
+      try { sessionStorage.setItem('agenzia_acceduto', '1'); } catch (e) { /* ignora */ }
       STATO.utente = r.utente; STATO.imp = await api('impostazioni');
       toast('Benvenuto! Imposta i dati dell\'agenzia dal pannello Opzioni.', 'ok');
       naviga('#/scadenze');
@@ -1143,7 +1148,7 @@ async function paginaOpzioni(scheda = 'agenzia') {
     return;
   }
   const imp = STATO.imp = await api('impostazioni');
-  const SCHEDE = [['agenzia', 'Agenzia'], ['testi', 'Testi della stampa'], ['liste', 'Liste'], ['numerazione', 'Numerazione'], ['backup', 'Backup'], ['utenti', 'Utenti'], ['log', 'Registro operazioni']];
+  const SCHEDE = [['agenzia', 'Agenzia'], ['testi', 'Testi della stampa'], ['liste', 'Liste'], ['numerazione', 'Numerazione'], ['backup', 'Backup'], ['accesso', 'Accesso'], ['utenti', 'Utenti'], ['log', 'Registro operazioni']];
   const tabs = `<div class="tabs">${SCHEDE.map(([k, l]) => `<a href="#/opzioni/${k}" class="${scheda === k ? 'attivo' : ''}">${l}</a>`).join('')}</div>`;
   let corpo = '';
   const A = imp.agenzia, T = imp.testi;
@@ -1180,6 +1185,11 @@ async function paginaOpzioni(scheda = 'agenzia') {
         <label class="btn pericolo" for="inImporta">⬆ Importa un file di dati…</label><input type="file" id="inImporta" accept=".db" class="hidden"></div>
       <p class="small muted" style="margin-top:8px">Importare <b>sostituisce tutti i dati attuali</b> con quelli del file. I dati attuali vengono comunque messi da parte in <code>_dati\\prima-import-….db</code>. Dopo l'importazione bisogna rientrare con gli utenti del file importato.</p></div>
     <div class="card" style="max-width:640px"><h2>Password del pannello</h2><div class="griglia g2"><div class="campo"><label>Nuova password del pannello</label><input id="inPanPw" type="password"></div><div class="campo"><label>&nbsp;</label><button class="btn" id="btnPanPw">Cambia</button></div></div></div>`;
+  if (scheda === 'accesso') corpo = `<div class="card" id="fOpz" style="max-width:640px"><h2>Accesso al programma</h2>
+    <p class="muted small">Quando si apre il programma compare l'elenco degli utenti: si sceglie il proprio nome e si scrive la password. Qui si decide se farlo a ogni apertura oppure una volta sola.</p>
+    <div class="campo" style="max-width:460px"><label>Utente e password</label><select name="chiedi_ogni_volta">${opzioni([{ value: 'si', label: 'Chiedili ogni volta che si apre il programma' }, { value: 'no', label: 'Solo la prima volta: poi resta entrato per 30 giorni' }], (imp.accesso || {}).chiedi_ogni_volta || 'si')}</select></div>
+    <p class="muted small" style="margin-top:8px">Con "ogni volta", aggiornare la pagina (F5) non richiede un nuovo accesso: serve solo quando si chiude e si riapre il programma. Vale per tutti i computer. Il tasto "esci" in basso a sinistra fa uscire subito in ogni caso.</p>
+    <div class="azioni" style="margin-top:14px"><button class="btn primario" id="btnSalvaOpz">Salva</button></div></div>`;
   if (scheda === 'utenti') {
     const ut = await api('utenti');
     corpo = `<div class="card"><h2>Utenti <span class="spazio"></span><button class="btn piccolo primario" id="btnNuovoUt">+ Nuovo utente</button></h2>

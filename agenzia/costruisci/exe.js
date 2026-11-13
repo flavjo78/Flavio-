@@ -22,6 +22,6 @@ fs.rmSync(PACK, { recursive: true, force: true });
 fs.mkdirSync(PACK, { recursive: true });
 fs.copyFileSync(exe, path.join(PACK, path.basename(exe)));
 fs.cpSync(path.join(RADICE, 'web'), path.join(PACK, 'web'), { recursive: true });
-for (const f of fs.readdirSync(path.join(RADICE, 'windows'))) if (f !== 'costruisci-exe.bat') fs.copyFileSync(path.join(RADICE, 'windows', f), path.join(PACK, f));
+for (const f of fs.readdirSync(path.join(RADICE, 'windows'))) if (f !== 'costruisci-exe.bat' && f !== 'aggiorna.bat') fs.copyFileSync(path.join(RADICE, 'windows', f), path.join(PACK, f));
 fs.copyFileSync(path.join(RADICE, 'LEGGIMI.md'), path.join(PACK, 'LEGGIMI.md'));
 console.log('\nPRONTO: copia la cartella', PACK, 'sul PC centrale dell\'agenzia.');

@@ -42,9 +42,13 @@ utente (Opzioni → Utenti): così il registro delle operazioni dice chi ha fatt
 - Per ripristinare un backup: fermare il programma, copiare il file del backup al posto di
   `_dati\agenzia.db`, riavviare.
 
-## 5. Aggiornare a una versione nuova
-Fermare il programma, sostituire `agenzia.exe` e la cartella `web\`, riavviare.
-La cartella `_dati\` non si tocca.
+## 5. Aggiornare a una versione nuova (solo sul PC centrale)
+Si riceve uno zip di aggiornamento con dentro `agenzia.exe`, la cartella `web\` e `aggiorna.bat`.
+1. Estrarre lo zip in una cartella qualsiasi, per esempio sul Desktop (non dentro la cartella del programma).
+2. Tasto destro su `aggiorna.bat` → **Esegui come amministratore**.
+3. Aspettare "Aggiornamento completato". Nel browser premere Ctrl+F5.
+Il file ferma il programma, fa una copia dei dati in `_dati\prima-aggiornamento`, sostituisce
+`agenzia.exe` e `web\` e riavvia. La cartella `_dati\` non viene toccata. Gli altri PC non vanno aggiornati.
 
 ## 6. Se qualcosa non va
 - "La porta 8787 è già occupata": il programma è già avviato (controllare le attività pianificate).

@@ -202,6 +202,8 @@ const IMPOSTAZIONI_DEFAULT = {
   },
   numerazione: { anno_iniziale: new Date().getFullYear(), numero_iniziale: 1, numero_iniziale_b: 1 },
   backup: { cartella: '', ora: '20:00', ultimo: '' },
+  // 'si' = a ogni apertura del programma si sceglie l'utente e si scrive la password; 'no' = resta entrato (30 giorni)
+  accesso: { chiedi_ogni_volta: 'si' },
   liste: {
     tipi_pratica: ['Villaggio', 'Soggiorno', 'Tour', 'Crociera', 'Volo + hotel', 'Biglietteria', 'Altro'],
     tipi_fornitore: ['Tour Operator', 'Hotel', 'Assicurazione', 'Compagnia aerea', 'Autonoleggio', 'Navale', 'Trasporti', 'Ferrovie', 'Guide', 'Ristorante', 'Corrispondenti', 'Servizi vari'],

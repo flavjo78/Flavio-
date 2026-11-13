@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.10.0';
+const VERSIONE = '1.11.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -188,7 +188,7 @@ function impostazioni(ctx) {
 function impostazioni_salva(ctx) {
   richiediPannello(ctx);
   const c = ctx.corpo || {};
-  const ammesse = ['agenzia', 'numerazione', 'backup', 'liste', 'testi'];
+  const ammesse = ['agenzia', 'numerazione', 'backup', 'liste', 'testi', 'accesso'];
   for (const k of ammesse) {
     if (c[k] === undefined) continue;
     let v = c[k];
@@ -204,6 +204,8 @@ function impostazioni_salva(ctx) {
       const cur = db.impostazione('backup');
       cur.cartella = S(v.cartella); cur.ora = S(v.ora) || '20:00';
       v = cur;
+    } else if (k === 'accesso') {
+      v = { chiedi_ogni_volta: S(v.chiedi_ogni_volta) === 'no' ? 'no' : 'si' };
     } else {
       const cur = db.impostazione(k);
       for (const kk of Object.keys(cur)) if (v[kk] !== undefined) cur[kk] = typeof cur[kk] === 'string' ? String(v[kk]) : v[kk];
