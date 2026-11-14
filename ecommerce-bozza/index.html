@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Erbalist – bozza e-commerce e gestionale</title>
+<style>
+:root{--v:#2f5d34;--vc:#e8f0e4;--o:#c9a24b;--t:#1f2a20;--g:#6b756c;--b:#d9e0d5;--r:#b3402f}
+*{box-sizing:border-box}body{margin:0;font:15px/1.4 system-ui,sans-serif;color:var(--t);background:#f7f9f5}
+header{background:var(--v);color:#fff;padding:12px 16px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;position:sticky;top:0;z-index:5}
+header h1{font-size:18px;margin:0;flex:1}
+nav button,.btn{border:1px solid var(--b);background:#fff;color:var(--v);padding:7px 12px;border-radius:8px;cursor:pointer;font:inherit}
+nav button.on{background:var(--o);color:#000;border-color:var(--o)}
+.btn.p{background:var(--v);color:#fff;border-color:var(--v)}
+main{max-width:1100px;margin:0 auto;padding:16px}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+input,select{padding:8px;border:1px solid var(--b);border-radius:8px;font:inherit;background:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.card{background:#fff;border:1px solid var(--b);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.ph{height:110px;border-radius:8px;background:var(--vc);display:flex;align-items:center;justify-content:center;color:var(--v);font-size:12px;text-align:center}
+.card h3{font-size:14px;margin:0}.cod{font-size:11px;color:var(--g)}
+.pr{font-weight:700;font-size:17px}.st{font-size:12px}.ok{color:var(--v)}.ko{color:var(--r)}.lo{color:#a06a00}
+.nota{background:#fff8e1;border:1px solid var(--o);border-radius:8px;padding:8px 12px;margin-bottom:14px;font-size:13px}
+table{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--b)}
+th,td{padding:6px 8px;border-bottom:1px solid var(--b);text-align:left;font-size:13px}th{background:var(--vc)}
+td input{width:70px}.sc{overflow-x:auto}
+#cart{position:fixed;right:0;top:0;bottom:0;width:min(380px,100%);background:#fff;box-shadow:-4px 0 16px #0003;padding:16px;display:none;flex-direction:column;z-index:10;overflow:auto}
+#cart.on{display:flex}.riga{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px solid var(--b);font-size:13px}
+.hide{display:none}
+</style></head><body>
+<header><h1>🌿 Erbalist <small style="font-weight:400">· bozza</small></h1>
+<nav><button id="nv" class="on" onclick="vista('v')">Negozio</button> <button id="ng" onclick="vista('g')">Gestionale</button></nav>
+<button class="btn" onclick="apriCarrello()">🛒 Carrello (<span id="nc">0</span>)</button></header>
+<main>
+<div class="nota">BOZZA con dati di prova: 50 referenze Santiveri (cat. 2026, pag. 4). Le giacenze iniziali sono inventate e le foto sono segnaposto. Tutto è salvato solo in questo browser.</div>
+
+<section id="v">
+ <div class="bar"><input id="q" placeholder="Cerca prodotto o codice…" oninput="mostra()" style="flex:1;min-width:180px">
+ <select id="fc" onchange="mostra()"><option value="">Tutte le categorie</option></select>
+ <label><input type="checkbox" id="fd" onchange="mostra()"> solo disponibili</label></div>
+ <div class="grid" id="lista"></div>
+</section>
+
+<section id="g" class="hide">
+ <div class="bar">
+  <label>Ricarico sul listino % <input id="ric" type="number" value="35" style="width:70px" onchange="salva();mostra();tabella()"></label>
+  <label>IVA % <input id="iva" type="number" value="10" style="width:60px" onchange="salva();mostra();tabella()"></label>
+  <button class="btn" onclick="esporta()">⬇ Esporta CSV</button>
+  <button class="btn" onclick="if(confirm('Ripristinare i dati di prova?')){localStorage.removeItem('erb');init()}">Ripristina</button>
+ </div>
+ <div id="avviso" class="nota"></div>
+ <div class="sc"><table><thead><tr><th>Codice</th><th>Prodotto</th><th>Formato</th><th>Listino ingr.</th><th>Prezzo vendita</th><th>Giacenza</th><th>Scorta min.</th><th>Movimento</th></tr></thead><tbody id="tb"></tbody></table></div>
+ <h3>Ultimi movimenti</h3><div id="mov" style="font-size:13px"></div>
+</section>
+</main>
+<aside id="cart"><div style="display:flex;justify-content:space-between"><b>Carrello</b><button class="btn" onclick="apriCarrello()">✕</button></div>
+<div id="righe" style="flex:1"></div><div class="pr">Totale: <span id="tot">0,00</span> €</div>
+<button class="btn p" onclick="ordina()" style="margin-top:8px">Conferma ordine (simulato)</button></aside>
+
+<script src="prodotti.js"></script>
+<script>
+let D,C={};const E=n=>n.toFixed(2).replace(".",",");
+function init(){let s=localStorage.getItem("erb");
+ D=s?JSON.parse(s):{ric:35,iva:10,mov:[],gia:Object.fromEntries(PRODOTTI.map((p,i)=>[p.cod,{q:(i*7)%23,min:5}]))};
+ ric.value=D.ric;iva.value=D.iva;mostra();tabella()}
+function salva(){D.ric=+ric.value;D.iva=+iva.value;localStorage.setItem("erb",JSON.stringify(D))}
+const prezzo=p=>+(p.listino*(1+D.ric/100)*(1+D.iva/100)).toFixed(2);
+function vista(x){v.classList.toggle("hide",x!="v");g.classList.toggle("hide",x!="g");nv.classList.toggle("on",x=="v");ng.classList.toggle("on",x=="g");if(x=="g")tabella()}
+Object.entries(CATEGORIE).forEach(([k,n])=>fc.add(new Option(n,k)));
+function stato(p){const g=D.gia[p.cod];return g.q<=0?["Esaurito","ko"]:g.q<=g.min?["Ultimi pezzi ("+g.q+")","lo"]:["Disponibile","ok"]}
+function mostra(){const t=q.value.toLowerCase();lista.innerHTML=PRODOTTI.filter(p=>(!t||(p.nome+p.cod).toLowerCase().includes(t))&&(!fc.value||p.cat==fc.value)&&(!fd.checked||D.gia[p.cod].q>0)).map(p=>{const s=stato(p);
+ return `<div class="card"><div class="ph">${CATEGORIE[p.cat]}<br>[foto]</div><div class="cod">${p.cod} · ${p.brand}</div><h3>${p.nome}</h3><div class="cod">${p.formato}</div><div class="pr">${E(prezzo(p))} €</div><div class="st ${s[1]}">${s[0]}</div><button class="btn p" ${D.gia[p.cod].q<=0?"disabled":""} onclick="agg('${p.cod}')">Aggiungi</button></div>`}).join("")||"Nessun risultato"}
+function agg(c){C[c]=Math.min((C[c]||0)+1,D.gia[c].q);cart()}
+function cart(){const k=Object.keys(C);nc.textContent=k.reduce((a,c)=>a+C[c],0);let t=0;
+ righe.innerHTML=k.map(c=>{const p=PRODOTTI.find(x=>x.cod==c);t+=prezzo(p)*C[c];return `<div class="riga"><span>${p.nome}<br><small>${C[c]} × ${E(prezzo(p))} €</small></span><span><button class="btn" onclick="C['${c}']--;if(!C['${c}'])delete C['${c}'];cart()">−</button> <button class="btn" onclick="agg('${c}')">+</button></span></div>`}).join("")||"Il carrello è vuoto";tot.textContent=E(t)}
+function apriCarrello(){cart();document.getElementById("cart").classList.toggle("on")}
+function mv(c,n,m){D.gia[c].q=Math.max(0,D.gia[c].q+n);D.mov.unshift(new Date().toLocaleString("it-IT")+" – "+c+" "+(n>0?"+":"")+n+" ("+m+")");D.mov=D.mov.slice(0,30);salva()}
+function ordina(){const k=Object.keys(C);if(!k.length)return;k.forEach(c=>mv(c,-C[c],"ordine web"));C={};cart();apriCarrello();mostra();tabella();alert("Ordine simulato registrato: le giacenze sono state scaricate.")}
+function tabella(){tb.innerHTML=PRODOTTI.map(p=>{const g=D.gia[p.cod],s=stato(p);return `<tr><td>${p.cod}</td><td>${p.nome}</td><td>${p.formato}</td><td>${E(p.listino)}</td><td>${E(prezzo(p))}</td><td class="${s[1]}"><b>${g.q}</b></td><td><input type="number" value="${g.min}" onchange="D.gia['${p.cod}'].min=+this.value;salva();tabella()"></td><td><input type="number" id="m_${p.cod}" value="1" min="1"> <button class="btn" onclick="mv('${p.cod}',+m_${p.cod}.value,'carico');tabella();mostra()">+ carico</button> <button class="btn" onclick="mv('${p.cod}',-m_${p.cod}.value,'scarico');tabella();mostra()">− scarico</button></td></tr>`}).join("");
+ const b=PRODOTTI.filter(p=>D.gia[p.cod].q<=D.gia[p.cod].min);avviso.innerHTML=b.length?`⚠ <b>${b.length}</b> prodotti sotto scorta minima: `+b.map(p=>p.nome+" ("+D.gia[p.cod].q+")").join(", "):"Nessun prodotto sotto scorta.";mov.innerHTML=D.mov.join("<br>")||"Nessun movimento."}
+function esporta(){const r=["codice;prodotto;formato;listino;vendita;giacenza;scorta_min",...PRODOTTI.map(p=>[p.cod,p.nome,p.formato,p.listino,prezzo(p),D.gia[p.cod].q,D.gia[p.cod].min].join(";"))];const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([r.join("\n")],{type:"text/csv"}));a.download="giacenze.csv";a.click()}
+init();
+</script></body></html>
