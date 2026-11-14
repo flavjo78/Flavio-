@@ -1,0 +1,237 @@
+{
+ "SAN-001": {
+  "file": "img/SAN-001.jpg",
+  "fonte": "https://santiveri.it/products/a17-12-bustine-108-g",
+  "titolo_shop": "A17 - 12 BUSTINE"
+ },
+ "SAN-002": {
+  "file": "img/SAN-002.jpg",
+  "fonte": "https://santiveri.it/products/acticir",
+  "titolo_shop": "ACTICIR + CONCENTRATO FLUIDO 500ML"
+ },
+ "SAN-003": {
+  "file": "img/SAN-003.jpg",
+  "fonte": "https://santiveri.it/products/acticir-forte-compresse-302g",
+  "titolo_shop": "ACTICIR FORTE 30 COMPRESSE"
+ },
+ "SAN-004": {
+  "file": "img/SAN-004.jpg",
+  "fonte": "https://santiveri.it/products/acticir-gel-125-ml",
+  "titolo_shop": "ACTICIR GEL 125 ML"
+ },
+ "SAN-005": {
+  "file": "img/SAN-005.png",
+  "fonte": "https://santiveri.it/products/alga-chlorella-bio-50g",
+  "titolo_shop": "ALGA CHLORELLA BIO 118 COMPRESE"
+ },
+ "SAN-006": {
+  "file": "img/SAN-006.jpg",
+  "fonte": "https://santiveri.it/products/alga-fucus-bio-60g",
+  "titolo_shop": "ALGA FUCUS BIO 113 COMPRESSE"
+ },
+ "SAN-007": {
+  "file": "img/SAN-007.jpg",
+  "fonte": "https://santiveri.it/products/alga-klamath-30-g",
+  "titolo_shop": "ALGA KLAMATH 70 COMPRESSE"
+ },
+ "SAN-008": {
+  "file": "img/SAN-008.jpg",
+  "fonte": "https://santiveri.it/products/alga-spirulina-bio-45-g",
+  "titolo_shop": "ALGA SPIRULINA BIO 100 COMPRESSE"
+ },
+ "SAN-009": {
+  "file": "img/SAN-009.jpg",
+  "fonte": "https://santiveri.it/products/aloe-vera-succo-1-lt",
+  "titolo_shop": "ALOE VERA SUCCO 1 LT."
+ },
+ "SAN-010": {
+  "file": "img/SAN-010.webp",
+  "fonte": "https://santiveri.it/products/gel-aloe-vera-100-bio-200ml",
+  "titolo_shop": "GEL ALOE VERA 100% BIO 200ML"
+ },
+ "SAN-011": {
+  "file": "img/SAN-011.webp",
+  "fonte": "https://santiveri.it/products/anemivita-complex-capsule-25-g",
+  "titolo_shop": "ANEMIVITA COMPLEX  40 CAPSULE"
+ },
+ "SAN-012": {
+  "file": "img/SAN-012.png",
+  "fonte": "https://santiveri.it/products/argilla-verde-400gr",
+  "titolo_shop": "ARGILLA VERDE 400GR"
+ },
+ "SAN-013": {
+  "file": "img/SAN-013.webp",
+  "fonte": "https://santiveri.it/products/artrum-b-flex-30-compresse",
+  "titolo_shop": "ARTRUM B FLEX 30 COMPRESSE"
+ },
+ "SAN-014": {
+  "file": "img/SAN-014.webp",
+  "fonte": "https://santiveri.it/products/artrum-b-crema-gel-75ml",
+  "titolo_shop": "ARTRUM B CREMA GEL 75ML"
+ },
+ "SAN-015": {
+  "file": "img/SAN-015.jpg",
+  "fonte": "https://santiveri.it/products/ashwaganda-capsule-18-gr",
+  "titolo_shop": "ASHWAGANDA 40 CAPSULE"
+ },
+ "SAN-016": {
+  "file": "img/SAN-016.webp",
+  "fonte": "https://santiveri.it/products/belson-melatonina-30ml",
+  "titolo_shop": "BELSON MELATONINA 30ML"
+ },
+ "SAN-017": {
+  "file": "img/SAN-017.webp",
+  "fonte": "https://santiveri.it/products/belson-plant-capsule-9-g",
+  "titolo_shop": "BELSON PLANT 20 CAPSULE"
+ },
+ "SAN-018": {
+  "file": "img/SAN-018.png",
+  "fonte": "https://santiveri.it/products/beneflor-capsule-20-g",
+  "titolo_shop": "BENEFLOR 40 CAPSULE"
+ },
+ "SAN-019": {
+  "file": "img/SAN-019.jpg",
+  "fonte": "https://santiveri.it/products/fiale-bi-c-lulit",
+  "titolo_shop": "FIALE BI-C LULIT 20 FIALE"
+ },
+ "SAN-020": {
+  "file": "img/SAN-020.webp",
+  "fonte": "https://santiveri.it/products/bi-c-lulit-compresse-28-g",
+  "titolo_shop": "BI C LULIT 48 COMPRESSE"
+ },
+ "SAN-021": {
+  "file": "img/SAN-021.webp",
+  "fonte": "https://santiveri.it/products/bilixir-concentrato-fluido-240ml",
+  "titolo_shop": "BILIXIR CONCENTRATO FLUIDO 240ML CON EDULCORANTE"
+ },
+ "SAN-022": {
+  "file": "img/SAN-022.webp",
+  "fonte": "https://santiveri.it/products/bilixir-forte-compresse-20-gr",
+  "titolo_shop": "BILIXIR FORTE COMPRESSE 40 COMPRESSE"
+ },
+ "SAN-023": {
+  "file": "img/SAN-023.webp",
+  "fonte": "https://santiveri.it/products/bilixir-stick-20x10ml",
+  "titolo_shop": "BILIXIR STICK 20 STICK DA 10 ML"
+ },
+ "SAN-024": {
+  "file": "img/SAN-024.webp",
+  "fonte": "https://santiveri.it/products/tisana-bilixir-40g",
+  "titolo_shop": "TISANA BILIXIR 20 BUSTINE FILTRO"
+ },
+ "SAN-028": {
+  "file": "img/SAN-028.jpg",
+  "fonte": "https://santiveri.it/products/carbonato-di-magnesio-110-g",
+  "titolo_shop": "CARBONATO DI MAGNESIO 110 G"
+ },
+ "SAN-029": {
+  "file": "img/SAN-029.jpg",
+  "fonte": "https://santiveri.it/products/fitocultura-cardo-mariano-capsule-18-gr",
+  "titolo_shop": "FITOCULTURA CARDO MARIANO 40 CAPSULE"
+ },
+ "SAN-030": {
+  "file": "img/SAN-030.jpg",
+  "fonte": "https://santiveri.it/products/citress-pick-10ml",
+  "titolo_shop": "CITRESS PICK 10ML"
+ },
+ "SAN-031": {
+  "file": "img/SAN-031.jpg",
+  "fonte": "https://santiveri.it/products/citress-spray-100ml",
+  "titolo_shop": "CITRESS SPRAY 100ML"
+ },
+ "SAN-032": {
+  "file": "img/SAN-032.webp",
+  "fonte": "https://santiveri.it/products/cloruro-di-magnesio-compresse-230-g",
+  "titolo_shop": "CLORURO DI MAGNESIO 230 COMPRESSE"
+ },
+ "SAN-033": {
+  "file": "img/SAN-033.jpg",
+  "fonte": "https://santiveri.it/products/cloruro-di-magnesio-compresse-120-g",
+  "titolo_shop": "CLORURO DI MAGNESIO 200 COMPRESSE"
+ },
+ "SAN-034": {
+  "file": "img/SAN-034.jpg",
+  "fonte": "https://santiveri.it/products/complex-multivitamin-compresse-69gr",
+  "titolo_shop": "COMPLEX MULTIVITAMIN 50 COMPRESSE"
+ },
+ "SAN-035": {
+  "file": "img/SAN-035.webp",
+  "fonte": "https://santiveri.it/products/corpress-compresse-22g",
+  "titolo_shop": "CORPRESS 40 COMPRESSE"
+ },
+ "SAN-036": {
+  "file": "img/SAN-036.jpg",
+  "fonte": "https://santiveri.it/products/curcuflex-superactive-compresse-36-g",
+  "titolo_shop": "CURCUFLEX SUPERACTIVE 48 COMPRESSE"
+ },
+ "SAN-037": {
+  "file": "img/SAN-037.webp",
+  "fonte": "https://santiveri.it/products/d-cistoplant-8-stick",
+  "titolo_shop": "D CISTOPLANT 8 STICK"
+ },
+ "SAN-038": {
+  "file": "img/SAN-038.webp",
+  "fonte": "https://santiveri.it/products/dextress-gaba",
+  "titolo_shop": "DEXTRESS GABA 60 COMPRESSE"
+ },
+ "SAN-039": {
+  "file": "img/SAN-039.webp",
+  "fonte": "https://santiveri.it/products/diuriforte-500",
+  "titolo_shop": "DIURIFORTE + CONCENTRATO FLUIDO 500ML"
+ },
+ "SAN-040": {
+  "file": "img/SAN-040.webp",
+  "fonte": "https://santiveri.it/products/donna-power-ciclo",
+  "titolo_shop": "DONNA POWER+ CICLO"
+ },
+ "SAN-041": {
+  "file": "img/SAN-041.webp",
+  "fonte": "https://santiveri.it/products/donna-focus-prepausa",
+  "titolo_shop": "DONNA FOCUS+ PREPAUSA"
+ },
+ "SAN-042": {
+  "file": "img/SAN-042.webp",
+  "fonte": "https://santiveri.it/products/donna-gold-menopausa",
+  "titolo_shop": "DONNA GOLD+ MENOPAUSA"
+ },
+ "SAN-043": {
+  "file": "img/SAN-043.webp",
+  "fonte": "https://santiveri.it/products/energy-3-stick-15x10ml",
+  "titolo_shop": "ENERGY 3 STICK  CONFEZIONE DA 15 PEZZI (10 ML CAD.)"
+ },
+ "SAN-044": {
+  "file": "img/SAN-044.webp",
+  "fonte": "https://santiveri.it/products/ferroxir-forte-240-ml",
+  "titolo_shop": "FERROXIR FORTE CONCENTRATO FLUIDO 240 ML"
+ },
+ "SAN-045": {
+  "file": "img/SAN-045.webp",
+  "fonte": "https://santiveri.it/products/flebase-compresse-27gr",
+  "titolo_shop": "FLEBASE COMPRESSE 60 COMPRESSE"
+ },
+ "SAN-046": {
+  "file": "img/SAN-046.webp",
+  "fonte": "https://santiveri.it/products/florase-ansia-18-g",
+  "titolo_shop": "FLORASE ANSIA PLUS 30 CAPSULE"
+ },
+ "SAN-047": {
+  "file": "img/SAN-047.png",
+  "fonte": "https://santiveri.it/products/florase-colesterolo-forte-20-g",
+  "titolo_shop": "FLORASE COLESTEROLO FORTE 40 CAPSULE"
+ },
+ "SAN-048": {
+  "file": "img/SAN-048.webp",
+  "fonte": "https://santiveri.it/products/florase-colesterolo-redux",
+  "titolo_shop": "FLORASE COLESTEROLO REDUX 20 BUSTINE T-WIN"
+ },
+ "SAN-049": {
+  "file": "img/SAN-049.jpg",
+  "fonte": "https://santiveri.it/products/florase-colon-help-16g",
+  "titolo_shop": "FLORASE COLON HELP 40 CAPSULE"
+ },
+ "SAN-050": {
+  "file": "img/SAN-050.webp",
+  "fonte": "https://santiveri.it/products/florase-derma-16-g",
+  "titolo_shop": "FLORASE DERMA 40 CAPSULE"
+ }
+}
