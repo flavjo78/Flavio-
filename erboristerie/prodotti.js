@@ -69,7 +69,7 @@ const PRODOTTI = [
 ["OMEGA 3 CAPSULE VEGETALI", "40 prl", 33.8, "x", "Santiveri", "SAN-067"],
 ["IPERICO", "40 cp", 13.4, "x", "Santiveri", "SAN-068"],
 ["OXACOR K2", "40 CP", 27.8, "x", "Santiveri", "SAN-069"],
-["nuova formula", "500 ml", 24.0, "x", "Santiveri", "SAN-070"],
+["KRAUTER BASEN + (nuova formula)", "500 ml", 24.0, "x", "Santiveri", "SAN-070"],
 ["PICOLINATO DI CROMO", "40 cp", 16.4, "x", "Santiveri", "SAN-071"],
 ["LAX ALOE PROTECT", "60cps", 10.0, "x", "Santiveri", "SAN-072"],
 ["PLANTAGO MAYOR ESP FIALE", "10 fl", 18.4, "x", "Santiveri", "SAN-073"],
