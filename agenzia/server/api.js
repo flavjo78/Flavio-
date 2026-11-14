@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.11.0';
+const VERSIONE = '1.12.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -68,7 +68,7 @@ function paginaDiAzione(nome) {
   if (/^(pratic|acconto|pagamento_fornitore|prossimo_numero$)/.test(nome)) return 'pratiche';
   if (/^(bigliett|prossimo_numero_b)/.test(nome)) return 'biglietteria';
   if (nome === 'scadenze') return 'scadenze';
-  if (nome === 'statistiche') return 'statistiche';
+  if (/^statistiche/.test(nome)) return 'statistiche';
   if (nome === 'liste_salva') return 'liste';
   return null;
 }
@@ -731,6 +731,7 @@ function pratica_salva(ctx) {
     if (id) {
       const old = db.get('SELECT * FROM pratiche WHERE id = ?', id);
       if (!old) err(404, 'Pratica non trovata');
+      vals.data_conferma = (STATI_VALIDI.includes(stato) && !vals.bozza) ? (old.data_conferma || db.oggi()) : '';
       const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
       db.run(`UPDATE pratiche SET ${set}, aggiornato_ts = ?, aggiornato_da = ? WHERE id = ?`, ...Object.values(vals), ts, ctx.utente.id, id);
       if (old.stato !== stato) db.log(ctx.utente, 'pratica_stato', 'pratica', id, `${old.stato} → ${stato}`);
@@ -738,6 +739,7 @@ function pratica_salva(ctx) {
     } else {
       const anno = N(c.anno) || N(vals.data_apertura.slice(0, 4)) || new Date().getFullYear();
       const numero = prossimoNumero(anno);
+      vals.data_conferma = (STATI_VALIDI.includes(stato) && !vals.bozza) ? db.oggi() : '';
       const cols = Object.keys(vals);
       const r = db.run(`INSERT INTO pratiche(anno, numero, operatore_id, ${cols.join(',')}, creato_ts, aggiornato_ts, aggiornato_da)
         VALUES(?,?,?,${cols.map(() => '?').join(',')},?,?,?)`, anno, numero, ctx.utente.id, ...Object.values(vals), ts, ts, ctx.utente.id);
@@ -1044,6 +1046,45 @@ function filtroCosti() {
   // costo dei biglietti al netto delle commissioni che tornano indietro dal fornitore
   return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent - commissione_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
 }
+// ---------- riepilogo giornaliero ----------
+// Incassato = acconti con la data del giorno. Venduto = pratiche confermate quel giorno (biglietti collegati compresi)
+// + biglietti emessi quel giorno senza pratica. Preventivi = pratiche aperte quel giorno, escluse quelle vendute lo stesso giorno.
+function statistiche_giorno(ctx) {
+  const data = DATA(ctx.query.data) || db.oggi();
+  const NOME = a => `TRIM(COALESCE(${a}.cognome,'') || ' ' || COALESCE(${a}.nome,''))`;
+  const incassi = db.all(`SELECT a.id, a.pratica_id, a.biglietto_id, a.importo_cent, a.metodo, a.descrizione, a.creato_ts,
+      COALESCE(u.nome,'') AS operatore, p.anno AS p_anno, p.numero AS p_numero, b.anno AS b_anno, b.numero AS b_numero,
+      COALESCE(NULLIF(${NOME('cp')},''), ${NOME('cb')}) AS cliente
+    FROM acconti a LEFT JOIN pratiche p ON p.id = a.pratica_id LEFT JOIN biglietti b ON b.id = a.biglietto_id
+      LEFT JOIN clienti cp ON cp.id = p.cliente_id LEFT JOIN clienti cb ON cb.id = b.cliente_id LEFT JOIN utenti u ON u.id = a.operatore_id
+    WHERE a.data = ? ORDER BY a.creato_ts, a.id`, data);
+  const perMetodo = {};
+  for (const a of incassi) { const k = a.metodo || 'Altro'; perMetodo[k] = (perMetodo[k] || 0) + a.importo_cent; }
+  const incassato_cent = incassi.reduce((s, a) => s + a.importo_cent, 0);
+
+  const vendutePratiche = db.all(`SELECT id FROM pratiche WHERE data_conferma = ? AND stato IN ('Confermata','Chiusa') AND bozza = 0 ORDER BY anno, numero`, data)
+    .map(r => caricaPratica(r.id)).map(p => ({
+      id: p.id, anno: p.anno, numero: p.numero, cliente: p.cliente, destinazione: p.destinazione, partenza: p.partenza, stato: p.stato, operatore: p.operatore || '',
+      totale_cent: p.dovuto_cent,
+      prodotti: [
+        ...p.righe.map(r => ({ tipo: 'servizio', descrizione: r.descrizione, fornitore: r.fornitore || '', pax: r.pax, importo_cent: (r.prezzo_cent + r.figli.reduce((s, c) => s + c.prezzo_cent, 0)) * r.pax })),
+        ...p.biglietti.filter(b => b.operazione === 'emissione' && !b.bozza).map(b => ({ tipo: 'biglietto', descrizione: `${b.tipo === 'lowcost' ? 'Low cost' : b.tipo === 'treno' ? 'Treno' : 'Aereo'} ${[b.vettore, b.itinerario].filter(Boolean).join(' ')}`.trim(), fornitore: '', pax: b.pax || 1, importo_cent: (b.importo_cent + b.adv_fee_cent) * (b.pax || 1) })),
+      ]
+    }));
+  const bigliettiLiberi = db.all(`SELECT b.*, ${NOME('c')} AS cliente, u.nome AS operatore FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id LEFT JOIN utenti u ON u.id = b.operatore_id
+      WHERE b.data = ? AND b.operazione = 'emissione' AND b.bozza = 0 AND COALESCE(b.pratica_id, 0) = 0 ORDER BY b.anno, b.numero`, data).map(arricchisciBiglietto)
+    .map(b => ({ id: b.id, anno: b.anno, numero: b.numero, tipo: b.tipo, vettore: b.vettore, itinerario: b.itinerario, pax: b.pax, cliente: b.cliente || b.passeggero, operatore: b.operatore || '', totale_cent: b.totale_cent }));
+
+  const preventivi = db.all(`SELECT id FROM pratiche WHERE data_apertura = ? AND bozza = 0 AND NOT (data_conferma = data_apertura AND stato IN ('Confermata','Chiusa')) ORDER BY anno, numero`, data)
+    .map(r => caricaPratica(r.id)).map(p => ({ id: p.id, anno: p.anno, numero: p.numero, cliente: p.cliente, destinazione: p.destinazione, partenza: p.partenza, stato: p.stato, operatore: p.operatore || '', totale_cent: p.totale_cent, confermata: p.data_conferma || '' }));
+
+  const venduto_cent = vendutePratiche.reduce((s, p) => s + p.totale_cent, 0) + bigliettiLiberi.reduce((s, b) => s + b.totale_cent, 0);
+  return {
+    data, incassi, per_metodo: Object.entries(perMetodo).map(([metodo, importo_cent]) => ({ metodo, importo_cent })).sort((a, b) => b.importo_cent - a.importo_cent), incassato_cent,
+    vendite: { pratiche: vendutePratiche, biglietti: bigliettiLiberi, totale_cent: venduto_cent, n: vendutePratiche.length + bigliettiLiberi.length },
+    preventivi: { lista: preventivi, totale_cent: preventivi.reduce((s, p) => s + p.totale_cent, 0) }
+  };
+}
 function statistiche(ctx) {
   const anno = N(ctx.query.anno) || new Date().getFullYear();
   const V = filtroVendite(), C = filtroCosti();
@@ -1146,6 +1187,7 @@ const AZIONI = {
   pagamento_fornitore_elimina: { fn: pagamento_fornitore_elimina, post: true },
   scadenze: { fn: scadenze },
   statistiche: { fn: statistiche },
+  statistiche_giorno: { fn: statistiche_giorno },
   utenti_lista: { fn: () => listaUtenti() }
 };
 

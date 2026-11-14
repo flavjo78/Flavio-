@@ -405,3 +405,13 @@ h2.nowrap{white-space:nowrap}
 .tabs.tabs-inline{display:inline-flex;border-bottom:none;margin:0 0 0 12px;gap:2px;font-weight:400;font-size:13px}
 .tabs.tabs-inline a{padding:3px 10px;border:1px solid var(--border);border-radius:999px;margin:0;color:var(--text-2)}
 .tabs.tabs-inline a.attivo{background:var(--primary);color:#fff;border-color:var(--primary);font-weight:600}
+
+/* ---- 1.12: statistiche giornaliere ---- */
+.giorno-titolo{margin:0 0 12px;font-size:18px}
+.stat .s{font-size:12px;color:var(--text-2);margin-top:2px}
+@media print{
+  .sidebar,.topbar,.tabs,.no-stampa,.sticky-azioni{display:none !important}
+  .main{margin:0 !important}.contenuto{padding:0 !important}
+  .card{box-shadow:none;break-inside:avoid;margin-bottom:10px}
+  body{background:#fff}
+}

@@ -417,6 +417,18 @@ function migra() {
     }
     db.exec('PRAGMA user_version = 14');
   }
+  if (v < 15) {
+    // v15: giorno in cui la pratica è diventata "Confermata" (serve al riepilogo giornaliero delle vendite).
+    // Per le pratiche già esistenti si ricava dal registro operazioni; se non c'è, vale la data di apertura.
+    const colsP = db.prepare('PRAGMA table_info(pratiche)').all().map(c => c.name);
+    if (!colsP.includes('data_conferma')) db.exec("ALTER TABLE pratiche ADD COLUMN data_conferma TEXT NOT NULL DEFAULT ''");
+    const loc = ts => { const d = new Date(ts); return isNaN(d) ? '' : `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; };
+    for (const p of db.prepare("SELECT id, data_apertura FROM pratiche WHERE stato IN ('Confermata','Chiusa') AND data_conferma = ''").all()) {
+      const l = db.prepare("SELECT ts FROM log_operazioni WHERE azione = 'pratica_stato' AND entita_id = ? AND (dettaglio LIKE '%→ Confermata' OR dettaglio LIKE '%→ Chiusa') ORDER BY id LIMIT 1").get(p.id);
+      db.prepare('UPDATE pratiche SET data_conferma = ? WHERE id = ?').run((l && loc(l.ts)) || p.data_apertura, p.id);
+    }
+    db.exec('PRAGMA user_version = 15');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

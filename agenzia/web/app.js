@@ -327,7 +327,7 @@ async function render() {
       case 'liste': return await paginaListe();
       case 'clienti': return id ? await paginaCliente(id) : await paginaClienti();
       case 'fornitori': return id ? await paginaFornitore(id) : await paginaFornitori();
-      case 'statistiche': return id === 'biglietteria' ? await paginaStatBiglietteria() : await paginaStatistiche(id);
+      case 'statistiche': return id === 'biglietteria' ? await paginaStatBiglietteria() : id === 'giornaliera' ? await paginaStatGiorno(STATO.route.split('/')[2]) : await paginaStatistiche(id);
       case 'opzioni': return await paginaOpzioni(id);
       default: return await paginaScadenze();
     }
@@ -1265,7 +1265,7 @@ function canaliAereo() {
   return [...new Set((STATO.imp.liste.canali_aereo || []).map(x => x.split('|')[0].trim()).filter(Boolean))].map(nome => ({ nome }));
 }
 
-const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
+const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche/giornaliera" class="${attivo === 'giornaliera' ? 'attivo' : ''}">Giornaliera</a><a href="#/statistiche" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
 let TIPO_BG_HOME = '';
 async function paginaBiglietteria() {
   const d = await api('biglietti', undefined, { anno: new Date().getFullYear(), tipo: TIPO_BG_HOME });
@@ -1286,6 +1286,56 @@ async function paginaBiglietteria() {
   const ricarica = async () => { const q = $('#bgQ').value.trim(); const r = await api('biglietti', undefined, q ? { q, tipo: TIPO_BG_HOME } : { anno: new Date().getFullYear(), tipo: TIPO_BG_HOME }); render(r.lista.slice(0, q ? 60 : 40)); };
   $('#bgQ').oninput = () => { clearTimeout(timer); timer = setTimeout(ricarica, 250); };
   $$('[data-tipo-h]').forEach(a => a.onclick = e => { e.preventDefault(); TIPO_BG_HOME = a.dataset.tipoH; $$('[data-tipo-h]').forEach(x => x.classList.toggle('attivo', x === a)); ricarica(); });
+}
+
+// ================= STATISTICHE: giornaliera =================
+async function paginaStatGiorno(dataSel) {
+  const data = /^\d{4}-\d{2}-\d{2}$/.test(dataSel || '') ? dataSel : oggiIso();
+  const d = await api('statistiche_giorno', undefined, { data });
+  const sposta = n => { const t = new Date(data + 'T12:00:00'); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
+  const giorno = new Date(data + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  const ora = ts => { try { return new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
+  const rif = a => a.p_numero ? `${a.p_numero}/${a.p_anno}` : (a.b_numero ? `B${a.b_numero}/${a.b_anno}` : '');
+  const vaiA = a => a.pratica_id ? `#/pratiche/${a.pratica_id}` : (a.biglietto_id ? `#/biglietteria/${a.biglietto_id}` : '');
+  const vuoto = t => `<div class="vuoto">${t}</div>`;
+  const V = d.vendite, P = d.preventivi;
+  shell('statistiche', 'Statistiche · Giornaliera', TABS_STAT('giornaliera') + `
+    <div class="toolbar no-stampa">
+      <a class="btn" href="#/statistiche/giornaliera/${sposta(-1)}">‹ Giorno prima</a>
+      <input type="date" class="inp" id="gData" value="${data}" style="width:150px">
+      <a class="btn" href="#/statistiche/giornaliera/${sposta(1)}">Giorno dopo ›</a>
+      <a class="btn" href="#/statistiche/giornaliera/${oggiIso()}">Oggi</a>
+      <span class="spazio" style="flex:1"></span><button type="button" class="btn" id="btnStampaG">🖨 Stampa</button>
+    </div>
+    <h2 class="giorno-titolo">${esc(giorno.charAt(0).toUpperCase() + giorno.slice(1))}${data === oggiIso() ? ' <span class="badge Confermata">oggi</span>' : ''}</h2>
+    <div class="cards-stat">
+      <div class="stat"><div class="l">Incassato</div><div class="v ok">${eur(d.incassato_cent)}</div><div class="s">${d.incassi.length} ${d.incassi.length === 1 ? 'pagamento' : 'pagamenti'}</div></div>
+      <div class="stat"><div class="l">Venduto</div><div class="v">${eur(V.totale_cent)}</div><div class="s">${V.pratiche.length} ${V.pratiche.length === 1 ? 'pratica confermata' : 'pratiche confermate'}${V.biglietti.length ? ` · ${V.biglietti.length} ${V.biglietti.length === 1 ? 'biglietto' : 'biglietti'}` : ''}</div></div>
+      <div class="stat"><div class="l">Preventivi</div><div class="v">${P.lista.length}</div><div class="s">per ${eur(P.totale_cent)}</div></div>
+    </div>
+
+    <div class="card"><h2>Soldi incassati <span class="spazio"></span><span class="small muted" style="font-weight:400">${d.per_metodo.map(m => `${esc(m.metodo)} <b>${eur(m.importo_cent)}</b>`).join(' &nbsp;·&nbsp; ')}</span></h2>
+      ${d.incassi.length ? `<table class="t compatta"><thead><tr><th>Ora</th><th>Cliente</th><th>Pratica</th><th>Descrizione</th><th>Metodo</th><th>Registrato da</th><th class="num">Importo</th></tr></thead><tbody>
+        ${d.incassi.map(a => `<tr class="click" onclick="naviga('${vaiA(a)}')"><td class="mono">${ora(a.creato_ts)}</td><td>${esc(a.cliente || '')}</td><td class="mono">${esc(rif(a))}</td><td>${esc(a.descrizione || '')}</td><td>${esc(a.metodo || '')}</td><td class="small">${esc(a.operatore)}</td><td class="num">${eur(a.importo_cent)}</td></tr>`).join('')}
+        </tbody><tfoot><tr><td colspan="6">Totale incassato</td><td class="num">${eur(d.incassato_cent)}</td></tr></tfoot></table>` : vuoto('Nessun incasso in questo giorno')}</div>
+
+    <div class="card"><h2>Prodotti venduti <span class="spazio"></span><span class="small muted" style="font-weight:400">pratiche confermate in questo giorno e biglietti emessi senza pratica</span></h2>
+      ${V.n ? `<table class="t compatta"><thead><tr><th>Pratica</th><th>Cliente</th><th>Destinazione</th><th>Prodotti</th><th>Operatore</th><th class="num">Totale</th></tr></thead><tbody>
+        ${V.pratiche.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono"><b>${p.numero}</b>/${p.anno}</td><td>${esc(p.cliente)}</td><td>${esc((p.destinazione || '').split('\n')[0]).slice(0, 50)}${p.partenza ? `<div class="small muted">partenza ${dataIt(p.partenza)}</div>` : ''}</td>
+          <td class="small">${p.prodotti.map(x => `<div>${esc(x.descrizione || '—')}${x.pax > 1 ? ' × ' + x.pax : ''}${x.fornitore ? ` <span class="muted">· ${esc(x.fornitore)}</span>` : ''} <span class="muted">${eur(x.importo_cent)}</span></div>`).join('') || '<span class="muted">nessun prodotto</span>'}</td>
+          <td class="small">${esc(p.operatore)}</td><td class="num"><b>${eur(p.totale_cent)}</b></td></tr>`).join('')}
+        ${V.biglietti.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${esc(b.cliente || '')}</td><td>${esc(b.itinerario || '')}</td><td class="small">Biglietto ${nomeTipoBigl(b.tipo)} ${esc(b.vettore || '')}${b.pax > 1 ? ' × ' + b.pax : ''}</td><td class="small">${esc(b.operatore)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td></tr>`).join('')}
+        </tbody><tfoot><tr><td colspan="5">Totale venduto</td><td class="num">${eur(V.totale_cent)}</td></tr></tfoot></table>
+        <div class="small muted" style="margin-top:6px">Un biglietto collegato a una pratica è compreso nel totale della pratica.</div>` : vuoto('Nessuna vendita in questo giorno')}</div>
+
+    <div class="card"><h2>Preventivi effettuati <span class="spazio"></span><span class="small muted" style="font-weight:400">pratiche aperte in questo giorno e non vendute lo stesso giorno</span></h2>
+      ${P.lista.length ? `<table class="t compatta"><thead><tr><th>Pratica</th><th>Cliente</th><th>Destinazione</th><th>Partenza</th><th>Stato</th><th>Operatore</th><th class="num">Totale</th></tr></thead><tbody>
+        ${P.lista.map(p => `<tr class="click" onclick="naviga('#/pratiche/${p.id}')"><td class="mono"><b>${p.numero}</b>/${p.anno}</td><td>${esc(p.cliente)}</td><td>${esc((p.destinazione || '').split('\n')[0]).slice(0, 50)}</td><td>${dataIt(p.partenza)}</td><td>${badgeStato(p.stato)}${p.confermata ? `<div class="small muted">confermata il ${dataIt(p.confermata)}</div>` : ''}</td><td class="small">${esc(p.operatore)}</td><td class="num">${eur(p.totale_cent)}</td></tr>`).join('')}
+        </tbody><tfoot><tr><td colspan="6">Totale preventivi</td><td class="num">${eur(P.totale_cent)}</td></tr></tfoot></table>` : vuoto('Nessun preventivo in questo giorno')}</div>`);
+  const vai = () => { const iso = isoVal($('#gData')); if (iso && iso !== data) naviga('#/statistiche/giornaliera/' + iso); };
+  $('#gData').addEventListener('change', vai);
+  $('#gData').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); $('#gData').blur(); vai(); } });
+  $('#btnStampaG').onclick = () => window.print();
 }
 
 async function paginaStatBiglietteria() {
