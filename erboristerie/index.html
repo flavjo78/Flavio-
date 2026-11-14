@@ -29,19 +29,19 @@ td input{width:70px}.sc{overflow-x:auto}
 <nav><button id="nv" class="on" onclick="vista('v')">Negozio</button> <button id="ng" onclick="vista('g')">Gestionale</button></nav>
 <button class="btn" onclick="apriCarrello()">🛒 Carrello (<span id="nc">0</span>)</button></header>
 <main>
-<div class="nota">BOZZA con dati di prova: 50 referenze Santiveri (cat. 2026, pag. 4). Le giacenze iniziali sono inventate; le foto sono provvisorie (da santiveri.it, da autorizzare). Tutto è salvato solo in questo browser.</div>
+<div class="nota">BOZZA con dati di prova: tutto il catalogo ERBALIST 2026 (2.397 referenze, prezzi al pubblico, estratti dal PDF: alcuni da verificare). Le giacenze iniziali sono inventate; le foto ci sono solo per i primi 50 Santiveri (provvisorie, da autorizzare). Tutto è salvato solo in questo browser.</div>
 
 <section id="v">
- <div class="bar"><input id="q" placeholder="Cerca prodotto o codice…" oninput="mostra()" style="flex:1;min-width:180px">
- <select id="fc" onchange="mostra()"><option value="">Tutte le categorie</option></select>
+ <div class="bar"><input id="q" placeholder="Cerca prodotto o codice…" oninput="pagina=1;mostra();tabella()" style="flex:1;min-width:180px">
+ <select id="fb" onchange="pagina=1;mostra();tabella()"><option value="">Tutte le marche</option></select>
  <label><input type="checkbox" id="fd" onchange="mostra()"> solo disponibili</label></div>
- <div class="grid" id="lista"></div>
+ <div class="grid" id="lista"></div><p id="altri" style="text-align:center"></p>
 </section>
 
 <section id="g" class="hide">
  <div class="bar">
-  <label>Ricarico predefinito % <input id="ric" type="number" value="35" style="width:70px" onchange="salva();mostra();tabella()"></label> <span id="rm"></span>
-  <label>IVA % <input id="iva" type="number" value="10" style="width:60px" onchange="salva();mostra();tabella()"></label>
+  <label>Ricarico predefinito % <input id="ric" type="number" value="0" style="width:70px" onchange="salva();mostra();tabella()"></label> <span id="rm"></span>
+  <label>IVA % <input id="iva" type="number" value="0" style="width:60px" onchange="salva();mostra();tabella()"></label>
   <button class="btn" onclick="esporta()">⬇ Esporta CSV</button>
   <button class="btn" onclick="if(confirm('Ripristinare i dati di prova?')){localStorage.removeItem('erb');init()}">Ripristina</button>
  </div>
@@ -59,16 +59,17 @@ td input{width:70px}.sc{overflow-x:auto}
 <script>
 let D,C={};const E=n=>n.toFixed(2).replace(".",",");
 function init(){let s=localStorage.getItem("erb");
- D=s?JSON.parse(s):{ric:35,iva:10,mov:[],gia:Object.fromEntries(PRODOTTI.map((p,i)=>[p.cod,{q:(i*7)%23,min:5}]))};
+ D=s?JSON.parse(s):{ric:0,iva:0,mov:[],gia:{}};PRODOTTI.forEach((p,i)=>{if(!D.gia[p.cod])D.gia[p.cod]={q:(i*7)%23,min:5}});
  ric.value=D.ric;iva.value=D.iva;mostra();tabella()}
 function salva(){D.ric=+ric.value;D.iva=+iva.value;localStorage.setItem("erb",JSON.stringify(D))}
 const ricM=p=>D.ricM&&D.ricM[p.brand]!=null?D.ricM[p.brand]:D.ric;
 const prezzo=p=>+(p.listino*(1+ricM(p)/100)*(1+D.iva/100)).toFixed(2);
 function setRic(b,v){D.ricM=D.ricM||{};if(v==="")delete D.ricM[b];else D.ricM[b]=+v;salva();mostra();tabella()}
 function vista(x){v.classList.toggle("hide",x!="v");g.classList.toggle("hide",x!="g");nv.classList.toggle("on",x=="v");ng.classList.toggle("on",x=="g");if(x=="g")tabella()}
-Object.entries(CATEGORIE).forEach(([k,n])=>fc.add(new Option(n,k)));
+let pagina=1;const PAG=60;[...new Set(PRODOTTI.map(p=>p.brand))].forEach(b=>fb.add(new Option(b+" ("+PRODOTTI.filter(p=>p.brand==b).length+")",b)));
+const filtra=()=>{const t=q.value.toLowerCase();return PRODOTTI.filter(p=>(!t||(p.nome+p.cod+p.brand).toLowerCase().includes(t))&&(!fb.value||p.brand==fb.value))};
 function stato(p){const g=D.gia[p.cod];return g.q<=0?["Esaurito","ko"]:g.q<=g.min?["Ultimi pezzi ("+g.q+")","lo"]:["Disponibile","ok"]}
-function mostra(){const t=q.value.toLowerCase();lista.innerHTML=PRODOTTI.filter(p=>(!t||(p.nome+p.cod).toLowerCase().includes(t))&&(!fc.value||p.cat==fc.value)&&(!fd.checked||D.gia[p.cod].q>0)).map(p=>{const s=stato(p);
+function mostra(){const L=filtra().filter(p=>!fd.checked||D.gia[p.cod].q>0);altri.innerHTML=L.length+" prodotti"+(L.length>pagina*PAG?` · <button class="btn" onclick="pagina++;mostra()">Mostra altri</button>`:"");lista.innerHTML=L.slice(0,pagina*PAG).map(p=>{const s=stato(p);
  return `<div class="card"><div class="ph">${FOTO[p.cod]?`<img src="${FOTO[p.cod]}" alt="" loading="lazy" style="height:110px;max-width:100%;object-fit:contain">`:CATEGORIE[p.cat]+"<br>[foto mancante]"}</div><div class="cod">${p.cod} · ${p.brand}</div><h3>${p.nome}</h3><div class="cod">${p.formato}</div><div class="pr">${E(prezzo(p))} €</div><div class="st ${s[1]}">${s[0]}</div><button class="btn p" ${D.gia[p.cod].q<=0?"disabled":""} onclick="agg('${p.cod}')">Aggiungi</button></div>`}).join("")||"Nessun risultato"}
 function agg(c){C[c]=Math.min((C[c]||0)+1,D.gia[c].q);cart()}
 function cart(){const k=Object.keys(C);nc.textContent=k.reduce((a,c)=>a+C[c],0);let t=0;
@@ -76,8 +77,8 @@ function cart(){const k=Object.keys(C);nc.textContent=k.reduce((a,c)=>a+C[c],0);
 function apriCarrello(){cart();document.getElementById("cart").classList.toggle("on")}
 function mv(c,n,m){D.gia[c].q=Math.max(0,D.gia[c].q+n);D.mov.unshift(new Date().toLocaleString("it-IT")+" – "+c+" "+(n>0?"+":"")+n+" ("+m+")");D.mov=D.mov.slice(0,30);salva()}
 function ordina(){const k=Object.keys(C);if(!k.length)return;k.forEach(c=>mv(c,-C[c],"ordine web"));C={};cart();apriCarrello();mostra();tabella();alert("Ordine simulato registrato: le giacenze sono state scaricate.")}
-function tabella(){rm.innerHTML=[...new Set(PRODOTTI.map(p=>p.brand))].map(b=>`${b}: <input type="number" style="width:60px" placeholder="${D.ric}" value="${D.ricM&&D.ricM[b]!=null?D.ricM[b]:""}" onchange="setRic('${b}',this.value)">%`).join(" ");tb.innerHTML=PRODOTTI.map(p=>{const g=D.gia[p.cod],s=stato(p);return `<tr><td>${p.cod}</td><td>${p.nome}</td><td>${p.formato}</td><td>${E(p.listino)}</td><td>${E(prezzo(p))}</td><td class="${s[1]}"><b>${g.q}</b></td><td><input type="number" value="${g.min}" onchange="D.gia['${p.cod}'].min=+this.value;salva();tabella()"></td><td><input type="number" id="m_${p.cod}" value="1" min="1"> <button class="btn" onclick="mv('${p.cod}',+m_${p.cod}.value,'carico');tabella();mostra()">+ carico</button> <button class="btn" onclick="mv('${p.cod}',-m_${p.cod}.value,'scarico');tabella();mostra()">− scarico</button></td></tr>`}).join("");
- const b=PRODOTTI.filter(p=>D.gia[p.cod].q<=D.gia[p.cod].min);avviso.innerHTML=b.length?`⚠ <b>${b.length}</b> prodotti sotto scorta minima: `+b.map(p=>p.nome+" ("+D.gia[p.cod].q+")").join(", "):"Nessun prodotto sotto scorta.";mov.innerHTML=D.mov.join("<br>")||"Nessun movimento."}
+function tabella(){rm.innerHTML=[...new Set(PRODOTTI.map(p=>p.brand))].map(b=>`${b}: <input type="number" style="width:60px" placeholder="${D.ric}" value="${D.ricM&&D.ricM[b]!=null?D.ricM[b]:""}" onchange="setRic('${b}',this.value)">%`).join(" ");const GL=filtra();tb.innerHTML=GL.slice(0,200).map(p=>{const g=D.gia[p.cod],s=stato(p);return `<tr><td>${p.cod}</td><td>${p.nome}</td><td>${p.formato}</td><td>${E(p.listino)}</td><td>${E(prezzo(p))}</td><td class="${s[1]}"><b>${g.q}</b></td><td><input type="number" value="${g.min}" onchange="D.gia['${p.cod}'].min=+this.value;salva();tabella()"></td><td><input type="number" id="m_${p.cod}" value="1" min="1"> <button class="btn" onclick="mv('${p.cod}',+m_${p.cod}.value,'carico');tabella();mostra()">+ carico</button> <button class="btn" onclick="mv('${p.cod}',-m_${p.cod}.value,'scarico');tabella();mostra()">− scarico</button></td></tr>`}).join("");
+ const b=PRODOTTI.filter(p=>D.gia[p.cod].q<=D.gia[p.cod].min);const mx=GL.length>200?` <i>(tabella: primi 200 di ${GL.length}, usa ricerca/marca)</i>`:"";avviso.innerHTML=b.length?`⚠ <b>${b.length}</b> prodotti sotto scorta minima: `+b.slice(0,12).map(p=>p.nome+" ("+D.gia[p.cod].q+")").join(", ")+(b.length>12?" … e altri "+(b.length-12):"")+mx:"Nessun prodotto sotto scorta."+mx;mov.innerHTML=D.mov.join("<br>")||"Nessun movimento."}
 function esporta(){const r=["codice;prodotto;formato;listino;vendita;giacenza;scorta_min",...PRODOTTI.map(p=>[p.cod,p.nome,p.formato,p.listino,prezzo(p),D.gia[p.cod].q,D.gia[p.cod].min].join(";"))];const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([r.join("\n")],{type:"text/csv"}));a.download="giacenze.csv";a.click()}
 init();
 </script></body></html>
