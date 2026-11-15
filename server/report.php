@@ -46,6 +46,28 @@ $selfHost = $_SERVER['HTTP_HOST'] ?? 'www.abraka.it';
 $selfPath = $_SERVER['SCRIPT_NAME'] ?? '/predizione/report.php';
 $base = $scheme . '://' . $selfHost . $selfPath;
 
+/* --- SERVE la Foto B (rivelazione) di una sessione, protetta dall'accesso del
+   report (password utente o lasciapassare admin). Serve alle MINIATURE nei
+   report. Non registra aperture (non è l'endpoint pubblico image.php). --------- */
+if (p('img') !== null) {
+    $sidImg = ctype_digit((string)p('s')) ? (int)p('s') : 0;
+    $path = ($sidImg > 0 && !empty($stato['sessioni'][(string)$sidImg]['after']) && is_file($stato['sessioni'][(string)$sidImg]['after']))
+            ? $stato['sessioni'][(string)$sidImg]['after'] : null;
+    if (!$path || !is_file($path)) { http_response_code(404); exit; }
+    $ext  = strtolower(pathinfo($path, PATHINFO_EXTENSION));
+    $mime = ($ext === 'png') ? 'image/png' : (($ext === 'gif') ? 'image/gif' : (($ext === 'webp') ? 'image/webp' : 'image/jpeg'));
+    header('Content-Type: ' . $mime);
+    header('Cache-Control: private, max-age=300');
+    header('Content-Length: ' . filesize($path));
+    readfile($path);
+    exit;
+}
+/* true se la sessione $sn ha una Foto B (rivelazione) congelata = mostrabile */
+function sessioneHaFotoB(array $stato, int $sn): bool {
+    $a = $stato['sessioni'][(string)$sn]['after'] ?? null;
+    return !empty($a) && is_file($a);
+}
+
 /* conta gli spettatori VERI (mittenti non automatici, unici) di una sessione */
 function contaUtentiSessione(int $sid): int {
     $f = predizione_data_dir() . '/mail_sess_' . $sid . '.jsonl';
@@ -83,6 +105,10 @@ if (p('lista') !== null) {
       .meta{color:var(--dim);font-size:13px}
       .go{color:var(--gold);font-weight:700}
       .empty{color:var(--dim);font-style:italic;padding:14px 0}
+      .rthumb{flex:0 0 54px;width:54px;height:54px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:#fff;cursor:zoom-in}
+      .rthumb.none{display:flex;align-items:center;justify-content:center;color:var(--dim);font-size:20px}
+      .lb{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+      .lb.open{display:flex} .lb img{max-width:100%;max-height:100%;border-radius:8px}
     </style></head><body><div class="wrap">
       <h1>Cronologia report</h1>
       <div class="sub">Utente <?= h($utente) ?> · tocca una sessione per aprirne il report</div>
@@ -91,13 +117,23 @@ if (p('lista') !== null) {
       <?php else: foreach ($sess as $sn => $sv):
           $ts = !empty($sv['avvio_ts']) ? date('d/m/Y H:i', (int)$sv['avvio_ts']) : '—';
           $fl = $faseLbl[$sv['fase'] ?? ''] ?? ($sv['fase'] ?? '');
-          $nUt = contaUtentiSessione((int)$sn); ?>
+          $nUt = contaUtentiSessione((int)$sn);
+          $haB = sessioneHaFotoB($stato, (int)$sn);
+          $imgUrl = h($base) . '?' . $authQ . '&img=B&s=' . (int)$sn; ?>
         <a class="row" href="<?= h($base) ?>?<?= $authQ ?>&s=<?= (int)$sn ?>">
-          <span><span class="n">Sessione #<?= (int)$sn ?></span><br><span class="meta"><?= $nUt ?> utent<?= $nUt === 1 ? 'e' : 'i' ?> · <?= h($ts) ?> · <?= h($fl) ?></span></span>
+          <?php if ($haB): ?>
+            <img class="rthumb" src="<?= $imgUrl ?>" alt="Rivelazione" onclick="event.preventDefault();event.stopPropagation();lbOpen(this.src);return false;">
+          <?php else: ?>
+            <span class="rthumb none" title="nessuna rivelazione">—</span>
+          <?php endif; ?>
+          <span style="flex:1"><span class="n">Sessione #<?= (int)$sn ?></span><br><span class="meta"><?= $nUt ?> utent<?= $nUt === 1 ? 'e' : 'i' ?> · <?= h($ts) ?> · <?= h($fl) ?></span></span>
           <span class="go">Apri ›</span>
         </a>
       <?php endforeach; endif; ?>
-    </div></body></html><?php
+    </div>
+    <div class="lb" id="lb" onclick="this.classList.remove('open')"><img id="lbImg" alt=""></div>
+    <script>function lbOpen(src){var l=document.getElementById('lb'),i=document.getElementById('lbImg');i.src=src;l.classList.add('open');}</script>
+    </body></html><?php
     exit;
 }
 
@@ -224,10 +260,22 @@ header('Cache-Control: no-store');
   .diario .de:first-of-type{border-top:0}
   .diario .de b{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px;color:var(--gold);white-space:nowrap}
   .diario .de span{font-size:14px}
+  .bprev{display:flex;align-items:center;gap:12px;background:var(--soft);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin:0 0 18px}
+  .bprev img{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1px solid var(--line);background:#fff;cursor:zoom-in}
+  .bprev .bt{font-size:12px;color:var(--dim)}
+  .lb{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;align-items:center;justify-content:center;padding:16px;z-index:50}
+  .lb.open{display:flex} .lb img{max-width:100%;max-height:100%;border-radius:8px}
 </style>
 </head><body><div class="wrap">
   <h1>Report sessione #<?= (int)$sid ?></h1>
   <div class="sub">Utente <?= h($utente) ?> · generato il <?= h(date('d/m/Y H:i')) ?></div>
+
+  <?php if (sessioneHaFotoB($stato, (int)$sid)): $imgUrlS = h($base) . '?' . $authQ . '&img=B&s=' . (int)$sid; ?>
+  <div class="bprev">
+    <img src="<?= $imgUrlS ?>" alt="Rivelazione" onclick="lbOpen(this.src)">
+    <div class="bt"><b>Rivelazione (Foto B)</b> di questa sessione.<br>Tocca per ingrandire.</div>
+  </div>
+  <?php endif; ?>
 
   <?php if ($diario): ?>
   <div class="diario">
@@ -295,4 +343,7 @@ header('Cache-Control: no-store');
   <?php endforeach; endif; ?>
 
   <div class="foot">Predizione · report per uso da palco. Contiene dati personali di spettatori consenzienti: conservalo con cura e cancellalo quando non serve.</div>
-</div></body></html>
+</div>
+<div class="lb" id="lb" onclick="this.classList.remove('open')"><img id="lbImg" alt=""></div>
+<script>function lbOpen(src){var l=document.getElementById('lb'),i=document.getElementById('lbImg');i.src=src;l.classList.add('open');}</script>
+</body></html>
