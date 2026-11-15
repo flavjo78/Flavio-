@@ -1,561 +1,561 @@
-﻿codice;marca;prodotto_catalogo;formato;prezzo_catalogo;prezzo_sito_ufficiale;differenza_eur;differenza_pct;esito;affidabilita_abbinamento;link_sito
-AES-003;Aessere;ARGENTO COLLOIDALE GOCCE;200 ml;33,0;33,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-plus-gocce-200-ml-30-ppm/
-AES-007;Aessere;ARGENTO COLLOIDALE MICO;100 ml;39,0;39,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-plus-spray-mico-100-ml-100-ppm/
-AES-009;Aessere;ARGENTO COLLOIDALE PET;150 ml;19,9;19,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-pet-spray-150-ml-50-ppm/
-AES-024;Aessere;ARNICA 35% GEL;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/arnica-35-gel/
-AES-025;Aessere;ZEOLITE PLUS CAPSULE;180 cp;44,0;44,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/zeolite-plus-capsule/
-AES-026;Aessere;ARTIGLIO DEL DIAVOLO 35% CREMA;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/artiglio-del-diavolo-35-pomata/
-AES-027;Aessere;ZEOLITE PLUS POLVERE;270 gr;39,0;39,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/zeolite-plus-polvere/
-AES-028;Aessere;CALENDULA 35% CREMA;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/calendula-35-crema/
-AES-029;Aessere;FORMULA CAISSE PURA 680 mg;220 cp;49,0;49,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/formula-caisse-pura/
-AES-030;Aessere;BARATTOLO polvere;150 gr;21,0;21,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-barattolo-150/
-AES-033;Aessere;BIO RICARICA;150 gr;17,5;17,5;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-ricarica-150/
-AES-034;Aessere;OLIO PURO 100%;30 ml;17,0;17,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-olio-puro/
-ARG-002;Argital;CREMA ECHINACEA;75 ml;13,34;14,67;1,33;9,97;sito più caro;alta;https://www.argital.it/prodotto/crema-echinacea/
-ARG-003;Argital;ARGILLA VENTILATA ATTIVA;500 gr;7,5;8,03;0,53;7,07;sito più caro;media;https://www.argital.it/prodotto/argilla-verde-ventilata/
-ARG-004;Argital;CREMA EUCALYPTUS;50 ml;12,83;14,11;1,28;9,98;sito più caro;alta;https://www.argital.it/prodotto/crema-eucalyptus/
-ARG-005;Argital;ARGILLA FINE;1 kg;8,3;8,88;0,58;6,99;sito più caro;alta;https://www.argital.it/prodotto/argilla-verde-fine/
-ARG-006;Argital;CREMA CANFORA E TIMO;50 ml;11,21;12,33;1,12;9,99;sito più caro;alta;https://www.argital.it/prodotto/crema-canfora-e-timo/
-ARG-007;Argital;ARGILLA FINE;2,5 kg;13,88;14,85;0,97;6,99;sito più caro;alta;https://www.argital.it/prodotto/argilla-verde-fine-25kg/
-ARG-009;Argital;CREMA FLUIDA;200 ml;14,41;17,38;2,97;20,61;sito più caro;da verificare (formato o forma diversa?);https://www.argital.it/prodotto/crema-fluida/
-ARG-010;Argital;CREMA SNELLENTE;200 ml;19,22;19,9;0,68;3,54;sito più caro;alta;https://www.argital.it/prodotto/crema-snellente-florange/
-ARG-011;Argital;DENTIFRICIO ALLA SALVIA;75 ml;8,41;8,41;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-salvia/
-ARG-012;Argital;CREMA RASSODANTE;200 ml;15,3;16,83;1,53;10,0;sito più caro;alta;https://www.argital.it/prodotto/crema-rassodante-flore/
-ARG-013;Argital;DENTIFRICIO ALLA MENTA;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-menta/
-ARG-014;Argital;FANGO SNELLENTE;1,5 kg;35,24;38,76;3,52;9,99;sito più caro;alta;https://www.argital.it/prodotto/fango-snellente/
-ARG-015;Argital;DENTIFRICIO ALLA PROPOLI;75 ml;8,55;8,41;-0,14;-1,64;sito più economico;media;https://www.argital.it/prodotto/dentifricio-alla-salvia/
-ARG-016;Argital;DENTIFRICIO AROMATICO;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-aromatico/
-ARG-017;Argital;DENTIFRICIO OMEOCOMPATIBILE;75 ml;8,55;8,55;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-omeobital/
-ARG-018;Argital;INTIMO VEGETALE;250 ml;10,0;10,7;0,7;7,0;sito più caro;alta;https://www.argital.it/prodotto/intimo-vegetale/
-BRE-003;Brezzo;MIELE CASTAGNO;350 gr;8,5;5,7;-2,8;-32,94;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-castagno/
-BRE-005;Brezzo;MIELE MILLEFIORI ALPINI;350 gr;9,3;5,6;-3,7;-39,78;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-millefiori/
-BRE-006;Brezzo;MIELE DI TIGLIO;350 gr;8,4;5,8;-2,6;-30,95;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-tiglio/
-ECO-002;Ecol;ORTER;50 tav;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/orter/
-ECO-003;Ecol;ACIDOPHILUS;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/acidophilus/
-ECO-004;Ecol;OVAGEM;50 ml;19,6;19,6;0,0;0,0;uguale;alta;https://ecol.it/product/ovagem-2/
-ECO-005;Ecol;AERMIT;50 tav;15,6;15,6;0,0;0,0;uguale;alta;https://ecol.it/product/aermit/
-ECO-006;Ecol;PLACKOS;50 tav;13,4;11,5;-1,9;-14,18;sito più economico;alta;https://ecol.it/product/plackos/
-ECO-007;Ecol;ANSIFREE;50 ml;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/ansifree/
-ECO-008;Ecol;PREREGLE;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/preregle/
-ECO-010;Ecol;PROGEN;50 tav;25,2;25,2;0,0;0,0;uguale;alta;https://ecol.it/product/progen/
-ECO-011;Ecol;CEFAXGEM;50 ml;19,0;19,0;0,0;0,0;uguale;alta;https://ecol.it/product/cefaxgem/
-ECO-012;Ecol;PRUNEL;24 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/prunel/
-ECO-013;Ecol;CLIMAX PLUS;75 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/climax-plus/
-ECO-014;Ecol;QUERGOZ;200 ml;32,0;32,0;0,0;0,0;uguale;alta;https://ecol.it/product/quergoz/
-ECO-015;Ecol;CLIMAX FAST spray;30 ml;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/climax-fast/
-ECO-016;Ecol;SILCACIST;50 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcacist/
-ECO-017;Ecol;COLICOMP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/colicomp/
-ECO-018;Ecol;SILCAFLEX;100 tav;35,0;35,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcaflex/
-ECO-019;Ecol;CONCAR;50 tav;17,2;17,2;0,0;0,0;uguale;alta;https://ecol.it/product/concar/
-ECO-020;Ecol;SKUDO C;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/skudo-c/
-ECO-021;Ecol;COTURMIX;50 tav;27,6;27,6;0,0;0,0;uguale;alta;https://ecol.it/product/coturmix/
-ECO-022;Ecol;SKUDO NASO;50 tav;15,8;12,0;-3,8;-24,05;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/skudo-naso/
-ECO-023;Ecol;DIVERCOL;75 tav;26,0;26,0;0,0;0,0;uguale;alta;https://ecol.it/product/divercol/
-ECO-025;Ecol;DOLNOT PEA;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-pea/
-ECO-026;Ecol;SONNY;30 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/sonny/
-ECO-027;Ecol;DOLNOT PLUS spray;100 ml;20,0;20,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-plus/
-ECO-028;Ecol;TELIBRA;15 ml;10,6;10,6;0,0;0,0;uguale;alta;https://ecol.it/product/telibra/
-ECO-029;Ecol;DUEPI;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/duepi/
-ECO-030;Ecol;TOSSYMEL;150 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/tossymel/
-ECO-031;Ecol;DYNEL;50 tav;23,4;24,0;0,6;2,56;sito più caro;alta;https://ecol.it/product/dynel/
-ECO-032;Ecol;TRYCOL PLUS;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/trykol-plus/
-ECO-033;Ecol;ELICAP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicap/
-ECO-034;Ecol;EMONOR;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/emonor/
-ECO-036;Ecol;ENERTIM DONNA;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-donna/
-ECO-038;Ecol;ENERTIM UOMO;50 tav;19,4;19,4;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-uomo/
-ECO-039;Ecol;AGLIO Concentrato inodore;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/aglio-concentrato-inodore/
-ECO-040;Ecol;EQUADEX;50tav;18,2;18,2;0,0;0,0;uguale;alta;https://ecol.it/product/equadex/
-ECO-041;Ecol;AGLIO e BIANCOSPINO;50 tav;13,2;13,6;0,4;3,03;sito più caro;alta;https://ecol.it/product/aglio-e-biancospino/
-ECO-042;Ecol;EVERINT;50 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/everint-2/
-ECO-044;Ecol;FREELADY;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/freelady/
-ECO-046;Ecol;GASTRASIL;75 tav;27,0;27,0;0,0;0,0;uguale;alta;https://ecol.it/product/gastrasil/
-ECO-047;Ecol;ANANAS Gambi;75 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/ananas-gambi/
-ECO-048;Ecol;GLUCOTIN;100 tav;22,6;22,6;0,0;0,0;uguale;alta;https://ecol.it/product/glucotin/
-ECO-049;Ecol;ARTIGLIO DEL DIAVOLO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/
-ECO-050;Ecol;HOSTRIX;100 tav;22,2;22,2;0,0;0,0;uguale;alta;https://ecol.it/product/hostrix/
-ECO-051;Ecol;ARTIGLIO DEL DIAVOLO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/
-ECO-053;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/
-ECO-054;Ecol;LINFOGEM;200 ml;23,0;23,0;0,0;0,0;uguale;alta;https://ecol.it/product/linfogem/
-ECO-055;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/
-ECO-056;Ecol;LYN - NEO;100 tav;29,0;29,0;0,0;0,0;uguale;alta;https://ecol.it/product/lyn-neo-2/
-ECO-057;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/
-ECO-059;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/
-ECO-060;Ecol;MYCEL;50 tav;27,4;27,4;0,0;0,0;uguale;alta;https://ecol.it/product/mycel/
-ECO-061;Ecol;BARDANA e.a.;50 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/
-ECO-062;Ecol;MYCYS;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/mycys/
-ECO-063;Ecol;BARDANA e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/
-ECO-064;Ecol;MYDIG;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/mydig/
-ECO-065;Ecol;BIANCOSPINO e.a.;50 ml;13,4;13,4;0,0;0,0;uguale;alta;https://ecol.it/product/biancospino/
-ECO-066;Ecol;NEW EHPAMIX;50 tav;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/new-ehpamix/
-ECO-067;Ecol;BIANCOSPINO e.s.;50 tav;13,6;13,4;-0,2;-1,47;sito più economico;alta;https://ecol.it/product/biancospino/
-ECO-068;Ecol;NEW HENAVEX;50 tav;17,8;15,2;-2,6;-14,61;sito più economico;alta;https://ecol.it/product/new-henavex/
-ECO-069;Ecol;CARCIOFO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/
-ECO-070;Ecol;NEW RELAX tavolette;50 tav;14,8;14,4;-0,4;-2,7;sito più economico;media;https://ecol.it/product/new-relax/
-ECO-071;Ecol;CARCIOFO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/
-ECO-072;Ecol;NEW RELAX gocce;50 ml;14,4;14,4;0,0;0,0;uguale;alta;https://ecol.it/product/new-relax/
-ECO-073;Ecol;Eco CARDO MARIANO;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocardo-mariano-2/
-ECO-074;Ecol;NOSICK;25 tav;14,6;14,6;0,0;0,0;uguale;alta;https://ecol.it/product/nosick/
-ECO-075;Ecol;Eco CARDO MARIANO;50 tav;14,4;14,0;-0,4;-2,78;sito più economico;media;https://ecol.it/product/ecocardo-mariano-2/
-ECO-076;Ecol;NOVORMS;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/novorms/
-ECO-077;Ecol;CAROTA;50 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/carota/
-ECO-079;Ecol;Eco CARPINO gemme;50 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocarpino-gemme-2/
-ECO-080;Ecol;Eco CASTAGNO gemme;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecocastagno-gemme-2/
-ECO-082;Ecol;CENTELLA ASIATICA e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/centella-asiatica/
-ECO-083;Ecol;Olio di Germe di Grano;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-germe-di-grano/
-ECO-084;Ecol;CENTELLA ASIATICA e.s.;50 tav;13,8;13,6;-0,2;-1,45;sito più economico;alta;https://ecol.it/product/centella-asiatica/
-ECO-085;Ecol;Olio di Mandorle Dolci;100 ml;6,6;6,6;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-mandorle-dolci/
-ECO-086;Ecol;CIMICIFUGA;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/
-ECO-087;Ecol;Olio di Germe grano conc.;50tav;12,9;9,3;-3,6;-27,91;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/olio-di-germe-di-grano/
-ECO-088;Ecol;CIMICIFUGA e.a;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/
-ECO-089;Ecol;ORTICA e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/
-ECO-091;Ecol;ORTICA e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/
-ECO-094;Ecol;ECHINACEA e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/
-ECO-096;Ecol;ECHINACEA e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/
-ECO-098;Ecol;ELICRISO e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicriso/
-ECO-100;Ecol;EQUISETO e.a.;50 ml;13,8;13,0;-0,8;-5,8;sito più economico;alta;https://ecol.it/product/equiseto/
-ECO-101;Ecol;PROPOLI;50 tav;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/
-ECO-102;Ecol;EQUISETO e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/equiseto/
-ECO-103;Ecol;PROPOLI 30%;30 ml;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/
-ECO-105;Ecol;RIBES NERO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/ribes-nero-gemme/
-ECO-107;Ecol;RIBES NERO gemme e.a.;100 ml;23,0;14,7;-8,3;-36,09;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/
-ECO-108;Ecol;FICO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/fico-gemme/
-ECO-109;Ecol;RIBES NERO gemme e.a.;200 ml;32,0;14,7;-17,3;-54,06;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/
-ECO-110;Ecol;FIENO GRECO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/fieno-greco/
-ECO-111;Ecol;ROSA CANINA gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/rosa-canina-gemme/
-ECO-112;Ecol;FIENO GRECO e.s.;50 tav;15,0;13,6;-1,4;-9,33;sito più economico;alta;https://ecol.it/product/fieno-greco/
-ECO-113;Ecol;SALICE e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/
-ECO-114;Ecol;FINOCCHIO;50 tav;11,0;11,0;0,0;0,0;uguale;alta;https://ecol.it/product/finocchio/
-ECO-115;Ecol;SALICE e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/
-ECO-116;Ecol;FUCUS e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus/
-ECO-118;Ecol;FUCUS complexa;75 tav;15,4;15,4;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-complexa/
-ECO-120;Ecol;FUCUS extra;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-extra/
-ECO-122;Ecol;GINKGO BILOBA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ginkgo-biloba/
-ECO-124;Ecol;GINKGO BILOBA e.s.;50 tav;14,6;14,0;-0,6;-4,11;sito più economico;alta;https://ecol.it/product/ginkgo-biloba/
-ECO-126;Ecol;GUARANA’ e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/
-ECO-127;Ecol;TARASSACO e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/
-ECO-128;Ecol;GUARANA’ e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/
-ECO-129;Ecol;TARASSACO e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/
-ECO-131;Ecol;TE’ VERDE e.a.;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/
-ECO-133;Ecol;TE’ VERDE e.s.;50 tav;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/
-ECO-134;Ecol;LIEVITO DI BIRRA;100 tav;8,8;8,8;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra/
-ECO-135;Ecol;TIGLIO gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/tiglio-gemme/
-ECO-136;Ecol;LIEVITO DI BIRRA VIVO;100 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra-vivo/
-ECO-141;Ecol;Eco UVA URSINA e.a.;50 ml;13,8;13,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecouva-ursina-estratto-analcolico/
-ECO-144;Ecol;MIRTILLO e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/mirtillo/
-ECO-146;Ecol;MIRTILLO e.a.;50 ml;14,8;14,0;-0,8;-5,41;sito più economico;alta;https://ecol.it/product/mirtillo/
-ECO-148;Ecol;NEPETA CATARIA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/nepeta-cataria/
-FIT-001;Fitomedical;COGNIMIND;30 cps;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cognimind/p/cognimind/
-FIT-003;Fitomedical;DRENA & DEPURA STICK;14 sk;19,5;19,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/drenadepura/p/drenadepura/
-FIT-007;Fitomedical;SLIM BODY PROJECT DRENA;15 sk;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/slim-body-project-drena/p/slim-body-project-drena/
-FIT-009;Fitomedical;SERENDAY;30 cpr;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/serenday/p/serenday/
-FIT-011;Fitomedical;ARMONIGHT;30 cpr;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/armonight/p/armonight/
-FIT-013;Fitomedical;GASTROKEY;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/gastrokey/p/gastrokey/
-FIT-015;Fitomedical;EPAKEEP;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/epakeep/p/epakeep/
-FIT-017;Fitomedical;ARTIMOVE;30 cpr;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/artimove/p/artimove/
-FIT-019;Fitomedical;CISTOSHIELD STICK;16 sk;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cistoshield/p/cistoshield/
-FIT-020;Fitomedical;10 EUPHRASIA (ipersensibilità);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/ipersensibilita/
-FIT-021;Fitomedical;INTIMOSHIELD;250 ml;15,9;15,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/intimoshield/p/intimoshield_587/
-FIT-030;Fitomedical;SPRAY GOLA (lenitivo);15 ml;12,4;12,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/propoli/p/propoli-spray-gola/
-FIT-031;Fitomedical;16 RIBES (articolazioni);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/articolazioni/
-FIT-035;Fitomedical;ERBAREGOLA RITMO 2;60 ml;15,5;15,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-ritmo/
-FIT-037;Fitomedical;ERBAREGOLA FORTE;100 tav;12,7;12,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-forte/
-FIT-039;Fitomedical;ERBAREGOLA DELICATO;60 tav;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-delicato/
-FIT-042;Fitomedical;PURAL CHEWING GUM igienizzante;14 gr;4,3;4,3;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-chewinggum/
-FIT-044;Fitomedical;PURAL PARODONT protettivo;50 ml;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-parodont/
-FIT-046;Fitomedical;VIT. C + PQQ (con vitamina C liposomiale);60 cp;29,9;29,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/micronutrienti/p/vitamina-cpqq/
-FIT-047;Fitomedical;PURAL SPRAY purificante;15 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-spray/
-FIT-058;Fitomedical;ACIDO FOLICO ATTIVO;90 cp;17,9;17,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/micronutrienti/p/acido-folico-attivo/
-FIT-060;Fitomedical;ONICOIL;10 ml;15,5;15,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/cosmesi-naturale/p/onicoil/p/onicoil/
-FIT-061;Fitomedical;ARTIHARA GEL SOLLIEVO;100 ml;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-gel/
-FIT-062;Fitomedical;ARTIHARA POMATA FLESSIBILITA';100 ml;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-pomata/
-FIT-063;Fitomedical;ARTIHARA OLIO SPRAY SCIOLTEZZA;100 ml;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-olio-spray/
-FIT-064;Fitomedical;ANANAS;60 tav;20,4;20,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/ananas-est/
-FIT-065;Fitomedical;SALVIA CINESE;60 tav;21,9;21,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/salvia-cinese-est/
-FIT-066;Fitomedical;ANDROGRAPHIS;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/andrographis-est/
-FIT-067;Fitomedical;SCHISANDRA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/schisandra-est/
-FIT-068;Fitomedical;ANGELICA CINESE;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/angelica-cinese-est/
-FIT-069;Fitomedical;SCUTELLARIA;60 tav;20,5;13,9;-6,6;-32,2;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/scutellaria-tm/
-FIT-071;Fitomedical;SERENOA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/serenoa_est/
-FIT-072;Fitomedical;ASTRAGALO;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/astragalo-est/
-FIT-073;Fitomedical;SHATAVARI;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/shatavari_est/
-FIT-074;Fitomedical;BACOPA;60 tav;24,9;24,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/bacopa_est/
-FIT-075;Fitomedical;SPIRULINA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/spirulina_est/
-FIT-076;Fitomedical;BIANCOSPINO;60 tav;19,5;11,9;-7,6;-38,97;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-fluidi/p/biancospino_ef/
-FIT-077;Fitomedical;TABEBUIA;60 tav;25,4;25,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tabebuia_est/
-FIT-078;Fitomedical;BOSWELLIA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/boswellia_est/
-FIT-081;Fitomedical;TRIPHALA;60 tav;24,8;24,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/triphala-est/
-FIT-083;Fitomedical;TULSI;60 tav;27,5;27,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tulsi_est/
-FIT-084;Fitomedical;CARDO MARIANO;60 tav;24,7;13,9;-10,8;-43,72;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/cardo-mariano-tm-bio/
-FIT-085;Fitomedical;UNCARIA;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/uncaria_est/
-FIT-086;Fitomedical;CENTELLA ES;60 tav;23,9;23,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/centella_est/
-FIT-088;Fitomedical;CHRYSANTHELLUM;60 tav;23,9;15,9;-8,0;-33,47;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-totali/p/chrysanthellum_ef/
-FIT-089;Fitomedical;WITHANIA;60 tav;21,9;21,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/withania-est/
-FIT-090;Fitomedical;CIMICIFUGA;60 tav;19,5;19,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cimicifuga_est/
-FIT-092;Fitomedical;CODONOPSIS;60 tav;25,2;25,2;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/codonopsis-est/
-FIT-093;Fitomedical;CRANBERRY;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cranberry_est/
-FIT-099;Fitomedical;ELEUTEROCOCCO;60 tav;21,5;15,9;-5,6;-26,05;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-totali/p/eleuterococco-ef/
-FIT-105;Fitomedical;FILLANTO;60 tav;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fillanto_est/
-FIT-107;Fitomedical;FUCUS;60 tav;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fucus_est/
-FIT-109;Fitomedical;GARCINIA;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/garcinia-est/
-FIT-117;Fitomedical;GLUCOMANNANO;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/glucomannano-polvere_est/
-FIT-119;Fitomedical;GUARANA';60 tav;24,8;24,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/guarana_est/
-FIT-121;Fitomedical;GYMNEMA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gymnema_est/
-FIT-123;Fitomedical;GYNOSTEMMA;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gynostemma_est/
-FIT-125;Fitomedical;MACA;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/maca_est/
-FIT-127;Fitomedical;MAGNOLIA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/magnolia_est/
-FIT-135;Fitomedical;PASSIFLORA;60 tav;19,9;11,9;-8,0;-40,2;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-fluidi/p/passiflora_ef/
-FIT-137;Fitomedical;POLYGONUM;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/polygonum_est/
-FIT-138;Fitomedical;POMPELMO semi;60 tav;23,9;23,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pompelmo_est/
-FIT-140;Fitomedical;PUERARIA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pueraria_est/
-HER-001;Herbatint;1 N NERO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-1n-nero-170-ml-int
-HER-002;Herbatint;7 C BIONDO CENERE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7c-biondo-cenere-170-ml-int
-HER-003;Herbatint;2 N BRUNO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-2n-bruno-170-ml-int
-HER-004;Herbatint;8 C BIONDO CHIARO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-8c-biondo-chiaro-cenere-170-ml-int
-HER-005;Herbatint;3 N CASTANO SCURO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-3n-castano-scuro-170-ml-int
-HER-006;Herbatint;10 C BIONDO SVEDESE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-10c-biondo-platino-cenere-170-ml-int
-HER-007;Herbatint;4 N CASTANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4n-castano-170-ml-int
-HER-008;Herbatint;4 M CASTANO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4m-castano-mogano-170-ml-int
-HER-009;Herbatint;5 N CASTANO CHIARO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5n-castano-chiaro-170-ml-int
-HER-010;Herbatint;5 M CASTANO CHIARO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5m-castano-chiaro-mogano-170-ml-int
-HER-011;Herbatint;6 N BIONDO SCURO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-6n-biondo-scuro-170-ml-int
-HER-012;Herbatint;7 M BIONDO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7m-biondo-mogano-170-ml-int
-HER-013;Herbatint;7 N BIONDO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7n-biondo-170-ml-int
-HER-015;Herbatint;8 N BIONDO CHIARO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8n-biondo-chiaro-170-ml-int
-HER-017;Herbatint;9 N BIONDO MIELE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-9n-biondo-chiarissimo-170-ml-int
-HER-019;Herbatint;10 N BIONDO PLATINO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-10n-biondo-platino-170-ml-int
-HER-021;Herbatint;4 D CASTANO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4d-castano-dorato-170-ml-int
-HER-023;Herbatint;5 D CASTANO CHIARO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5d-castano-chiaro-dorato-170-ml-int
-HER-025;Herbatint;6 D BIONDO SCURO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-6d-biondo-scuro-dorato-170-ml-int
-HER-026;Herbatint;4 R CASTANO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4r-castano-ramato-170-ml-int
-HER-027;Herbatint;7 D BIONDO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7d-biondo-dorato-170-ml-int
-HER-028;Herbatint;5 R CASTANO CHIARO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5r-castano-chiaro-ramato-170-ml-int
-HER-029;Herbatint;8 D BIONDO CHIARO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8d-biondo-chiaro-dorato-170-ml-int
-HER-030;Herbatint;7 R BIONDO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7r-biondo-ramato-170-ml-int
-HER-031;Herbatint;4 C CASTANO CENERE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4c-castano-cenere-170-ml-int
-HER-032;Herbatint;8 R BIONDO CHIARO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8r-biondo-chiaro-ramato-170-ml-int
-HER-033;Herbatint;5 C CASTANO CHIARO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-5c-castano-chiaro-cenere-170-ml-int
-HER-035;Herbatint;6 C BIONDO SCURO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-6c-biondo-scuro-cenere-170-ml-int
-NLB-001;Naturlab;KARITE' BURRO PURO;100 ml;21,0;21,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/puro-burro-100-ml/
-NLB-002;Naturlab;BURRO CAPILLARE;250 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/burro-capillare-ml-250/
-NLB-003;Naturlab;KARITE' DETERGENTE INTIMO;250 ml;14,5;14,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/detergente-intimo-ml-250/
-NLB-004;Naturlab;OLIO PURO;100 ml;19,0;19,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-puro-ml-100/
-NLB-005;Naturlab;KARITE' OLIO LAVANTE CORPO CAPELLI;200 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/olio-lavante-karite/
-NLB-007;Naturlab;KARITE' LATTE CORPO SPRAY;125 ml;16,9;16,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/latte-corpo-spray-ml-125/
-NLB-009;Naturlab;KARITE' PURO LIQUIDO;50 ml;22,5;22,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/puro-liquido-ml-50/
-NLB-010;Naturlab;OLIO EUDERMICO;200 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-eudermico-ml-200/
-NLB-011;Naturlab;KARITE’ SOLIDO DOCCIA SHAMPOO;55 gr;8,0;8,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/shampoo-doccia-solido-al-karite/
-NLB-012;Naturlab;OLIO CORPO CAPELLI;100 ml;22,9;22,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-corpo-e-capelli-al-monoi/
-NLB-014;Naturlab;SAPONE TRADIZIONALE;100 gr;5,9;4,0;-1,9;-32,2;sito più economico;da verificare (formato o forma diversa?);https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/sapone-tradizionale-al-monoi/
-NLB-015;Naturlab;CO WASH BALSAMO LAVANTE;150 ml;15,5;15,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/co-wash/
-NLB-016;Naturlab;ECO LACCA;150 ml;13,5;13,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/eco-lacca-ecologica-no-gas/
-NLB-017;Naturlab;ECO MOUSSE;150 ml;14,0;14,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/eco-mousse-per-capelli-tenuta-normale/
-NLB-018;Naturlab;BURRO SUPERABBROZANTE*;150 ml;20,0;20,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/burro-super-abbronzante-ml-250/
-NLB-019;Naturlab;GEL EXTRA STRONG;150 ml;13,6;13,6;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/gel-extra-strong-250-ml/
-NLB-020;Naturlab;SHAMPOO DOCCIA ILLUMINANTE;250 ml;16,0;16,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/shampoo-doccia-illuminante-ml-250/
-NLB-021;Naturlab;GLAZE;150 ml;16,0;16,0;0,0;0,0;uguale;alta;https://naturlab.it/en/negozio/l-albero-del-colore/naturfix/glaze-150-ml/
-NLB-022;Naturlab;OLIO PROTETTIVO ILLUMINANTE;50 ml;24,0;24,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-protettivo-illuminante-ml-50/
-NLB-023;Naturlab;TINTA FLUIDA;75 ml;15,95;15,95;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-fluida-per-capelli/tinta-fluida-pepe-verde/
-NLB-024;Naturlab;TINTA IN CREMA “10 minuti”;60 ml;13,9;13,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-permanente-in-crema/tinta-permanente-in-crema-nero-bruno/
-NLB-025;Naturlab;TINTA IN CREMA CLASSICA;60 ml;13,9;13,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-permanente-in-crema/tinta-permanente-in-crema-cannella/
-OFF-001;Officina Naturae;Bagno doccia onda marina;500 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnodoccia-onda-marina
-OFF-002;Officina Naturae;Shampoo per lavaggi frequenti;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-lavaggi-frequenti
-OFF-003;Officina Naturae;Doccia-Shampoo NF;500 ml;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/doccia-shampoo-200-ml-500-ml-1-l-4-l
-OFF-004;Officina Naturae;Shampoo per capelli grassi;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-grassi
-OFF-006;Officina Naturae;Shampoo per capelli ricci;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci
-OFF-008;Officina Naturae;Shampoo per capelli secchi e doppie punte;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci
-OFF-010;Officina Naturae;Shampoo per capelli lisci, dispiplinante;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci
-OFF-012;Officina Naturae;Shampoo per cute con fortora;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-cute-con-forfora
-OFF-014;Officina Naturae;Balsamo per capelli normali e fini;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci
-OFF-015;Officina Naturae;Detergente Intimo;500 ml;8,9;8,5;-0,4;-4,49;sito più economico;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido
-OFF-016;Officina Naturae;Balsamo per capelli lisci, disciplinante;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci
-OFF-018;Officina Naturae;Balsamo per capelli ricci;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci
-OFF-020;Officina Naturae;Balsamo per capelli secchi e doppie punte;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci
-OFF-021;Officina Naturae;Detergente delicato senza profumo;500 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/detergente-delicato-senza-profumo
-OFF-022;Officina Naturae;Maschera per capelli secchi, nutriente;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante
-OFF-024;Officina Naturae;Maschera per capelli lisci, disciplinante;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante
-OFF-026;Officina Naturae;Maschera per capelli ricci, districante;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante
-OFF-027;Officina Naturae;Sapone solido addolcente alla malva Bio;100 g;4,9;4,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/sapone-addolcente
-OFF-028;Officina Naturae;Maschera per capelli normali e fini;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante
-OFF-029;Officina Naturae;Crema corpo verbena;250 ml;18,0;18,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-corpo/crema-corpo-verbena
-OFF-030;Officina Naturae;Styling - Cristalli Liquidi Per Capelli;50 ml;15,9;15,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/styling/cristalli-liquidi
-OFF-033;Officina Naturae;Crema Mani Nutriente Patchouli;50 ml;5,95;5,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-patchouli
-OFF-034;Officina Naturae;CURLY Shampoo Per Ricci Definiti;200 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/curly-shampoo
-OFF-035;Officina Naturae;Crema Mani Nutriente Verbena;50 ml;5,95;5,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-verbena
-OFF-037;Officina Naturae;Dentifricio rinfrescante;100 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-rinfrescante
-OFF-039;Officina Naturae;Roll On Deodorante eco bio Giardino fiorito;50 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-giardino-fiorito
-OFF-040;Officina Naturae;Roll On Deodorante eco bio Ondamarina;50 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-onda-marina
-OFF-041;Officina Naturae;Deodorante eco bio Giardino fiorito;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-giardino-fiorito
-OFF-043;Officina Naturae;Dentifricio Sbiancante Menta in alluminio;75 ml;6,5;6,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-sbiancante-menta
-OFF-044;Officina Naturae;Bagnodoccia Solido;50 g;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/biricco-bagnodoccia-solido
-OFF-045;Officina Naturae;Dentifricio Anice in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-anice
-OFF-046;Officina Naturae;Amido di riso Biologico;100 g;6,9;6,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/amido-di-riso-biologico
-OFF-048;Officina Naturae;Bagnetto Cremoso Cambio pannolino;200 ml;9,8;9,8;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnetto-cremoso-cambio-pannolino
-OFF-049;Officina Naturae;Dentifricio Limone in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-limone
-OFF-050;Officina Naturae;Bagnoschiuma Baby corpo capelli;200 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnoschiuma-baby-corpo-capelli
-OFF-051;Officina Naturae;Dentifricio Denti Sensibili in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-denti-sensibili-e-delicati
-OFF-053;Officina Naturae;Dentifricio Limone in Pastiglie;115 pz;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta
-OFF-054;Officina Naturae;Crema Corpo Baby;100 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/crema-corpo-baby
-OFF-055;Officina Naturae;Dentifricio Menta in Pastiglie;115 pz;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta
-OFF-057;Officina Naturae;Collutorio Liquido Menta CONCENTRATO;100 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/collutorio-naturale/collutorio-concentrato-menta
-OFF-058;Officina Naturae;Dentifricio Banana;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-gel-bimbi-banana
-OFF-060;Officina Naturae;Dentifricio Ciliegia;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-ciliegia
-OFF-061;Officina Naturae;DENTI' - Dentifricio da Viaggio in Pastiglie;21 pz;3,99;3,99;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/denti-dentifricio-da-viaggio-in-pastiglie
-OFF-062;Officina Naturae;Dentifricio Fragola;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-fragola
-OFF-063;Officina Naturae;Saponetta alla Mela Cotogna e Calendula;100 g;4,9;4,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/sapone-alla-mela-cotogna-e-calendula
-OFF-064;Officina Naturae;"Deodorante Solido ""BRIOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-brioso-coso
-OFF-066;Officina Naturae;"Deodorante Solido ""GRINTOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-grintoso-coso
-OFF-067;Officina Naturae;Oleolito di Arnica*;110 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-arnica
-OFF-068;Officina Naturae;"Deodorante Solido ""NEUTRO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-neutro-coso
-OFF-070;Officina Naturae;"Deodorante Solido ""SCICCOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-sciccoso-coso
-OFF-071;Officina Naturae;Oleolito di Calendula;110 ml;14,5;14,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-calendula
-OFF-072;Officina Naturae;"Deodorante Solido ""VANITOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-vanitoso-coso
-OFF-074;Officina Naturae;Oleolito di Iperico;110 ml;13,0;13,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-iperico-biologico
-OFF-079;Officina Naturae;Olio di Rosa Mosqueta *;110 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/olio-di-rosa-mosqueta-puro
-OFF-082;Officina Naturae;Shampoo ultradelicato *;250 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-ultra-delicato
-OFF-083;Officina Naturae;Balsamo ultradelicato *;250 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-ultra-delicato
-OFF-085;Officina Naturae;Bagnoschiuma ultradelicato *;250 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnoschiuma-ultra-delicato
-OFF-087;Officina Naturae;Intimo ultradelicato *;250 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/detergente-intimo/intimo-ultra-delicato
-OFF-089;Officina Naturae;Detergente Barba e Viso Solido - N. 4;40 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/detergente-barba-e-viso-solido
-OFF-090;Officina Naturae;Burro labbra BIO Vaniglia nutriente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-vaniglia
-OFF-091;Officina Naturae;Sapone da Barba Solido - N. 6;50 g;10,5;10,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/sapone-da-barba-solido
-OFF-092;Officina Naturae;Burro labbra Bio Frutti Rossi addolcente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-frutti-rossi
-OFF-093;Officina Naturae;Burro labbra Bio Mou protettivo;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mou
-OFF-094;Officina Naturae;Detergente Solido Viso Delicato;50 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato
-OFF-095;Officina Naturae;Burro labbra Bio Mela Cotogna nutriente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mela-cotogna
-OFF-096;Officina Naturae;Detergente Solido Viso Purificante;50 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante
-OFF-097;Officina Naturae;Intimo Solido;50 g;8,5;8,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido
-OFF-098;Officina Naturae;Crema Giorno Tonificante;30 ml;18,9;18,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-viso-tonificante
-OFF-099;Officina Naturae;Shampoo Solido Nutriente e Protettivo;64 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo
-OFF-100;Officina Naturae;Crema Nutriente Viso e Decolleté;30 ml;19,9;19,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-nutriente-viso-e-decollete
-OFF-101;Officina Naturae;Shampoo Solido Rinforzante ed Illuminante;64 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso
-OFF-102;Officina Naturae;Crema Stop Age Elasticizzante;30 ml;24,5;24,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-stop-age-elasticizzante
-OFF-103;Officina Naturae;Balsamo Solido Nutriente e Protettivo;64 g;11,5;3,3;-8,2;-71,3;sito più economico;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo
-OFF-104;Officina Naturae;Crema Delicata Riequilibrante;30 ml;18,9;18,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-delicata-riequilibrante
-OFF-105;Officina Naturae;Balsamo Solido Rinforzante ed Illuminante;64 g;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante
-OFF-107;Officina Naturae;Baby Bagnodoccia Solido;50 g;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/baby-coso-bagnodoccia-solido
-OFF-108;Officina Naturae;Bagnoschiuma Solido Vellutante;64 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante
-OFF-109;Officina Naturae;Crema Gambe e Piedi Rinfrescante;150 ml;12,0;12,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-corpo/crema-gambe-e-piedi-rinfrescante
-OFF-110;Officina Naturae;Bagnoschiuma Solido Rivitalizzante;64 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante
-OFF-111;Officina Naturae;Gel Lenitivo Doposole Al Fico D'India;150 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doposole/gel-lenitivo-doposole
-OFF-112;Officina Naturae;Crema doposole vaso in alluminio;150 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doposole/crema-doposole
-OFF-113;Officina Naturae;Shampoo Solido Nutriente e Protettivo;15 g;3,3;11,9;8,6;260,61;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo
-OFF-115;Officina Naturae;Shampoo Solido Rinforz. ed Illuminante;15 g;3,3;11,9;8,6;260,61;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso
-OFF-116;Officina Naturae;Crema solare SPF 50 VISO - stop age;30 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/crema-solare-viso-spf-50
-OFF-117;Officina Naturae;Balsamo Solido Nutri. e Protettivo;15 g;3,3;3,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo
-OFF-119;Officina Naturae;Balsamo Solido Rinforz. ed Illuminante;15 g;3,3;11,5;8,2;248,48;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante
-OFF-120;Officina Naturae;Doccia Shampoo Doposole;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doccia-shampoo-doposole
-OFF-121;Officina Naturae;Bagnoschiuma Solido Vellutante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante
-OFF-122;Officina Naturae;Doccia Shampoo Solido Doposole Antisale;50 g;8,5;8,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doccia-shampoo-solido-doposole
-OFF-123;Officina Naturae;Bagnoschiuma Solido Rivitalizzante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante
-OFF-124;Officina Naturae;Detergente Solido Viso Delicato;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato
-OFF-126;Officina Naturae;Detergente Solido Viso Purificante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante
-OFF-127;Officina Naturae;gel Post Puntura;20 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/punture-insetti/rimedi-punture-insetti/pizzicoff-gel-dopo-puntura
-OFF-128;Officina Naturae;Intimo Solido;15 g;3,3;8,5;5,2;157,58;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido
-OFF-129;Officina Naturae;Crema fluida baby;100 ml;14,5;14,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/punture-insetti/prevenzione-insetti/pizzicoff-crema-fluida-baby
-PLM-003;Palmea;CREMA IDRATANTE GIORNO NOTTE;50 ml;43,0;30,1;-12,9;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/crema-idratante-giorno-e-notte-classic/
-PLM-005;Palmea;CREMA PELLI SENSIBILI;50 ml;45,5;31,85;-13,65;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/crema-per-pelli-sensibili-classic/
-PLM-007;Palmea;CREMA CONTORNO occhi e labbra;50 ml;29,5;20,65;-8,85;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/crema-contorno-occhi-e-labbra-classic/
-PLM-009;Palmea;SCRUB VISO ALLA CRUSCA DI RISO;50 ml;34,5;24,15;-10,35;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/scrub-viso-alla-crusca-di-riso-classic/
-PLM-010;Palmea;CREMA ANTIMACCHIA uniformante;50 ml;51,0;35,7;-15,3;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/crema-antimacchia-uniformante-oasis/
-PLM-012;Palmea;CLARENTE BOOSTER ANTIMACCHIA;15 ml;41,5;29,05;-12,45;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/clarente-booster-antimacchia/
-PLM-014;Palmea;SIERO ANTIMACCHIA illuminante;30 ml;48,5;33,95;-14,55;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/siero-antimacchia-illuminante-oasis/
-PLM-016;Palmea;UNICA SIERO rimineralizzante antiage;30 ml;61,5;43,05;-18,45;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/siero-rimineralizzante-antiossidante-antiage-unica/
-PLM-017;Palmea;ELISIR TONIFICANTE;200 ml;29,5;20,65;-8,85;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/elisir-tonificante-classic/
-PLM-020;Palmea;RITUALE SUPREMO siero intensivo;30 ml;49,9;34,9;-15,0;-30,06;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/rituale-supremo-siero-intensivo-classic/
-PLM-021;Palmea;OLIO PREZIOSO;30 ml;47,0;32,9;-14,1;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/olio-prezioso-classic/
-PLM-022;Palmea;FLUIDO ANTIRUGHE OPACIZZANTE;30 ml;45,0;31,5;-13,5;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/fluido-antirughe-opacizzante-classic/
-PLM-023;Palmea;ALL DAY TRATTAMENTO INTEGRALE;50 ml;65,0;45,5;-19,5;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/all-day-trattamento-integrale-giallo-oro/
-PLM-024;Palmea;FACE DETOX TREATMENT maschera;75 ml;52,0;36,4;-15,6;-30,0;sito più economico;da verificare (formato o forma diversa?);https://www.palmea.it/prodotto/face-detox-treatment-elements/
-SAG-001;Sangalli;ALGA SUBLIME;180 cps;36,0;36,0;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-sublime/
-SAG-002;Sangalli;KILOMENO DRENA FORTE;500 ml;26,5;26,5;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-drena-forte/
-SAG-003;Sangalli;ALGA SUBLIME;500 cps;78,5;78,5;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-sublime-500-cps/
-SAG-004;Sangalli;KILOMENO LINEA;80 cps;24,5;24,5;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-linea/
-SAG-006;Sangalli;KILOMENO UNIVERSALE;500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-universale/
-SAG-007;Sangalli;ALOE 600 SUPERIOR PURO SUCCO;1 lt;26,2;26,2;0,0;0,0;uguale;alta;https://sangalli.it/product/aloe-600-superior/
-SAG-008;Sangalli;KILOMENO VENTRE;500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-ventre/
-SAG-010;Sangalli;LEO PROPOLIS;30 ml;14,0;14,0;0,0;0,0;uguale;alta;https://sangalli.it/product/leo-propolis/
-SAG-011;Sangalli;ATTIVA FLOR DAILY;30 cps;23,7;23,7;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-daily/
-SAG-012;Sangalli;LEO VACCINIUM;100 ml;16,0;16,0;0,0;0,0;uguale;alta;https://sangalli.it/product/leo-defensor/
-SAG-013;Sangalli;ATTIVA FLOR IMMUNO;30 cps;26,0;26,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-immuno/
-SAG-014;Sangalli;MAGNESIO E NATTOCHINASI;60 cp;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/magnesio-marino-b-60-cps/
-SAG-015;Sangalli;ATTIVA FLOR PLATINUM;20 cps;26,0;26,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-platinum/
-SAG-016;Sangalli;MAGNESIO E VITAMINE GRUPPO B;60 cp;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/magnesio-marino-b-60-cps/
-SAG-017;Sangalli;ATTIVA MIX NEW;60 cps;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivamix-new-60-cps/
-SAG-020;Sangalli;NATURAL ACT UMORE;60 cpr;25,5;25,5;0,0;0,0;uguale;alta;https://sangalli.it/product/natural-act-umore/
-SAG-021;Sangalli;BIO REMEDY SPRAY GOLA;20 ml;12,0;12,0;0,0;0,0;uguale;alta;https://sangalli.it/product/bio-remedy-spray-gola/
-SAG-023;Sangalli;BIO REMEDY TINTURA PROPOLI;30 ml;15,5;15,5;0,0;0,0;uguale;alta;https://sangalli.it/product/bio-remedy-tintura-di-propoli/
-SAG-025;Sangalli;CLOROFILLA SUBLIME;90 cps;29,0;29,0;0,0;0,0;uguale;alta;https://sangalli.it/product/clorofilla-sublime-90-cps/
-SAG-026;Sangalli;SONNONAT;30 cpr;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/sonnonat/
-SAG-027;Sangalli;DEPURATIVO PADRI MONFORTANI;300 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/depurativo-dei-padri-monfortani/
-SAG-028;Sangalli;SPIRULINA BLU+;90 cps;39,0;39,0;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-spirulina/
-SAG-029;Sangalli;DIGESTIVO PADRI MONFORTANI;300 ml;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/digestivo-dei-padri-monfortani/
-SAG-030;Sangalli;EPIPROST;60 cpr;31,0;31,0;0,0;0,0;uguale;alta;https://sangalli.it/product/epiprost-60-cpr/
-SAG-031;Sangalli;EPIPROST GOCCE RM;100 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/epiprost-gocce/
-SAG-033;Sangalli;EUFRASIA GOCCE OCULARI;15 ml;10,5;10,5;0,0;0,0;uguale;alta;https://sangalli.it/product/gocce-di-eufrasia-15-ml/
-SAG-035;Sangalli;FITOATTIVI AGLIO 3 MIX;50 cps;17,0;17,0;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-aglio-3-mix/
-SAG-036;Sangalli;FITOATTIVI ALGA LAMINARIA;90 cps;18,5;18,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-alga-laminaria/
-SAG-038;Sangalli;FITOATTIVI BAMBU' 45gg;90 cps;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-bambu/
-SAG-040;Sangalli;FITOATTIVI BOSWELIA;90 cps;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-boswellia/
-SAG-041;Sangalli;FITOATTIVI RHODIOLA;90 cps;27,0;27,0;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-rhodiola/
-SAG-042;Sangalli;FITOATTIVI TURNERA APHROD;90 cps;29,5;29,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-turnera-aphrodisiaca/
-SAG-043;Sangalli;FLEXINAT;20 cpr;29,0;29,0;0,0;0,0;uguale;alta;https://sangalli.it/product/flexinat/
-SAG-045;Sangalli;KRAUTEROL 24;100 ml;18,0;18,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-24/
-SAG-046;Sangalli;INFLUNAT;20 cpr;22,5;22,5;0,0;0,0;uguale;alta;https://sangalli.it/product/influnat/
-SAG-047;Sangalli;KRAUTEROL 31;100 ml;21,7;21,7;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-31/
-SAG-048;Sangalli;JUVACALM CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvacalm/
-SAG-049;Sangalli;KRAUTEROL 43;100 ml;21,5;21,0;-0,5;-2,33;sito più economico;alta;https://sangalli.it/product/krauterol-43/
-SAG-050;Sangalli;JUVADOL CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvadol/
-SAG-051;Sangalli;KRAUTEROL 99;100 ml;21,0;21,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-99/
-SAG-052;Sangalli;JUVAVEN CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvaven/
-SAG-053;Sangalli;KRAUTEROL 99 Forte;100 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-99-forte/
-SAN-001;Santiveri;A17 AMINOACIDI;12 bs;29,2;29,2;0,0;0,0;uguale;alta;https://santiveri.it/products/a17-12-bustine-108-g
-SAN-002;Santiveri;ACTICIR PLUS concentrato fluido;500 ml;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir
-SAN-003;Santiveri;ACTICIR FORTE;30 cp;19,9;19,9;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir-forte-compresse-302g
-SAN-004;Santiveri;ACTICIR GEL;125 ml;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir-gel-125-ml
-SAN-005;Santiveri;ALGA CHLORELLA BIO;118 cp;22,3;23,2;0,9;4,04;sito più caro;alta;https://santiveri.it/products/alga-chlorella-bio-50g
-SAN-006;Santiveri;ALGA FUCUS BIO;113 cp;9,7;9,7;0,0;0,0;uguale;alta;https://santiveri.it/products/alga-fucus-bio-60g
-SAN-007;Santiveri;ALGA KLAMAT & SPIRULINA;70 cp;26,6;29,0;2,4;9,02;sito più caro;alta;https://santiveri.it/products/alga-klamath-30-g
-SAN-008;Santiveri;ALGA SPIRULINA BIO;100 cp;16,3;17,0;0,7;4,29;sito più caro;alta;https://santiveri.it/products/alga-spirulina-bio-45-g
-SAN-009;Santiveri;ALOE VERA SUCCO;1 lt;34,0;34,0;0,0;0,0;uguale;alta;https://santiveri.it/products/aloe-vera-succo-1-lt
-SAN-010;Santiveri;ALOE VERA GEL 100% BIO;200 ml;20,2;20,2;0,0;0,0;uguale;alta;https://santiveri.it/products/gel-aloe-vera-100-bio-200ml
-SAN-011;Santiveri;ANEMIVITA COMPLEX;40 cp;16,0;16,0;0,0;0,0;uguale;alta;https://santiveri.it/products/anemivita-complex-capsule-25-g
-SAN-012;Santiveri;ARGILLA VERDE TUBO;400 mg;13,3;13,3;0,0;0,0;uguale;alta;https://santiveri.it/products/argilla-verde-400gr
-SAN-013;Santiveri;ARTRUM B FLEX;30 cp;19,5;19,5;0,0;0,0;uguale;alta;https://santiveri.it/products/artrum-b-flex-30-compresse
-SAN-014;Santiveri;ARTRUM B CREMA GEL;75 ml;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/artrum-b-crema-gel-75ml
-SAN-015;Santiveri;ASWAGANDA;40 cp;14,9;15,8;0,9;6,04;sito più caro;alta;https://santiveri.it/products/ashwaganda-capsule-18-gr
-SAN-016;Santiveri;BELSON MELATONINA;30 ml;10,3;12,9;2,6;25,24;sito più caro;da verificare (formato o forma diversa?);https://santiveri.it/products/belson-melatonina-30ml
-SAN-017;Santiveri;BELSON PLANT;20 cp;10,3;10,8;0,5;4,85;sito più caro;alta;https://santiveri.it/products/belson-plant-capsule-9-g
-SAN-018;Santiveri;BENEFLOR;40 cp;29,3;29,3;0,0;0,0;uguale;alta;https://santiveri.it/products/beneflor-capsule-20-g
-SAN-019;Santiveri;B C LULIT ATTACK FIALE;20 fl;27,2;27,2;0,0;0,0;uguale;alta;https://santiveri.it/products/fiale-bi-c-lulit
-SAN-020;Santiveri;B C LULIT CONTROL compresse;48 cp;16,8;16,8;0,0;0,0;uguale;alta;https://santiveri.it/products/bi-c-lulit-compresse-28-g
-SAN-021;Santiveri;BILIXIR BEVANDA;240 ml;17,1;17,1;0,0;0,0;uguale;alta;https://santiveri.it/products/bilixir-concentrato-fluido-240ml
-SAN-022;Santiveri;BILIXIR FORTE compresse;40 cp;12,5;13,0;0,5;4,0;sito più caro;alta;https://santiveri.it/products/bilixir-forte-compresse-20-gr
-SAN-023;Santiveri;BILIXIR STICK;200 ml;21,9;21,9;0,0;0,0;uguale;alta;https://santiveri.it/products/bilixir-stick-20x10ml
-SAN-024;Santiveri;BILIXIR TISANA filtri;20 bs;7,1;7,1;0,0;0,0;uguale;alta;https://santiveri.it/products/tisana-bilixir-40g
-SAN-028;Santiveri;CARBONATO DI MAGNESIO polv.;110 gr;12,0;12,0;0,0;0,0;uguale;alta;https://santiveri.it/products/carbonato-di-magnesio-110-g
-SAN-029;Santiveri;CARDO MARIANO;40 cp;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-cardo-mariano-capsule-18-gr
-SAN-030;Santiveri;CITRESS PICK BALSAMO;10 ml;8,0;8,0;0,0;0,0;uguale;alta;https://santiveri.it/products/citress-pick-10ml
-SAN-031;Santiveri;CITRESS SPRAY;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://santiveri.it/products/citress-spray-100ml
-SAN-032;Santiveri;CLORURO DI MAGNESIO 230 mg;230 cp;12,5;12,5;0,0;0,0;uguale;alta;https://santiveri.it/products/cloruro-di-magnesio-compresse-230-g
-SAN-033;Santiveri;CLORURO DI MAGNESIO 120 mg;200 cp;10,9;10,9;0,0;0,0;uguale;alta;https://santiveri.it/products/cloruro-di-magnesio-compresse-120-g
-SAN-034;Santiveri;COMPLEX MULTIVITAMIN;50 cp;21,2;22,0;0,8;3,77;sito più caro;alta;https://santiveri.it/products/complex-multivitamin-compresse-69gr
-SAN-035;Santiveri;CORPRESS;40 cp;25,2;26,2;1,0;3,97;sito più caro;alta;https://santiveri.it/products/corpress-compresse-22g
-SAN-036;Santiveri;CURCU FLEX superactive;48 cp;34,3;35,8;1,5;4,37;sito più caro;alta;https://santiveri.it/products/curcuflex-superactive-compresse-36-g
-SAN-037;Santiveri;D-CISTOPLANT;8 bs;19,0;19,0;0,0;0,0;uguale;alta;https://santiveri.it/products/d-cistoplant-8-stick
-SAN-038;Santiveri;DEXTRESS GABA;60 cp;16,0;16,6;0,6;3,75;sito più caro;alta;https://santiveri.it/products/dextress-gaba
-SAN-039;Santiveri;DIURIFORTE PLUS BEVANDA;500 ml;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/diuriforte-500
-SAN-040;Santiveri;DONNA POWER + (ciclo);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-power-ciclo
-SAN-041;Santiveri;DONNA FOCUS + (prepausa);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-focus-prepausa
-SAN-042;Santiveri;DONNA GOLD + (menopausa);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-gold-menopausa
-SAN-043;Santiveri;ENERGY 3 STICK;15 st;16,9;16,9;0,0;0,0;uguale;alta;https://santiveri.it/products/energy-3-stick-15x10ml
-SAN-044;Santiveri;FERROXIR FORTE FLUIDO;240 ml;18,7;19,4;0,7;3,74;sito più caro;alta;https://santiveri.it/products/ferroxir-forte-240-ml
-SAN-045;Santiveri;FLEBASE;60 cp;22,3;23,2;0,9;4,04;sito più caro;alta;https://santiveri.it/products/flebase-compresse-27gr
-SAN-046;Santiveri;FLORASE ANSIA PLUS;30 cp;16,9;17,6;0,7;4,14;sito più caro;alta;https://santiveri.it/products/florase-ansia-18-g
-SAN-047;Santiveri;FLORASE COLESTEROLO FORTE;40 cp;28,8;28,8;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colesterolo-forte-20-g
-SAN-048;Santiveri;FLORASE COLESTEROLO REDUX;20 bs;17,5;17,5;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colesterolo-redux
-SAN-049;Santiveri;FLORASE COLON HELP;40 cp;25,6;25,6;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colon-help-16g
-SAN-050;Santiveri;FLORASE DERMA;40 cp;22,5;22,5;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-derma-16-g
-SAN-052;Santiveri;FLORASE IMMUNO flaconcini;10 fl;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-immuno-100-ml
-SAN-053;Santiveri;FLORASE INTEST;40 cp;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-intest-19-g
-SAN-054;Santiveri;FLORASE KAND;40 cp;27,2;27,2;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-kand-19gr
-SAN-055;Santiveri;FLORASE UROL;40 cp;22,5;23,4;0,9;4,0;sito più caro;alta;https://santiveri.it/products/florase-urol-18-g
-SAN-056;Santiveri;FLOR INTOLLERANCE ATTACCO;30 cp;20,7;20,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-attacco
-SAN-057;Santiveri;FLOR INTOLLERANCE CONTROLLO;30 cp;19,7;19,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-controllo
-SAN-058;Santiveri;FLOR INTOLLERANCE EQUILIBRIO;240 ml;16,7;16,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-equilibrio
-SAN-059;Santiveri;FLOR INTOLLERANCE KAVAGAS;30 cp;13,1;13,1;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-kavagas
-SAN-060;Santiveri;FLOR INTOLLERANCE BUTIRRATO;30 cp;14,8;14,8;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-butirrato-30-compresse
-SAN-061;Santiveri;GIKGO BILOBA;40 cp;14,8;14,8;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-ginkgo-biloba-capsule-18-gr
-SAN-062;Santiveri;HARPAGOPHYTUM ESP fiale;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/harpagophytum-esp-100-ml
-SAN-063;Santiveri;OLIO DI ENOTHERA 500 mg;220 prl;34,1;34,1;0,0;0,0;uguale;alta;https://santiveri.it/products/enotera-500-perle-154-g
-SAN-064;Santiveri;INFLULEN NASO;30 ml;11,0;11,0;0,0;0,0;uguale;alta;https://santiveri.it/products/influlen-naso-spray-30ml
-SAN-065;Santiveri;OLIO DI FEGATO DI MERLUZZO;120 prl;19,0;19,0;0,0;0,0;uguale;alta;https://santiveri.it/products/olio-di-fegato-di-merluzzo-perle-80g
-SAN-066;Santiveri;INFLULEN TOSSE;170 ml;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/influlen-tosse-bevanda-170ml
-SAN-068;Santiveri;IPERICO;40 cp;13,4;13,4;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-iperico-capsule-16-gr
-SAN-069;Santiveri;OXACOR K2;40 CP;27,8;27,8;0,0;0,0;uguale;alta;https://santiveri.it/products/oxacor-capsule-21-g
-SAN-070;Santiveri;KRAUTER BASEN + (nuova formula);500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://santiveri.it/products/krauter-basen
-SAN-071;Santiveri;PICOLINATO DI CROMO;40 cp;16,4;17,0;0,6;3,66;sito più caro;alta;https://santiveri.it/products/picolinato-di-cromo-forte-16-g
-SAN-072;Santiveri;LAX ALOE PROTECT;60cps;10,0;10,0;0,0;0,0;uguale;alta;https://santiveri.it/products/lax-aloe-protect
-SAN-073;Santiveri;PLANTAGO MAYOR ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/plantago-major-esp-100-ml
-SAN-074;Santiveri;LIPID COMPLEX;125 prl;37,8;37,8;0,0;0,0;uguale;alta;https://santiveri.it/products/lipid-complex-perle-87-gr
-SAN-075;Santiveri;PLAVIR CONCENTRATO fluido;200 ml;17,1;17,8;0,7;4,09;sito più caro;alta;https://santiveri.it/products/plavir-difese-immunitarie-200ml
-SAN-076;Santiveri;MACA BIO CAPSULE;60 cp;20,4;20,4;0,0;0,0;uguale;alta;https://santiveri.it/products/maca-bio-26-g
-SAN-077;Santiveri;POSITIVE;40 cp;23,0;24,0;1,0;4,35;sito più caro;alta;https://santiveri.it/products/positive-19-g
-SAN-078;Santiveri;MAGNESIO E POTASSIO;20 bs;13,0;13,0;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-e-potassio-bustine-100g
-SAN-079;Santiveri;PROPOLFLOR ESTRATTO BIO;50 ml;17,5;18,2;0,7;4,0;sito più caro;alta;https://santiveri.it/products/propolflor-propoli-estratto-bio-50-ml
-SAN-080;Santiveri;MAGNESIO E POTASSIO PLUS;10 bs;14,0;14,0;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-e-potassio-plus-bustine-50g
-SAN-081;Santiveri;PROPOLFLOR SPRAY ORALE BIO;30 ml;13,0;13,6;0,6;4,62;sito più caro;alta;https://santiveri.it/products/propolflor-spray-orale-bio-30-ml
-SAN-082;Santiveri;MAGNESIO MAX (magnesio citrato);150 gr;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-maximum-150g
-SAN-083;Santiveri;PROSTAPLANT;40 cp;17,3;18,0;0,7;4,05;sito più caro;alta;https://santiveri.it/products/prostaplant-capsule-18-g
-SAN-084;Santiveri;METABOLIC 1;21 bs;39,0;39,0;0,0;0,0;uguale;alta;https://santiveri.it/products/metabolic_1
-SAN-085;Santiveri;Q - MAGNESIO 55 gr;88 cp;15,7;15,7;0,0;0,0;uguale;alta;https://santiveri.it/products/q-magnesio-compresse-55-g
-SAN-086;Santiveri;RAPHANUS ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/raphanus-e-s-p-100-ml
-SAN-087;Santiveri;REALFRIAL PROPOLI+ ECHINACEA;20 fl;28,2;28,2;0,0;0,0;uguale;alta;https://santiveri.it/products/realfrial-fiale-200-ml
-SAN-088;Santiveri;REALGINSENG 200 ml;20 fl;36,4;36,4;0,0;0,0;uguale;alta;https://santiveri.it/products/realginsengx2-fiale-200-ml
-SAN-089;Santiveri;REALMIL 200 ml;20 fl;28,3;29,4;1,1;3,89;sito più caro;alta;https://santiveri.it/products/realmil-fiale-200-ml
-SAN-090;Santiveri;RUSCUS ACULEATUS ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/ruscus-aculeatus-es-100ml
-SAN-091;Santiveri;SANATORIUM;72 cp;10,5;10,5;0,0;0,0;uguale;alta;https://santiveri.it/products/sanatorium-41-g
-SAN-092;Santiveri;SILICIO + MAGNESIO MARINO;60 cp;30,7;31,8;1,1;3,58;sito più caro;alta;https://santiveri.it/products/silicio-e-magnesio-marino-28gr
-SAN-093;Santiveri;SILYBUM MARIANUM ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/silybum-marianum-esp-100-ml
-SAN-095;Santiveri;TAPEZCOHUITE BIO CREMA;50 ml;12,2;12,2;0,0;0,0;uguale;alta;https://santiveri.it/products/bioconcentrato-tepezcohuite-50ml
-SAN-096;Santiveri;TRIPTOFANO;40 cp;25,9;25,9;0,0;0,0;uguale;alta;https://santiveri.it/products/triptofano-capsule-18-g
-SAN-097;Santiveri;ULCE REFLUX stick 10 ml;16 st;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-reflux-stick
-SAN-098;Santiveri;ULCE DIGEST concentrato fluido;240 ml;20,8;20,8;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-concentrato-fluido-240-ml
-SAN-099;Santiveri;ULCE GASTRO;40 cp;27,1;28,2;1,1;4,06;sito più caro;alta;https://santiveri.it/products/ulce-gastro-capsule-15gr
-SAN-100;Santiveri;VALERIANA;40 cp;11,5;11,5;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocoltura-valeriana-capsule
-SAN-102;Santiveri;MICOSAN ENERGY;40 cp;24,6;24,6;0,0;0,0;uguale;alta;https://santiveri.it/products/micoxan-energy-19-g
-SAN-103;Santiveri;VIGOR FORMA ATTIVA;240 ml;23,0;23,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-attiva-concentrato-fluido-240ml
-SAN-104;Santiveri;MICOSAN IMMUNFLU;40 cp;24,3;24,3;0,0;0,0;uguale;alta;https://santiveri.it/products/micoxan-immunflu-18-g
-SAN-105;Santiveri;VIGOR FORMA BRUCIA;240 ml;23,0;23,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-brucia-concentrato-fluido-240ml
-SAN-106;Santiveri;MICOSAN METABOLIC;40 cp;23,1;24,4;1,3;5,63;sito più caro;alta;https://santiveri.it/products/micoxan-metabolic-19gr
-SAN-107;Santiveri;VIGOR FORMA RIDUCE;200 ml;20,0;20,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-riduce-compresse-20gr
-SAN-108;Santiveri;MICOSAN PROTECT;40 cp;18,0;18,8;0,8;4,44;sito più caro;alta;https://santiveri.it/products/micoxan-protect-19-g
-SAN-110;Santiveri;MICOSAN PURAVIDA;40 cp;21,0;21,8;0,8;3,81;sito più caro;alta;https://santiveri.it/products/micoxan-puravida-18-g
-SAN-111;Santiveri;VIGOR HAIR;48 cp;22,7;22,7;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-hair-compresse-40gr
-SAN-112;Santiveri;MICOSAN SOMAX;40 cp;25,4;26,4;1,0;3,94;sito più caro;alta;https://santiveri.it/products/micoxan-somax-18-g
-SAN-113;Santiveri;VIGOR PEC concentrato fluido;240 ml;17,5;18,2;0,7;4,0;sito più caro;alta;https://santiveri.it/products/vigor-pec-grassa-240-ml
-SAN-114;Santiveri;MIGLIOVITA compresse;80 cp;42,0;42,0;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-capsule-64-g
-SAN-115;Santiveri;VIGOR SOL ACTIFPLUS;30 prl;16,6;17,4;0,8;4,82;sito più caro;alta;https://santiveri.it/products/vigorsol-actifplus-perle-24-g
-SAN-116;Santiveri;MIGLIOVITA compresse;40 cp;22,8;22,8;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-capsule-32-g
-SAN-117;Santiveri;VIT. B 12 1.000 mg;20 cp;8,8;9,5;0,7;7,95;sito più caro;alta;https://santiveri.it/products/vitamina-b12-compresse-10gr
-SAN-118;Santiveri;MIGLIOVITA fiale BIO;10 fl;22,9;22,9;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-fiale-bio-10-fiale-100-ml
-SAN-121;Santiveri;VITAMINA C 1000 mg RETARD;60 cp;21,9;21,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vitamina-c-retardquercetina-90-cpr-18g
-SAN-122;Santiveri;MIGRADOL;40 cp;12,4;12,4;0,0;0,0;uguale;alta;https://santiveri.it/products/migradol-capsule-14-g
-SAN-123;Santiveri;VITAMINA D3 VEGETALE;60 cp;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vitamina-d3-2000-vegetale-cpr-27gr
-SAN-124;Santiveri;MIRTILLO ROSSO bevanda;490 ml;19,2;20,0;0,8;4,17;sito più caro;alta;https://santiveri.it/products/mirtillo-rosso-succo-490-ml
-SAN-125;Santiveri;VIVOLAX STIMOLA;60 gr;12,0;12,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vivolax-stimola
-SAN-126;Santiveri;NOLESTEROL Senza monocolina;40 cp;25,4;25,4;0,0;0,0;uguale;alta;https://santiveri.it/products/nolesterol-con-altilix-cps-vegetali-20g
-SAN-127;Santiveri;VIVOLAX REGOLA;200 ml;14,0;15,0;1,0;7,14;sito più caro;alta;https://santiveri.it/products/vivolax-regola
-SAN-128;Santiveri;OCULARINA ANTIOX;60 cp;20,5;21,4;0,9;4,39;sito più caro;alta;https://santiveri.it/products/ocularina-antiox-31-g
-SAN-129;Santiveri;VIVOLAX FIBRA LIQUIDA;500 ml;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vivolax-fibra-500-ml
-SAN-130;Santiveri;ZEFIRUS DREN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-dren-100-ml
-SAN-131;Santiveri;ZEFIRUS LEI;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-lei-100-ml
-SAN-132;Santiveri;ZEFIRUS PRO CARDIO;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-cardio-100m
-SAN-133;Santiveri;ZEFIRUS PRO ENDOCRIN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-endocrin-100m
-SAN-134;Santiveri;ZEFIRUS PRO METABOLIC;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-metabolic-100m
-SAN-135;Santiveri;ZEFIRUS RIN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-rin-100-ml
-STU-001;Stur Dee;ACIDO FOLICO;100 cp;18,5;18,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/acido-folico/
-STU-002;Stur Dee;L-TRIPTOFANO;30 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/l-triptofano/
-STU-004;Stur Dee;LECITINA DI SOIA;100 prl;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/lecitina-di-soia/
-STU-005;Stur Dee;ALGA MARINA;250 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/alga-marina/
-STU-006;Stur Dee;MAGNESIO POTASSIO 60 tv;;21,5;21,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/magnesio-e-potassio/
-STU-012;Stur Dee;MULTIMINERALS;100 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/multiminerals/
-STU-015;Stur Dee;BIO CAL MAG;50 cp;17,5;17,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/bio-cal-mag/
-STU-016;Stur Dee;OMEGA TRE 1000;100 prl;26,0;26,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/omega-3-1000/
-STU-017;Stur Dee;BOSWELIA SERRATA;100 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/boswellia-serrata/
-STU-018;Stur Dee;PAPAYA FERMENTATA;60 cp;21,0;21,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/papaia-fermentata/
-STU-019;Stur Dee;C - COMPLEX 500;100 cp;18,5;18,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/c-complex/
-STU-020;Stur Dee;POMPELMO SEMI;60 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/semi-di-pompelmo/
-STU-022;Stur Dee;POMPELMO SEMI GOCCE;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/semi-di-pompelmo-gocce/
-STU-024;Stur Dee;POTASSIO;100 cp;21,0;21,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/potassio/
-STU-026;Stur Dee;RODIOLA;50 cp;17,5;17,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/rodiola/
-STU-028;Stur Dee;SELENIUM;50 cp;17,0;17,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/selenium-50/
-STU-030;Stur Dee;SPIRULINA bio;50 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/bio-spirulina/
-STU-031;Stur Dee;CROMO PICOLINATO;100 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/cromo-picolinato/
-STU-032;Stur Dee;SUPER PROTEIN AMINOS;100 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/super-protein-aminos/
-STU-033;Stur Dee;CURCUMA;100 cp;15,0;15,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/curcuma/
-STU-035;Stur Dee;E 400;100 prl;31,0;31,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/e-400/
-STU-036;Stur Dee;VITAMINA A + D;100 cp;14,0;14,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/vitamina-ad/
-STU-038;Stur Dee;ZINCO;100 cp;19,0;19,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/zinco/
-STU-039;Stur Dee;HEAD FIRST;60 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/head-first/
-STU-043;Stur Dee;L-TRIPTOFANO;30 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/l-triptofano/
-VON-002;Vonderweid;ALOE VERA SUCCO E POLPA;500 ml;21,0;21,0;0,0;0,0;uguale;alta;https://vonderweid.it/products/succo-aloe-vera-puro
+﻿codice;marca;prodotto_catalogo;formato;prezzo_catalogo;prezzo_sito_ufficiale;differenza_eur;differenza_pct;esito;affidabilita_abbinamento;link_sito;prezzo_oggi_sito;sconto_sito_pct
+AES-003;Aessere;ARGENTO COLLOIDALE GOCCE;200 ml;33,0;33,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-plus-gocce-200-ml-30-ppm/;33,0;
+AES-007;Aessere;ARGENTO COLLOIDALE MICO;100 ml;39,0;39,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-plus-spray-mico-100-ml-100-ppm/;39,0;
+AES-009;Aessere;ARGENTO COLLOIDALE PET;150 ml;19,9;19,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/argento-colloidale-pet-spray-150-ml-50-ppm/;19,9;
+AES-024;Aessere;ARNICA 35% GEL;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/arnica-35-gel/;12,9;
+AES-025;Aessere;ZEOLITE PLUS CAPSULE;180 cp;44,0;44,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/zeolite-plus-capsule/;44,0;
+AES-026;Aessere;ARTIGLIO DEL DIAVOLO 35% CREMA;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/artiglio-del-diavolo-35-pomata/;12,9;
+AES-027;Aessere;ZEOLITE PLUS POLVERE;270 gr;39,0;39,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/zeolite-plus-polvere/;39,0;
+AES-028;Aessere;CALENDULA 35% CREMA;100 ml;12,9;12,9;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/calendula-35-crema/;12,9;
+AES-029;Aessere;FORMULA CAISSE PURA 680 mg;220 cp;49,0;49,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/formula-caisse-pura/;49,0;
+AES-030;Aessere;BARATTOLO polvere;150 gr;21,0;21,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-barattolo-150/;21,0;
+AES-033;Aessere;BIO RICARICA;150 gr;17,5;17,5;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-ricarica-150/;17,5;
+AES-034;Aessere;OLIO PURO 100%;30 ml;17,0;17,0;0,0;0,0;uguale;alta;https://www.aessere.it/prodotto/baobab-olio-puro/;17,0;
+ARG-002;Argital;CREMA ECHINACEA;75 ml;13,34;14,67;1,33;9,97;sito più caro;alta;https://www.argital.it/prodotto/crema-echinacea/;11,73;20,04
+ARG-003;Argital;ARGILLA VENTILATA ATTIVA;500 gr;7,5;8,03;0,53;7,07;sito più caro;media;https://www.argital.it/prodotto/argilla-verde-ventilata/;6,42;20,05
+ARG-004;Argital;CREMA EUCALYPTUS;50 ml;12,83;14,11;1,28;9,98;sito più caro;alta;https://www.argital.it/prodotto/crema-eucalyptus/;11,28;20,06
+ARG-005;Argital;ARGILLA FINE;1 kg;8,3;8,88;0,58;6,99;sito più caro;alta;https://www.argital.it/prodotto/argilla-verde-fine/;7,1;20,05
+ARG-006;Argital;CREMA CANFORA E TIMO;50 ml;11,21;12,33;1,12;9,99;sito più caro;alta;https://www.argital.it/prodotto/crema-canfora-e-timo/;9,86;20,03
+ARG-007;Argital;ARGILLA FINE;2,5 kg;13,88;14,85;0,97;6,99;sito più caro;alta;https://www.argital.it/prodotto/argilla-verde-fine-25kg/;11,88;20,0
+ARG-009;Argital;CREMA FLUIDA;200 ml;14,41;17,38;2,97;20,61;sito più caro;da verificare (formato o forma diversa?);https://www.argital.it/prodotto/crema-fluida/;13,9;20,02
+ARG-010;Argital;CREMA SNELLENTE;200 ml;19,22;19,9;0,68;3,54;sito più caro;alta;https://www.argital.it/prodotto/crema-snellente-florange/;15,92;20,0
+ARG-011;Argital;DENTIFRICIO ALLA SALVIA;75 ml;8,41;8,41;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-salvia/;6,72;20,1
+ARG-012;Argital;CREMA RASSODANTE;200 ml;15,3;16,83;1,53;10,0;sito più caro;alta;https://www.argital.it/prodotto/crema-rassodante-flore/;13,46;20,02
+ARG-013;Argital;DENTIFRICIO ALLA MENTA;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-menta/;6,4;20,0
+ARG-014;Argital;FANGO SNELLENTE;1,5 kg;35,24;38,76;3,52;9,99;sito più caro;alta;https://www.argital.it/prodotto/fango-snellente/;31,0;20,02
+ARG-015;Argital;DENTIFRICIO ALLA PROPOLI;75 ml;8,55;8,41;-0,14;-1,64;sito più economico;media;https://www.argital.it/prodotto/dentifricio-alla-salvia/;6,72;20,1
+ARG-016;Argital;DENTIFRICIO AROMATICO;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-aromatico/;6,4;20,0
+ARG-017;Argital;DENTIFRICIO OMEOCOMPATIBILE;75 ml;8,55;8,55;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-omeobital/;6,84;20,0
+ARG-018;Argital;INTIMO VEGETALE;250 ml;10,0;10,7;0,7;7,0;sito più caro;alta;https://www.argital.it/prodotto/intimo-vegetale/;8,56;20,0
+BRE-003;Brezzo;MIELE CASTAGNO;350 gr;8,5;5,7;-2,8;-32,94;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-castagno/;5,7;
+BRE-005;Brezzo;MIELE MILLEFIORI ALPINI;350 gr;9,3;5,6;-3,7;-39,78;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-millefiori/;5,6;
+BRE-006;Brezzo;MIELE DI TIGLIO;350 gr;8,4;5,8;-2,6;-30,95;sito più economico;da verificare (formato o forma diversa?);https://brezzo.it/prodotto/miele-di-tiglio/;5,8;
+ECO-002;Ecol;ORTER;50 tav;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/orter/;17,0;
+ECO-003;Ecol;ACIDOPHILUS;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/acidophilus/;13,0;
+ECO-004;Ecol;OVAGEM;50 ml;19,6;19,6;0,0;0,0;uguale;alta;https://ecol.it/product/ovagem-2/;19,6;
+ECO-005;Ecol;AERMIT;50 tav;15,6;15,6;0,0;0,0;uguale;alta;https://ecol.it/product/aermit/;15,6;
+ECO-006;Ecol;PLACKOS;50 tav;13,4;11,5;-1,9;-14,18;sito più economico;alta;https://ecol.it/product/plackos/;11,5;
+ECO-007;Ecol;ANSIFREE;50 ml;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/ansifree/;17,0;
+ECO-008;Ecol;PREREGLE;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/preregle/;18,0;
+ECO-010;Ecol;PROGEN;50 tav;25,2;25,2;0,0;0,0;uguale;alta;https://ecol.it/product/progen/;25,2;
+ECO-011;Ecol;CEFAXGEM;50 ml;19,0;19,0;0,0;0,0;uguale;alta;https://ecol.it/product/cefaxgem/;19,0;
+ECO-012;Ecol;PRUNEL;24 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/prunel/;11,4;
+ECO-013;Ecol;CLIMAX PLUS;75 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/climax-plus/;24,0;
+ECO-014;Ecol;QUERGOZ;200 ml;32,0;32,0;0,0;0,0;uguale;alta;https://ecol.it/product/quergoz/;32,0;
+ECO-015;Ecol;CLIMAX FAST spray;30 ml;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/climax-fast/;17,8;
+ECO-016;Ecol;SILCACIST;50 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcacist/;24,0;
+ECO-017;Ecol;COLICOMP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/colicomp/;18,0;
+ECO-018;Ecol;SILCAFLEX;100 tav;35,0;35,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcaflex/;35,0;
+ECO-019;Ecol;CONCAR;50 tav;17,2;17,2;0,0;0,0;uguale;alta;https://ecol.it/product/concar/;17,2;
+ECO-020;Ecol;SKUDO C;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/skudo-c/;12,8;
+ECO-021;Ecol;COTURMIX;50 tav;27,6;27,6;0,0;0,0;uguale;alta;https://ecol.it/product/coturmix/;27,6;
+ECO-022;Ecol;SKUDO NASO;50 tav;15,8;12,0;-3,8;-24,05;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/skudo-naso/;12,0;
+ECO-023;Ecol;DIVERCOL;75 tav;26,0;26,0;0,0;0,0;uguale;alta;https://ecol.it/product/divercol/;26,0;
+ECO-025;Ecol;DOLNOT PEA;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-pea/;25,0;
+ECO-026;Ecol;SONNY;30 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/sonny/;15,0;
+ECO-027;Ecol;DOLNOT PLUS spray;100 ml;20,0;20,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-plus/;20,0;
+ECO-028;Ecol;TELIBRA;15 ml;10,6;10,6;0,0;0,0;uguale;alta;https://ecol.it/product/telibra/;10,6;
+ECO-029;Ecol;DUEPI;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/duepi/;16,0;
+ECO-030;Ecol;TOSSYMEL;150 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/tossymel/;13,0;
+ECO-031;Ecol;DYNEL;50 tav;23,4;24,0;0,6;2,56;sito più caro;alta;https://ecol.it/product/dynel/;24,0;
+ECO-032;Ecol;TRYCOL PLUS;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/trykol-plus/;25,0;
+ECO-033;Ecol;ELICAP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicap/;18,0;
+ECO-034;Ecol;EMONOR;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/emonor/;17,6;
+ECO-036;Ecol;ENERTIM DONNA;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-donna/;18,0;
+ECO-038;Ecol;ENERTIM UOMO;50 tav;19,4;19,4;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-uomo/;19,4;
+ECO-039;Ecol;AGLIO Concentrato inodore;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/aglio-concentrato-inodore/;13,6;
+ECO-040;Ecol;EQUADEX;50tav;18,2;18,2;0,0;0,0;uguale;alta;https://ecol.it/product/equadex/;18,2;
+ECO-041;Ecol;AGLIO e BIANCOSPINO;50 tav;13,2;13,6;0,4;3,03;sito più caro;alta;https://ecol.it/product/aglio-e-biancospino/;13,6;
+ECO-042;Ecol;EVERINT;50 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/everint-2/;10,4;
+ECO-044;Ecol;FREELADY;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/freelady/;17,6;
+ECO-046;Ecol;GASTRASIL;75 tav;27,0;27,0;0,0;0,0;uguale;alta;https://ecol.it/product/gastrasil/;27,0;
+ECO-047;Ecol;ANANAS Gambi;75 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/ananas-gambi/;13,0;
+ECO-048;Ecol;GLUCOTIN;100 tav;22,6;22,6;0,0;0,0;uguale;alta;https://ecol.it/product/glucotin/;22,6;
+ECO-049;Ecol;ARTIGLIO DEL DIAVOLO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/;13,6;
+ECO-050;Ecol;HOSTRIX;100 tav;22,2;22,2;0,0;0,0;uguale;alta;https://ecol.it/product/hostrix/;22,2;
+ECO-051;Ecol;ARTIGLIO DEL DIAVOLO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/;13,6;
+ECO-053;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;
+ECO-054;Ecol;LINFOGEM;200 ml;23,0;23,0;0,0;0,0;uguale;alta;https://ecol.it/product/linfogem/;23,0;
+ECO-055;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;
+ECO-056;Ecol;LYN - NEO;100 tav;29,0;29,0;0,0;0,0;uguale;alta;https://ecol.it/product/lyn-neo-2/;29,0;
+ECO-057;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;
+ECO-059;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;
+ECO-060;Ecol;MYCEL;50 tav;27,4;27,4;0,0;0,0;uguale;alta;https://ecol.it/product/mycel/;27,4;
+ECO-061;Ecol;BARDANA e.a.;50 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/;13,0;
+ECO-062;Ecol;MYCYS;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/mycys/;18,0;
+ECO-063;Ecol;BARDANA e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/;13,0;
+ECO-064;Ecol;MYDIG;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/mydig/;16,0;
+ECO-065;Ecol;BIANCOSPINO e.a.;50 ml;13,4;13,4;0,0;0,0;uguale;alta;https://ecol.it/product/biancospino/;13,4;
+ECO-066;Ecol;NEW EHPAMIX;50 tav;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/new-ehpamix/;17,8;
+ECO-067;Ecol;BIANCOSPINO e.s.;50 tav;13,6;13,4;-0,2;-1,47;sito più economico;alta;https://ecol.it/product/biancospino/;13,4;
+ECO-068;Ecol;NEW HENAVEX;50 tav;17,8;15,2;-2,6;-14,61;sito più economico;alta;https://ecol.it/product/new-henavex/;15,2;
+ECO-069;Ecol;CARCIOFO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/;13,6;
+ECO-070;Ecol;NEW RELAX tavolette;50 tav;14,8;14,4;-0,4;-2,7;sito più economico;media;https://ecol.it/product/new-relax/;14,4;
+ECO-071;Ecol;CARCIOFO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/;13,6;
+ECO-072;Ecol;NEW RELAX gocce;50 ml;14,4;14,4;0,0;0,0;uguale;alta;https://ecol.it/product/new-relax/;14,4;
+ECO-073;Ecol;Eco CARDO MARIANO;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocardo-mariano-2/;14,0;
+ECO-074;Ecol;NOSICK;25 tav;14,6;14,6;0,0;0,0;uguale;alta;https://ecol.it/product/nosick/;14,6;
+ECO-075;Ecol;Eco CARDO MARIANO;50 tav;14,4;14,0;-0,4;-2,78;sito più economico;media;https://ecol.it/product/ecocardo-mariano-2/;14,0;
+ECO-076;Ecol;NOVORMS;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/novorms/;16,0;
+ECO-077;Ecol;CAROTA;50 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/carota/;11,4;
+ECO-079;Ecol;Eco CARPINO gemme;50 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocarpino-gemme-2/;15,0;
+ECO-080;Ecol;Eco CASTAGNO gemme;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecocastagno-gemme-2/;14,8;
+ECO-082;Ecol;CENTELLA ASIATICA e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/centella-asiatica/;13,6;
+ECO-083;Ecol;Olio di Germe di Grano;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-germe-di-grano/;9,3;
+ECO-084;Ecol;CENTELLA ASIATICA e.s.;50 tav;13,8;13,6;-0,2;-1,45;sito più economico;alta;https://ecol.it/product/centella-asiatica/;13,6;
+ECO-085;Ecol;Olio di Mandorle Dolci;100 ml;6,6;6,6;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-mandorle-dolci/;6,6;
+ECO-086;Ecol;CIMICIFUGA;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/;14,0;
+ECO-087;Ecol;Olio di Germe grano conc.;50tav;12,9;9,3;-3,6;-27,91;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/olio-di-germe-di-grano/;9,3;
+ECO-088;Ecol;CIMICIFUGA e.a;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/;14,0;
+ECO-089;Ecol;ORTICA e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/;12,8;
+ECO-091;Ecol;ORTICA e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/;12,8;
+ECO-094;Ecol;ECHINACEA e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/;14,7;
+ECO-096;Ecol;ECHINACEA e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/;14,7;
+ECO-098;Ecol;ELICRISO e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicriso/;14,0;
+ECO-100;Ecol;EQUISETO e.a.;50 ml;13,8;13,0;-0,8;-5,8;sito più economico;alta;https://ecol.it/product/equiseto/;13,0;
+ECO-101;Ecol;PROPOLI;50 tav;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/;12,0;
+ECO-102;Ecol;EQUISETO e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/equiseto/;13,0;
+ECO-103;Ecol;PROPOLI 30%;30 ml;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/;12,0;
+ECO-105;Ecol;RIBES NERO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/ribes-nero-gemme/;14,7;
+ECO-107;Ecol;RIBES NERO gemme e.a.;100 ml;23,0;14,7;-8,3;-36,09;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/;14,7;
+ECO-108;Ecol;FICO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/fico-gemme/;14,7;
+ECO-109;Ecol;RIBES NERO gemme e.a.;200 ml;32,0;14,7;-17,3;-54,06;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/;14,7;
+ECO-110;Ecol;FIENO GRECO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/fieno-greco/;13,6;
+ECO-111;Ecol;ROSA CANINA gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/rosa-canina-gemme/;14,1;
+ECO-112;Ecol;FIENO GRECO e.s.;50 tav;15,0;13,6;-1,4;-9,33;sito più economico;alta;https://ecol.it/product/fieno-greco/;13,6;
+ECO-113;Ecol;SALICE e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/;14,0;
+ECO-114;Ecol;FINOCCHIO;50 tav;11,0;11,0;0,0;0,0;uguale;alta;https://ecol.it/product/finocchio/;11,0;
+ECO-115;Ecol;SALICE e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/;14,0;
+ECO-116;Ecol;FUCUS e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus/;12,8;
+ECO-118;Ecol;FUCUS complexa;75 tav;15,4;15,4;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-complexa/;15,4;
+ECO-120;Ecol;FUCUS extra;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-extra/;12,8;
+ECO-122;Ecol;GINKGO BILOBA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ginkgo-biloba/;14,0;
+ECO-124;Ecol;GINKGO BILOBA e.s.;50 tav;14,6;14,0;-0,6;-4,11;sito più economico;alta;https://ecol.it/product/ginkgo-biloba/;14,0;
+ECO-126;Ecol;GUARANA’ e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/;14,7;
+ECO-127;Ecol;TARASSACO e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/;12,8;
+ECO-128;Ecol;GUARANA’ e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/;14,7;
+ECO-129;Ecol;TARASSACO e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/;12,8;
+ECO-131;Ecol;TE’ VERDE e.a.;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/;14,8;
+ECO-133;Ecol;TE’ VERDE e.s.;50 tav;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/;14,8;
+ECO-134;Ecol;LIEVITO DI BIRRA;100 tav;8,8;8,8;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra/;8,8;
+ECO-135;Ecol;TIGLIO gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/tiglio-gemme/;14,1;
+ECO-136;Ecol;LIEVITO DI BIRRA VIVO;100 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra-vivo/;10,4;
+ECO-141;Ecol;Eco UVA URSINA e.a.;50 ml;13,8;13,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecouva-ursina-estratto-analcolico/;13,8;
+ECO-144;Ecol;MIRTILLO e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/mirtillo/;14,0;
+ECO-146;Ecol;MIRTILLO e.a.;50 ml;14,8;14,0;-0,8;-5,41;sito più economico;alta;https://ecol.it/product/mirtillo/;14,0;
+ECO-148;Ecol;NEPETA CATARIA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/nepeta-cataria/;14,0;
+FIT-001;Fitomedical;COGNIMIND;30 cps;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cognimind/p/cognimind/;22,9;
+FIT-003;Fitomedical;DRENA & DEPURA STICK;14 sk;19,5;19,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/drenadepura/p/drenadepura/;19,5;
+FIT-007;Fitomedical;SLIM BODY PROJECT DRENA;15 sk;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/slim-body-project-drena/p/slim-body-project-drena/;20,9;
+FIT-009;Fitomedical;SERENDAY;30 cpr;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/serenday/p/serenday/;20,9;
+FIT-011;Fitomedical;ARMONIGHT;30 cpr;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/armonight/p/armonight/;20,9;
+FIT-013;Fitomedical;GASTROKEY;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/gastrokey/p/gastrokey/;17,5;
+FIT-015;Fitomedical;EPAKEEP;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/epakeep/p/epakeep/;17,5;
+FIT-017;Fitomedical;ARTIMOVE;30 cpr;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/artimove/p/artimove/;18,6;
+FIT-019;Fitomedical;CISTOSHIELD STICK;16 sk;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cistoshield/p/cistoshield/;22,9;
+FIT-020;Fitomedical;10 EUPHRASIA (ipersensibilità);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/ipersensibilita/;16,9;
+FIT-021;Fitomedical;INTIMOSHIELD;250 ml;15,9;15,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/intimoshield/p/intimoshield_587/;15,9;
+FIT-030;Fitomedical;SPRAY GOLA (lenitivo);15 ml;12,4;12,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/propoli/p/propoli-spray-gola/;12,4;
+FIT-031;Fitomedical;16 RIBES (articolazioni);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/articolazioni/;16,9;
+FIT-035;Fitomedical;ERBAREGOLA RITMO 2;60 ml;15,5;15,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-ritmo/;15,5;
+FIT-037;Fitomedical;ERBAREGOLA FORTE;100 tav;12,7;12,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-forte/;12,7;
+FIT-039;Fitomedical;ERBAREGOLA DELICATO;60 tav;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-delicato/;18,6;
+FIT-042;Fitomedical;PURAL CHEWING GUM igienizzante;14 gr;4,3;4,3;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-chewinggum/;4,3;
+FIT-044;Fitomedical;PURAL PARODONT protettivo;50 ml;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-parodont/;18,6;
+FIT-046;Fitomedical;VIT. C + PQQ (con vitamina C liposomiale);60 cp;29,9;29,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/micronutrienti/p/vitamina-cpqq/;29,9;
+FIT-047;Fitomedical;PURAL SPRAY purificante;15 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/pural/p/pural-spray/;9,5;
+FIT-058;Fitomedical;ACIDO FOLICO ATTIVO;90 cp;17,9;17,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/micronutrienti/p/acido-folico-attivo/;17,9;
+FIT-060;Fitomedical;ONICOIL;10 ml;15,5;15,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/cosmesi-naturale/p/onicoil/p/onicoil/;15,5;
+FIT-061;Fitomedical;ARTIHARA GEL SOLLIEVO;100 ml;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-gel/;19,7;
+FIT-062;Fitomedical;ARTIHARA POMATA FLESSIBILITA';100 ml;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-pomata/;20,5;
+FIT-063;Fitomedical;ARTIHARA OLIO SPRAY SCIOLTEZZA;100 ml;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/artihara/p/artihara-olio-spray/;19,7;
+FIT-064;Fitomedical;ANANAS;60 tav;20,4;20,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/ananas-est/;20,4;
+FIT-065;Fitomedical;SALVIA CINESE;60 tav;21,9;21,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/salvia-cinese-est/;21,9;
+FIT-066;Fitomedical;ANDROGRAPHIS;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/andrographis-est/;21,5;
+FIT-067;Fitomedical;SCHISANDRA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/schisandra-est/;20,8;
+FIT-068;Fitomedical;ANGELICA CINESE;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/angelica-cinese-est/;21,5;
+FIT-069;Fitomedical;SCUTELLARIA;60 tav;20,5;13,9;-6,6;-32,2;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/scutellaria-tm/;13,9;
+FIT-071;Fitomedical;SERENOA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/serenoa_est/;20,8;
+FIT-072;Fitomedical;ASTRAGALO;60 tav;21,5;21,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/astragalo-est/;21,5;
+FIT-073;Fitomedical;SHATAVARI;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/shatavari_est/;26,5;
+FIT-074;Fitomedical;BACOPA;60 tav;24,9;24,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/bacopa_est/;24,9;
+FIT-075;Fitomedical;SPIRULINA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/spirulina_est/;20,8;
+FIT-076;Fitomedical;BIANCOSPINO;60 tav;19,5;11,9;-7,6;-38,97;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-fluidi/p/biancospino_ef/;11,9;
+FIT-077;Fitomedical;TABEBUIA;60 tav;25,4;25,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tabebuia_est/;25,4;
+FIT-078;Fitomedical;BOSWELLIA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/boswellia_est/;20,5;
+FIT-081;Fitomedical;TRIPHALA;60 tav;24,8;24,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/triphala-est/;24,8;
+FIT-083;Fitomedical;TULSI;60 tav;27,5;27,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tulsi_est/;27,5;
+FIT-084;Fitomedical;CARDO MARIANO;60 tav;24,7;13,9;-10,8;-43,72;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/cardo-mariano-tm-bio/;13,9;
+FIT-085;Fitomedical;UNCARIA;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/uncaria_est/;26,5;
+FIT-086;Fitomedical;CENTELLA ES;60 tav;23,9;23,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/centella_est/;23,9;
+FIT-088;Fitomedical;CHRYSANTHELLUM;60 tav;23,9;15,9;-8,0;-33,47;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-totali/p/chrysanthellum_ef/;15,9;
+FIT-089;Fitomedical;WITHANIA;60 tav;21,9;21,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/withania-est/;21,9;
+FIT-090;Fitomedical;CIMICIFUGA;60 tav;19,5;19,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cimicifuga_est/;19,5;
+FIT-092;Fitomedical;CODONOPSIS;60 tav;25,2;25,2;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/codonopsis-est/;25,2;
+FIT-093;Fitomedical;CRANBERRY;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cranberry_est/;22,9;
+FIT-099;Fitomedical;ELEUTEROCOCCO;60 tav;21,5;15,9;-5,6;-26,05;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-totali/p/eleuterococco-ef/;15,9;
+FIT-105;Fitomedical;FILLANTO;60 tav;19,7;19,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fillanto_est/;19,7;
+FIT-107;Fitomedical;FUCUS;60 tav;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fucus_est/;17,5;
+FIT-109;Fitomedical;GARCINIA;60 tav;26,5;26,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/garcinia-est/;26,5;
+FIT-117;Fitomedical;GLUCOMANNANO;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/glucomannano-polvere_est/;20,5;
+FIT-119;Fitomedical;GUARANA';60 tav;24,8;24,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/guarana_est/;24,8;
+FIT-121;Fitomedical;GYMNEMA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gymnema_est/;20,5;
+FIT-123;Fitomedical;GYNOSTEMMA;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gynostemma_est/;22,9;
+FIT-125;Fitomedical;MACA;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/maca_est/;22,9;
+FIT-127;Fitomedical;MAGNOLIA;60 tav;20,8;20,8;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/magnolia_est/;20,8;
+FIT-135;Fitomedical;PASSIFLORA;60 tav;19,9;11,9;-8,0;-40,2;sito più economico;da verificare (formato o forma diversa?);https://www.fitomedical.com/prodotti/estratti-fluidi/p/passiflora_ef/;11,9;
+FIT-137;Fitomedical;POLYGONUM;60 tav;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/polygonum_est/;22,9;
+FIT-138;Fitomedical;POMPELMO semi;60 tav;23,9;23,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pompelmo_est/;23,9;
+FIT-140;Fitomedical;PUERARIA;60 tav;20,5;20,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pueraria_est/;20,5;
+HER-001;Herbatint;1 N NERO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-1n-nero-170-ml-int;13,9;
+HER-002;Herbatint;7 C BIONDO CENERE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7c-biondo-cenere-170-ml-int;13,9;
+HER-003;Herbatint;2 N BRUNO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-2n-bruno-170-ml-int;13,9;
+HER-004;Herbatint;8 C BIONDO CHIARO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-8c-biondo-chiaro-cenere-170-ml-int;13,9;
+HER-005;Herbatint;3 N CASTANO SCURO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-3n-castano-scuro-170-ml-int;13,9;
+HER-006;Herbatint;10 C BIONDO SVEDESE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-10c-biondo-platino-cenere-170-ml-int;13,9;
+HER-007;Herbatint;4 N CASTANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4n-castano-170-ml-int;13,9;
+HER-008;Herbatint;4 M CASTANO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4m-castano-mogano-170-ml-int;13,9;
+HER-009;Herbatint;5 N CASTANO CHIARO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5n-castano-chiaro-170-ml-int;13,9;
+HER-010;Herbatint;5 M CASTANO CHIARO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5m-castano-chiaro-mogano-170-ml-int;13,9;
+HER-011;Herbatint;6 N BIONDO SCURO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-6n-biondo-scuro-170-ml-int;13,9;
+HER-012;Herbatint;7 M BIONDO MOGANO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7m-biondo-mogano-170-ml-int;13,9;
+HER-013;Herbatint;7 N BIONDO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7n-biondo-170-ml-int;13,9;
+HER-015;Herbatint;8 N BIONDO CHIARO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8n-biondo-chiaro-170-ml-int;13,9;
+HER-017;Herbatint;9 N BIONDO MIELE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-9n-biondo-chiarissimo-170-ml-int;13,9;
+HER-019;Herbatint;10 N BIONDO PLATINO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-10n-biondo-platino-170-ml-int;13,9;
+HER-021;Herbatint;4 D CASTANO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4d-castano-dorato-170-ml-int;13,9;
+HER-023;Herbatint;5 D CASTANO CHIARO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5d-castano-chiaro-dorato-170-ml-int;13,9;
+HER-025;Herbatint;6 D BIONDO SCURO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-6d-biondo-scuro-dorato-170-ml-int;13,9;
+HER-026;Herbatint;4 R CASTANO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4r-castano-ramato-170-ml-int;13,9;
+HER-027;Herbatint;7 D BIONDO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7d-biondo-dorato-170-ml-int;13,9;
+HER-028;Herbatint;5 R CASTANO CHIARO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-5r-castano-chiaro-ramato-170-ml-int;13,9;
+HER-029;Herbatint;8 D BIONDO CHIARO DORATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8d-biondo-chiaro-dorato-170-ml-int;13,9;
+HER-030;Herbatint;7 R BIONDO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-7r-biondo-ramato-170-ml-int;13,9;
+HER-031;Herbatint;4 C CASTANO CENERE;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-4c-castano-cenere-170-ml-int;13,9;
+HER-032;Herbatint;8 R BIONDO CHIARO RAMATO;;12,9;13,9;1,0;7,75;sito più caro;alta;https://herbatint.com/products/gel-colorante-permanente-8r-biondo-chiaro-ramato-170-ml-int;13,9;
+HER-033;Herbatint;5 C CASTANO CHIARO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-5c-castano-chiaro-cenere-170-ml-int;13,9;
+HER-035;Herbatint;6 C BIONDO SCURO CENERE;;20,9;13,9;-7,0;-33,49;sito più economico;da verificare (formato o forma diversa?);https://herbatint.com/products/gel-colorante-permanente-6c-biondo-scuro-cenere-170-ml-int;13,9;
+NLB-001;Naturlab;KARITE' BURRO PURO;100 ml;21,0;21,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/puro-burro-100-ml/;21,0;
+NLB-002;Naturlab;BURRO CAPILLARE;250 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/burro-capillare-ml-250/;18,0;
+NLB-003;Naturlab;KARITE' DETERGENTE INTIMO;250 ml;14,5;14,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/detergente-intimo-ml-250/;14,5;
+NLB-004;Naturlab;OLIO PURO;100 ml;19,0;19,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-puro-ml-100/;19,0;
+NLB-005;Naturlab;KARITE' OLIO LAVANTE CORPO CAPELLI;200 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/olio-lavante-karite/;18,0;
+NLB-007;Naturlab;KARITE' LATTE CORPO SPRAY;125 ml;16,9;16,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/latte-corpo-spray-ml-125/;16,9;
+NLB-009;Naturlab;KARITE' PURO LIQUIDO;50 ml;22,5;22,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/puro-liquido-ml-50/;22,5;
+NLB-010;Naturlab;OLIO EUDERMICO;200 ml;18,0;18,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-eudermico-ml-200/;18,0;
+NLB-011;Naturlab;KARITE’ SOLIDO DOCCIA SHAMPOO;55 gr;8,0;8,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/natural-karite/shampoo-doccia-solido-al-karite/;8,0;
+NLB-012;Naturlab;OLIO CORPO CAPELLI;100 ml;22,9;22,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-corpo-e-capelli-al-monoi/;22,9;
+NLB-014;Naturlab;SAPONE TRADIZIONALE;100 gr;5,9;4,0;-1,9;-32,2;sito più economico;da verificare (formato o forma diversa?);https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/sapone-tradizionale-al-monoi/;4,0;
+NLB-015;Naturlab;CO WASH BALSAMO LAVANTE;150 ml;15,5;15,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/co-wash/;15,5;
+NLB-016;Naturlab;ECO LACCA;150 ml;13,5;13,5;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/eco-lacca-ecologica-no-gas/;13,5;
+NLB-017;Naturlab;ECO MOUSSE;150 ml;14,0;14,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/eco-mousse-per-capelli-tenuta-normale/;14,0;
+NLB-018;Naturlab;BURRO SUPERABBROZANTE*;150 ml;20,0;20,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/burro-super-abbronzante-ml-250/;20,0;
+NLB-019;Naturlab;GEL EXTRA STRONG;150 ml;13,6;13,6;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/naturfix-it/gel-extra-strong-250-ml/;13,6;
+NLB-020;Naturlab;SHAMPOO DOCCIA ILLUMINANTE;250 ml;16,0;16,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/shampoo-doccia-illuminante-ml-250/;16,0;
+NLB-021;Naturlab;GLAZE;150 ml;16,0;16,0;0,0;0,0;uguale;alta;https://naturlab.it/en/negozio/l-albero-del-colore/naturfix/glaze-150-ml/;16,0;
+NLB-022;Naturlab;OLIO PROTETTIVO ILLUMINANTE;50 ml;24,0;24,0;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/natura-dal-mondo/monoi-de-tahiti/olio-protettivo-illuminante-ml-50/;24,0;
+NLB-023;Naturlab;TINTA FLUIDA;75 ml;15,95;15,95;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-fluida-per-capelli/tinta-fluida-pepe-verde/;15,95;
+NLB-024;Naturlab;TINTA IN CREMA “10 minuti”;60 ml;13,9;13,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-permanente-in-crema/tinta-permanente-in-crema-nero-bruno/;13,9;
+NLB-025;Naturlab;TINTA IN CREMA CLASSICA;60 ml;13,9;13,9;0,0;0,0;uguale;alta;https://naturlab.it/it/negozio/albero-del-colore/tinta-permanente-in-crema/tinta-permanente-in-crema-cannella/;13,9;
+OFF-001;Officina Naturae;Bagno doccia onda marina;500 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnodoccia-onda-marina;11,9;
+OFF-002;Officina Naturae;Shampoo per lavaggi frequenti;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-lavaggi-frequenti;9,9;
+OFF-003;Officina Naturae;Doccia-Shampoo NF;500 ml;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/doccia-shampoo-200-ml-500-ml-1-l-4-l;9,95;
+OFF-004;Officina Naturae;Shampoo per capelli grassi;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-grassi;9,9;
+OFF-006;Officina Naturae;Shampoo per capelli ricci;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;
+OFF-008;Officina Naturae;Shampoo per capelli secchi e doppie punte;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;
+OFF-010;Officina Naturae;Shampoo per capelli lisci, dispiplinante;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;
+OFF-012;Officina Naturae;Shampoo per cute con fortora;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-cute-con-forfora;9,9;
+OFF-014;Officina Naturae;Balsamo per capelli normali e fini;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;
+OFF-015;Officina Naturae;Detergente Intimo;500 ml;8,9;8,5;-0,4;-4,49;sito più economico;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido;8,5;
+OFF-016;Officina Naturae;Balsamo per capelli lisci, disciplinante;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;
+OFF-018;Officina Naturae;Balsamo per capelli ricci;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;
+OFF-020;Officina Naturae;Balsamo per capelli secchi e doppie punte;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;
+OFF-021;Officina Naturae;Detergente delicato senza profumo;500 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/detergente-delicato-senza-profumo;8,3;
+OFF-022;Officina Naturae;Maschera per capelli secchi, nutriente;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;
+OFF-024;Officina Naturae;Maschera per capelli lisci, disciplinante;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;
+OFF-026;Officina Naturae;Maschera per capelli ricci, districante;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;
+OFF-027;Officina Naturae;Sapone solido addolcente alla malva Bio;100 g;4,9;4,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/sapone-addolcente;4,9;
+OFF-028;Officina Naturae;Maschera per capelli normali e fini;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;
+OFF-029;Officina Naturae;Crema corpo verbena;250 ml;18,0;18,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-corpo/crema-corpo-verbena;18,0;
+OFF-030;Officina Naturae;Styling - Cristalli Liquidi Per Capelli;50 ml;15,9;15,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/styling/cristalli-liquidi;15,9;
+OFF-033;Officina Naturae;Crema Mani Nutriente Patchouli;50 ml;5,95;5,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-patchouli;5,95;
+OFF-034;Officina Naturae;CURLY Shampoo Per Ricci Definiti;200 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/curly-shampoo;11,5;
+OFF-035;Officina Naturae;Crema Mani Nutriente Verbena;50 ml;5,95;5,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-verbena;5,95;
+OFF-037;Officina Naturae;Dentifricio rinfrescante;100 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-rinfrescante;5,9;
+OFF-039;Officina Naturae;Roll On Deodorante eco bio Giardino fiorito;50 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-giardino-fiorito;8,3;
+OFF-040;Officina Naturae;Roll On Deodorante eco bio Ondamarina;50 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-onda-marina;8,3;
+OFF-041;Officina Naturae;Deodorante eco bio Giardino fiorito;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-giardino-fiorito;9,3;
+OFF-043;Officina Naturae;Dentifricio Sbiancante Menta in alluminio;75 ml;6,5;6,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-sbiancante-menta;6,5;
+OFF-044;Officina Naturae;Bagnodoccia Solido;50 g;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/biricco-bagnodoccia-solido;9,9;
+OFF-045;Officina Naturae;Dentifricio Anice in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-anice;5,9;
+OFF-046;Officina Naturae;Amido di riso Biologico;100 g;6,9;6,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/amido-di-riso-biologico;6,9;
+OFF-048;Officina Naturae;Bagnetto Cremoso Cambio pannolino;200 ml;9,8;9,8;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnetto-cremoso-cambio-pannolino;9,8;
+OFF-049;Officina Naturae;Dentifricio Limone in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-limone;5,9;
+OFF-050;Officina Naturae;Bagnoschiuma Baby corpo capelli;200 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnoschiuma-baby-corpo-capelli;9,5;
+OFF-051;Officina Naturae;Dentifricio Denti Sensibili in alluminio;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-denti-sensibili-e-delicati;5,9;
+OFF-053;Officina Naturae;Dentifricio Limone in Pastiglie;115 pz;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta;9,9;
+OFF-054;Officina Naturae;Crema Corpo Baby;100 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/crema-corpo-baby;9,9;
+OFF-055;Officina Naturae;Dentifricio Menta in Pastiglie;115 pz;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta;9,9;
+OFF-057;Officina Naturae;Collutorio Liquido Menta CONCENTRATO;100 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/collutorio-naturale/collutorio-concentrato-menta;9,9;
+OFF-058;Officina Naturae;Dentifricio Banana;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-gel-bimbi-banana;5,9;
+OFF-060;Officina Naturae;Dentifricio Ciliegia;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-ciliegia;5,9;
+OFF-061;Officina Naturae;DENTI' - Dentifricio da Viaggio in Pastiglie;21 pz;3,99;3,99;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/denti-dentifricio-da-viaggio-in-pastiglie;3,99;
+OFF-062;Officina Naturae;Dentifricio Fragola;75 ml;5,9;5,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-fragola;5,9;
+OFF-063;Officina Naturae;Saponetta alla Mela Cotogna e Calendula;100 g;4,9;4,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/sapone-alla-mela-cotogna-e-calendula;4,9;
+OFF-064;Officina Naturae;"Deodorante Solido ""BRIOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-brioso-coso;9,95;
+OFF-066;Officina Naturae;"Deodorante Solido ""GRINTOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-grintoso-coso;9,95;
+OFF-067;Officina Naturae;Oleolito di Arnica*;110 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-arnica;19,5;
+OFF-068;Officina Naturae;"Deodorante Solido ""NEUTRO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-neutro-coso;9,95;
+OFF-070;Officina Naturae;"Deodorante Solido ""SCICCOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-sciccoso-coso;9,95;
+OFF-071;Officina Naturae;Oleolito di Calendula;110 ml;14,5;14,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-calendula;14,5;
+OFF-072;Officina Naturae;"Deodorante Solido ""VANITOSO""";50 g;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-vanitoso-coso;9,95;
+OFF-074;Officina Naturae;Oleolito di Iperico;110 ml;13,0;13,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-iperico-biologico;13,0;
+OFF-079;Officina Naturae;Olio di Rosa Mosqueta *;110 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/oli-naturali/olio-di-rosa-mosqueta-puro;19,5;
+OFF-082;Officina Naturae;Shampoo ultradelicato *;250 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-ultra-delicato;12,5;
+OFF-083;Officina Naturae;Balsamo ultradelicato *;250 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-ultra-delicato;11,5;
+OFF-085;Officina Naturae;Bagnoschiuma ultradelicato *;250 ml;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnoschiuma-ultra-delicato;11,5;
+OFF-087;Officina Naturae;Intimo ultradelicato *;250 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/detergente-intimo/intimo-ultra-delicato;11,9;
+OFF-089;Officina Naturae;Detergente Barba e Viso Solido - N. 4;40 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/detergente-barba-e-viso-solido;11,9;
+OFF-090;Officina Naturae;Burro labbra BIO Vaniglia nutriente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-vaniglia;5,5;
+OFF-091;Officina Naturae;Sapone da Barba Solido - N. 6;50 g;10,5;10,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/sapone-da-barba-solido;10,5;
+OFF-092;Officina Naturae;Burro labbra Bio Frutti Rossi addolcente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-frutti-rossi;5,5;
+OFF-093;Officina Naturae;Burro labbra Bio Mou protettivo;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mou;5,5;
+OFF-094;Officina Naturae;Detergente Solido Viso Delicato;50 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato;10,9;
+OFF-095;Officina Naturae;Burro labbra Bio Mela Cotogna nutriente;5g;5,5;5,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mela-cotogna;5,5;
+OFF-096;Officina Naturae;Detergente Solido Viso Purificante;50 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante;10,9;
+OFF-097;Officina Naturae;Intimo Solido;50 g;8,5;8,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido;8,5;
+OFF-098;Officina Naturae;Crema Giorno Tonificante;30 ml;18,9;18,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-viso-tonificante;18,9;
+OFF-099;Officina Naturae;Shampoo Solido Nutriente e Protettivo;64 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo;11,9;
+OFF-100;Officina Naturae;Crema Nutriente Viso e Decolleté;30 ml;19,9;19,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-nutriente-viso-e-decollete;19,9;
+OFF-101;Officina Naturae;Shampoo Solido Rinforzante ed Illuminante;64 g;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso;11,9;
+OFF-102;Officina Naturae;Crema Stop Age Elasticizzante;30 ml;24,5;24,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-stop-age-elasticizzante;24,5;
+OFF-103;Officina Naturae;Balsamo Solido Nutriente e Protettivo;64 g;11,5;3,3;-8,2;-71,3;sito più economico;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo;3,3;
+OFF-104;Officina Naturae;Crema Delicata Riequilibrante;30 ml;18,9;18,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/viso/crema-viso/crema-delicata-riequilibrante;18,9;
+OFF-105;Officina Naturae;Balsamo Solido Rinforzante ed Illuminante;64 g;11,5;11,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante;11,5;
+OFF-107;Officina Naturae;Baby Bagnodoccia Solido;50 g;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/baby-coso-bagnodoccia-solido;9,9;
+OFF-108;Officina Naturae;Bagnoschiuma Solido Vellutante;64 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante;10,9;
+OFF-109;Officina Naturae;Crema Gambe e Piedi Rinfrescante;150 ml;12,0;12,0;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/crema-corpo/crema-gambe-e-piedi-rinfrescante;12,0;
+OFF-110;Officina Naturae;Bagnoschiuma Solido Rivitalizzante;64 g;10,9;10,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante;10,9;
+OFF-111;Officina Naturae;Gel Lenitivo Doposole Al Fico D'India;150 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doposole/gel-lenitivo-doposole;9,9;
+OFF-112;Officina Naturae;Crema doposole vaso in alluminio;150 ml;11,9;11,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doposole/crema-doposole;11,9;
+OFF-113;Officina Naturae;Shampoo Solido Nutriente e Protettivo;15 g;3,3;11,9;8,6;260,61;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo;11,9;
+OFF-115;Officina Naturae;Shampoo Solido Rinforz. ed Illuminante;15 g;3,3;11,9;8,6;260,61;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso;11,9;
+OFF-116;Officina Naturae;Crema solare SPF 50 VISO - stop age;30 ml;19,5;19,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/crema-solare-viso-spf-50;19,5;
+OFF-117;Officina Naturae;Balsamo Solido Nutri. e Protettivo;15 g;3,3;3,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo;3,3;
+OFF-119;Officina Naturae;Balsamo Solido Rinforz. ed Illuminante;15 g;3,3;11,5;8,2;248,48;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante;11,5;
+OFF-120;Officina Naturae;Doccia Shampoo Doposole;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doccia-shampoo-doposole;9,5;
+OFF-121;Officina Naturae;Bagnoschiuma Solido Vellutante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante;10,9;
+OFF-122;Officina Naturae;Doccia Shampoo Solido Doposole Antisale;50 g;8,5;8,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/solari/doccia-shampoo-solido-doposole;8,5;
+OFF-123;Officina Naturae;Bagnoschiuma Solido Rivitalizzante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante;10,9;
+OFF-124;Officina Naturae;Detergente Solido Viso Delicato;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato;10,9;
+OFF-126;Officina Naturae;Detergente Solido Viso Purificante;15 g;3,3;10,9;7,6;230,3;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante;10,9;
+OFF-127;Officina Naturae;gel Post Puntura;20 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/punture-insetti/rimedi-punture-insetti/pizzicoff-gel-dopo-puntura;9,5;
+OFF-128;Officina Naturae;Intimo Solido;15 g;3,3;8,5;5,2;157,58;sito più caro;da verificare (formato o forma diversa?);https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido;8,5;
+OFF-129;Officina Naturae;Crema fluida baby;100 ml;14,5;14,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/punture-insetti/prevenzione-insetti/pizzicoff-crema-fluida-baby;14,5;
+PLM-003;Palmea;CREMA IDRATANTE GIORNO NOTTE;50 ml;43,0;43,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/crema-idratante-giorno-e-notte-classic/;30,1;30,0
+PLM-005;Palmea;CREMA PELLI SENSIBILI;50 ml;45,5;45,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/crema-per-pelli-sensibili-classic/;31,85;30,0
+PLM-007;Palmea;CREMA CONTORNO occhi e labbra;50 ml;29,5;29,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/crema-contorno-occhi-e-labbra-classic/;20,65;30,0
+PLM-009;Palmea;SCRUB VISO ALLA CRUSCA DI RISO;50 ml;34,5;34,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/scrub-viso-alla-crusca-di-riso-classic/;24,15;30,0
+PLM-010;Palmea;CREMA ANTIMACCHIA uniformante;50 ml;51,0;51,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/crema-antimacchia-uniformante-oasis/;35,7;30,0
+PLM-012;Palmea;CLARENTE BOOSTER ANTIMACCHIA;15 ml;41,5;41,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/clarente-booster-antimacchia/;29,05;30,0
+PLM-014;Palmea;SIERO ANTIMACCHIA illuminante;30 ml;48,5;48,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/siero-antimacchia-illuminante-oasis/;33,95;30,0
+PLM-016;Palmea;UNICA SIERO rimineralizzante antiage;30 ml;61,5;61,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/siero-rimineralizzante-antiossidante-antiage-unica/;43,05;30,0
+PLM-017;Palmea;ELISIR TONIFICANTE;200 ml;29,5;29,5;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/elisir-tonificante-classic/;20,65;30,0
+PLM-020;Palmea;RITUALE SUPREMO siero intensivo;30 ml;49,9;49,9;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/rituale-supremo-siero-intensivo-classic/;34,9;30,06
+PLM-021;Palmea;OLIO PREZIOSO;30 ml;47,0;47,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/olio-prezioso-classic/;32,9;30,0
+PLM-022;Palmea;FLUIDO ANTIRUGHE OPACIZZANTE;30 ml;45,0;45,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/fluido-antirughe-opacizzante-classic/;31,5;30,0
+PLM-023;Palmea;ALL DAY TRATTAMENTO INTEGRALE;50 ml;65,0;65,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/all-day-trattamento-integrale-giallo-oro/;45,5;30,0
+PLM-024;Palmea;FACE DETOX TREATMENT maschera;75 ml;52,0;52,0;0,0;0,0;uguale;alta;https://www.palmea.it/prodotto/face-detox-treatment-elements/;36,4;30,0
+SAG-001;Sangalli;ALGA SUBLIME;180 cps;36,0;36,0;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-sublime/;36,0;
+SAG-002;Sangalli;KILOMENO DRENA FORTE;500 ml;26,5;26,5;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-drena-forte/;26,5;
+SAG-003;Sangalli;ALGA SUBLIME;500 cps;78,5;78,5;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-sublime-500-cps/;78,5;
+SAG-004;Sangalli;KILOMENO LINEA;80 cps;24,5;24,5;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-linea/;24,5;
+SAG-006;Sangalli;KILOMENO UNIVERSALE;500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-universale/;24,0;
+SAG-007;Sangalli;ALOE 600 SUPERIOR PURO SUCCO;1 lt;26,2;26,2;0,0;0,0;uguale;alta;https://sangalli.it/product/aloe-600-superior/;26,2;
+SAG-008;Sangalli;KILOMENO VENTRE;500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/kilomeno-ventre/;24,0;
+SAG-010;Sangalli;LEO PROPOLIS;30 ml;14,0;14,0;0,0;0,0;uguale;alta;https://sangalli.it/product/leo-propolis/;14,0;
+SAG-011;Sangalli;ATTIVA FLOR DAILY;30 cps;23,7;23,7;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-daily/;23,7;
+SAG-012;Sangalli;LEO VACCINIUM;100 ml;16,0;16,0;0,0;0,0;uguale;alta;https://sangalli.it/product/leo-defensor/;16,0;
+SAG-013;Sangalli;ATTIVA FLOR IMMUNO;30 cps;26,0;26,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-immuno/;26,0;
+SAG-014;Sangalli;MAGNESIO E NATTOCHINASI;60 cp;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/magnesio-marino-b-60-cps/;19,5;
+SAG-015;Sangalli;ATTIVA FLOR PLATINUM;20 cps;26,0;26,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivaflor-platinum/;26,0;
+SAG-016;Sangalli;MAGNESIO E VITAMINE GRUPPO B;60 cp;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/magnesio-marino-b-60-cps/;19,5;
+SAG-017;Sangalli;ATTIVA MIX NEW;60 cps;24,0;24,0;0,0;0,0;uguale;alta;https://sangalli.it/product/attivamix-new-60-cps/;24,0;
+SAG-020;Sangalli;NATURAL ACT UMORE;60 cpr;25,5;25,5;0,0;0,0;uguale;alta;https://sangalli.it/product/natural-act-umore/;25,5;
+SAG-021;Sangalli;BIO REMEDY SPRAY GOLA;20 ml;12,0;12,0;0,0;0,0;uguale;alta;https://sangalli.it/product/bio-remedy-spray-gola/;12,0;
+SAG-023;Sangalli;BIO REMEDY TINTURA PROPOLI;30 ml;15,5;15,5;0,0;0,0;uguale;alta;https://sangalli.it/product/bio-remedy-tintura-di-propoli/;15,5;
+SAG-025;Sangalli;CLOROFILLA SUBLIME;90 cps;29,0;29,0;0,0;0,0;uguale;alta;https://sangalli.it/product/clorofilla-sublime-90-cps/;29,0;
+SAG-026;Sangalli;SONNONAT;30 cpr;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/sonnonat/;19,5;
+SAG-027;Sangalli;DEPURATIVO PADRI MONFORTANI;300 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/depurativo-dei-padri-monfortani/;22,0;
+SAG-028;Sangalli;SPIRULINA BLU+;90 cps;39,0;39,0;0,0;0,0;uguale;alta;https://sangalli.it/product/alga-spirulina/;39,0;
+SAG-029;Sangalli;DIGESTIVO PADRI MONFORTANI;300 ml;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/digestivo-dei-padri-monfortani/;19,5;
+SAG-030;Sangalli;EPIPROST;60 cpr;31,0;31,0;0,0;0,0;uguale;alta;https://sangalli.it/product/epiprost-60-cpr/;31,0;
+SAG-031;Sangalli;EPIPROST GOCCE RM;100 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/epiprost-gocce/;22,0;
+SAG-033;Sangalli;EUFRASIA GOCCE OCULARI;15 ml;10,5;10,5;0,0;0,0;uguale;alta;https://sangalli.it/product/gocce-di-eufrasia-15-ml/;10,5;
+SAG-035;Sangalli;FITOATTIVI AGLIO 3 MIX;50 cps;17,0;17,0;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-aglio-3-mix/;17,0;
+SAG-036;Sangalli;FITOATTIVI ALGA LAMINARIA;90 cps;18,5;18,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-alga-laminaria/;18,5;
+SAG-038;Sangalli;FITOATTIVI BAMBU' 45gg;90 cps;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-bambu/;19,5;
+SAG-040;Sangalli;FITOATTIVI BOSWELIA;90 cps;19,5;19,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-boswellia/;19,5;
+SAG-041;Sangalli;FITOATTIVI RHODIOLA;90 cps;27,0;27,0;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-rhodiola/;27,0;
+SAG-042;Sangalli;FITOATTIVI TURNERA APHROD;90 cps;29,5;29,5;0,0;0,0;uguale;alta;https://sangalli.it/product/fitoattivi-turnera-aphrodisiaca/;29,5;
+SAG-043;Sangalli;FLEXINAT;20 cpr;29,0;29,0;0,0;0,0;uguale;alta;https://sangalli.it/product/flexinat/;29,0;
+SAG-045;Sangalli;KRAUTEROL 24;100 ml;18,0;18,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-24/;18,0;
+SAG-046;Sangalli;INFLUNAT;20 cpr;22,5;22,5;0,0;0,0;uguale;alta;https://sangalli.it/product/influnat/;22,5;
+SAG-047;Sangalli;KRAUTEROL 31;100 ml;21,7;21,7;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-31/;21,7;
+SAG-048;Sangalli;JUVACALM CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvacalm/;21,5;
+SAG-049;Sangalli;KRAUTEROL 43;100 ml;21,5;21,0;-0,5;-2,33;sito più economico;alta;https://sangalli.it/product/krauterol-43/;21,0;
+SAG-050;Sangalli;JUVADOL CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvadol/;21,5;
+SAG-051;Sangalli;KRAUTEROL 99;100 ml;21,0;21,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-99/;21,0;
+SAG-052;Sangalli;JUVAVEN CON CONTAGOCCE;100 ml;21,5;21,5;0,0;0,0;uguale;alta;https://sangalli.it/product/juvaven/;21,5;
+SAG-053;Sangalli;KRAUTEROL 99 Forte;100 ml;22,0;22,0;0,0;0,0;uguale;alta;https://sangalli.it/product/krauterol-99-forte/;22,0;
+SAN-001;Santiveri;A17 AMINOACIDI;12 bs;29,2;29,2;0,0;0,0;uguale;alta;https://santiveri.it/products/a17-12-bustine-108-g;29,2;
+SAN-002;Santiveri;ACTICIR PLUS concentrato fluido;500 ml;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir;14,9;
+SAN-003;Santiveri;ACTICIR FORTE;30 cp;19,9;19,9;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir-forte-compresse-302g;19,9;
+SAN-004;Santiveri;ACTICIR GEL;125 ml;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/acticir-gel-125-ml;18,0;
+SAN-005;Santiveri;ALGA CHLORELLA BIO;118 cp;22,3;23,2;0,9;4,04;sito più caro;alta;https://santiveri.it/products/alga-chlorella-bio-50g;23,2;
+SAN-006;Santiveri;ALGA FUCUS BIO;113 cp;9,7;9,7;0,0;0,0;uguale;alta;https://santiveri.it/products/alga-fucus-bio-60g;9,7;
+SAN-007;Santiveri;ALGA KLAMAT & SPIRULINA;70 cp;26,6;29,0;2,4;9,02;sito più caro;alta;https://santiveri.it/products/alga-klamath-30-g;29,0;
+SAN-008;Santiveri;ALGA SPIRULINA BIO;100 cp;16,3;17,0;0,7;4,29;sito più caro;alta;https://santiveri.it/products/alga-spirulina-bio-45-g;17,0;
+SAN-009;Santiveri;ALOE VERA SUCCO;1 lt;34,0;34,0;0,0;0,0;uguale;alta;https://santiveri.it/products/aloe-vera-succo-1-lt;34,0;
+SAN-010;Santiveri;ALOE VERA GEL 100% BIO;200 ml;20,2;20,2;0,0;0,0;uguale;alta;https://santiveri.it/products/gel-aloe-vera-100-bio-200ml;20,2;
+SAN-011;Santiveri;ANEMIVITA COMPLEX;40 cp;16,0;16,0;0,0;0,0;uguale;alta;https://santiveri.it/products/anemivita-complex-capsule-25-g;16,0;
+SAN-012;Santiveri;ARGILLA VERDE TUBO;400 mg;13,3;13,3;0,0;0,0;uguale;alta;https://santiveri.it/products/argilla-verde-400gr;13,3;
+SAN-013;Santiveri;ARTRUM B FLEX;30 cp;19,5;19,5;0,0;0,0;uguale;alta;https://santiveri.it/products/artrum-b-flex-30-compresse;19,5;
+SAN-014;Santiveri;ARTRUM B CREMA GEL;75 ml;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/artrum-b-crema-gel-75ml;14,9;
+SAN-015;Santiveri;ASWAGANDA;40 cp;14,9;15,8;0,9;6,04;sito più caro;alta;https://santiveri.it/products/ashwaganda-capsule-18-gr;15,8;
+SAN-016;Santiveri;BELSON MELATONINA;30 ml;10,3;12,9;2,6;25,24;sito più caro;da verificare (formato o forma diversa?);https://santiveri.it/products/belson-melatonina-30ml;12,9;
+SAN-017;Santiveri;BELSON PLANT;20 cp;10,3;10,8;0,5;4,85;sito più caro;alta;https://santiveri.it/products/belson-plant-capsule-9-g;10,8;
+SAN-018;Santiveri;BENEFLOR;40 cp;29,3;29,3;0,0;0,0;uguale;alta;https://santiveri.it/products/beneflor-capsule-20-g;29,3;
+SAN-019;Santiveri;B C LULIT ATTACK FIALE;20 fl;27,2;27,2;0,0;0,0;uguale;alta;https://santiveri.it/products/fiale-bi-c-lulit;27,2;
+SAN-020;Santiveri;B C LULIT CONTROL compresse;48 cp;16,8;16,8;0,0;0,0;uguale;alta;https://santiveri.it/products/bi-c-lulit-compresse-28-g;16,8;
+SAN-021;Santiveri;BILIXIR BEVANDA;240 ml;17,1;17,1;0,0;0,0;uguale;alta;https://santiveri.it/products/bilixir-concentrato-fluido-240ml;17,1;
+SAN-022;Santiveri;BILIXIR FORTE compresse;40 cp;12,5;13,0;0,5;4,0;sito più caro;alta;https://santiveri.it/products/bilixir-forte-compresse-20-gr;13,0;
+SAN-023;Santiveri;BILIXIR STICK;200 ml;21,9;21,9;0,0;0,0;uguale;alta;https://santiveri.it/products/bilixir-stick-20x10ml;21,9;
+SAN-024;Santiveri;BILIXIR TISANA filtri;20 bs;7,1;7,1;0,0;0,0;uguale;alta;https://santiveri.it/products/tisana-bilixir-40g;7,1;
+SAN-028;Santiveri;CARBONATO DI MAGNESIO polv.;110 gr;12,0;12,0;0,0;0,0;uguale;alta;https://santiveri.it/products/carbonato-di-magnesio-110-g;12,0;
+SAN-029;Santiveri;CARDO MARIANO;40 cp;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-cardo-mariano-capsule-18-gr;13,5;
+SAN-030;Santiveri;CITRESS PICK BALSAMO;10 ml;8,0;8,0;0,0;0,0;uguale;alta;https://santiveri.it/products/citress-pick-10ml;8,0;
+SAN-031;Santiveri;CITRESS SPRAY;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://santiveri.it/products/citress-spray-100ml;9,3;
+SAN-032;Santiveri;CLORURO DI MAGNESIO 230 mg;230 cp;12,5;12,5;0,0;0,0;uguale;alta;https://santiveri.it/products/cloruro-di-magnesio-compresse-230-g;12,5;
+SAN-033;Santiveri;CLORURO DI MAGNESIO 120 mg;200 cp;10,9;10,9;0,0;0,0;uguale;alta;https://santiveri.it/products/cloruro-di-magnesio-compresse-120-g;10,9;
+SAN-034;Santiveri;COMPLEX MULTIVITAMIN;50 cp;21,2;22,0;0,8;3,77;sito più caro;alta;https://santiveri.it/products/complex-multivitamin-compresse-69gr;22,0;
+SAN-035;Santiveri;CORPRESS;40 cp;25,2;26,2;1,0;3,97;sito più caro;alta;https://santiveri.it/products/corpress-compresse-22g;26,2;
+SAN-036;Santiveri;CURCU FLEX superactive;48 cp;34,3;35,8;1,5;4,37;sito più caro;alta;https://santiveri.it/products/curcuflex-superactive-compresse-36-g;35,8;
+SAN-037;Santiveri;D-CISTOPLANT;8 bs;19,0;19,0;0,0;0,0;uguale;alta;https://santiveri.it/products/d-cistoplant-8-stick;19,0;
+SAN-038;Santiveri;DEXTRESS GABA;60 cp;16,0;16,6;0,6;3,75;sito più caro;alta;https://santiveri.it/products/dextress-gaba;16,6;
+SAN-039;Santiveri;DIURIFORTE PLUS BEVANDA;500 ml;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/diuriforte-500;13,5;
+SAN-040;Santiveri;DONNA POWER + (ciclo);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-power-ciclo;22,0;
+SAN-041;Santiveri;DONNA FOCUS + (prepausa);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-focus-prepausa;22,0;
+SAN-042;Santiveri;DONNA GOLD + (menopausa);40 cp;22,0;22,0;0,0;0,0;uguale;alta;https://santiveri.it/products/donna-gold-menopausa;22,0;
+SAN-043;Santiveri;ENERGY 3 STICK;15 st;16,9;16,9;0,0;0,0;uguale;alta;https://santiveri.it/products/energy-3-stick-15x10ml;16,9;
+SAN-044;Santiveri;FERROXIR FORTE FLUIDO;240 ml;18,7;19,4;0,7;3,74;sito più caro;alta;https://santiveri.it/products/ferroxir-forte-240-ml;19,4;
+SAN-045;Santiveri;FLEBASE;60 cp;22,3;23,2;0,9;4,04;sito più caro;alta;https://santiveri.it/products/flebase-compresse-27gr;23,2;
+SAN-046;Santiveri;FLORASE ANSIA PLUS;30 cp;16,9;17,6;0,7;4,14;sito più caro;alta;https://santiveri.it/products/florase-ansia-18-g;17,6;
+SAN-047;Santiveri;FLORASE COLESTEROLO FORTE;40 cp;28,8;28,8;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colesterolo-forte-20-g;28,8;
+SAN-048;Santiveri;FLORASE COLESTEROLO REDUX;20 bs;17,5;17,5;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colesterolo-redux;17,5;
+SAN-049;Santiveri;FLORASE COLON HELP;40 cp;25,6;25,6;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-colon-help-16g;25,6;
+SAN-050;Santiveri;FLORASE DERMA;40 cp;22,5;22,5;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-derma-16-g;22,5;
+SAN-052;Santiveri;FLORASE IMMUNO flaconcini;10 fl;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-immuno-100-ml;18,0;
+SAN-053;Santiveri;FLORASE INTEST;40 cp;18,0;18,0;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-intest-19-g;18,0;
+SAN-054;Santiveri;FLORASE KAND;40 cp;27,2;27,2;0,0;0,0;uguale;alta;https://santiveri.it/products/florase-kand-19gr;27,2;
+SAN-055;Santiveri;FLORASE UROL;40 cp;22,5;23,4;0,9;4,0;sito più caro;alta;https://santiveri.it/products/florase-urol-18-g;23,4;
+SAN-056;Santiveri;FLOR INTOLLERANCE ATTACCO;30 cp;20,7;20,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-attacco;20,7;
+SAN-057;Santiveri;FLOR INTOLLERANCE CONTROLLO;30 cp;19,7;19,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-controllo;19,7;
+SAN-058;Santiveri;FLOR INTOLLERANCE EQUILIBRIO;240 ml;16,7;16,7;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-equilibrio;16,7;
+SAN-059;Santiveri;FLOR INTOLLERANCE KAVAGAS;30 cp;13,1;13,1;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-kavagas;13,1;
+SAN-060;Santiveri;FLOR INTOLLERANCE BUTIRRATO;30 cp;14,8;14,8;0,0;0,0;uguale;alta;https://santiveri.it/products/flor-intollerance-butirrato-30-compresse;14,8;
+SAN-061;Santiveri;GIKGO BILOBA;40 cp;14,8;14,8;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-ginkgo-biloba-capsule-18-gr;14,8;
+SAN-062;Santiveri;HARPAGOPHYTUM ESP fiale;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/harpagophytum-esp-100-ml;19,2;
+SAN-063;Santiveri;OLIO DI ENOTHERA 500 mg;220 prl;34,1;34,1;0,0;0,0;uguale;alta;https://santiveri.it/products/enotera-500-perle-154-g;34,1;
+SAN-064;Santiveri;INFLULEN NASO;30 ml;11,0;11,0;0,0;0,0;uguale;alta;https://santiveri.it/products/influlen-naso-spray-30ml;11,0;
+SAN-065;Santiveri;OLIO DI FEGATO DI MERLUZZO;120 prl;19,0;19,0;0,0;0,0;uguale;alta;https://santiveri.it/products/olio-di-fegato-di-merluzzo-perle-80g;19,0;
+SAN-066;Santiveri;INFLULEN TOSSE;170 ml;13,5;13,5;0,0;0,0;uguale;alta;https://santiveri.it/products/influlen-tosse-bevanda-170ml;13,5;
+SAN-068;Santiveri;IPERICO;40 cp;13,4;13,4;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocultura-iperico-capsule-16-gr;13,4;
+SAN-069;Santiveri;OXACOR K2;40 CP;27,8;27,8;0,0;0,0;uguale;alta;https://santiveri.it/products/oxacor-capsule-21-g;27,8;
+SAN-070;Santiveri;KRAUTER BASEN + (nuova formula);500 ml;24,0;24,0;0,0;0,0;uguale;alta;https://santiveri.it/products/krauter-basen;24,0;
+SAN-071;Santiveri;PICOLINATO DI CROMO;40 cp;16,4;17,0;0,6;3,66;sito più caro;alta;https://santiveri.it/products/picolinato-di-cromo-forte-16-g;17,0;
+SAN-072;Santiveri;LAX ALOE PROTECT;60cps;10,0;10,0;0,0;0,0;uguale;alta;https://santiveri.it/products/lax-aloe-protect;10,0;
+SAN-073;Santiveri;PLANTAGO MAYOR ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/plantago-major-esp-100-ml;19,2;
+SAN-074;Santiveri;LIPID COMPLEX;125 prl;37,8;37,8;0,0;0,0;uguale;alta;https://santiveri.it/products/lipid-complex-perle-87-gr;37,8;
+SAN-075;Santiveri;PLAVIR CONCENTRATO fluido;200 ml;17,1;17,8;0,7;4,09;sito più caro;alta;https://santiveri.it/products/plavir-difese-immunitarie-200ml;17,8;
+SAN-076;Santiveri;MACA BIO CAPSULE;60 cp;20,4;20,4;0,0;0,0;uguale;alta;https://santiveri.it/products/maca-bio-26-g;20,4;
+SAN-077;Santiveri;POSITIVE;40 cp;23,0;24,0;1,0;4,35;sito più caro;alta;https://santiveri.it/products/positive-19-g;24,0;
+SAN-078;Santiveri;MAGNESIO E POTASSIO;20 bs;13,0;13,0;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-e-potassio-bustine-100g;13,0;
+SAN-079;Santiveri;PROPOLFLOR ESTRATTO BIO;50 ml;17,5;18,2;0,7;4,0;sito più caro;alta;https://santiveri.it/products/propolflor-propoli-estratto-bio-50-ml;18,2;
+SAN-080;Santiveri;MAGNESIO E POTASSIO PLUS;10 bs;14,0;14,0;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-e-potassio-plus-bustine-50g;14,0;
+SAN-081;Santiveri;PROPOLFLOR SPRAY ORALE BIO;30 ml;13,0;13,6;0,6;4,62;sito più caro;alta;https://santiveri.it/products/propolflor-spray-orale-bio-30-ml;13,6;
+SAN-082;Santiveri;MAGNESIO MAX (magnesio citrato);150 gr;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/magnesio-maximum-150g;12,9;
+SAN-083;Santiveri;PROSTAPLANT;40 cp;17,3;18,0;0,7;4,05;sito più caro;alta;https://santiveri.it/products/prostaplant-capsule-18-g;18,0;
+SAN-084;Santiveri;METABOLIC 1;21 bs;39,0;39,0;0,0;0,0;uguale;alta;https://santiveri.it/products/metabolic_1;39,0;
+SAN-085;Santiveri;Q - MAGNESIO 55 gr;88 cp;15,7;15,7;0,0;0,0;uguale;alta;https://santiveri.it/products/q-magnesio-compresse-55-g;15,7;
+SAN-086;Santiveri;RAPHANUS ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/raphanus-e-s-p-100-ml;19,2;
+SAN-087;Santiveri;REALFRIAL PROPOLI+ ECHINACEA;20 fl;28,2;28,2;0,0;0,0;uguale;alta;https://santiveri.it/products/realfrial-fiale-200-ml;28,2;
+SAN-088;Santiveri;REALGINSENG 200 ml;20 fl;36,4;36,4;0,0;0,0;uguale;alta;https://santiveri.it/products/realginsengx2-fiale-200-ml;36,4;
+SAN-089;Santiveri;REALMIL 200 ml;20 fl;28,3;29,4;1,1;3,89;sito più caro;alta;https://santiveri.it/products/realmil-fiale-200-ml;29,4;
+SAN-090;Santiveri;RUSCUS ACULEATUS ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/ruscus-aculeatus-es-100ml;19,2;
+SAN-091;Santiveri;SANATORIUM;72 cp;10,5;10,5;0,0;0,0;uguale;alta;https://santiveri.it/products/sanatorium-41-g;10,5;
+SAN-092;Santiveri;SILICIO + MAGNESIO MARINO;60 cp;30,7;31,8;1,1;3,58;sito più caro;alta;https://santiveri.it/products/silicio-e-magnesio-marino-28gr;31,8;
+SAN-093;Santiveri;SILYBUM MARIANUM ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/silybum-marianum-esp-100-ml;19,2;
+SAN-095;Santiveri;TAPEZCOHUITE BIO CREMA;50 ml;12,2;12,2;0,0;0,0;uguale;alta;https://santiveri.it/products/bioconcentrato-tepezcohuite-50ml;12,2;
+SAN-096;Santiveri;TRIPTOFANO;40 cp;25,9;25,9;0,0;0,0;uguale;alta;https://santiveri.it/products/triptofano-capsule-18-g;25,9;
+SAN-097;Santiveri;ULCE REFLUX stick 10 ml;16 st;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-reflux-stick;12,9;
+SAN-098;Santiveri;ULCE DIGEST concentrato fluido;240 ml;20,8;20,8;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-concentrato-fluido-240-ml;20,8;
+SAN-099;Santiveri;ULCE GASTRO;40 cp;27,1;28,2;1,1;4,06;sito più caro;alta;https://santiveri.it/products/ulce-gastro-capsule-15gr;28,2;
+SAN-100;Santiveri;VALERIANA;40 cp;11,5;11,5;0,0;0,0;uguale;alta;https://santiveri.it/products/fitocoltura-valeriana-capsule;11,5;
+SAN-102;Santiveri;MICOSAN ENERGY;40 cp;24,6;24,6;0,0;0,0;uguale;alta;https://santiveri.it/products/micoxan-energy-19-g;24,6;
+SAN-103;Santiveri;VIGOR FORMA ATTIVA;240 ml;23,0;23,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-attiva-concentrato-fluido-240ml;23,0;
+SAN-104;Santiveri;MICOSAN IMMUNFLU;40 cp;24,3;24,3;0,0;0,0;uguale;alta;https://santiveri.it/products/micoxan-immunflu-18-g;24,3;
+SAN-105;Santiveri;VIGOR FORMA BRUCIA;240 ml;23,0;23,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-brucia-concentrato-fluido-240ml;23,0;
+SAN-106;Santiveri;MICOSAN METABOLIC;40 cp;23,1;24,4;1,3;5,63;sito più caro;alta;https://santiveri.it/products/micoxan-metabolic-19gr;24,4;
+SAN-107;Santiveri;VIGOR FORMA RIDUCE;200 ml;20,0;20,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-forma-riduce-compresse-20gr;20,0;
+SAN-108;Santiveri;MICOSAN PROTECT;40 cp;18,0;18,8;0,8;4,44;sito più caro;alta;https://santiveri.it/products/micoxan-protect-19-g;18,8;
+SAN-110;Santiveri;MICOSAN PURAVIDA;40 cp;21,0;21,8;0,8;3,81;sito più caro;alta;https://santiveri.it/products/micoxan-puravida-18-g;21,8;
+SAN-111;Santiveri;VIGOR HAIR;48 cp;22,7;22,7;0,0;0,0;uguale;alta;https://santiveri.it/products/vigor-hair-compresse-40gr;22,7;
+SAN-112;Santiveri;MICOSAN SOMAX;40 cp;25,4;26,4;1,0;3,94;sito più caro;alta;https://santiveri.it/products/micoxan-somax-18-g;26,4;
+SAN-113;Santiveri;VIGOR PEC concentrato fluido;240 ml;17,5;18,2;0,7;4,0;sito più caro;alta;https://santiveri.it/products/vigor-pec-grassa-240-ml;18,2;
+SAN-114;Santiveri;MIGLIOVITA compresse;80 cp;42,0;42,0;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-capsule-64-g;42,0;
+SAN-115;Santiveri;VIGOR SOL ACTIFPLUS;30 prl;16,6;17,4;0,8;4,82;sito più caro;alta;https://santiveri.it/products/vigorsol-actifplus-perle-24-g;17,4;
+SAN-116;Santiveri;MIGLIOVITA compresse;40 cp;22,8;22,8;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-capsule-32-g;22,8;
+SAN-117;Santiveri;VIT. B 12 1.000 mg;20 cp;8,8;9,5;0,7;7,95;sito più caro;alta;https://santiveri.it/products/vitamina-b12-compresse-10gr;9,5;
+SAN-118;Santiveri;MIGLIOVITA fiale BIO;10 fl;22,9;22,9;0,0;0,0;uguale;alta;https://santiveri.it/products/migliovita-fiale-bio-10-fiale-100-ml;22,9;
+SAN-121;Santiveri;VITAMINA C 1000 mg RETARD;60 cp;21,9;21,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vitamina-c-retardquercetina-90-cpr-18g;21,9;
+SAN-122;Santiveri;MIGRADOL;40 cp;12,4;12,4;0,0;0,0;uguale;alta;https://santiveri.it/products/migradol-capsule-14-g;12,4;
+SAN-123;Santiveri;VITAMINA D3 VEGETALE;60 cp;14,9;14,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vitamina-d3-2000-vegetale-cpr-27gr;14,9;
+SAN-124;Santiveri;MIRTILLO ROSSO bevanda;490 ml;19,2;20,0;0,8;4,17;sito più caro;alta;https://santiveri.it/products/mirtillo-rosso-succo-490-ml;20,0;
+SAN-125;Santiveri;VIVOLAX STIMOLA;60 gr;12,0;12,0;0,0;0,0;uguale;alta;https://santiveri.it/products/vivolax-stimola;12,0;
+SAN-126;Santiveri;NOLESTEROL Senza monocolina;40 cp;25,4;25,4;0,0;0,0;uguale;alta;https://santiveri.it/products/nolesterol-con-altilix-cps-vegetali-20g;25,4;
+SAN-127;Santiveri;VIVOLAX REGOLA;200 ml;14,0;15,0;1,0;7,14;sito più caro;alta;https://santiveri.it/products/vivolax-regola;15,0;
+SAN-128;Santiveri;OCULARINA ANTIOX;60 cp;20,5;21,4;0,9;4,39;sito più caro;alta;https://santiveri.it/products/ocularina-antiox-31-g;21,4;
+SAN-129;Santiveri;VIVOLAX FIBRA LIQUIDA;500 ml;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/vivolax-fibra-500-ml;12,9;
+SAN-130;Santiveri;ZEFIRUS DREN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-dren-100-ml;22,4;
+SAN-131;Santiveri;ZEFIRUS LEI;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-lei-100-ml;22,4;
+SAN-132;Santiveri;ZEFIRUS PRO CARDIO;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-cardio-100m;22,4;
+SAN-133;Santiveri;ZEFIRUS PRO ENDOCRIN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-endocrin-100m;22,4;
+SAN-134;Santiveri;ZEFIRUS PRO METABOLIC;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-pro-metabolic-100m;22,4;
+SAN-135;Santiveri;ZEFIRUS RIN;100 ml;22,4;22,4;0,0;0,0;uguale;alta;https://santiveri.it/products/zefirus-rin-100-ml;22,4;
+STU-001;Stur Dee;ACIDO FOLICO;100 cp;18,5;18,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/acido-folico/;18,5;
+STU-002;Stur Dee;L-TRIPTOFANO;30 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/l-triptofano/;18,0;
+STU-004;Stur Dee;LECITINA DI SOIA;100 prl;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/lecitina-di-soia/;16,0;
+STU-005;Stur Dee;ALGA MARINA;250 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/alga-marina/;16,0;
+STU-006;Stur Dee;MAGNESIO POTASSIO 60 tv;;21,5;21,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/magnesio-e-potassio/;21,5;
+STU-012;Stur Dee;MULTIMINERALS;100 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/multiminerals/;20,0;
+STU-015;Stur Dee;BIO CAL MAG;50 cp;17,5;17,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/bio-cal-mag/;17,5;
+STU-016;Stur Dee;OMEGA TRE 1000;100 prl;26,0;26,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/omega-3-1000/;26,0;
+STU-017;Stur Dee;BOSWELIA SERRATA;100 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/boswellia-serrata/;16,0;
+STU-018;Stur Dee;PAPAYA FERMENTATA;60 cp;21,0;21,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/papaia-fermentata/;21,0;
+STU-019;Stur Dee;C - COMPLEX 500;100 cp;18,5;18,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/c-complex/;18,5;
+STU-020;Stur Dee;POMPELMO SEMI;60 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/semi-di-pompelmo/;20,0;
+STU-022;Stur Dee;POMPELMO SEMI GOCCE;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/semi-di-pompelmo-gocce/;14,0;
+STU-024;Stur Dee;POTASSIO;100 cp;21,0;21,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/potassio/;21,0;
+STU-026;Stur Dee;RODIOLA;50 cp;17,5;17,5;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/rodiola/;17,5;
+STU-028;Stur Dee;SELENIUM;50 cp;17,0;17,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/selenium-50/;17,0;
+STU-030;Stur Dee;SPIRULINA bio;50 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/bio-spirulina/;16,0;
+STU-031;Stur Dee;CROMO PICOLINATO;100 cp;16,0;16,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/cromo-picolinato/;16,0;
+STU-032;Stur Dee;SUPER PROTEIN AMINOS;100 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/super-protein-aminos/;18,0;
+STU-033;Stur Dee;CURCUMA;100 cp;15,0;15,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/curcuma/;15,0;
+STU-035;Stur Dee;E 400;100 prl;31,0;31,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/e-400/;31,0;
+STU-036;Stur Dee;VITAMINA A + D;100 cp;14,0;14,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/vitamina-ad/;14,0;
+STU-038;Stur Dee;ZINCO;100 cp;19,0;19,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/zinco/;19,0;
+STU-039;Stur Dee;HEAD FIRST;60 cp;20,0;20,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/head-first/;20,0;
+STU-043;Stur Dee;L-TRIPTOFANO;30 cp;18,0;18,0;0,0;0,0;uguale;alta;https://www.sturdee.it/prodotto/l-triptofano/;18,0;
+VON-002;Vonderweid;ALOE VERA SUCCO E POLPA;500 ml;21,0;21,0;0,0;0,0;uguale;alta;https://vonderweid.it/products/succo-aloe-vera-puro;21,0;
