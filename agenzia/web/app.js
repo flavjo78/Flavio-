@@ -327,7 +327,7 @@ async function render() {
       case 'liste': return await paginaListe();
       case 'clienti': return id ? await paginaCliente(id) : await paginaClienti();
       case 'fornitori': return id ? await paginaFornitore(id) : await paginaFornitori();
-      case 'statistiche': return id === 'biglietteria' ? await paginaStatBiglietteria() : id === 'giornaliera' ? await paginaStatGiorno(STATO.route.split('/')[2]) : await paginaStatistiche(id);
+      case 'statistiche': return id === 'biglietteria' ? await paginaStatBiglietteria() : (!id || id === 'giornaliera') ? await paginaStatGiorno(STATO.route.split('/')[2]) : await paginaStatistiche(id === 'vendite' ? '' : id);
       case 'opzioni': return await paginaOpzioni(id);
       default: return await paginaScadenze();
     }
@@ -1265,7 +1265,7 @@ function canaliAereo() {
   return [...new Set((STATO.imp.liste.canali_aereo || []).map(x => x.split('|')[0].trim()).filter(Boolean))].map(nome => ({ nome }));
 }
 
-const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche/giornaliera" class="${attivo === 'giornaliera' ? 'attivo' : ''}">Giornaliera</a><a href="#/statistiche" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
+const TABS_STAT = attivo => `<div class="tabs"><a href="#/statistiche/giornaliera" class="${attivo === 'giornaliera' ? 'attivo' : ''}">Giornaliera</a><a href="#/statistiche/vendite" class="${attivo === 'vendite' ? 'attivo' : ''}">Vendite</a><a href="#/statistiche/biglietteria" class="${attivo === 'biglietteria' ? 'attivo' : ''}">Biglietteria</a></div>`;
 let TIPO_BG_HOME = '';
 async function paginaBiglietteria() {
   const d = await api('biglietti', undefined, { anno: new Date().getFullYear(), tipo: TIPO_BG_HOME });
