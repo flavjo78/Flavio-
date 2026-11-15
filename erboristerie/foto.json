@@ -1878,5 +1878,920 @@
   "file": "img/VON-002.jpg",
   "fonte": "https://vonderweid.it/products/succo-aloe-vera-puro",
   "titolo_shop": "Succo Puro di Aloe Vera - 500 ml | 1 L"
+ },
+ "STU-001": {
+  "file": "img/STU-001.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/acido-folico/",
+  "titolo_shop": "Acido Folico"
+ },
+ "STU-002": {
+  "file": "img/STU-002.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/l-triptofano/",
+  "titolo_shop": "L-Triptofano"
+ },
+ "STU-004": {
+  "file": "img/STU-004.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/lecitina-di-soia/",
+  "titolo_shop": "Lecitina di Soia"
+ },
+ "STU-005": {
+  "file": "img/STU-005.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/alga-marina/",
+  "titolo_shop": "Alga Marina"
+ },
+ "STU-006": {
+  "file": "img/STU-006.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/magnesio-e-potassio/",
+  "titolo_shop": "Magnesio e Potassio"
+ },
+ "STU-012": {
+  "file": "img/STU-012.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/multiminerals/",
+  "titolo_shop": "Multiminerals"
+ },
+ "STU-015": {
+  "file": "img/STU-015.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/bio-cal-mag/",
+  "titolo_shop": "Bio Cal Mag"
+ },
+ "STU-016": {
+  "file": "img/STU-016.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/omega-3-1000/",
+  "titolo_shop": "Omega 3 1000"
+ },
+ "STU-017": {
+  "file": "img/STU-017.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/boswellia-serrata/",
+  "titolo_shop": "Boswellia Serrata"
+ },
+ "STU-018": {
+  "file": "img/STU-018.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/papaia-fermentata/",
+  "titolo_shop": "Papaia fermentata"
+ },
+ "STU-019": {
+  "file": "img/STU-019.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/c-complex/",
+  "titolo_shop": "C-Complex"
+ },
+ "STU-020": {
+  "file": "img/STU-020.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/semi-di-pompelmo/",
+  "titolo_shop": "Semi di pompelmo"
+ },
+ "STU-022": {
+  "file": "img/STU-022.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/semi-di-pompelmo-gocce/",
+  "titolo_shop": "Semi di pompelmo gocce"
+ },
+ "STU-024": {
+  "file": "img/STU-024.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/potassio/",
+  "titolo_shop": "Potassio"
+ },
+ "STU-026": {
+  "file": "img/STU-026.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/rodiola/",
+  "titolo_shop": "Rodiola"
+ },
+ "STU-028": {
+  "file": "img/STU-028.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/selenium-50/",
+  "titolo_shop": "Selenium 50"
+ },
+ "STU-030": {
+  "file": "img/STU-030.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/bio-spirulina/",
+  "titolo_shop": "Bio Spirulina"
+ },
+ "STU-031": {
+  "file": "img/STU-031.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/cromo-picolinato/",
+  "titolo_shop": "Cromo Picolinato"
+ },
+ "STU-032": {
+  "file": "img/STU-032.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/super-protein-aminos/",
+  "titolo_shop": "Super Protein Aminos"
+ },
+ "STU-033": {
+  "file": "img/STU-033.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/curcuma/",
+  "titolo_shop": "Curcuma"
+ },
+ "STU-035": {
+  "file": "img/STU-035.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/e-400/",
+  "titolo_shop": "E-400"
+ },
+ "STU-036": {
+  "file": "img/STU-036.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/vitamina-ad/",
+  "titolo_shop": "Vitamina A+D"
+ },
+ "STU-038": {
+  "file": "img/STU-038.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/zinco/",
+  "titolo_shop": "Zinco"
+ },
+ "STU-039": {
+  "file": "img/STU-039.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/head-first/",
+  "titolo_shop": "Head First"
+ },
+ "STU-043": {
+  "file": "img/STU-043.jpg",
+  "fonte": "https://www.sturdee.it/prodotto/l-triptofano/",
+  "titolo_shop": "L-Triptofano"
+ },
+ "FIT-001": {
+  "file": "img/FIT-001.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/cognimind/p/cognimind/",
+  "titolo_shop": "Cognimind"
+ },
+ "FIT-003": {
+  "file": "img/FIT-003.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/drenadepura/p/drenadepura/",
+  "titolo_shop": "drena&depura"
+ },
+ "FIT-007": {
+  "file": "img/FIT-007.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/slim-body-project-drena/p/slim-body-project-drena/",
+  "titolo_shop": "Slim body project Drena"
+ },
+ "FIT-009": {
+  "file": "img/FIT-009.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/serenday/p/serenday/",
+  "titolo_shop": "Serenday"
+ },
+ "FIT-011": {
+  "file": "img/FIT-011.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/armonight/p/armonight/",
+  "titolo_shop": "Armonight"
+ },
+ "FIT-013": {
+  "file": "img/FIT-013.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/gastrokey/p/gastrokey/",
+  "titolo_shop": "Gastrokey"
+ },
+ "FIT-015": {
+  "file": "img/FIT-015.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/epakeep/p/epakeep/",
+  "titolo_shop": "EPAkeep"
+ },
+ "FIT-017": {
+  "file": "img/FIT-017.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/artimove/p/artimove/",
+  "titolo_shop": "Artimove"
+ },
+ "FIT-019": {
+  "file": "img/FIT-019.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/p/cistoshield/p/cistoshield/",
+  "titolo_shop": "Cistoshield"
+ },
+ "FIT-020": {
+  "file": "img/FIT-020.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/ipersensibilita/",
+  "titolo_shop": "Ipersensibilità"
+ },
+ "FIT-021": {
+  "file": "img/FIT-021.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/intimoshield/p/intimoshield_587/",
+  "titolo_shop": "Intimoshield"
+ },
+ "FIT-030": {
+  "file": "img/FIT-030.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/propoli/p/propoli-spray-gola/",
+  "titolo_shop": "Propoli spray gola"
+ },
+ "FIT-031": {
+  "file": "img/FIT-031.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/articolazioni/",
+  "titolo_shop": "Articolazioni"
+ },
+ "FIT-035": {
+  "file": "img/FIT-035.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-ritmo/",
+  "titolo_shop": "Erbaregola Ritmo"
+ },
+ "FIT-037": {
+  "file": "img/FIT-037.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-forte/",
+  "titolo_shop": "Erbaregola Forte"
+ },
+ "FIT-039": {
+  "file": "img/FIT-039.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-delicato/",
+  "titolo_shop": "Erbaregola Delicato"
+ },
+ "FIT-042": {
+  "file": "img/FIT-042.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/pural/p/pural-chewinggum/",
+  "titolo_shop": "PURAL Chewing-gum"
+ },
+ "FIT-044": {
+  "file": "img/FIT-044.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/pural/p/pural-parodont/",
+  "titolo_shop": "PURAL Parodont"
+ },
+ "FIT-046": {
+  "file": "img/FIT-046.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/micronutrienti/p/vitamina-cpqq/",
+  "titolo_shop": "Vitamina C+PQQ"
+ },
+ "FIT-047": {
+  "file": "img/FIT-047.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/pural/p/pural-spray/",
+  "titolo_shop": "PURAL Spray"
+ },
+ "FIT-058": {
+  "file": "img/FIT-058.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/micronutrienti/p/acido-folico-attivo/",
+  "titolo_shop": "Acido Folico Attivo"
+ },
+ "FIT-060": {
+  "file": "img/FIT-060.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/cosmesi-naturale/p/onicoil/p/onicoil/",
+  "titolo_shop": "Onicoil"
+ },
+ "FIT-061": {
+  "file": "img/FIT-061.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/artihara/p/artihara-gel/",
+  "titolo_shop": "Artihara Gel"
+ },
+ "FIT-062": {
+  "file": "img/FIT-062.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/artihara/p/artihara-pomata/",
+  "titolo_shop": "Artihara Pomata"
+ },
+ "FIT-063": {
+  "file": "img/FIT-063.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/artihara/p/artihara-olio-spray/",
+  "titolo_shop": "Artihara Olio spray"
+ },
+ "FIT-064": {
+  "file": "img/FIT-064.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/ananas-est/",
+  "titolo_shop": "Ananas EST"
+ },
+ "FIT-065": {
+  "file": "img/FIT-065.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/salvia-cinese-est/",
+  "titolo_shop": "Salvia cinese EST"
+ },
+ "FIT-066": {
+  "file": "img/FIT-066.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/andrographis-est/",
+  "titolo_shop": "Andrographis EST"
+ },
+ "FIT-067": {
+  "file": "img/FIT-067.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/schisandra-est/",
+  "titolo_shop": "Schisandra EST"
+ },
+ "FIT-068": {
+  "file": "img/FIT-068.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/angelica-cinese-est/",
+  "titolo_shop": "Angelica cinese EST"
+ },
+ "FIT-069": {
+  "file": "img/FIT-069.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/scutellaria-tm/",
+  "titolo_shop": "Scutellaria TM"
+ },
+ "FIT-071": {
+  "file": "img/FIT-071.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/serenoa_est/",
+  "titolo_shop": "Serenoa EST"
+ },
+ "FIT-072": {
+  "file": "img/FIT-072.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/astragalo-est/",
+  "titolo_shop": "Astragalo EST"
+ },
+ "FIT-073": {
+  "file": "img/FIT-073.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/shatavari_est/",
+  "titolo_shop": "Shatavari EST"
+ },
+ "FIT-074": {
+  "file": "img/FIT-074.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/bacopa_est/",
+  "titolo_shop": "Bacopa EST"
+ },
+ "FIT-075": {
+  "file": "img/FIT-075.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/spirulina_est/",
+  "titolo_shop": "Spirulina EST"
+ },
+ "FIT-076": {
+  "file": "img/FIT-076.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-fluidi/p/biancospino_ef/",
+  "titolo_shop": "Biancospino EF"
+ },
+ "FIT-077": {
+  "file": "img/FIT-077.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tabebuia_est/",
+  "titolo_shop": "Tabebuia EST"
+ },
+ "FIT-078": {
+  "file": "img/FIT-078.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/boswellia_est/",
+  "titolo_shop": "Boswellia EST"
+ },
+ "FIT-081": {
+  "file": "img/FIT-081.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/triphala-est/",
+  "titolo_shop": "Triphala EST"
+ },
+ "FIT-083": {
+  "file": "img/FIT-083.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/tulsi_est/",
+  "titolo_shop": "Tulsi EST"
+ },
+ "FIT-084": {
+  "file": "img/FIT-084.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/macerati-di-pianta-fresca/p/cardo-mariano-tm-bio/",
+  "titolo_shop": "Cardo mariano TM Bio"
+ },
+ "FIT-085": {
+  "file": "img/FIT-085.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/uncaria_est/",
+  "titolo_shop": "Uncaria EST"
+ },
+ "FIT-086": {
+  "file": "img/FIT-086.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/centella_est/",
+  "titolo_shop": "Centella EST"
+ },
+ "FIT-088": {
+  "file": "img/FIT-088.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-totali/p/chrysanthellum_ef/",
+  "titolo_shop": "Chrysanthellum EF"
+ },
+ "FIT-089": {
+  "file": "img/FIT-089.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/withania-est/",
+  "titolo_shop": "Withania EST"
+ },
+ "FIT-090": {
+  "file": "img/FIT-090.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cimicifuga_est/",
+  "titolo_shop": "Cimicifuga EST"
+ },
+ "FIT-092": {
+  "file": "img/FIT-092.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/codonopsis-est/",
+  "titolo_shop": "Codonopsis EST"
+ },
+ "FIT-093": {
+  "file": "img/FIT-093.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/cranberry_est/",
+  "titolo_shop": "Cranberry EST"
+ },
+ "FIT-099": {
+  "file": "img/FIT-099.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-totali/p/eleuterococco-ef/",
+  "titolo_shop": "Eleuterococco EF"
+ },
+ "FIT-105": {
+  "file": "img/FIT-105.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fillanto_est/",
+  "titolo_shop": "Fillanto EST"
+ },
+ "FIT-107": {
+  "file": "img/FIT-107.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/fucus_est/",
+  "titolo_shop": "Fucus EST"
+ },
+ "FIT-109": {
+  "file": "img/FIT-109.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/garcinia-est/",
+  "titolo_shop": "Garcinia EST"
+ },
+ "FIT-117": {
+  "file": "img/FIT-117.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/glucomannano-polvere_est/",
+  "titolo_shop": "Glucomannano polvere EST"
+ },
+ "FIT-119": {
+  "file": "img/FIT-119.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/guarana_est/",
+  "titolo_shop": "Guaranà EST"
+ },
+ "FIT-121": {
+  "file": "img/FIT-121.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gymnema_est/",
+  "titolo_shop": "Gymnema EST"
+ },
+ "FIT-123": {
+  "file": "img/FIT-123.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/gynostemma_est/",
+  "titolo_shop": "Gynostemma EST"
+ },
+ "FIT-125": {
+  "file": "img/FIT-125.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/maca_est/",
+  "titolo_shop": "Maca EST"
+ },
+ "FIT-127": {
+  "file": "img/FIT-127.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/magnolia_est/",
+  "titolo_shop": "Magnolia EST"
+ },
+ "FIT-135": {
+  "file": "img/FIT-135.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/estratti-fluidi/p/passiflora_ef/",
+  "titolo_shop": "Passiflora EF"
+ },
+ "FIT-137": {
+  "file": "img/FIT-137.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/polygonum_est/",
+  "titolo_shop": "Polygonum EST"
+ },
+ "FIT-138": {
+  "file": "img/FIT-138.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pompelmo_est/",
+  "titolo_shop": "Pompelmo semi EST"
+ },
+ "FIT-140": {
+  "file": "img/FIT-140.jpg",
+  "fonte": "https://www.fitomedical.com/prodotti/est-estratti-secchi-in-tavolette/p/pueraria_est/",
+  "titolo_shop": "Pueraria EST"
+ },
+ "OFF-001": {
+  "file": "img/OFF-001.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnodoccia-onda-marina",
+  "titolo_shop": "Bagnodoccia Onda Marina"
+ },
+ "OFF-002": {
+  "file": "img/OFF-002.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-lavaggi-frequenti",
+  "titolo_shop": "Shampoo Lavaggi Frequenti"
+ },
+ "OFF-003": {
+  "file": "img/OFF-003.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/bagnoschiuma/doccia-shampoo-200-ml-500-ml-1-l-4-l",
+  "titolo_shop": "Doccia Shampoo"
+ },
+ "OFF-004": {
+  "file": "img/OFF-004.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-grassi",
+  "titolo_shop": "Shampoo Capelli Grassi"
+ },
+ "OFF-006": {
+  "file": "img/OFF-006.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci",
+  "titolo_shop": "Shampoo Capelli Ricci"
+ },
+ "OFF-008": {
+  "file": "img/OFF-008.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci",
+  "titolo_shop": "Shampoo Capelli Ricci"
+ },
+ "OFF-010": {
+  "file": "img/OFF-010.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci",
+  "titolo_shop": "Shampoo Capelli Ricci"
+ },
+ "OFF-012": {
+  "file": "img/OFF-012.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-cute-con-forfora",
+  "titolo_shop": "Shampoo Antiforfora"
+ },
+ "OFF-014": {
+  "file": "img/OFF-014.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci",
+  "titolo_shop": "Balsamo Capelli Ricci"
+ },
+ "OFF-015": {
+  "file": "img/OFF-015.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido",
+  "titolo_shop": "Detergente Intimo Solido"
+ },
+ "OFF-016": {
+  "file": "img/OFF-016.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci",
+  "titolo_shop": "Balsamo Capelli Ricci"
+ },
+ "OFF-018": {
+  "file": "img/OFF-018.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci",
+  "titolo_shop": "Balsamo Capelli Ricci"
+ },
+ "OFF-020": {
+  "file": "img/OFF-020.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci",
+  "titolo_shop": "Balsamo Capelli Ricci"
+ },
+ "OFF-021": {
+  "file": "img/OFF-021.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/bagnoschiuma/detergente-delicato-senza-profumo",
+  "titolo_shop": "Detergente Delicato senza profumo"
+ },
+ "OFF-022": {
+  "file": "img/OFF-022.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante",
+  "titolo_shop": "Maschera Capelli Ricci"
+ },
+ "OFF-024": {
+  "file": "img/OFF-024.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante",
+  "titolo_shop": "Maschera Capelli Ricci"
+ },
+ "OFF-026": {
+  "file": "img/OFF-026.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante",
+  "titolo_shop": "Maschera Capelli Ricci"
+ },
+ "OFF-027": {
+  "file": "img/OFF-027.jpg",
+  "fonte": "https://www.officinanaturae.com/it/sapone-addolcente",
+  "titolo_shop": "Sapone Addolcente"
+ },
+ "OFF-028": {
+  "file": "img/OFF-028.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante",
+  "titolo_shop": "Maschera Capelli Ricci"
+ },
+ "OFF-029": {
+  "file": "img/OFF-029.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/crema-corpo/crema-corpo-verbena",
+  "titolo_shop": "Crema Corpo Verbena"
+ },
+ "OFF-030": {
+  "file": "img/OFF-030.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/styling/cristalli-liquidi",
+  "titolo_shop": "Cristalli Liquidi"
+ },
+ "OFF-033": {
+  "file": "img/OFF-033.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-patchouli",
+  "titolo_shop": "Crema Mani Nutriente Patchouli"
+ },
+ "OFF-034": {
+  "file": "img/OFF-034.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/curly-shampoo",
+  "titolo_shop": "Curly Shampoo"
+ },
+ "OFF-035": {
+  "file": "img/OFF-035.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/crema-mani/crema-mani-nutriente-verbena",
+  "titolo_shop": "Crema Mani Nutriente Verbena"
+ },
+ "OFF-037": {
+  "file": "img/OFF-037.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-rinfrescante",
+  "titolo_shop": "Dentifricio Naturale Rinfrescante"
+ },
+ "OFF-039": {
+  "file": "img/OFF-039.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-giardino-fiorito",
+  "titolo_shop": "Deodorante Roll On Giardino Fiorito"
+ },
+ "OFF-040": {
+  "file": "img/OFF-040.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-roll-on-onda-marina",
+  "titolo_shop": "Deodorante Roll On Onda Marina"
+ },
+ "OFF-041": {
+  "file": "img/OFF-041.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/deodorante-naturale/deodorante-giardino-fiorito",
+  "titolo_shop": "Deodorante Giardino Fiorito"
+ },
+ "OFF-043": {
+  "file": "img/OFF-043.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-sbiancante-menta",
+  "titolo_shop": "Dentifricio Naturale Sbiancante Menta"
+ },
+ "OFF-044": {
+  "file": "img/OFF-044.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/biricco-bagnodoccia-solido",
+  "titolo_shop": "Bagnodoccia Solido Biricco"
+ },
+ "OFF-045": {
+  "file": "img/OFF-045.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-anice",
+  "titolo_shop": "Dentifricio Naturale Anice"
+ },
+ "OFF-046": {
+  "file": "img/OFF-046.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/amido-di-riso-biologico",
+  "titolo_shop": "Amido di Riso Biologico"
+ },
+ "OFF-048": {
+  "file": "img/OFF-048.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnetto-cremoso-cambio-pannolino",
+  "titolo_shop": "Bagnetto Cremoso Cambio Pannolino"
+ },
+ "OFF-049": {
+  "file": "img/OFF-049.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-naturale-limone",
+  "titolo_shop": "Dentifricio Naturale Limone"
+ },
+ "OFF-050": {
+  "file": "img/OFF-050.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/bagnoschiuma-baby-corpo-capelli",
+  "titolo_shop": "Bagnoschiuma Baby Corpo Capelli"
+ },
+ "OFF-051": {
+  "file": "img/OFF-051.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-zero-waste/dentifricio-denti-sensibili-e-delicati",
+  "titolo_shop": "Dentifricio Denti Sensibili e Delicati"
+ },
+ "OFF-053": {
+  "file": "img/OFF-053.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta",
+  "titolo_shop": "Dentifricio Solido in Pastiglie Menta"
+ },
+ "OFF-054": {
+  "file": "img/OFF-054.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/crema-corpo-baby",
+  "titolo_shop": "Crema Corpo Baby"
+ },
+ "OFF-055": {
+  "file": "img/OFF-055.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/dentifricio-in-pastiglie/dentifricio-solido-in-pastiglie-menta",
+  "titolo_shop": "Dentifricio Solido in Pastiglie Menta"
+ },
+ "OFF-057": {
+  "file": "img/OFF-057.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/collutorio-naturale/collutorio-concentrato-menta",
+  "titolo_shop": "Collutorio Concentrato Menta"
+ },
+ "OFF-058": {
+  "file": "img/OFF-058.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-gel-bimbi-banana",
+  "titolo_shop": "Dentifricio Gel Bimbi Banana"
+ },
+ "OFF-060": {
+  "file": "img/OFF-060.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-ciliegia",
+  "titolo_shop": "Dentifricio Gel Bimbi Ciliegia"
+ },
+ "OFF-061": {
+  "file": "img/OFF-061.jpg",
+  "fonte": "https://www.officinanaturae.com/it/denti-dentifricio-da-viaggio-in-pastiglie",
+  "titolo_shop": "Dentì Dentifricio da viaggio in Pastiglie"
+ },
+ "OFF-062": {
+  "file": "img/OFF-062.jpg",
+  "fonte": "https://www.officinanaturae.com/it/igiene-orale/dentifricio-naturale-per-bambini/dentifricio-naturale-per-bambini-fragola",
+  "titolo_shop": "Dentifricio Gel Bimbi Fragola"
+ },
+ "OFF-063": {
+  "file": "img/OFF-063.jpg",
+  "fonte": "https://www.officinanaturae.com/it/prodotti-naturali-per-bambini/sapone-alla-mela-cotogna-e-calendula",
+  "titolo_shop": "Sapone alla Mela Cotogna e Calendula"
+ },
+ "OFF-064": {
+  "file": "img/OFF-064.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-brioso-coso",
+  "titolo_shop": "Deodorante Solido Brioso CO.SO."
+ },
+ "OFF-066": {
+  "file": "img/OFF-066.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-grintoso-coso",
+  "titolo_shop": "Deodorante Solido Grintoso CO.SO."
+ },
+ "OFF-067": {
+  "file": "img/OFF-067.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-arnica",
+  "titolo_shop": "Oleolito di Arnica"
+ },
+ "OFF-068": {
+  "file": "img/OFF-068.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-neutro-coso",
+  "titolo_shop": "Deodorante Solido Neutro CO.SO."
+ },
+ "OFF-070": {
+  "file": "img/OFF-070.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-sciccoso-coso",
+  "titolo_shop": "Deodorante Solido Sciccoso CO.SO."
+ },
+ "OFF-071": {
+  "file": "img/OFF-071.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-calendula",
+  "titolo_shop": "Oleolito di Calendula"
+ },
+ "OFF-072": {
+  "file": "img/OFF-072.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/deodorante-solido/deodorante-solido-vanitoso-coso",
+  "titolo_shop": "Deodorante Solido Vanitoso CO.SO."
+ },
+ "OFF-074": {
+  "file": "img/OFF-074.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/oli-naturali/oleolito-di-iperico-biologico",
+  "titolo_shop": "Oleolito di Iperico Biologico"
+ },
+ "OFF-079": {
+  "file": "img/OFF-079.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/oli-naturali/olio-di-rosa-mosqueta-puro",
+  "titolo_shop": "Olio di Rosa Mosqueta Puro al 100%"
+ },
+ "OFF-082": {
+  "file": "img/OFF-082.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/shampoo/shampoo-ultra-delicato",
+  "titolo_shop": "Shampoo Ultra Delicato"
+ },
+ "OFF-083": {
+  "file": "img/OFF-083.jpg",
+  "fonte": "https://www.officinanaturae.com/it/capelli/balsamo/balsamo-ultra-delicato",
+  "titolo_shop": "Balsamo Ultra Delicato"
+ },
+ "OFF-085": {
+  "file": "img/OFF-085.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/bagnoschiuma/bagnoschiuma-ultra-delicato",
+  "titolo_shop": "Bagnoschiuma Ultra Delicato"
+ },
+ "OFF-087": {
+  "file": "img/OFF-087.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/detergente-intimo/intimo-ultra-delicato",
+  "titolo_shop": "Intimo Ultra Delicato"
+ },
+ "OFF-089": {
+  "file": "img/OFF-089.jpg",
+  "fonte": "https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/detergente-barba-e-viso-solido",
+  "titolo_shop": "Detergente Barba e Viso Solido N°04"
+ },
+ "OFF-090": {
+  "file": "img/OFF-090.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-vaniglia",
+  "titolo_shop": "Burro Labbra Bio Vaniglia"
+ },
+ "OFF-091": {
+  "file": "img/OFF-091.jpg",
+  "fonte": "https://www.officinanaturae.com/it/linea-uomo/tutto-per-la-barba/sapone-da-barba-solido",
+  "titolo_shop": "Sapone da barba solido N°06"
+ },
+ "OFF-092": {
+  "file": "img/OFF-092.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-frutti-rossi",
+  "titolo_shop": "Burro Labbra Bio Frutti Rossi"
+ },
+ "OFF-093": {
+  "file": "img/OFF-093.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mou",
+  "titolo_shop": "Burro Labbra Bio Mou"
+ },
+ "OFF-094": {
+  "file": "img/OFF-094.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato",
+  "titolo_shop": "Detergente Viso Solido Delicato"
+ },
+ "OFF-095": {
+  "file": "img/OFF-095.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/burro-labbra/burro-labbra-bio-mela-cotogna",
+  "titolo_shop": "Burro Labbra Bio Mela Cotogna"
+ },
+ "OFF-096": {
+  "file": "img/OFF-096.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante",
+  "titolo_shop": "Detergente Viso Solido Purificante"
+ },
+ "OFF-097": {
+  "file": "img/OFF-097.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido",
+  "titolo_shop": "Detergente Intimo Solido"
+ },
+ "OFF-098": {
+  "file": "img/OFF-098.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/crema-viso/crema-viso-tonificante",
+  "titolo_shop": "Crema Viso Tonificante"
+ },
+ "OFF-099": {
+  "file": "img/OFF-099.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo",
+  "titolo_shop": "Shampoo Solido Nutriente e Protettivo"
+ },
+ "OFF-100": {
+  "file": "img/OFF-100.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/crema-viso/crema-nutriente-viso-e-decollete",
+  "titolo_shop": "Crema Nutriente Viso e Décolleté"
+ },
+ "OFF-101": {
+  "file": "img/OFF-101.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso",
+  "titolo_shop": "Shampoo Solido Rinforzante e Illuminante"
+ },
+ "OFF-102": {
+  "file": "img/OFF-102.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/crema-viso/crema-stop-age-elasticizzante",
+  "titolo_shop": "Crema Stop Age Elasticizzante"
+ },
+ "OFF-103": {
+  "file": "img/OFF-103.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo",
+  "titolo_shop": "Mini Size Balsamo Solido Nutriente e Protettivo"
+ },
+ "OFF-104": {
+  "file": "img/OFF-104.jpg",
+  "fonte": "https://www.officinanaturae.com/it/viso/crema-viso/crema-delicata-riequilibrante",
+  "titolo_shop": "Crema Delicata Riequilibrante"
+ },
+ "OFF-105": {
+  "file": "img/OFF-105.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante",
+  "titolo_shop": "Balsamo Solido Rinforzante e Illuminante"
+ },
+ "OFF-107": {
+  "file": "img/OFF-107.jpg",
+  "fonte": "https://www.officinanaturae.com/it/baby-coso-bagnodoccia-solido",
+  "titolo_shop": "Bagnodoccia Solido Baby CO.SO."
+ },
+ "OFF-108": {
+  "file": "img/OFF-108.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante",
+  "titolo_shop": "Bagnoschiuma Solido Vellutante"
+ },
+ "OFF-109": {
+  "file": "img/OFF-109.jpg",
+  "fonte": "https://www.officinanaturae.com/it/corpo/crema-corpo/crema-gambe-e-piedi-rinfrescante",
+  "titolo_shop": "Crema Gambe e Piedi Rinfrescante"
+ },
+ "OFF-110": {
+  "file": "img/OFF-110.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante",
+  "titolo_shop": "Bagnoschiuma Solido Rivitalizzante"
+ },
+ "OFF-111": {
+  "file": "img/OFF-111.jpg",
+  "fonte": "https://www.officinanaturae.com/it/solari/doposole/gel-lenitivo-doposole",
+  "titolo_shop": "Gel Lenitivo Doposole"
+ },
+ "OFF-112": {
+  "file": "img/OFF-112.jpg",
+  "fonte": "https://www.officinanaturae.com/it/solari/doposole/crema-doposole",
+  "titolo_shop": "Crema Doposole"
+ },
+ "OFF-113": {
+  "file": "img/OFF-113.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-nutriente-e-protettivo",
+  "titolo_shop": "Shampoo Solido Nutriente e Protettivo"
+ },
+ "OFF-115": {
+  "file": "img/OFF-115.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/shampoo-solido/shampoo-solido-rinforzante-ed-illuminante-coso",
+  "titolo_shop": "Shampoo Solido Rinforzante e Illuminante"
+ },
+ "OFF-116": {
+  "file": "img/OFF-116.jpg",
+  "fonte": "https://www.officinanaturae.com/it/solari/crema-solare-viso-spf-50",
+  "titolo_shop": "Crema Solare Viso SPF 50"
+ },
+ "OFF-117": {
+  "file": "img/OFF-117.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/mini-size-balsamo-solido-nutriente-e-protettivo",
+  "titolo_shop": "Mini Size Balsamo Solido Nutriente e Protettivo"
+ },
+ "OFF-119": {
+  "file": "img/OFF-119.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/balsamo-solido/balsamo-solido-rinforzante-e-illuminante",
+  "titolo_shop": "Balsamo Solido Rinforzante e Illuminante"
+ },
+ "OFF-120": {
+  "file": "img/OFF-120.jpg",
+  "fonte": "https://www.officinanaturae.com/it/solari/doccia-shampoo-doposole",
+  "titolo_shop": "Doccia Shampoo Doposole"
+ },
+ "OFF-121": {
+  "file": "img/OFF-121.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-vellutante",
+  "titolo_shop": "Bagnoschiuma Solido Vellutante"
+ },
+ "OFF-122": {
+  "file": "img/OFF-122.jpg",
+  "fonte": "https://www.officinanaturae.com/it/solari/doccia-shampoo-solido-doposole",
+  "titolo_shop": "Doccia Shampoo Solido Doposole"
+ },
+ "OFF-123": {
+  "file": "img/OFF-123.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/bagnoschiuma-solido-bio/bagnoschiuma-solido-rivitalizzante",
+  "titolo_shop": "Bagnoschiuma Solido Rivitalizzante"
+ },
+ "OFF-124": {
+  "file": "img/OFF-124.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-delicato",
+  "titolo_shop": "Detergente Viso Solido Delicato"
+ },
+ "OFF-126": {
+  "file": "img/OFF-126.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-viso-solido/detergente-viso-solido-purificante",
+  "titolo_shop": "Detergente Viso Solido Purificante"
+ },
+ "OFF-127": {
+  "file": "img/OFF-127.jpg",
+  "fonte": "https://www.officinanaturae.com/it/punture-insetti/rimedi-punture-insetti/pizzicoff-gel-dopo-puntura",
+  "titolo_shop": "Pizzicoff Gel Dopo Puntura"
+ },
+ "OFF-128": {
+  "file": "img/OFF-128.jpg",
+  "fonte": "https://www.officinanaturae.com/it/cosmetici-solidi/detergente-intimo-solido",
+  "titolo_shop": "Detergente Intimo Solido"
+ },
+ "OFF-129": {
+  "file": "img/OFF-129.jpg",
+  "fonte": "https://www.officinanaturae.com/it/punture-insetti/prevenzione-insetti/pizzicoff-crema-fluida-baby",
+  "titolo_shop": "Pizzicoff Crema Fluida Baby"
  }
 }
