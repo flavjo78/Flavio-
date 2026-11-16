@@ -1366,6 +1366,7 @@ switch ($azione) {
         // SCADUTA: prima di allarmare, controlliamo DIRETTAMENTE la casella
         // (lettura + invio + identità). Se è a posto, la prova completa è solo
         // andata in timeout (falso allarme) -> messaggio morbido, NIENTE allerta.
+        require_once __DIR__ . '/smtp.php';   // qui serve pred_testa_casella
         $verifica = function_exists('pred_testa_casella') ? pred_testa_casella($mcE) : null;
         if (is_array($verifica) && !empty($verifica['ok']) && empty($verifica['problema'])) {
             predizione_json(['ok' => true, 'esito' => 'ok_casella',
