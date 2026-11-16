@@ -1363,16 +1363,28 @@ switch ($azione) {
             predizione_json(['ok' => true, 'esito' => 'ok',
                 'messaggio' => 'Diagnostica superata: il robottino legge la casella e risponde. ✓']);
         }
-        // FALLITA -> allerta a PRED_DIAG_ALERT (da supporto@)
+        // SCADUTA: prima di allarmare, controlliamo DIRETTAMENTE la casella
+        // (lettura + invio + identità). Se è a posto, la prova completa è solo
+        // andata in timeout (falso allarme) -> messaggio morbido, NIENTE allerta.
+        $verifica = function_exists('pred_testa_casella') ? pred_testa_casella($mcE) : null;
+        if (is_array($verifica) && !empty($verifica['ok']) && empty($verifica['problema'])) {
+            predizione_json(['ok' => true, 'esito' => 'ok_casella',
+                'messaggio' => 'La tua casella è a posto ✓ — legge e invia correttamente. '
+                             . 'La prova completa non ha ricevuto la risposta nel tempo previsto: può capitare '
+                             . '(il robottino risponde ogni minuto). Puoi usare il gioco tranquillamente.']);
+        }
+        // PROBLEMA VERO -> allerta a PRED_DIAG_ALERT (da supporto@), col dettaglio
+        $dett = (is_array($verifica) && !empty($verifica['diagnosi'])) ? $verifica['diagnosi'] : '';
         $alertTo = defined('PRED_DIAG_ALERT') ? PRED_DIAG_ALERT : 'appisolata@gmail.com';
         @predizione_mail_semplice($alertTo, 'ALLERTA — diagnostica NON superata (' . $utente . ')',
             "La diagnostica dell'utente \"$utente\" (casella " . (string)($mcE['user'] ?? '?') . ") NON e' stata superata.\n"
             . "Il robottino non ha risposto alla mail di prova entro il tempo previsto.\n\n"
+            . ($dett !== '' ? ("Verifica diretta della casella: " . $dett . "\n\n") : '')
             . "Cose da controllare: IMAP attivo nella casella, password per le app giusta di QUELL'indirizzo,\n"
             . "eventuale blocco di Google (accesso sospetto da approvare).\n\n"
             . date('d/m/Y H:i'));
         predizione_json(['ok' => true, 'esito' => 'fail',
-            'messaggio' => 'Diagnostica NON superata. Contatta supporto@abraka.it.']);
+            'messaggio' => ($dett !== '' ? $dett . ' ' : '') . 'Diagnostica NON superata. Contatta supporto@abraka.it.']);
 
     case 'rispondi_manuale':
         // interruttore "Aggiungi il tasto Invia": se ON, dopo "Avvia" le risposte

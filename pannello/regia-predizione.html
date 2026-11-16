@@ -2096,8 +2096,10 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
     fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_end',{esito:esito})}).then(function(r){return r.json();}).then(function(d){
       diagLibera();
       var msg=(d&&d.messaggio)||'';
-      if(esito==='ok'){ setDiagMsg('✅ <b>Diagnostica superata.</b><br>'+msg,'var(--good)'); toast('Diagnostica superata','ok'); }
-      else { setDiagMsg('❌ <b>Diagnostica NON superata.</b><br>'+(notaFail?notaFail+'<br>':'')+'Scrivi a <b>supporto@abraka.it</b>.','var(--stop)'); toast('Diagnostica non superata','err'); }
+      var srv=(d&&d.esito)||esito;
+      if(esito==='ok' || srv==='ok'){ setDiagMsg('✅ <b>Diagnostica superata.</b><br>'+msg,'var(--good)'); toast('Diagnostica superata','ok'); }
+      else if(srv==='ok_casella'){ setDiagMsg('✅ <b>Casella a posto.</b><br>'+msg,'var(--good)'); toast('Casella a posto','ok'); }
+      else { setDiagMsg('❌ <b>Diagnostica NON superata.</b><br>'+(msg?msg+'<br>':(notaFail?notaFail+'<br>':''))+'Scrivi a <b>supporto@abraka.it</b>.','var(--stop)'); toast('Diagnostica non superata','err'); }
     }).catch(function(){ diagLibera(); setDiagMsg('Server non raggiungibile (chiusura prova).','var(--stop)'); });
   }
   function diagPoll(n){
@@ -2164,7 +2166,9 @@ GRAZIE per essere venuto al nostro SHOW.</textarea></div>
   }
   function diagEndPop(esito){
     fetch(API_BASE+'stato.php',{method:'POST',body:diagForm('diag_end',{esito:esito})}).then(function(r){return r.json();}).then(function(d){
-      diagPopEsito(esito==='ok', (d&&d.messaggio)||'');
+      // se il server dice che la casella è a posto (prova completa in timeout), mostra VERDE
+      var ok=(esito==='ok') || (d && (d.esito==='ok' || d.esito==='ok_casella'));
+      diagPopEsito(ok, (d&&d.messaggio)||'');
     }).catch(function(){ diagPopEsito(esito==='ok',''); });
   }
   window.openDiagPopup=function(thenHowto){
