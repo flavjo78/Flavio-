@@ -17,8 +17,13 @@ if exist "%~dp0agenzia.exe" (
   set CMD="node" "%~dp0server\server.js"
 )
 schtasks /delete /tn "AGENZIA gestionale" /f >nul 2>&1
+if exist "%~dp0agenzia.exe" goto conexe
 schtasks /create /tn "AGENZIA gestionale" /tr %CMD% /sc onstart /ru SYSTEM /rl HIGHEST /f
 schtasks /run /tn "AGENZIA gestionale"
+goto fine
+:conexe
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0avvio-automatico.ps1" -Exe "%~dp0agenzia.exe"
+:fine
 echo.
 echo Fatto. Il programma parte da solo a ogni accensione di questo PC.
 echo Apri il browser su http://localhost:8787  (dagli altri PC: http://%COMPUTERNAME%:8787)

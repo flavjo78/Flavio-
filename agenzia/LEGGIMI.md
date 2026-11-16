@@ -22,6 +22,12 @@ che avvia `server\server.js`.)
 
 Se non si vuole l'avvio automatico: doppio clic su `avvia.bat` (la finestra nera va lasciata aperta).
 
+Se dopo un'accensione o un riavvio il programma non risponde sugli altri PC (`localhost:8787` dà
+"Connessione negata"): sul PC centrale fare doppio clic su `avvia.bat`, poi rieseguire
+`installa-avvio-automatico.bat` come amministratore. L'avvio automatico parte all'accensione e al login,
+non si ferma da solo e si riavvia se si chiude. Per essere sicuri che parta anche dopo "Arresta il sistema",
+da un Prompt dei comandi come amministratore: `powercfg /hibernate off` (disattiva l'avvio rapido).
+
 ## 3. Gli altri PC
 Sugli altri PC non si installa niente: si usa il browser (Edge o Chrome) verso il PC centrale.
 - Modo facile: copiare `collega-questo-pc.bat` sull'altro PC (chiavetta o cartella condivisa) e
