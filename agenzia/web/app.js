@@ -324,7 +324,7 @@ async function render() {
     switch (pagina) {
       case 'pratiche': return id ? await paginaPratica(id) : await paginaPratiche();
       case 'biglietteria': return id ? await paginaBiglietto(id) : await paginaBiglietteria();
-      case 'liste': return await paginaListe();
+      case 'liste': return id ? await paginaLista(id) : await paginaListe();
       case 'clienti': return id ? await paginaCliente(id) : await paginaClienti();
       case 'fornitori': return id ? await paginaFornitore(id) : await paginaFornitori();
       case 'statistiche': return id === 'biglietteria' ? await paginaStatBiglietteria() : (!id || id === 'giornaliera') ? await paginaStatGiorno(STATO.route.split('/')[2]) : await paginaStatistiche(id === 'vendite' ? '' : id);
@@ -684,7 +684,7 @@ async function paginaPratica(id) {
   // acconti e fornitori
   const renderAcconti = () => {
     $('#boxAcconti').innerHTML = P.acconti && P.acconti.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Descrizione</th><th>Metodo</th><th>Riferito a</th><th>Registrato da</th><th class="num">Importo</th><th></th></tr></thead><tbody>
-      ${P.acconti.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}</td><td class="small">${esc(a.biglietto_rif || a.fornitore || '')}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo" data-acc-mod="${a.id}">modifica</button> <button type="button" class="btn piccolo pericolo" data-acc-del="${a.id}">✕</button></td></tr>`).join('')}
+      ${P.acconti.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}${a.lista_titolo ? `<div class="small muted">${esc(a.lista_titolo)}</div>` : ''}</td><td class="small">${esc(a.biglietto_rif || a.fornitore || '')}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo" data-acc-mod="${a.id}">modifica</button> <button type="button" class="btn piccolo pericolo" data-acc-del="${a.id}">✕</button></td></tr>`).join('')}
       </tbody><tfoot><tr><td colspan="5">Totale versato</td><td class="num">${eur(P.versato_cent)}</td><td></td></tr></tfoot></table>` : `<div class="muted small">Nessun acconto registrato${nuova ? ' (si possono registrare da subito: al primo acconto la pratica viene salvata)' : ''}</div>`;
     $('#outVersato').value = eur(P.versato_cent || 0);
     ricalcola();
@@ -733,9 +733,9 @@ async function paginaPratica(id) {
   const formMovimento = (m, conFornitore, obbligaFornitore) => `<div class="griglia g2">
     <div class="campo"><label>Data</label><input name="data" type="date" value="${esc(m.data || oggiIso())}"></div>
     <div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" value="${m.importo_cent ? eur(m.importo_cent) : ''}" placeholder="es. 300 oppure 300,50"></div>
-    <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(L.metodi_pagamento, m.metodo || L.metodi_pagamento[0])}</select></div>
+    <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(metodiPagamento(!conFornitore || !obbligaFornitore), m.metodo || L.metodi_pagamento[0])}</select></div>
     ${conFornitore ? (obbligaFornitore ? `<div class="campo"><label>Fornitore *</label>${selFornitore(m.fornitore_id || '', forn, '— scegli —')}</div>` : `<div class="campo"><label>Destinato a (fornitore o biglietto; se supera la sua quota si chiede dove va il resto)</label>${selRiferito(m)}</div>`) : ''}
-    <div class="campo col2"><label>Descrizione</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="es. 1° acconto, saldo…"></div></div>`;
+    <div class="campo col2"><label>Descrizione</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="es. 1° acconto, saldo…"></div>${(!conFornitore || !obbligaFornitore) ? bloccoListaHtml() : ''}</div>`;
 
   // ---- salvataggio ----
   const leggiPratica = (bozza = 0) => {
@@ -778,7 +778,7 @@ async function paginaPratica(id) {
     if (nuova) naviga('#/pratiche/' + r.id); else { aggiorna(r); $('.topbar h1').innerHTML = `Pratica <b>${r.numero}</b>/${r.anno} ${badgeStato(r.stato, r.bozza)}`; }
   });
 
-  const leggiAcconto = d => { const f = leggiForm(d); const r = f.riferito || ''; delete f.riferito; f.fornitore_id = r.startsWith('f:') ? +r.slice(2) : ''; f.biglietto_id = r.startsWith('b:') ? +r.slice(2) : ''; return f; };
+  const leggiAcconto = d => { const f = leggiForm(d); const r = f.riferito || ''; delete f.riferito; f.fornitore_id = r.startsWith('f:') ? +r.slice(2) : ''; f.biglietto_id = r.startsWith('b:') ? +r.slice(2) : ''; controllaLista(d, f); return f; };
   // quota ancora scoperta di un riferimento = costo del fornitore (o del biglietto) − già versato per lui
   const quotaRif = (fid, bid) => {
     const f = (P.fornitori || []).find(x => bid ? x.biglietto_id === bid : (x.fornitore_id === fid && !x.biglietto_id));
@@ -834,6 +834,7 @@ async function paginaPratica(id) {
       onOk: async d => registraAccontoSpezzato(leggiAcconto(d))
     });
     const d = document.querySelector('dialog.modal:last-of-type');
+    attivaMetodoLista(d, () => $('[name=cliente_id]', pg).value);
     $$('[data-sugg]', d).forEach(b => b.onclick = () => {
       if (b.dataset.sugg === 'saldo') { $('[name=descrizione]', d).value = 'Saldo'; $('[name=importo]', d).value = eur(residuo); }
       else { $('[name=descrizione]', d).value = `${n}° acconto`; $('[name=importo]', d).value = ''; }
@@ -850,7 +851,7 @@ async function paginaPratica(id) {
       try {
         if (t.dataset.accDel) { if (await conferma('Cancellare l\'acconto?', 'L\'operazione resta nel registro delle operazioni.')) aggiorna(await api('acconto_elimina', { id: +t.dataset.accDel })); }
         if (t.dataset.pagDel) { if (await conferma('Cancellare il pagamento?', '')) aggiorna(await api('pagamento_fornitore_elimina', { id: +t.dataset.pagDel })); }
-        if (t.dataset.accMod) { const a = P.acconti.find(x => x.id === +t.dataset.accMod); modale({ titolo: 'Modifica acconto', ok: 'Salva', corpo: formMovimento(a, true, false), onOk: async d => aggiorna(await api('acconto_salva', { ...leggiAcconto(d), id: a.id, pratica_id: P.id })) }); }
+        if (t.dataset.accMod) { const a = P.acconti.find(x => x.id === +t.dataset.accMod); modale({ titolo: 'Modifica acconto', ok: 'Salva', corpo: formMovimento(a, true, false), onOk: async d => aggiorna(await api('acconto_salva', { ...leggiAcconto(d), id: a.id, pratica_id: P.id })) }); attivaMetodoLista(document.querySelector('dialog.modal:last-of-type'), () => $('[name=cliente_id]', pg).value, { lista_id: a.lista_id, importo_cent: a.importo_cent }); }
         if (t.dataset.pagMod) { const g = P.pagamenti_fornitore.find(x => x.id === +t.dataset.pagMod); modale({ titolo: 'Modifica pagamento', ok: 'Salva', corpo: formMovimento(g, true, true), onOk: async d => aggiorna(await api('pagamento_fornitore_salva', { ...leggiForm(d), id: g.id, pratica_id: P.id })) }); }
       } catch (err) { toast(err.message, 'err'); }
     });
@@ -966,6 +967,8 @@ async function paginaCliente(id) {
     <div class="tab-scroll"><table class="t compatta" data-righe id="tabTes"><thead><tr><th>Tessera</th><th>Numero</th><th>Scade il</th><th>Note</th><th></th></tr></thead><tbody>${(C.tessere || []).map(rigaTes).join('')}</tbody></table></div>
     <div class="small muted" style="margin-top:6px">Campo libero: MSC, Costa, Trenitalia, compagnie aeree… I nomi già usati vengono suggeriti.</div>
   </div>
+  ${nuovo ? '' : `<div class="card"><h2>Liste <span class="spazio"></span><a class="btn piccolo" href="#/liste/nuova/${C.id}">+ Nuova lista</a></h2>
+    ${(C.liste || []).length ? `<table class="t compatta"><thead><tr><th>Lista attiva</th><th class="num">Credito</th></tr></thead><tbody>${C.liste.map(l => `<tr class="click" onclick="naviga('#/liste/${l.id}')"><td>${esc(l.titolo)}</td><td class="num"><b>${eur(l.saldo_cent)}</b></td></tr>`).join('')}</tbody></table>` : '<div class="muted small">Nessuna lista attiva (lista nozze o altro).</div>'}</div>`}
   </div></div>
   <div class="sticky-azioni"><button class="btn primario" id="btnSalva">Salva</button><span class="small muted">oppure Ctrl+S</span>${nuovo ? '' : `<a class="btn" href="#/pratiche/nuova/${C.id}">+ Nuova pratica per questo cliente</a>`}<span style="flex:1"></span>${nuovo ? '' : '<button class="btn pericolo" id="btnElimina">Elimina</button>'}<a class="btn" href="#/clienti">Torna all'elenco</a></div>
   <div class="griglia g2 cl-fondo">
@@ -1148,7 +1151,7 @@ async function paginaOpzioni(scheda = 'agenzia') {
     return;
   }
   const imp = STATO.imp = await api('impostazioni');
-  const SCHEDE = [['agenzia', 'Agenzia'], ['testi', 'Testi della stampa'], ['liste', 'Liste'], ['numerazione', 'Numerazione'], ['backup', 'Backup'], ['accesso', 'Accesso'], ['utenti', 'Utenti'], ['log', 'Registro operazioni']];
+  const SCHEDE = [['agenzia', 'Agenzia'], ['testi', 'Testi della stampa'], ['liste', 'Liste a tendina'], ['numerazione', 'Numerazione'], ['backup', 'Backup'], ['accesso', 'Accesso'], ['utenti', 'Utenti'], ['log', 'Registro operazioni']];
   const tabs = `<div class="tabs">${SCHEDE.map(([k, l]) => `<a href="#/opzioni/${k}" class="${scheda === k ? 'attivo' : ''}">${l}</a>`).join('')}</div>`;
   let corpo = '';
   const A = imp.agenzia, T = imp.testi;
@@ -1295,8 +1298,8 @@ async function paginaStatGiorno(dataSel) {
   const sposta = n => { const t = new Date(data + 'T12:00:00'); t.setDate(t.getDate() + n); return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, '0')}-${String(t.getDate()).padStart(2, '0')}`; };
   const giorno = new Date(data + 'T12:00:00').toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const ora = ts => { try { return new Date(ts).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' }); } catch (e) { return ''; } };
-  const rif = a => a.p_numero ? `${a.p_numero}/${a.p_anno}` : (a.b_numero ? `B${a.b_numero}/${a.b_anno}` : '');
-  const vaiA = a => a.pratica_id ? `#/pratiche/${a.pratica_id}` : (a.biglietto_id ? `#/biglietteria/${a.biglietto_id}` : '');
+  const rif = a => a.p_numero ? `${a.p_numero}/${a.p_anno}` : (a.b_numero ? `B${a.b_numero}/${a.b_anno}` : (a.lista_id ? 'Lista' : ''));
+  const vaiA = a => a.pratica_id ? `#/pratiche/${a.pratica_id}` : (a.biglietto_id ? `#/biglietteria/${a.biglietto_id}` : (a.lista_id ? `#/liste/${a.lista_id}` : ''));
   const vuoto = t => `<div class="vuoto">${t}</div>`;
   const V = d.vendite, P = d.preventivi;
   shell('statistiche', 'Statistiche · Giornaliera', TABS_STAT('giornaliera') + `
@@ -1309,7 +1312,7 @@ async function paginaStatGiorno(dataSel) {
     </div>
     <h2 class="giorno-titolo">${esc(giorno.charAt(0).toUpperCase() + giorno.slice(1))}${data === oggiIso() ? ' <span class="badge Confermata">oggi</span>' : ''}</h2>
     <div class="cards-stat">
-      <div class="stat"><div class="l">Incassato</div><div class="v ok">${eur(d.incassato_cent)}</div><div class="s">${d.incassi.length} ${d.incassi.length === 1 ? 'pagamento' : 'pagamenti'}</div></div>
+      <div class="stat"><div class="l">Incassato</div><div class="v ok">${eur(d.incassato_cent)}</div><div class="s">${d.incassi.length} ${d.incassi.length === 1 ? 'pagamento' : 'pagamenti'}${d.da_lista_cent ? ` · più ${eur(d.da_lista_cent)} pagati da liste` : ''}</div></div>
       <div class="stat"><div class="l">Venduto</div><div class="v">${eur(V.totale_cent)}</div><div class="s">${V.pratiche.length} ${V.pratiche.length === 1 ? 'pratica confermata' : 'pratiche confermate'}${V.biglietti.length ? ` · ${V.biglietti.length} ${V.biglietti.length === 1 ? 'biglietto' : 'biglietti'}` : ''}</div></div>
       <div class="stat"><div class="l">Preventivi</div><div class="v">${P.lista.length}</div><div class="s">per ${eur(P.totale_cent)}</div></div>
     </div>
@@ -1476,7 +1479,7 @@ async function paginaBiglietto(id) {
     $('#cardAccB').classList.toggle('hidden', collegato);
     const l = B.acconti || [];
     $('#boxAccB').innerHTML = l.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Descrizione</th><th>Metodo</th><th>Registrato da</th><th class="num">Importo</th><th></th></tr></thead><tbody>
-      ${l.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo pericolo" data-accb-del="${a.id}">✕</button></td></tr>`).join('')}</tbody></table>` : `<div class="muted small">Nessun acconto${nuovo ? ' (al primo acconto il biglietto viene salvato)' : ''}. Se il biglietto è collegato a una pratica, gli acconti si registrano sulla pratica.</div>`;
+      ${l.map((a, i) => `<tr><td>${dataIt(a.data)}</td><td>${esc(a.descrizione || (i + 1) + '° acconto')}</td><td>${esc(a.metodo)}${a.lista_titolo ? `<div class="small muted">${esc(a.lista_titolo)}</div>` : ''}</td><td class="small">${esc(a.operatore || '')}</td><td class="num">${eur(a.importo_cent)}</td><td class="az"><button type="button" class="btn piccolo pericolo" data-accb-del="${a.id}">✕</button></td></tr>`).join('')}</tbody></table>` : `<div class="muted small">Nessun acconto${nuovo ? ' (al primo acconto il biglietto viene salvato)' : ''}. Se il biglietto è collegato a una pratica, gli acconti si registrano sulla pratica.</div>`;
     ricalcola();
   };
   const aggiornaB = r => { Object.assign(B, r); renderAccB(); };
@@ -1590,9 +1593,10 @@ async function paginaBiglietto(id) {
     modale({ titolo: 'Registra acconto sul biglietto', ok: 'Registra',
       corpo: `<div class="azioni" style="margin-bottom:12px"><span class="small muted">Suggerimenti:</span><button type="button" class="btn piccolo" data-sugg="acconto">${n}° acconto</button><button type="button" class="btn piccolo" data-sugg="saldo">Saldo (${eur(residuo)})</button></div>
         <div class="griglia g2"><div class="campo"><label>Data</label><input name="data" type="date" value="${oggiIso()}"></div><div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" placeholder="es. 100 oppure 100,50"></div>
-        <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(L.metodi_pagamento, L.metodi_pagamento[0])}</select></div><div class="campo"><label>Descrizione</label><input name="descrizione" value="${n}° acconto"></div></div>`,
-      onOk: async d => aggiornaB(await api('acconto_salva', { ...leggiForm(d), biglietto_id: B.id })) });
+        <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(metodiPagamento(), L.metodi_pagamento[0])}</select></div><div class="campo"><label>Descrizione</label><input name="descrizione" value="${n}° acconto"></div>${bloccoListaHtml()}</div>`,
+      onOk: async d => { const f = leggiForm(d); controllaLista(d, f); return aggiornaB(await api('acconto_salva', { ...f, biglietto_id: B.id })); } });
     const d = document.querySelector('dialog.modal:last-of-type');
+    attivaMetodoLista(d, () => $('[name=cliente_id]', pg).value);
     $$('[data-sugg]', d).forEach(b => b.onclick = () => { if (b.dataset.sugg === 'saldo') { $('[name=descrizione]', d).value = 'Saldo'; $('[name=importo]', d).value = eur(residuo); } else { $('[name=descrizione]', d).value = `${n}° acconto`; $('[name=importo]', d).value = ''; } $('[name=importo]', d).focus(); });
   };
   $('#btnAddAccB').onclick = async () => {
@@ -1613,16 +1617,154 @@ async function paginaBiglietto(id) {
 
 // ================= LISTE (modificabili da tutti) =================
 const NOMI_LISTE = { tipi_pratica: 'Tipi di pratica', tipi_fornitore: 'Tipi di fornitore', metodi_pagamento: 'Metodi di pagamento', documenti_necessari: 'Documenti necessari (pratica)', descrizioni_servizi: 'Descrizioni servizi (suggerimenti)', tipi_documento_cliente: 'Tipi di documento (cliente)', tipi_contatto: 'Tipi di contatto (cliente)', canali_aereo: 'Biglietteria AEREA: fornitori (uno per riga)', vettori_treno: 'Biglietteria TRENI: vettori', vettori_biglietteria: 'Biglietteria LOW COST: vettori', modalita_acquisizione: 'Biglietteria: modalità di acquisizione' };
-async function paginaListe() {
-  const imp = STATO.imp = await api('impostazioni');
-  shell('liste', 'Liste', `<div class="avviso info">Qui si cambiano le voci dei menù a tendina, per tutti gli utenti. Una voce per riga. Nei campi si può comunque scrivere a mano una voce nuova; se vuoi che resti nel menù, aggiungila qui.</div>
-    <div class="card" id="fListe"><div class="griglia g3">${Object.keys(NOMI_LISTE).map(k => `<div class="campo"><label>${NOMI_LISTE[k]}</label><textarea name="${k}" style="min-height:150px">${esc((imp.liste[k] || []).join('\n'))}</textarea></div>`).join('')}</div>
-    <div class="azioni" style="margin-top:14px"><button class="btn primario" id="btnSalvaListe">Salva le liste</button></div></div>`);
-  $('#btnSalvaListe').onclick = async () => {
-    const f = leggiForm($('#fListe')); const payload = {};
-    for (const k of Object.keys(f)) payload[k] = f[k].split('\n').map(s => s.trim()).filter(Boolean);
-    try { STATO.imp.liste = await api('liste_salva', payload); toast('Liste salvate', 'ok'); } catch (e) { toast(e.message, 'err'); }
+// ================= LISTE (salvadanaio: lista nozze o altro) =================
+// Metodi di pagamento: "Lista" è sempre in fondo (non va aggiunto a mano nelle liste a tendina)
+const metodiPagamento = (conLista = true) => {
+  const m = ((STATO.imp && STATO.imp.liste && STATO.imp.liste.metodi_pagamento) || []).filter(x => String(x).trim().toLowerCase() !== 'lista');
+  return conLista ? [...m, 'Lista'] : m;
+};
+const bloccoListaHtml = () => `<div class="campo col2 blocco-lista hidden"><label>Lista da cui prelevare</label>
+  <div class="riga-lista"><select name="lista_id"></select><button type="button" class="btn piccolo" data-altre-liste>Prendi da altre liste…</button></div>
+  <div class="small muted" data-lista-info></div></div>`;
+// Controlla, prima di registrare, che il pagamento da lista abbia la lista scelta e credito sufficiente
+function controllaLista(d, f) {
+  if (String(f.metodo || '').trim().toLowerCase() !== 'lista') { delete f.lista_id; return; }
+  if (!f.lista_id) throw new Error('Scegli la lista da cui prelevare');
+  const cred = d.creditoLista ? d.creditoLista(f.lista_id) : null;
+  if (cred !== null && euroACent(f.importo) > cred) throw new Error(`La lista ha solo ${eur(cred)} € di credito`);
+}
+// Finestra "Prendi da un'altra lista": tutte le liste attive con credito, di tutti i clienti
+function apriAltreListe(onScelta, clienteId) {
+  modale({ titolo: 'Prendi da un\'altra lista', senzaOk: true, annulla: 'Chiudi', larga: true,
+    corpo: `<div class="campo"><label>Cerca per titolo o per cliente</label><input id="alQ" placeholder="es. Rossi, nozze…" autocomplete="off"></div><div id="alRis" style="margin-top:10px"></div>` });
+  const dlg = document.querySelector('dialog.modal:last-of-type');
+  let timer, ris = [];
+  const cerca = async () => {
+    try { ris = await api('lista_cerca', undefined, { q: $('#alQ', dlg).value, cliente_id: clienteId || '' }); } catch (e) { ris = []; }
+    $('#alRis', dlg).innerHTML = ris.length ? `<table class="t compatta"><thead><tr><th>Lista</th><th>Cliente</th><th class="num">Credito</th><th></th></tr></thead><tbody>
+      ${ris.map((l, i) => `<tr><td>${esc(l.titolo)}</td><td>${esc(l.cliente)}</td><td class="num"><b>${eur(l.saldo_cent)}</b></td><td class="az"><button type="button" class="btn piccolo primario" data-usa="${i}">usa</button></td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessuna lista con credito</div>';
   };
+  $('#alQ', dlg).addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(cerca, 200); });
+  dlg.addEventListener('click', e => { const b = e.target.closest('[data-usa]'); if (!b) return; onScelta(ris[+b.dataset.usa]); $('[data-x=annulla]', dlg).click(); });
+  cerca();
+}
+// Collega il metodo "Lista" di un acconto: mostra le liste del cliente con credito (la sua di default) e il tasto per prendere da altre liste.
+// iniziale = { lista_id, importo_cent } quando si modifica un acconto già pagato da lista.
+function attivaMetodoLista(d, getClienteId, iniziale = {}) {
+  const sel = $('[name=metodo]', d), blocco = $('.blocco-lista', d);
+  if (!sel || !blocco) return;
+  const listaSel = $('[name=lista_id]', blocco), info = $('[data-lista-info]', blocco);
+  let elenco = [], extra = [], caricato = false;
+  const restituibile = id => (iniziale.lista_id && String(iniziale.lista_id) === String(id)) ? (iniziale.importo_cent || 0) : 0;
+  const credito = id => { const l = elenco.find(x => String(x.id) === String(id)); return l ? l.saldo_cent + restituibile(id) : 0; };
+  d.creditoLista = id => (caricato ? credito(id) : null);
+  const mostraInfo = () => {
+    const l = elenco.find(x => String(x.id) === listaSel.value);
+    info.textContent = l ? `Credito disponibile: ${eur(credito(l.id))} €${l.propria ? '' : ' · lista di ' + l.cliente}` : (caricato ? 'Il cliente non ha liste con credito: usa «Prendi da altre liste».' : '');
+  };
+  const disegna = scelta => {
+    listaSel.innerHTML = elenco.length ? elenco.map(l => `<option value="${l.id}">${esc(l.titolo)}${l.propria ? '' : ' · ' + esc(l.cliente)} · ${eur(credito(l.id))} €</option>`).join('') : '<option value="">— nessuna lista con credito —</option>';
+    if (scelta) listaSel.value = String(scelta);
+    mostraInfo();
+  };
+  const carica = async () => {
+    const cid = getClienteId();
+    let mie = [];
+    try { mie = await api('lista_cerca', undefined, { cliente_id: cid || '', solo_cliente: cid ? 1 : '', includi: iniziale.lista_id || '' }); } catch (e) { mie = []; }
+    elenco = mie.map(l => ({ ...l, propria: String(l.cliente_id) === String(cid) }));
+    for (const x of extra) if (!elenco.some(l => l.id === x.id)) elenco.push({ ...x, propria: false });
+    caricato = true;
+    disegna(listaSel.value || iniziale.lista_id || (elenco[0] && elenco[0].id));
+  };
+  const aggiorna = () => { const on = sel.value.trim().toLowerCase() === 'lista'; blocco.classList.toggle('hidden', !on); if (on) carica(); };
+  sel.addEventListener('change', aggiorna);
+  listaSel.addEventListener('change', mostraInfo);
+  $('[data-altre-liste]', blocco).onclick = () => apriAltreListe(l => { if (!extra.some(x => x.id === l.id)) extra.push(l); if (!elenco.some(x => x.id === l.id)) elenco.push({ ...l, propria: false }); caricato = true; disegna(l.id); }, getClienteId());
+  aggiorna();
+}
+
+const FILTRI_LI = { q: '', stato: 'attive' };
+const ORD_LI = { k: '', dir: 1 };
+async function paginaListe() {
+  shell('liste', 'Liste', `
+    <div class="toolbar">
+      <input class="inp cerca" id="liQ" placeholder="Cerca per titolo o per cliente…" value="${esc(FILTRI_LI.q)}">
+      <select id="liStato">${opzioni([{ value: 'attive', label: 'Liste attive' }, { value: 'chiuse', label: 'Liste chiuse' }, { value: 'tutte', label: 'Tutte le liste' }], FILTRI_LI.stato)}</select>
+      <span class="muted small" id="liN"></span>
+    </div>
+    <div class="card" id="liTab"></div>`, `<a class="btn primario" href="#/liste/nuova">+ Nuova lista</a>`);
+  let timer;
+  const carica = async () => {
+    const l0 = await api('liste', undefined, { q: FILTRI_LI.q, stato: FILTRI_LI.stato });
+    const tot = l0.filter(l => l.attiva).reduce((s, l) => s + l.saldo_cent, 0);
+    $('#liN').textContent = `${l0.length} ${l0.length === 1 ? 'lista' : 'liste'}${tot ? ' · credito nelle liste attive ' + eur(tot) + ' €' : ''}`;
+    const CH = { titolo: l => l.titolo, cliente: l => l.cliente, versato: l => l.versato_cent, usato: l => l.usato_cent, saldo: l => l.saldo_cent, ultimo: l => l.ultimo || '', stato: l => l.attiva };
+    const lista = ordinaLista(l0, ORD_LI, CH);
+    $('#liTab').innerHTML = lista.length ? `<table class="t"><thead><tr>${thOrd('titolo', 'Lista', ORD_LI)}${thOrd('cliente', 'Intestata a', ORD_LI)}${thOrd('versato', 'Versato', ORD_LI, 'num')}${thOrd('usato', 'Usato', ORD_LI, 'num')}${thOrd('saldo', 'Credito', ORD_LI, 'num')}${thOrd('ultimo', 'Ultimo movimento', ORD_LI)}${thOrd('stato', 'Stato', ORD_LI)}</tr></thead><tbody>
+      ${lista.map(l => `<tr class="click" onclick="naviga('#/liste/${l.id}')"><td><b>${esc(l.titolo)}</b></td><td>${esc(l.cliente)}</td><td class="num">${eur(l.versato_cent)}</td><td class="num">${eur(l.usato_cent)}</td><td class="num ${l.saldo_cent > 0 ? 'ok' : ''}"><b>${eur(l.saldo_cent)}</b></td><td>${dataIt(l.ultimo)}</td><td>${l.attiva ? '<span class="badge Confermata">Attiva</span>' : '<span class="badge grigio">Chiusa</span>'}</td></tr>`).join('')}
+      </tbody></table>` : `<div class="vuoto">${FILTRI_LI.q || FILTRI_LI.stato !== 'attive' ? 'Nessuna lista trovata' : 'Ancora nessuna lista. Con «Nuova lista» ne crei una per un cliente (lista nozze o altro).'}</div>`;
+    attivaOrdinamento($('#liTab'), ORD_LI, carica);
+  };
+  $('#liQ').oninput = e => { FILTRI_LI.q = e.target.value; clearTimeout(timer); timer = setTimeout(carica, 250); };
+  $('#liStato').onchange = e => { FILTRI_LI.stato = e.target.value; carica(); };
+  await carica();
+  $('#liQ').focus();
+}
+
+async function paginaLista(id) {
+  const nuova = id === 'nuova';
+  const parti = STATO.route.split('/');
+  const cl0 = nuova && parti[2] ? await api('cliente', undefined, { id: parti[2] }).catch(() => null) : null;
+  const Lx = nuova ? { id: 0, titolo: '', cliente_id: cl0 ? cl0.id : '', cliente: cl0 ? `${cl0.cognome} ${cl0.nome}`.trim() : '', note: '', attiva: 1, movimenti: [], saldo_cent: 0, versato_cent: 0, usato_cent: 0 } : await api('lista', undefined, { id });
+  const titolo = nuova ? 'Nuova lista' : `Lista · ${esc(Lx.titolo)} ${Lx.attiva ? '' : '<span class="badge grigio">Chiusa</span>'}`;
+  let progr = 0;
+  const righe = Lx.movimenti.map(m => { progr += m.importo_cent; return { ...m, progr }; });
+  const rifM = m => m.p_numero ? `<a href="#/pratiche/${m.pratica_id}">Pratica ${m.p_numero}/${m.p_anno}</a>` : (m.b_numero ? `<a href="#/biglietteria/${m.biglietto_id}">Biglietto B${m.b_numero}/${m.b_anno}</a>` : '');
+  const cosa = m => m.tipo === 'acconto' ? 'Pagamento di un acconto' : (m.tipo === 'prelievo' ? 'Prelievo' : 'Versamento');
+  shell('liste', titolo, `
+    ${nuova ? '' : `<div class="cards-stat">
+      <div class="stat"><div class="l">Credito disponibile</div><div class="v ok">${eur(Lx.saldo_cent)}</div></div>
+      <div class="stat"><div class="l">Versato in totale</div><div class="v">${eur(Lx.versato_cent)}</div><div class="s">${Lx.movimenti.filter(m => m.importo_cent > 0).length} versamenti</div></div>
+      <div class="stat"><div class="l">Già usato</div><div class="v">${eur(Lx.usato_cent)}</div></div></div>`}
+    <div id="fLista" class="card" style="max-width:920px"><h2>Dati della lista</h2>
+      <div class="griglia g4">
+        <div class="campo col2"><label>Titolo *</label><input name="titolo" value="${esc(Lx.titolo)}" placeholder="es. Lista nozze Rossi-Bianchi"></div>
+        <div class="campo col2"><label>Intestata a (cliente) *</label><div class="picker"><input id="pkListaCliente" value="${esc(Lx.cliente)}" placeholder="Cerca per cognome…" autocomplete="off"><input type="hidden" name="cliente_id" value="${Lx.cliente_id || ''}"><div class="lista hidden" id="pkListaLista"></div></div></div>
+        <div class="campo"><label>Stato</label><select name="attiva">${opzioni([{ value: '1', label: 'Attiva' }, { value: '0', label: 'Chiusa' }], String(Lx.attiva))}</select></div>
+        <div class="campo col3"><label>Note</label><input name="note" value="${esc(Lx.note || '')}"></div></div>
+      <div class="azioni" style="margin-top:12px"><button class="btn primario" id="btnSalvaLista">Salva</button>${nuova ? '' : '<button class="btn pericolo" id="btnEliminaLista">Elimina lista</button>'}<span class="small muted">Una lista chiusa non si può più usare per pagare acconti.</span></div></div>
+    ${nuova ? '' : `<div class="card"><h2>Movimenti <span class="spazio"></span><span class="no-stampa"><button type="button" class="btn piccolo primario" id="btnVers">+ Versamento</button> <button type="button" class="btn piccolo" id="btnPrel">− Prelievo / rimborso</button> <button type="button" class="btn piccolo" id="btnStampaL">🖨 Stampa estratto</button></span></h2>
+      ${righe.length ? `<table class="t compatta"><thead><tr><th>Data</th><th>Movimento</th><th>Metodo</th><th>Riferimento</th><th>Registrato da</th><th class="num">Importo</th><th class="num">Credito</th><th class="no-stampa"></th></tr></thead><tbody>
+        ${righe.map(m => `<tr><td>${dataIt(m.data)}</td><td><b>${cosa(m)}</b>${m.versante ? ' da ' + esc(m.versante) : ''}${m.descrizione ? `<div class="small muted">${esc(m.descrizione)}</div>` : ''}</td><td>${esc(m.metodo || '')}</td><td class="small">${rifM(m)}${m.cliente_pratica ? `<div class="muted">${esc(m.cliente_pratica)}</div>` : ''}</td><td class="small">${esc(m.operatore)}</td><td class="num ${m.importo_cent < 0 ? 'neg' : 'ok'}">${m.importo_cent > 0 ? '+' : ''}${eur(m.importo_cent)}</td><td class="num">${eur(m.progr)}</td>
+          <td class="az no-stampa">${m.acconto_id ? '' : `<button type="button" class="btn piccolo" data-mod="${m.id}">modifica</button> <button type="button" class="btn piccolo pericolo" data-del="${m.id}">✕</button>`}</td></tr>`).join('')}
+        </tbody></table>` : '<div class="vuoto">Nessun movimento: usa «+ Versamento» per caricare la lista.</div>'}</div>`}`);
+  let sporca = false;
+  $('#fLista').addEventListener('input', () => { sporca = true; });
+  pickerCliente($('#pkListaCliente'), $('[name=cliente_id]', $('#fLista')), $('#pkListaLista'), () => { sporca = true; });
+  const salvaInterno = async () => { const d = leggiForm($('#fLista')); d.id = Lx.id; try { const r = await api('lista_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; } };
+  GUARDIA = { route: STATO.route, sporca: () => sporca, salva: salvaInterno, cosa: 'la lista' };
+  $('#btnSalvaLista').onclick = async () => { const r = await salvaInterno(); if (!r) return; toast('Lista salvata', 'ok'); if (nuova) naviga('#/liste/' + r.id); else render(); };
+  if (nuova) { $('[name=titolo]').focus(); return; }
+  $('#btnEliminaLista').onclick = async () => {
+    if (!await conferma('Eliminare la lista?', 'Si può eliminare solo se non ha movimenti. Altrimenti si può chiuderla.')) return;
+    try { sporca = false; await api('lista_elimina', { id: Lx.id }); toast('Lista eliminata'); naviga('#/liste'); } catch (e) { toast(e.message, 'err'); }
+  };
+  const formMov = (m, tipo) => `<div class="griglia g2">
+    <div class="campo"><label>Data</label><input name="data" type="date" value="${esc(m.data || oggiIso())}"></div>
+    <div class="campo"><label>Importo (€)</label><input name="importo" class="num soldi" value="${m.importo_cent ? eur(Math.abs(m.importo_cent)) : ''}" placeholder="es. 100 oppure 100,50"></div>
+    ${tipo === 'versamento' ? `<div class="campo"><label>Versato da</label><input name="versante" value="${esc(m.versante || '')}" placeholder="es. Zia Maria"></div>` : ''}
+    <div class="campo"><label>Metodo</label><select name="metodo">${opzioni(metodiPagamento(false), m.metodo || metodiPagamento(false)[0])}</select></div>
+    <div class="campo col2"><label>${tipo === 'versamento' ? 'Note' : 'Motivo'}</label><input name="descrizione" value="${esc(m.descrizione || '')}" placeholder="${tipo === 'versamento' ? 'facoltativo' : 'es. rimborso al cliente'}"></div></div>`;
+  const apriMov = (tipo, m) => modale({ titolo: m ? 'Modifica movimento' : (tipo === 'versamento' ? 'Registra un versamento' : 'Registra un prelievo'), ok: m ? 'Salva' : 'Registra', corpo: formMov(m || {}, tipo),
+    onOk: async d => { await api('lista_movimento_salva', { ...leggiForm(d), tipo, lista_id: Lx.id, id: m ? m.id : '' }); render(); return true; } });
+  $('#btnVers').onclick = () => apriMov('versamento');
+  $('#btnPrel').onclick = () => apriMov('prelievo');
+  $('#btnStampaL').onclick = () => window.print();
+  $('#pg').addEventListener('click', async e => {
+    const mod = e.target.closest('[data-mod]'), del = e.target.closest('[data-del]');
+    if (mod) { const m = Lx.movimenti.find(x => x.id === +mod.dataset.mod); if (m) apriMov(m.importo_cent < 0 ? 'prelievo' : 'versamento', m); }
+    if (del && await conferma('Cancellare il movimento?', 'L\'operazione resta nel registro delle operazioni.')) { try { await api('lista_movimento_elimina', { id: +del.dataset.del }); render(); } catch (err) { toast(err.message, 'err'); } }
+  });
 }
 
 avvio();

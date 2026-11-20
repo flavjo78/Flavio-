@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.12.1';
+const VERSIONE = '1.13.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -69,6 +69,7 @@ function paginaDiAzione(nome) {
   if (/^(bigliett|prossimo_numero_b)/.test(nome)) return 'biglietteria';
   if (nome === 'scadenze') return 'scadenze';
   if (/^statistiche/.test(nome)) return 'statistiche';
+  if (nome === 'liste' || /^lista(_|$)/.test(nome)) return 'liste';
   if (nome === 'liste_salva') return 'liste';
   return null;
 }
@@ -78,6 +79,7 @@ function controllaPermesso(ctx, nome) {
   if (pag === 'clienti' && ['clienti', 'cliente', 'tessere_tipi', 'passeggeri_cerca', 'cliente_salva'].includes(nome)) { const perm = permessiDi(ctx.utente); if (perm.some(p => ['pratiche', 'biglietteria', 'clienti'].includes(p))) return; }
   if (pag === 'pratiche' && ['pratiche_cerca', 'pratica'].includes(nome) && permessiDi(ctx.utente).includes('biglietteria')) return;
   if (pag === 'fornitori' && nome === 'fornitori' && permessiDi(ctx.utente).some(p => ['pratiche', 'biglietteria'].includes(p))) return;
+  if (pag === 'liste' && nome === 'lista_cerca' && permessiDi(ctx.utente).some(p => ['pratiche', 'biglietteria'].includes(p))) return;
   if (permessiDi(ctx.utente).includes(pag)) return;
   const sb = ctx.sessione && SBLOCCHI.get(ctx.sessione.sid);
   if (sb && sb.has(pag)) return;
@@ -355,6 +357,7 @@ function cliente(ctx) {
   c.contatti = db.all('SELECT * FROM cliente_contatti WHERE cliente_id = ? ORDER BY ordine, id', id);
   c.tessere = db.all('SELECT * FROM cliente_tessere WHERE cliente_id = ? ORDER BY ordine, id', id);
   c.compagni = db.all('SELECT * FROM cliente_compagni WHERE cliente_id = ? ORDER BY ordine, id', id);
+  c.liste = liste({ query: { cliente_id: id, stato: 'attive' } });
   return c;
 }
 // aggiunge/aggiorna i compagni di viaggio di un cliente (per nome, senza doppioni)
@@ -451,6 +454,8 @@ function cliente_elimina(ctx) {
   const id = N(ctx.corpo.id);
   const n = db.get('SELECT COUNT(*) AS n FROM pratiche WHERE cliente_id = ?', id).n;
   if (n > 0) err(400, `Il cliente ha ${n} pratiche: non si può cancellare`);
+  const nl = db.get('SELECT COUNT(*) AS n FROM liste WHERE cliente_id = ?', id).n;
+  if (nl > 0) err(400, `Il cliente ha ${nl} liste: non si può cancellare`);
   db.run('DELETE FROM clienti WHERE id = ?', id);
   for (const t of ['cliente_documenti', 'cliente_contatti', 'cliente_tessere', 'cliente_compagni']) db.run(`DELETE FROM ${t} WHERE cliente_id = ?`, id);
   db.log(ctx.utente, 'cliente_elimina', 'cliente', id, '');
@@ -640,6 +645,7 @@ function caricaPratica(id) {
   p.partecipanti = db.all('SELECT * FROM pratica_partecipanti WHERE pratica_id = ? ORDER BY ordine, id', id);
   p.biglietti = db.all(`SELECT b.*, u.nome AS operatore FROM biglietti b LEFT JOIN utenti u ON u.id = b.operatore_id WHERE b.pratica_id = ? ORDER BY b.data, b.id`, id);
   p.acconti = db.all(`SELECT a.*, f.nome AS fornitore, u.nome AS operatore,
+      (SELECT l.titolo FROM liste_movimenti m JOIN liste l ON l.id = m.lista_id WHERE m.acconto_id = a.id) AS lista_titolo, (SELECT m.lista_id FROM liste_movimenti m WHERE m.acconto_id = a.id) AS lista_id,
       CASE WHEN b.id IS NULL THEN NULL ELSE 'Biglietteria · B' || b.numero || '/' || b.anno || ' ' || b.vettore || CASE WHEN b.canale <> '' THEN ' · ' || b.canale ELSE '' END END AS biglietto_rif
     FROM acconti a LEFT JOIN fornitori f ON f.id = a.fornitore_id LEFT JOIN utenti u ON u.id = a.operatore_id LEFT JOIN biglietti b ON b.id = a.biglietto_id WHERE a.pratica_id = ? ORDER BY a.data, a.id`, id);
   p.pagamenti_fornitore = db.all(`SELECT g.*, f.nome AS fornitore, u.nome AS operatore FROM pagamenti_fornitore g LEFT JOIN fornitori f ON f.id = g.fornitore_id LEFT JOIN utenti u ON u.id = g.operatore_id WHERE g.pratica_id = ? ORDER BY g.data, g.id`, id);
@@ -813,20 +819,41 @@ function acconto_salva(ctx) {
   const fid = N(c.fornitore_id) || null;
   const id = N(c.id);
   const su = pid ? 'pratica' : 'biglietto';
-  if (id) {
-    db.run('UPDATE acconti SET data = ?, importo_cent = ?, metodo = ?, descrizione = ?, fornitore_id = ?, biglietto_id = ? WHERE id = ?', data, importo, S(c.metodo), S(c.descrizione), fid, bid || null, id);
-    db.log(ctx.utente, 'acconto_modifica', su, pid || bid, `${importo / 100} €`);
-  } else {
-    db.run('INSERT INTO acconti(pratica_id, biglietto_id, data, importo_cent, metodo, descrizione, fornitore_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,?,?)',
-      pid || 0, bid || null, data, importo, S(c.metodo), S(c.descrizione), fid, ctx.utente.id, db.adesso());
-    db.log(ctx.utente, 'acconto_crea', su, pid || bid, `${importo / 100} € ${S(c.metodo)}`);
+  const metodo = S(c.metodo);
+  // metodo "Lista": il denaro esce da una lista (salvadanaio) e va in acconto
+  const daLista = metodo.toLowerCase() === 'lista';
+  const listaId = daLista ? N(c.lista_id) : 0;
+  let lst = null;
+  if (daLista) {
+    richiedi(importo > 0, 'Con il pagamento da lista l\'importo deve essere positivo');
+    lst = listaId ? db.get('SELECT * FROM liste WHERE id = ?', listaId) : null;
+    richiedi(lst, 'Scegli la lista da cui prelevare');
+    const giaQui = id && db.get('SELECT id FROM liste_movimenti WHERE acconto_id = ? AND lista_id = ?', id, listaId);
+    richiedi(lst.attiva || giaQui, `La lista «${lst.titolo}» è chiusa`);
   }
+  db.transazione(() => {
+    let accId = id;
+    if (id) {
+      db.run('UPDATE acconti SET data = ?, importo_cent = ?, metodo = ?, descrizione = ?, fornitore_id = ?, biglietto_id = ? WHERE id = ?', data, importo, metodo, S(c.descrizione), fid, bid || null, id);
+      db.run('DELETE FROM liste_movimenti WHERE acconto_id = ?', id);
+    } else {
+      accId = Number(db.run('INSERT INTO acconti(pratica_id, biglietto_id, data, importo_cent, metodo, descrizione, fornitore_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,?,?)',
+        pid || 0, bid || null, data, importo, metodo, S(c.descrizione), fid, ctx.utente.id, db.adesso()).lastInsertRowid);
+    }
+    if (daLista) {
+      const credito = saldoLista(listaId);
+      richiedi(credito >= importo, `La lista «${lst.titolo}» ha solo ${euroTesto(credito)} € di credito`);
+      db.run('INSERT INTO liste_movimenti(lista_id, data, importo_cent, tipo, versante, metodo, descrizione, acconto_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,?,?,?)',
+        listaId, data, -importo, 'acconto', '', 'Lista', S(c.descrizione) || `Acconto ${su}`, accId, ctx.utente.id, db.adesso());
+    }
+    db.log(ctx.utente, id ? 'acconto_modifica' : 'acconto_crea', su, pid || bid, `${importo / 100} € ${metodo}${lst ? ' · lista ' + lst.titolo : ''}`);
+  });
   return pid ? caricaPratica(pid) : biglietto({ query: { id: bid } });
 }
 function acconto_elimina(ctx) {
   const a = db.get('SELECT * FROM acconti WHERE id = ?', N(ctx.corpo.id));
   if (!a) err(404, 'Acconto non trovato');
-  db.run('DELETE FROM acconti WHERE id = ?', a.id);
+  db.transazione(() => { db.run('DELETE FROM liste_movimenti WHERE acconto_id = ?', a.id); db.run('DELETE FROM acconti WHERE id = ?', a.id); });
   db.log(ctx.utente, 'acconto_elimina', a.pratica_id ? 'pratica' : 'biglietto', a.pratica_id || a.biglietto_id, `${a.importo_cent / 100} € del ${a.data}`);
   return a.pratica_id ? caricaPratica(a.pratica_id) : biglietto({ query: { id: a.biglietto_id } });
 }
@@ -915,7 +942,7 @@ function biglietto(ctx) {
   if (!b) err(404, 'Biglietto non trovato');
   arricchisciBiglietto(b);
   b.passeggeri = db.all('SELECT * FROM biglietto_passeggeri WHERE biglietto_id = ? ORDER BY ordine, id', b.id);
-  b.acconti = db.all(`SELECT a.*, u.nome AS operatore FROM acconti a LEFT JOIN utenti u ON u.id = a.operatore_id WHERE a.biglietto_id = ? AND a.pratica_id = 0 ORDER BY a.data, a.id`, b.id);
+  b.acconti = db.all(`SELECT a.*, u.nome AS operatore, (SELECT l.titolo FROM liste_movimenti m JOIN liste l ON l.id = m.lista_id WHERE m.acconto_id = a.id) AS lista_titolo FROM acconti a LEFT JOIN utenti u ON u.id = a.operatore_id WHERE a.biglietto_id = ? AND a.pratica_id = 0 ORDER BY a.data, a.id`, b.id);
   return b;
 }
 function biglietto_salva(ctx) {
@@ -1046,19 +1073,134 @@ function filtroCosti() {
   // costo dei biglietti al netto delle commissioni che tornano indietro dal fornitore
   return `CASE WHEN p.stato IN ('Confermata','Chiusa') THEN (SELECT COALESCE(SUM(costo_cent*pax),0) FROM pratica_righe r WHERE r.pratica_id = p.id) + (SELECT COALESCE(SUM((importo_cent - commissione_cent) * pax),0) FROM biglietti b WHERE b.pratica_id = p.id) ELSE 0 END`;
 }
+// ---------- liste (salvadanaio: lista nozze o altro) ----------
+const euroTesto = c => (c / 100).toFixed(2).replace('.', ',');
+function saldoLista(id) { return db.get('SELECT COALESCE(SUM(importo_cent),0) AS s FROM liste_movimenti WHERE lista_id = ?', id).s; }
+const NOME_CL = a => `TRIM(COALESCE(${a}.cognome,'') || ' ' || COALESCE(${a}.nome,''))`;
+function liste(ctx) {
+  const q = S(ctx.query.q).toLowerCase(), stato = S(ctx.query.stato) || 'attive', cid = N(ctx.query.cliente_id);
+  let sql = `SELECT l.*, ${NOME_CL('c')} AS cliente,
+      COALESCE((SELECT SUM(importo_cent) FROM liste_movimenti m WHERE m.lista_id = l.id),0) AS saldo_cent,
+      COALESCE((SELECT SUM(importo_cent) FROM liste_movimenti m WHERE m.lista_id = l.id AND m.importo_cent > 0),0) AS versato_cent,
+      (SELECT COUNT(*) FROM liste_movimenti m WHERE m.lista_id = l.id) AS n_movimenti,
+      (SELECT MAX(data) FROM liste_movimenti m WHERE m.lista_id = l.id) AS ultimo
+    FROM liste l JOIN clienti c ON c.id = l.cliente_id WHERE 1=1`;
+  const p = [];
+  if (stato === 'attive') sql += ' AND l.attiva = 1'; else if (stato === 'chiuse') sql += ' AND l.attiva = 0';
+  if (cid) { sql += ' AND l.cliente_id = ?'; p.push(cid); }
+  if (q) { sql += " AND (lower(l.titolo) LIKE ? OR lower(c.cognome || ' ' || c.nome) LIKE ? OR lower(c.nome || ' ' || c.cognome) LIKE ?)"; const k = `%${q}%`; p.push(k, k, k); }
+  sql += ' ORDER BY l.attiva DESC, l.titolo COLLATE NOCASE LIMIT 300';
+  return db.all(sql, ...p).map(l => ({ ...l, usato_cent: l.versato_cent - l.saldo_cent }));
+}
+// liste attive con credito, per scegliere da dove prelevare un acconto (prima quelle del cliente indicato)
+function lista_cerca(ctx) {
+  const cid = N(ctx.query.cliente_id), inc = N(ctx.query.includi), solo = S(ctx.query.solo_cliente) === '1';
+  let l = liste({ query: { q: S(ctx.query.q), stato: 'attive', cliente_id: solo ? cid : '' } }).filter(x => x.saldo_cent > 0);
+  if (inc && !l.some(x => x.id === inc)) { const x = liste({ query: { stato: 'tutte' } }).find(y => y.id === inc); if (x) l.push(x); }
+  l.sort((a, b) => ((b.cliente_id === cid) - (a.cliente_id === cid)) || a.cliente.localeCompare(b.cliente) || a.titolo.localeCompare(b.titolo));
+  return l.slice(0, 40).map(x => ({ id: x.id, titolo: x.titolo, cliente_id: x.cliente_id, cliente: x.cliente, saldo_cent: x.saldo_cent }));
+}
+function caricaLista(id) {
+  const l = db.get(`SELECT l.*, ${NOME_CL('c')} AS cliente FROM liste l JOIN clienti c ON c.id = l.cliente_id WHERE l.id = ?`, id);
+  if (!l) err(404, 'Lista non trovata');
+  l.movimenti = db.all(`SELECT m.*, COALESCE(u.nome,'') AS operatore, a.pratica_id, a.biglietto_id, p.anno AS p_anno, p.numero AS p_numero, b.anno AS b_anno, b.numero AS b_numero,
+      ${NOME_CL('cp')} AS cliente_pratica
+    FROM liste_movimenti m LEFT JOIN utenti u ON u.id = m.operatore_id LEFT JOIN acconti a ON a.id = m.acconto_id
+      LEFT JOIN pratiche p ON p.id = a.pratica_id LEFT JOIN biglietti b ON b.id = a.biglietto_id LEFT JOIN clienti cp ON cp.id = COALESCE(p.cliente_id, b.cliente_id)
+    WHERE m.lista_id = ? ORDER BY m.data, m.id`, id);
+  l.saldo_cent = l.movimenti.reduce((s, m) => s + m.importo_cent, 0);
+  l.versato_cent = l.movimenti.filter(m => m.importo_cent > 0).reduce((s, m) => s + m.importo_cent, 0);
+  l.usato_cent = l.versato_cent - l.saldo_cent;
+  return l;
+}
+function lista(ctx) { return caricaLista(N(ctx.query.id)); }
+function lista_salva(ctx) {
+  const c = ctx.corpo || {};
+  const id = N(c.id);
+  const titolo = S(c.titolo); richiedi(titolo, 'Scrivi il titolo della lista');
+  const cid = N(c.cliente_id); richiedi(cid && db.get('SELECT id FROM clienti WHERE id = ?', cid), 'Scegli il cliente intestatario');
+  const attiva = c.attiva === undefined ? 1 : B(c.attiva);
+  const ts = db.adesso();
+  let lid = id;
+  if (id) {
+    richiedi(db.get('SELECT id FROM liste WHERE id = ?', id), 'Lista non trovata');
+    db.run('UPDATE liste SET cliente_id = ?, titolo = ?, note = ?, attiva = ?, aggiornato_ts = ? WHERE id = ?', cid, titolo, S(c.note), attiva, ts, id);
+    db.log(ctx.utente, 'lista_modifica', 'lista', id, titolo);
+  } else {
+    lid = Number(db.run('INSERT INTO liste(cliente_id, titolo, note, attiva, operatore_id, creato_ts, aggiornato_ts) VALUES(?,?,?,?,?,?,?)', cid, titolo, S(c.note), attiva, ctx.utente.id, ts, ts).lastInsertRowid);
+    db.log(ctx.utente, 'lista_crea', 'lista', lid, titolo);
+  }
+  return caricaLista(lid);
+}
+function lista_elimina(ctx) {
+  const id = N(ctx.corpo.id);
+  const l = db.get('SELECT * FROM liste WHERE id = ?', id);
+  if (!l) err(404, 'Lista non trovata');
+  const n = db.get('SELECT COUNT(*) AS n FROM liste_movimenti WHERE lista_id = ?', id).n;
+  if (n > 0) err(400, `La lista ha ${n} movimenti: non si può cancellare. Puoi chiuderla.`);
+  db.run('DELETE FROM liste WHERE id = ?', id);
+  db.log(ctx.utente, 'lista_elimina', 'lista', id, l.titolo);
+  return { ok: true };
+}
+// versamenti e prelievi a mano (i prelievi per un acconto nascono dall'acconto stesso)
+function lista_movimento_salva(ctx) {
+  const c = ctx.corpo || {};
+  const lid = N(c.lista_id);
+  const l = db.get('SELECT * FROM liste WHERE id = ?', lid);
+  if (!l) err(404, 'Lista non trovata');
+  const tipo = S(c.tipo) === 'prelievo' ? 'prelievo' : 'versamento';
+  const importo = Math.abs(CENT(c.importo));
+  richiedi(importo > 0, 'Importo mancante');
+  const data = DATA(c.data) || db.oggi();
+  const id = N(c.id);
+  db.transazione(() => {
+    let precedente = 0;
+    if (id) {
+      const m = db.get('SELECT * FROM liste_movimenti WHERE id = ? AND lista_id = ?', id, lid);
+      if (!m) err(404, 'Movimento non trovato');
+      if (m.acconto_id) err(400, 'Questo è il pagamento di un acconto: si modifica dall\'acconto');
+      precedente = m.importo_cent;
+    }
+    const nuovo = tipo === 'prelievo' ? -importo : importo;
+    richiedi(saldoLista(lid) - precedente + nuovo >= 0, 'Il credito della lista non può diventare negativo');
+    if (id) db.run('UPDATE liste_movimenti SET data = ?, importo_cent = ?, tipo = ?, versante = ?, metodo = ?, descrizione = ? WHERE id = ?', data, nuovo, tipo, S(c.versante), S(c.metodo), S(c.descrizione), id);
+    else db.run('INSERT INTO liste_movimenti(lista_id, data, importo_cent, tipo, versante, metodo, descrizione, acconto_id, operatore_id, creato_ts) VALUES(?,?,?,?,?,?,?,NULL,?,?)',
+      lid, data, nuovo, tipo, S(c.versante), S(c.metodo), S(c.descrizione), ctx.utente.id, db.adesso());
+  });
+  db.log(ctx.utente, id ? 'lista_movimento_modifica' : 'lista_movimento_crea', 'lista', lid, `${tipo} ${euroTesto(importo)} €${S(c.versante) ? ' da ' + S(c.versante) : ''}`);
+  return caricaLista(lid);
+}
+function lista_movimento_elimina(ctx) {
+  const m = db.get('SELECT * FROM liste_movimenti WHERE id = ?', N(ctx.corpo.id));
+  if (!m) err(404, 'Movimento non trovato');
+  if (m.acconto_id) err(400, 'Questo è il pagamento di un acconto: cancella o cambia l\'acconto');
+  richiedi(saldoLista(m.lista_id) - m.importo_cent >= 0, 'Il credito della lista non può diventare negativo: ci sono prelievi già fatti');
+  db.run('DELETE FROM liste_movimenti WHERE id = ?', m.id);
+  db.log(ctx.utente, 'lista_movimento_elimina', 'lista', m.lista_id, `${euroTesto(m.importo_cent)} € del ${m.data}`);
+  return caricaLista(m.lista_id);
+}
+
 // ---------- riepilogo giornaliero ----------
 // Incassato = acconti con la data del giorno. Venduto = pratiche confermate quel giorno (biglietti collegati compresi)
 // + biglietti emessi quel giorno senza pratica. Preventivi = pratiche aperte quel giorno, escluse quelle vendute lo stesso giorno.
 function statistiche_giorno(ctx) {
   const data = DATA(ctx.query.data) || db.oggi();
   const NOME = a => `TRIM(COALESCE(${a}.cognome,'') || ' ' || COALESCE(${a}.nome,''))`;
-  const incassi = db.all(`SELECT a.id, a.pratica_id, a.biglietto_id, a.importo_cent, a.metodo, a.descrizione, a.creato_ts,
+  const accontiGiorno = db.all(`SELECT a.id, a.pratica_id, a.biglietto_id, a.importo_cent, a.metodo, a.descrizione, a.creato_ts,
       COALESCE(u.nome,'') AS operatore, p.anno AS p_anno, p.numero AS p_numero, b.anno AS b_anno, b.numero AS b_numero,
       COALESCE(NULLIF(${NOME('cp')},''), ${NOME('cb')}) AS cliente
     FROM acconti a LEFT JOIN pratiche p ON p.id = a.pratica_id LEFT JOIN biglietti b ON b.id = a.biglietto_id
       LEFT JOIN clienti cp ON cp.id = p.cliente_id LEFT JOIN clienti cb ON cb.id = b.cliente_id LEFT JOIN utenti u ON u.id = a.operatore_id
-    WHERE a.data = ? ORDER BY a.creato_ts, a.id`, data);
+    WHERE a.data = ? AND LOWER(a.metodo) <> 'lista' ORDER BY a.creato_ts, a.id`, data);
+  const versamentiListe = db.all(`SELECT m.id, m.lista_id, m.importo_cent, m.metodo, m.tipo, m.versante, m.descrizione, m.creato_ts, COALESCE(u.nome,'') AS operatore, l.titolo, ${NOME('c')} AS cliente
+    FROM liste_movimenti m JOIN liste l ON l.id = m.lista_id JOIN clienti c ON c.id = l.cliente_id LEFT JOIN utenti u ON u.id = m.operatore_id
+    WHERE m.data = ? AND m.tipo IN ('versamento','prelievo') ORDER BY m.creato_ts, m.id`, data).map(m => ({
+      id: 'l' + m.id, pratica_id: 0, biglietto_id: 0, lista_id: m.lista_id, importo_cent: m.importo_cent, metodo: m.metodo, creato_ts: m.creato_ts, operatore: m.operatore,
+      descrizione: `${m.tipo === 'prelievo' ? 'Prelievo dalla' : 'Versamento sulla'} lista «${m.titolo}»${m.versante ? ' da ' + m.versante : ''}${m.descrizione ? ' · ' + m.descrizione : ''}`,
+      p_anno: null, p_numero: null, b_anno: null, b_numero: null, cliente: m.cliente }));
+  const da_lista_cent = db.get("SELECT COALESCE(SUM(importo_cent),0) AS s FROM acconti WHERE data = ? AND LOWER(metodo) = 'lista'", data).s;
   const perMetodo = {};
+  const incassi = [...accontiGiorno, ...versamentiListe].sort((x, y) => (x.creato_ts < y.creato_ts ? -1 : x.creato_ts > y.creato_ts ? 1 : 0));
   for (const a of incassi) { const k = a.metodo || 'Altro'; perMetodo[k] = (perMetodo[k] || 0) + a.importo_cent; }
   const incassato_cent = incassi.reduce((s, a) => s + a.importo_cent, 0);
 
@@ -1080,7 +1222,7 @@ function statistiche_giorno(ctx) {
 
   const venduto_cent = vendutePratiche.reduce((s, p) => s + p.totale_cent, 0) + bigliettiLiberi.reduce((s, b) => s + b.totale_cent, 0);
   return {
-    data, incassi, per_metodo: Object.entries(perMetodo).map(([metodo, importo_cent]) => ({ metodo, importo_cent })).sort((a, b) => b.importo_cent - a.importo_cent), incassato_cent,
+    data, incassi, da_lista_cent, per_metodo: Object.entries(perMetodo).map(([metodo, importo_cent]) => ({ metodo, importo_cent })).sort((a, b) => b.importo_cent - a.importo_cent), incassato_cent,
     vendite: { pratiche: vendutePratiche, biglietti: bigliettiLiberi, totale_cent: venduto_cent, n: vendutePratiche.length + bigliettiLiberi.length },
     preventivi: { lista: preventivi, totale_cent: preventivi.reduce((s, p) => s + p.totale_cent, 0) }
   };
@@ -1188,6 +1330,13 @@ const AZIONI = {
   scadenze: { fn: scadenze },
   statistiche: { fn: statistiche },
   statistiche_giorno: { fn: statistiche_giorno },
+  liste: { fn: liste },
+  lista: { fn: lista },
+  lista_cerca: { fn: lista_cerca },
+  lista_salva: { fn: lista_salva, post: true },
+  lista_elimina: { fn: lista_elimina, post: true },
+  lista_movimento_salva: { fn: lista_movimento_salva, post: true },
+  lista_movimento_elimina: { fn: lista_movimento_elimina, post: true },
   utenti_lista: { fn: () => listaUtenti() }
 };
 

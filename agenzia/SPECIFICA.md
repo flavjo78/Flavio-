@@ -117,3 +117,10 @@ Le regole dei servizi di biglietteria (campi, stampa) verranno definite con l'au
 Biglietteria aerea/ferroviaria come modulo a parte, voucher, buoni di consegna, estratti
 conto, newsletter, credenziali web dei fornitori, importazione dei dati dal vecchio FESTA
 (valutabile se si riesce a esportare i suoi archivi).
+
+## Liste (salvadanaio: lista nozze o altro) — dalla 1.13
+- Voce **Liste** del menù: elenco delle liste (titolo, cliente intestatario, versato, usato, credito). Le voci a tendina si cambiano in Opzioni → Liste a tendina.
+- Una lista appartiene a un cliente, ha un titolo ed è attiva o chiusa. Si carica con **versamenti** (anche da altre persone: "versato da") e si scarica con **prelievi/rimborsi** o pagando acconti.
+- Negli acconti (pratica e biglietto) il metodo **Lista** propone le liste del cliente con credito; il tasto «Prendi da altre liste» cerca tra tutte le liste attive di tutti i clienti. Il credito non può andare sotto zero.
+- Nel riepilogo giornaliero i versamenti sulle liste sono incassi; gli acconti pagati da lista no (sono già stati incassati al versamento).
+- Nella scheda cliente compare il riquadro delle liste attive. Una lista con movimenti non si cancella, si chiude.

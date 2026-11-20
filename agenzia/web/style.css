@@ -415,3 +415,10 @@ h2.nowrap{white-space:nowrap}
   .card{box-shadow:none;break-inside:avoid;margin-bottom:10px}
   body{background:#fff}
 }
+
+/* ---- 1.13: liste (salvadanaio) ---- */
+.riga-lista{display:flex;gap:8px;align-items:center}
+.riga-lista select{flex:1;min-width:0}
+.blocco-lista{background:var(--surface-2);border:1px dashed var(--border-2);border-radius:8px;padding:8px 10px}
+.t td.neg{color:var(--err)}
+.t td.ok{color:var(--ok)}

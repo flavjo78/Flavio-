@@ -429,6 +429,35 @@ function migra() {
     }
     db.exec('PRAGMA user_version = 15');
   }
+  if (v < 16) {
+    // v16: liste (salvadanaio tipo "lista nozze"): una lista appartiene a un cliente, ha un titolo e dei movimenti.
+    // Movimento positivo = versamento (anche di altri), negativo = prelievo; i prelievi per un acconto sono legati all'acconto.
+    db.exec(`CREATE TABLE IF NOT EXISTS liste (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        cliente_id INTEGER NOT NULL,
+        titolo TEXT NOT NULL,
+        note TEXT NOT NULL DEFAULT '',
+        attiva INTEGER NOT NULL DEFAULT 1,
+        operatore_id INTEGER,
+        creato_ts TEXT NOT NULL,
+        aggiornato_ts TEXT NOT NULL);
+      CREATE INDEX IF NOT EXISTS idx_liste_cliente ON liste(cliente_id);
+      CREATE TABLE IF NOT EXISTS liste_movimenti (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        lista_id INTEGER NOT NULL,
+        data TEXT NOT NULL,
+        importo_cent INTEGER NOT NULL,
+        tipo TEXT NOT NULL,
+        versante TEXT NOT NULL DEFAULT '',
+        metodo TEXT NOT NULL DEFAULT '',
+        descrizione TEXT NOT NULL DEFAULT '',
+        acconto_id INTEGER,
+        operatore_id INTEGER,
+        creato_ts TEXT NOT NULL);
+      CREATE INDEX IF NOT EXISTS idx_limov_lista ON liste_movimenti(lista_id);
+      CREATE INDEX IF NOT EXISTS idx_limov_acconto ON liste_movimenti(acconto_id);`);
+    db.exec('PRAGMA user_version = 16');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).
