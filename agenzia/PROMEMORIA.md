@@ -27,3 +27,18 @@
   un obiettivo di vendite per vettore/canale e vedere quanto manca. Non ancora costruito.
 - Biglietteria: cambio / rimborso ci sono; da definire le regole di calcolo (importo negativo nel rimborso?).
 - Nomi veri dei due fornitori aerei da mettere in Liste (fatto: Fancy Tour pagato/debito, Only Ticket pagato — da confermare la modalità di Only Ticket).
+
+## Sicurezza — da fare più avanti (richiesta del 21 novembre, NON ora)
+Rischio: il programma sta sul PC principale, dietro il router, ed è raggiungibile solo dalla rete dell'agenzia
+(porta 8787), a meno che qualcuno apra la porta sul router. Punti deboli noti:
+- **Nessun limite ai tentativi di password.** Da fare: dopo 5 password sbagliate, pausa di 15 minuti per quell'utente
+  (e anche per l'indirizzo che prova), con avviso in Opzioni → Registro. È la cosa più importante.
+- **Sessione più breve:** scadenza dopo alcune ore di inattività (oggi, con «solo la prima volta», dura 30 giorni).
+- **Connessione non cifrata (http).** Valutare HTTPS solo se serve davvero (certificato locale); per ora si limita il rischio
+  con Wi-Fi protetto e rete ospiti separata.
+- **Password in chiaro** visibili in Opzioni (scelta dell'autore): valutare un'opzione per non salvarle più in chiaro.
+- **Firewall:** la regola «AGENZIA gestionale» accetta da qualsiasi indirizzo. Restringerla alla rete locale:
+  `netsh advfirewall firewall set rule name="AGENZIA gestionale" new remoteip=LocalSubnet`
+  (e farlo anche in `installa-avvio-automatico.bat`).
+- Cose senza programmazione: nessun inoltro porte / UPnP spento sul router; password forte sul Wi-Fi; cambiare le password
+  di prova; backup su chiavetta custodita (contengono le password in chiaro); UltraViewer con password lunga.
