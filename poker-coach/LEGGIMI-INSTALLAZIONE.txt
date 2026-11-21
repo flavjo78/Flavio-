@@ -1,0 +1,47 @@
+POKER COACH - INSTALLAZIONE SU WINDOWS (passo passo)
+====================================================
+
+PASSO 1 - Installa Python (una volta sola)
+  1. Apri https://www.python.org/downloads/
+  2. Premi il pulsante giallo "Download Python 3...".
+  3. Apri il file scaricato.
+  4. IMPORTANTE: in basso spunta la casella "Add python.exe to PATH".
+  5. Premi "Install Now", aspetta, poi "Close".
+
+PASSO 2 - Metti il programma sul computer
+  1. Salva il file poker-coach.zip (per esempio in Documenti).
+  2. Tasto destro sullo zip -> "Estrai tutto..." -> "Estrai".
+  3. Si apre la cartella "poker-coach". Lavora SEMPRE da qui, non da dentro lo zip.
+
+PASSO 3 - Installa il programma (una volta sola)
+  1. Doppio clic su INSTALLA.bat
+  2. Se compare "Windows ha protetto il PC": premi "Ulteriori informazioni" e poi "Esegui comunque".
+  3. Aspetta la scritta INSTALLAZIONE COMPLETATA, poi premi un tasto per chiudere.
+
+STASERA - Modalita' IMPARA
+  1. Apri il gioco di poker in una FINESTRA (non a schermo intero), ben visibile e non coperta.
+  2. Doppio clic su IMPARA.bat
+  3. Compare l'elenco delle finestre aperte: scrivi il NUMERO di quella del poker e premi INVIO.
+  4. Gioca normalmente. Piu' situazioni diverse ci sono, meglio e': carte sul tavolo, puntate,
+     all-in, fine mano, carte mostrate. Bastano 30-50 mani.
+  5. Quando hai finito torna sulla finestra nera e premi INVIO.
+  6. Scrivi una nota se vuoi (per esempio il nome del gioco) e premi INVIO.
+  7. Si apre da sola la cartella "pacchetti" con il file poker_impara_DATA.zip
+     -> caricalo nella chat con Claude.
+
+DOPO OGNI PARTITA - Risultati
+  1. Doppio clic su RISULTATI.bat
+  2. Scrivi com'e' andata (facoltativo) e premi INVIO.
+  3. Carica nella chat il file poker_risultati_DATA.zip dalla cartella "pacchetti".
+
+CONSIGLI
+  - Non spostare e non ridimensionare la finestra del poker mentre registra.
+  - Non ridurla a icona e non coprirla con altre finestre (se hai due monitor, tieni la finestra
+    nera sull'altro).
+  - Il programma salva una foto solo quando lo schermo cambia, quindi non riempie il disco.
+  - Lo zip resta sotto i 25 MB circa: se le foto sono tantissime ne sceglie una parte.
+
+SE QUALCOSA NON VA
+  - "Python non e' installato" -> rifai il PASSO 1 ricordando la spunta "Add python.exe to PATH".
+  - Le foto sono nere -> il gioco e' a schermo intero: mettilo in finestra.
+  - Qualsiasi altro errore -> fai una foto della finestra nera e mandala a Claude.

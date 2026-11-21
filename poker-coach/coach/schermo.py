@@ -156,9 +156,21 @@ def foto(titolo, file="foto_gioco.png"):
     return file, f
 
 
+def salva_immagine(img, percorso):
+    """PNG (senza perdita) oppure JPG (molto più leggero, serve Pillow) secondo l'estensione."""
+    if percorso.lower().endswith((".jpg", ".jpeg")):
+        from PIL import Image
+        Image.frombytes("RGB", img.size, img.rgb).save(percorso, quality=85, optimize=True)
+    else:
+        mss.tools.to_png(img.rgb, img.size, output=percorso)
+
+
 def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
-             durata=None, max_foto=None, log=print):
+             durata=None, max_foto=None, log=print, finestra=None, stop=None, formato="png"):
     """Cattura la finestra ogni `intervallo` secondi e salva SOLO quando l'immagine cambia.
+
+    finestra: una Finestra già scelta (altrimenti la cerca per titolo);
+    stop: un threading.Event per fermare da fuori; formato: "png" o "jpg".
 
     Tiene in `cartella/indice.csv` l'elenco delle foto e in `finestra.json` la storia delle
     dimensioni della finestra. Ritorna il numero di foto salvate.
@@ -172,13 +184,15 @@ def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
         scrivi.writerow(["n", "ora", "file", "larghezza", "altezza", "x", "y", "cambiamento"])
     storia_dim = []
 
-    f, ultimo_campione, ultima_dim = None, None, None
+    import threading
+    stop = stop or threading.Event()
+    f, ultimo_campione, ultima_dim = finestra, None, None
     salvate, avvisi = 0, set()
     inizio = time.time()
     log(f"Registrazione in «{cartella}» ogni {intervallo:g}s. Ctrl+C per fermare.")
     try:
         with _MSS() as sct:
-            while True:
+            while not stop.is_set():
                 if durata and time.time() - inizio > durata:
                     break
                 if max_foto and salvate >= max_foto:
@@ -186,12 +200,12 @@ def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
                 t0 = time.time()
                 f = aggiorna(f) if f else None
                 if f is None:
-                    f = trova(titolo)
+                    f = trova(titolo) if titolo else None
                     if f is None:
                         if "manca" not in avvisi:
                             log(f"Aspetto una finestra con «{titolo}» nel titolo...")
                             avvisi.add("manca")
-                        time.sleep(1)
+                        stop.wait(1)
                         continue
                     avvisi.discard("manca")
                     log(f"Trovata: {f}")
@@ -200,7 +214,7 @@ def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
                     if "mini" not in avvisi:
                         log("La finestra è ridotta a icona: aspetto che torni visibile.")
                         avvisi.add("mini")
-                    time.sleep(1)
+                    stop.wait(1)
                     continue
                 avvisi.discard("mini")
 
@@ -225,13 +239,13 @@ def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
                 diff = differenza(camp, ultimo_campione)
                 if diff >= soglia:
                     salvate += 1
-                    nome = f"{salvate:05d}_{time.strftime('%H%M%S')}.png"
-                    mss.tools.to_png(img.rgb, img.size, output=os.path.join(cartella, nome))
+                    nome = f"{salvate:05d}_{time.strftime('%H%M%S')}.{formato}"
+                    salva_immagine(img, os.path.join(cartella, nome))
                     scrivi.writerow([salvate, time.strftime("%Y-%m-%d %H:%M:%S"), nome,
                                      f.w, f.h, f.x, f.y, f"{diff:.4f}"])
                     indice.flush()
                     ultimo_campione = camp
-                time.sleep(max(0.0, intervallo - (time.time() - t0)))
+                stop.wait(max(0.0, intervallo - (time.time() - t0)))
     except KeyboardInterrupt:
         pass
     finally:

@@ -6,9 +6,14 @@ Ti dà il consiglio (fold / check / call / bet / raise) con equity, pot odds e s
 > Progetto separato da PREDIZIONE. Non clicca niente: decidi e giochi tu.
 
 ## Installazione su Windows
-1. Installa Python da python.org (spunta "Add Python to PATH").
-2. In una finestra di comandi dentro questa cartella:
-   `py -m pip install -r requirements.txt`
+Guida passo passo: **LEGGIMI-INSTALLAZIONE.txt**. In breve: installa Python (spunta "Add python.exe to PATH"),
+estrai la cartella, doppio clic su **INSTALLA.bat**.
+
+## Uso quotidiano (doppio clic)
+- **IMPARA.bat**: scegli la finestra del poker, giochi, INVIO per fermare. Crea `pacchetti/poker_impara_DATA.zip`
+  (foto JPG della finestra, indice, dimensioni, informazioni sul sistema) da caricare nella chat con Claude.
+- **RISULTATI.bat**: crea `pacchetti/poker_risultati_DATA.zip` (archivio mani, tabella giocatori, ritratti
+  degli avversari, una tua nota) da caricare nella chat dopo ogni partita.
 
 ## Uso (prima versione, da riga di comando)
 ```
@@ -62,6 +67,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/advisor.py` decisioni preflop (push/fold a stack corto, open, 3-bet) e postflop (equity vs pot odds, range di chi punta, semi-bluff).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/impara.py` modalità impara e pacchetto risultati (gli zip per Claude).
 - `coach/schermo.py` trova la finestra del gioco, ne misura l'area e la registra.
 - `coach/opponents.py` statistiche (VPIP, PFR, aggressività, fold a puntata) e tipo di avversario.
 
