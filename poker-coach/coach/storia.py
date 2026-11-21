@@ -49,6 +49,12 @@ class Storia:
         self.db = sqlite3.connect(path)
         self.db.row_factory = sqlite3.Row
         self.db.executescript(_SCHEMA)
+        # colonne aggiunte dopo (archivi vecchi): orario, tempo di decisione, piatto al momento
+        col = {r[1] for r in self.db.execute("PRAGMA table_info(azioni)")}
+        for nome, tipo in (("ts", "REAL"), ("tempo", "REAL"), ("piatto", "REAL")):
+            if nome not in col:
+                self.db.execute(f"ALTER TABLE azioni ADD COLUMN {nome} {tipo}")
+        self.db.commit()
 
     # ------------------------------------------------------------ scrittura
     def _gid(self, nome):
@@ -67,11 +73,11 @@ class Storia:
         self.db.commit()
         return pid
 
-    def nuova_mano(self, partita_id, bb, giocatori):
+    def nuova_mano(self, partita_id, bb, giocatori, ts=None):
         n = self.db.execute("SELECT COUNT(*) FROM mani WHERE partita_id=?",
                             (partita_id,)).fetchone()[0] + 1
         mid = self.db.execute("INSERT INTO mani(partita_id, numero, ts, bb) VALUES (?,?,?,?)",
-                              (partita_id, n, time.time(), bb)).lastrowid
+                              (partita_id, n, ts if ts is not None else time.time(), bb)).lastrowid
         for g in giocatori:
             self.db.execute(
                 "INSERT INTO mani_giocatori(mano_id, giocatore_id, posto, posizione, stack, carte, eroe)"
@@ -81,13 +87,15 @@ class Storia:
         self.db.commit()
         return mid
 
-    def azione(self, mano_id, nome, strada, tipo, importo=0, da_pagare=0):
+    def azione(self, mano_id, nome, strada, tipo, importo=0, da_pagare=0, tempo=None, piatto=None, ts=None):
+        """tempo = secondi impiegati a decidere; piatto = piatto prima dell'azione."""
         if strada not in STRADE or tipo not in TIPI_AZIONE:
             raise ValueError(f"strada {STRADE}, tipo {TIPI_AZIONE}")
         o = self.db.execute("SELECT COUNT(*) FROM azioni WHERE mano_id=?", (mano_id,)).fetchone()[0]
         self.db.execute(
-            "INSERT INTO azioni(mano_id, ordine, strada, giocatore_id, tipo, importo, da_pagare)"
-            " VALUES (?,?,?,?,?,?,?)", (mano_id, o + 1, strada, self._gid(nome), tipo, importo, da_pagare))
+            "INSERT INTO azioni(mano_id, ordine, strada, giocatore_id, tipo, importo, da_pagare, tempo, piatto, ts)"
+            " VALUES (?,?,?,?,?,?,?,?,?,?)", (mano_id, o + 1, strada, self._gid(nome), tipo, importo,
+                                             da_pagare, tempo, piatto, ts if ts is not None else time.time()))
         self.db.commit()
 
     def board(self, mano_id, carte):
@@ -145,6 +153,13 @@ class Storia:
     def tipo(self, nome):
         s = self.statistiche(nome)
         return s.get("tipo") if s else None
+
+    def avversari(self):
+        """Tutti i giocatori che non sei mai stato tu."""
+        rows = self.db.execute(
+            "SELECT nome FROM giocatori WHERE id NOT IN (SELECT giocatore_id FROM mani_giocatori WHERE eroe=1)"
+            " ORDER BY ultimo_visto DESC").fetchall()
+        return [r["nome"] for r in rows]
 
     def giocatori(self):
         rows = self.db.execute("SELECT nome FROM giocatori ORDER BY ultimo_visto DESC").fetchall()
@@ -212,6 +227,9 @@ def main(argv=None):
     n = sub.add_parser("nota", help="scrivi una nota su un giocatore")
     n.add_argument("nome")
     n.add_argument("testo")
+    r = sub.add_parser("ritratto", help="descrizione a parole di un avversario (+ è un bot?)")
+    r.add_argument("nome")
+    sub.add_parser("ritratti", help="tutti gli avversari + riepilogo bot")
     a = ap.parse_args(argv)
     st = Storia(a.db)
     if a.cmd == "giocatori":
@@ -235,6 +253,9 @@ def main(argv=None):
     elif a.cmd == "mani":
         for mid in st.ultime_mani(a.limite, a.nome):
             print(st.mano(mid), "\n")
+    elif a.cmd in ("ritratto", "ritratti"):
+        from .ritratto import descrivi, riepilogo
+        print(descrivi(st, a.nome) if a.cmd == "ritratto" else riepilogo(st))
     elif a.cmd == "nota":
         st.nota(a.nome, a.testo)
         print("nota salvata")

@@ -31,6 +31,28 @@ py -m coach --hole "Qh Js" --pot 115 --call 80 --avversario Bot3   # il tipo lo 
 ```
 Il salvataggio delle mani (`coach/storia.py`, classe `Storia`) sarà fatto in automatico dal lettore dello schermo.
 
+## Ritratto degli avversari e bot
+```
+py -m coach.storia ritratti               # tutti gli avversari descritti a parole + elenco dei probabili bot
+py -m coach.storia ritratto Bot3          # uno solo
+```
+Per ogni avversario: quante mani gioca, se è aggressivo o passivo, se si ritira facilmente, che mani
+mostra, se bluffa, se vince, e **come batterlo**. Poi il verdetto **"È un bot?"** (punteggio 0-100) con i motivi:
+tempi di decisione tutti uguali o sotto il secondo, stesso tempo per decisioni facili e difficili,
+puntate sempre della stessa grandezza, ore di gioco senza pause. Servono almeno 20 decisioni cronometrate.
+
+## Registrazione dello schermo (Windows)
+```
+py -m coach.schermo finestre                       # finestre aperte con la grandezza dell'area di gioco
+py -m coach.schermo foto "Poker"                   # una foto della finestra (da mandare per la calibrazione)
+py -m coach.schermo registra "Poker"               # registra di continuo, Ctrl+C per fermare
+py -m coach.schermo registra "Poker" --intervallo 0.5 --cartella partita1
+```
+"Poker" = una parte del titolo della finestra del gioco. Misura solo l'area di gioco (senza bordi), in pixel
+reali anche con lo zoom di Windows al 125/150%. Salva una foto **solo quando lo schermo cambia**, segnala se la
+finestra viene ridimensionata, ridotta a icona o coperta da un'altra finestra. In `indice.csv` l'elenco delle
+foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
+
 ## Test
 `py -m unittest discover -s tests -v`
 
@@ -39,10 +61,12 @@ Il salvataggio delle mani (`coach/storia.py`, classe `Storia`) sarà fatto in au
 - `coach/preflop.py` classifica delle 169 mani e range di apertura per posizione (formula di Chen: stima, da raffinare).
 - `coach/advisor.py` decisioni preflop (push/fold a stack corto, open, 3-bet) e postflop (equity vs pot odds, range di chi punta, semi-bluff).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
+- `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/schermo.py` trova la finestra del gioco, ne misura l'area e la registra.
 - `coach/opponents.py` statistiche (VPIP, PFR, aggressività, fold a puntata) e tipo di avversario.
 
 ## Prossimi passi
-1. Lettura automatica dello schermo (screenshot continui) e finestra con il suggerimento sempre in primo piano.
+1. Lettura di carte, piatto e puntate dalle foto (serve la grafica del gioco) e finestra del suggerimento sempre in primo piano.
 2. Simulatore con bot a profili per misurare il guadagno (bb/100) e provare le strategie.
 3. Range migliori (solver/CFR), dimensioni di puntata variabili, memoria della mano.
 
