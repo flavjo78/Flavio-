@@ -65,16 +65,20 @@ class OpponentTracker:
 
     def classify(self, player):
         """Ritorna 'sasso', 'stazione', 'maniaco', 'pauroso', 'regolare' o None (pochi dati)."""
-        pr = self.profile(player)
-        if not pr or pr["mani"] < self.min_hands:
-            return None
-        vpip, af, fold = pr["VPIP"], pr["AF"], pr["fold_a_puntata"]
-        if vpip > 0.40 and af >= 1.5:
-            return "maniaco"
-        if vpip > 0.40:
-            return "stazione"
-        if vpip < 0.18:
-            return "sasso"
-        if fold is not None and fold > 0.60:
-            return "pauroso"
-        return "regolare"
+        return classifica(self.profile(player), self.min_hands)
+
+
+def classifica(pr, min_hands=15):
+    """Tipo di giocatore da un profilo {mani, VPIP, AF, fold_a_puntata}; None se pochi dati."""
+    if not pr or pr["mani"] < min_hands:
+        return None
+    vpip, af, fold = pr["VPIP"], pr["AF"], pr["fold_a_puntata"]
+    if vpip > 0.40 and af >= 1.5:
+        return "maniaco"
+    if vpip > 0.40:
+        return "stazione"
+    if vpip < 0.18:
+        return "sasso"
+    if fold is not None and fold > 0.60:
+        return "pauroso"
+    return "regolare"

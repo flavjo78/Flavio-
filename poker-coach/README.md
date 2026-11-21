@@ -19,6 +19,18 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `--pot` = piatto totale **inclusa** la puntata che affronti; `--call` = quanto devi pagare (0 = puoi passare).
 - `--pos` UTG, MP, CO, BTN, SB, BB · `--opp` avversari in mano · `--tipo` sasso, stazione, maniaco, pauroso, regolare.
 
+## Archivio di mani e giocatori
+Tutte le partite, le mani, le azioni e i giocatori restano salvati nel file `storia.db`
+(database SQLite, nessuna installazione). Le statistiche si accumulano partita dopo partita.
+```
+py -m coach.storia giocatori              # tabella: mani, VPIP, PFR, aggressività, fold, bb/100, tipo
+py -m coach.storia giocatore Bot3         # scheda + carte mostrate e come le ha giocate
+py -m coach.storia mani --nome Bot3       # ultime mani ricostruite
+py -m coach.storia nota Bot3 "bluffa al river"
+py -m coach --hole "Qh Js" --pot 115 --call 80 --avversario Bot3   # il tipo lo prende dall'archivio
+```
+Il salvataggio delle mani (`coach/storia.py`, classe `Storia`) sarà fatto in automatico dal lettore dello schermo.
+
 ## Test
 `py -m unittest discover -s tests -v`
 
@@ -26,6 +38,7 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `coach/equity.py` simulazione Monte Carlo + conteggio dei "out" (progetti di scala/colore).
 - `coach/preflop.py` classifica delle 169 mani e range di apertura per posizione (formula di Chen: stima, da raffinare).
 - `coach/advisor.py` decisioni preflop (push/fold a stack corto, open, 3-bet) e postflop (equity vs pot odds, range di chi punta, semi-bluff).
+- `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/opponents.py` statistiche (VPIP, PFR, aggressività, fold a puntata) e tipo di avversario.
 
 ## Prossimi passi

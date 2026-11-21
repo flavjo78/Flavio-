@@ -13,7 +13,13 @@ def main():
     ap.add_argument("--opp", type=int, default=1, help="avversari ancora in mano")
     ap.add_argument("--pos", default="BTN", help="UTG, MP, CO, BTN, SB, BB")
     ap.add_argument("--tipo", choices=TIPI, help="tipo dell'avversario, se lo conosci")
+    ap.add_argument("--avversario", help="nome dell'avversario: il tipo lo prende dall'archivio")
+    ap.add_argument("--db", default="storia.db", help="file dell'archivio mani")
     a = ap.parse_args()
+    if a.avversario and not a.tipo:
+        from .storia import Storia
+        a.tipo = Storia(a.db).tipo(a.avversario)
+        print(f"(archivio: {a.avversario} = {a.tipo or 'pochi dati, uso la strategia base'})")
     s = Situation(hole=a.hole, board=a.board, pot=a.pot, to_call=a.call, stack=a.stack,
                   bb=a.bb, n_opp=a.opp, position=a.pos.upper(), opp_type=a.tipo)
     print(advise(s))
