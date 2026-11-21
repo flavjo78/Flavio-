@@ -458,6 +458,14 @@ function migra() {
       CREATE INDEX IF NOT EXISTS idx_limov_acconto ON liste_movimenti(acconto_id);`);
     db.exec('PRAGMA user_version = 16');
   }
+  if (v < 17) {
+    // v17: ultima versione di cui l'utente ha visto le novità (si mostrano una volta sola dopo ogni aggiornamento).
+    // Chi c'era già parte dalla 1.10.0, così alla prima apertura vede tutto quello che è arrivato dopo.
+    const colsU = db.prepare('PRAGMA table_info(utenti)').all().map(c => c.name);
+    if (!colsU.includes('novita_vista')) db.exec("ALTER TABLE utenti ADD COLUMN novita_vista TEXT NOT NULL DEFAULT ''");
+    db.exec("UPDATE utenti SET novita_vista = '1.10.0' WHERE novita_vista = ''");
+    db.exec('PRAGMA user_version = 17');
+  }
 }
 
 // Sostituisce l'archivio con un file importato (dopo aver messo da parte quello attuale).

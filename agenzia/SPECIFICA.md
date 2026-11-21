@@ -124,3 +124,9 @@ conto, newsletter, credenziali web dei fornitori, importazione dei dati dal vecc
 - Negli acconti (pratica e biglietto) il metodo **Lista** propone le liste del cliente con credito; il tasto «Prendi da altre liste» cerca tra tutte le liste attive di tutti i clienti. Il credito non può andare sotto zero.
 - Nel riepilogo giornaliero i versamenti sulle liste sono incassi; gli acconti pagati da lista no (sono già stati incassati al versamento).
 - Nella scheda cliente compare il riquadro delle liste attive. Una lista con movimenti non si cancella, si chiude.
+
+## Novità e Aiuto — dalla 1.13.1
+- Dopo ogni aggiornamento, alla prima apertura, ogni utente vede una volta sola le novità (modale «Il programma è stato aggiornato»). L'ultima versione vista è salvata per utente (`utenti.novita_vista`).
+- Il tasto **Aiuto**, in basso a sinistra vicino a «esci», riapre le novità e una guida rapida.
+- Per ogni nuova versione si aggiunge una voce in cima a `NOVITA` in `web/app.js`.
+- Opzioni → Registro operazioni: ricerca, filtro per utente e date, «Mostra altre»; i riferimenti mostrano il numero vero (pratica 16/2026, nome cliente, titolo lista).

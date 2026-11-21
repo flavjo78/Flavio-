@@ -140,6 +140,59 @@ function rendiCombo(inp) {
 }
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType !== 1) continue; if (n.matches && n.matches('input[list]')) rendiCombo(n); n.querySelectorAll && n.querySelectorAll('input[list]').forEach(rendiCombo); } }).observe(document.documentElement, { childList: true, subtree: true });
 
+// ================= NOVITÀ E AIUTO =================
+// Dopo ogni aggiornamento, alla prima apertura, ogni utente vede UNA volta cosa è cambiato. Il tasto "Aiuto" (in basso, vicino a "esci")
+// le riapre quando vuole, insieme a una guida rapida. Quando esce una versione nuova si aggiunge una voce in cima a NOVITA.
+const NOVITA = [
+  { v: '1.13.1', titolo: 'Registro operazioni più completo, novità e aiuto', voci: [
+    'Opzioni → Registro operazioni: ora si può cercare (cliente, pratica, operazione), filtrare per utente e per date, e con «Mostra altre» vedere anche le operazioni più vecchie. Prima si vedevano solo le ultime 300.',
+    'Il registro scrive il numero vero della pratica (per esempio «Pratica 16/2026») e il nome del cliente, invece del numero interno. I collegamenti aprono la pratica, il cliente, il biglietto o la lista giusti.',
+    'Dopo ogni aggiornamento, alla prima apertura, compare questa schermata con le novità (una volta sola per ogni utente).',
+    'Nuovo tasto «Aiuto» in basso a sinistra, vicino a «esci»: riapre le novità e mostra una guida rapida.'] },
+  { v: '1.13.0', titolo: 'Liste: lista nozze o altro', voci: [
+    'La voce «Liste» del menù ora gestisce le liste dei clienti, come un salvadanaio: lista nozze, regalo, accumulo. Ogni lista ha un titolo ed è legata a un cliente.',
+    'Si carica con i versamenti, anche di altre persone (si scrive chi ha versato). I versamenti si vedono nel riepilogo giornaliero come soldi incassati.',
+    'Negli acconti, di pratiche e di biglietti, c\'è il nuovo metodo di pagamento «Lista»: propone le liste del cliente con credito e, con «Prendi da altre liste», quelle di tutti gli altri clienti.',
+    'Nella scheda del cliente compare il riquadro con le sue liste attive. Se un acconto da lista viene cancellato o modificato, il credito torna nella lista.'] },
+  { v: '1.12.1', titolo: 'Statistiche giornaliere', voci: [
+    'In Statistiche c\'è la nuova scheda «Giornaliera», che è anche la prima pagina: mostra i soldi incassati, i prodotti venduti e i preventivi di un giorno.',
+    'Si apre sul giorno di oggi. Con «Giorno prima», «Giorno dopo», «Oggi» o scrivendo una data si vedono gli altri giorni. C\'è anche il tasto «Stampa».',
+    'Il giorno di una vendita è quello in cui la pratica diventa «Confermata».'] },
+  { v: '1.11.0', titolo: 'Accesso e aggiornamenti', voci: [
+    'Quando si apre il programma compare l\'elenco degli utenti: si sceglie il proprio nome e si scrive la password. In Opzioni → Accesso si può cambiare questo comportamento.',
+    'Nuovo modo di aggiornare il programma sul computer principale, più semplice, con copia di sicurezza dei dati.'] },
+];
+const AIUTO = [
+  { t: 'Pratiche', d: 'Con «+ Nuova pratica» si sceglie il cliente, si compilano viaggio e partecipanti e si aggiungono i servizi. Ogni servizio può avere voci nascoste (provvigioni, diritti) che il cliente non vede. Se si esce senza salvare, il programma chiede se lasciare la pratica in bozza. Ctrl+S salva. «Stampa conferma» produce il modulo per il cliente.' },
+  { t: 'Acconti e saldo', d: 'In una pratica «+ Registra acconto» registra un pagamento del cliente. Se supera la quota di un fornitore, il programma chiede dove mettere il resto. Il metodo «Lista» preleva il denaro da una lista del cliente o di altri.' },
+  { t: 'Clienti', d: 'La scheda raccoglie dati, documenti, contatti, tessere fedeltà e compagni di viaggio. In basso a destra ci sono le liste attive del cliente. Un cliente con pratiche o liste non si cancella.' },
+  { t: 'Biglietteria', d: 'Aereo, treno e low cost, con numerazione propria (B1/2026…). Un biglietto si può collegare a una pratica. La commissione non si somma al prezzo del cliente: resta all\'agenzia. I tastini «Tutti / Aereo / Treno / Low cost» filtrano l\'elenco.' },
+  { t: 'Liste', d: 'Il salvadanaio di un cliente (per esempio una lista nozze). Dalla voce Liste si crea una lista, si registrano i versamenti e i prelievi e si stampa l\'estratto. Una lista con movimenti non si cancella, si chiude.' },
+  { t: 'Statistiche', d: 'Giornaliera: incassi, vendite e preventivi di un giorno. Vendite: andamento per anno. Biglietteria: riepilogo dei biglietti. Cliccando sui titoli delle colonne negli elenchi si ordina.' },
+  { t: 'Opzioni', d: 'Serve la password del pannello. Qui ci sono i dati dell\'agenzia, i testi della stampa, i menù a tendina, la numerazione, il backup, l\'accesso, gli utenti e il registro delle operazioni.' },
+  { t: 'Backup', d: 'In Opzioni → Backup si sceglie una cartella (chiavetta, disco esterno o cartella di rete) e un\'ora: ogni giorno il programma copia i dati. Per ripristinare si usa il file di backup.' },
+  { t: 'Se qualcosa non va', d: 'Premere Ctrl+F5 per ricaricare la pagina. Se il programma non si apre su nessun computer, controllare che il computer principale sia acceso.' },
+];
+const confrontaVersioni = (a, b) => { const x = String(a).split('.').map(Number), y = String(b).split('.').map(Number); for (let i = 0; i < 3; i++) { const d = (x[i] || 0) - (y[i] || 0); if (d) return d; } return 0; };
+const htmlNovita = lista => lista.map(n => `<div class="novita-v"><h3>Versione ${esc(n.v)} · ${esc(n.titolo)}</h3><ul>${n.voci.map(v => `<li>${esc(v)}</li>`).join('')}</ul></div>`).join('');
+function apriAiuto() {
+  modale({ titolo: 'Aiuto', larga: true, senzaOk: true, annulla: 'Chiudi',
+    corpo: `<div class="novita"><h2>Novità</h2>${htmlNovita(NOVITA)}<h2 style="margin-top:18px">Guida rapida</h2>${AIUTO.map(a => `<div class="novita-v"><h3>${esc(a.t)}</h3><p>${esc(a.d)}</p></div>`).join('')}<p class="muted small">Versione del programma: ${esc(STATO.versione || '')}</p></div>` });
+}
+// Mostra le novità una sola volta per utente. Chi è appena stato creato non vede nulla (non c'è niente di "nuovo" per lui).
+async function controllaNovita() {
+  const u = STATO.utente; if (!u || !STATO.versione) return;
+  const vista = u.novita_vista || '';
+  const segna = () => { u.novita_vista = STATO.versione; api('novita_vista', {}).catch(() => {}); };
+  if (!vista) { segna(); return; }
+  const nuove = NOVITA.filter(n => confrontaVersioni(n.v, vista) > 0 && confrontaVersioni(n.v, STATO.versione) <= 0);
+  if (vista === STATO.versione || !nuove.length) { if (vista !== STATO.versione) segna(); return; }
+  segna();
+  const r = await modale({ titolo: `Il programma è stato aggiornato · versione ${STATO.versione}`, larga: true, ok: 'Ho capito', annulla: 'Apri l\'Aiuto',
+    corpo: `<p>Ecco cosa è cambiato rispetto all'ultima volta che hai aperto il programma:</p><div class="novita">${htmlNovita(nuove)}</div><p class="muted small">Le novità restano consultabili con il tasto «Aiuto», in basso a sinistra vicino a «esci».</p>` });
+  if (r === null) apriAiuto();
+}
+
 // ================= stato globale e router =================
 const STATO = { utente: null, pannello: false, imp: null, route: '', versione: '', sbloccate: [] };
 const PAGINE_PERMESSI = [['scadenze', 'Scadenze'], ['pratiche', 'Pratiche'], ['biglietteria', 'Biglietteria'], ['clienti', 'Clienti'], ['fornitori', 'Fornitori'], ['statistiche', 'Statistiche'], ['liste', 'Liste']];
@@ -189,6 +242,7 @@ async function avvio() {
     let acceduto = false; try { acceduto = sessionStorage.getItem('agenzia_acceduto') === '1'; } catch (e) { acceduto = true; }
     if (STATO.imp.accesso && STATO.imp.accesso.chiedi_ogni_volta === 'si' && !acceduto) { await api('logout', {}).catch(() => {}); STATO.utente = null; return renderLogin(); }
     render();
+    controllaNovita();
   } catch (e) { toast(e.message, 'err'); renderLogin(); }
 }
 
@@ -224,6 +278,7 @@ function renderLogin() {
         STATO.utente = r.utente; STATO.pannello = r.pannello;
         STATO.imp = await api('impostazioni');
         if (!location.hash || location.hash === '#/') naviga('#/scadenze'); else render();
+        controllaNovita();
       } catch (err) { toast(err.message, 'err'); $('[name=password]').value = ''; $('[name=password]').focus(); }
     };
   })();
@@ -286,12 +341,13 @@ function shell(pagina, titoloHtml, contenutoHtml, azioniHtml = '') {
   <aside class="sidebar">
     <div class="brand">${esc(STATO.imp?.agenzia?.insegna || 'Agenzia')}<small>gestionale</small></div>
     <nav class="nav">${PAGINE.map(([k, l]) => `<a href="#/${k}" class="${pagina === k ? 'attivo' : ''} ${paginaPermessa(k) ? '' : 'bloccata'}" data-pag="${k}">${ICONE[k]}${l}${paginaPermessa(k) ? '' : '<span class="lucch">🔒</span>'}</a>`).join('')}</nav>
-    <div class="sidebar-foot"><div class="nome">${esc(u.nome)}</div><a href="#" id="lnkPw">cambia password</a> · <a href="#" id="lnkEsci">esci</a></div>
+    <div class="sidebar-foot"><div class="nome">${esc(u.nome)}</div><a href="#" id="lnkPw">cambia password</a> · <a href="#" id="lnkAiuto" class="aiuto">Aiuto</a> · <a href="#" id="lnkEsci">esci</a></div>
   </aside>
   <div class="main">
     <div class="topbar"><h1>${titoloHtml}</h1><div class="spazio"></div><div class="azioni">${azioniHtml}</div><span class="versione" title="Versione del programma">v${esc(STATO.versione)}</span></div>
     <div class="contenuto" id="pg">${contenutoHtml}</div>
   </div>`;
+  $('#lnkAiuto').onclick = e => { e.preventDefault(); apriAiuto(); };
   $('#lnkEsci').onclick = async e => { e.preventDefault(); await api('logout', {}); STATO.utente = null; renderLogin(); };
   $$('.nav a.bloccata').forEach(a => a.onclick = async e => { e.preventDefault(); if (await sbloccaPagina(a.dataset.pag)) naviga('#/' + a.dataset.pag); });
   $('#lnkPw').onclick = e => { e.preventDefault(); cambiaPassword(); };
@@ -1143,6 +1199,33 @@ async function paginaStatistiche(annoSel) {
 }
 
 // ================= OPZIONI (pannello) =================
+// Registro delle operazioni (Opzioni): ricerca, filtro per utente e per date, e "Mostra altre" per le più vecchie
+async function iniziaRegistro() {
+  const PASSO = 300;
+  let righe = [], fine = false, timer;
+  try { for (const u of await api('utenti')) $('#lgU').insertAdjacentHTML('beforeend', `<option value="${esc(u.username)}">${esc(u.nome)} (${esc(u.username)})</option>`); } catch (e) { /* senza elenco utenti */ }
+  const link = r => {
+    const dove = { pratica: 'pratiche/' + r.entita_id, cliente: 'clienti/' + r.entita_id, fornitore: 'fornitori/' + r.entita_id, biglietto: 'biglietteria/' + r.entita_id, lista: 'liste/' + r.entita_id, utente: 'opzioni/utenti' }[r.entita];
+    if (!r.entita || !dove) return '';
+    if (r.riferimento) return `<a href="#/${dove}">${esc(r.riferimento)}</a>`;
+    return `<span class="muted" title="L'elemento non esiste più">${esc(r.entita)} ${r.entita_id || ''} (non più presente)</span>`;
+  };
+  const filtri = () => ({ q: $('#lgQ').value.trim(), utente: $('#lgU').value, da: isoVal($('#lgDa')), a: isoVal($('#lgA')), limite: PASSO });
+  const disegna = () => {
+    $('#lgTab').innerHTML = righe.length ? `<table class="t compatta"><thead><tr><th>Quando</th><th>Chi</th><th>Operazione</th><th>Su</th><th>Dettaglio</th></tr></thead><tbody>
+      ${righe.map(r => `<tr><td class="nowrap">${new Date(r.ts).toLocaleString('it-IT')}</td><td>${esc(r.utente)}</td><td>${esc(r.azione)}</td><td>${link(r)}</td><td class="small">${esc(r.dettaglio)}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessuna operazione trovata</div>';
+    $('#lgN').textContent = `${righe.length} ${righe.length === 1 ? 'operazione' : 'operazioni'}${fine ? ' · è tutto' : ''}`;
+    $('#lgAltre').classList.toggle('hidden', fine);
+  };
+  const carica = async (altre) => {
+    const f = filtri(); if (altre && righe.length) f.prima_di = righe[righe.length - 1].id;
+    try { const r = await api('log', undefined, f); righe = altre ? righe.concat(r) : r; fine = r.length < PASSO; disegna(); } catch (e) { toast(e.message, 'err'); }
+  };
+  $('#lgQ').addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(() => carica(false), 300); });
+  for (const id of ['#lgU', '#lgDa', '#lgA']) $(id).addEventListener('change', () => carica(false));
+  $('#lgAltre').onclick = () => carica(true);
+  await carica(false);
+}
 async function paginaOpzioni(scheda = 'agenzia') {
   if (!STATO.pannello) {
     shell('opzioni', 'Opzioni', `<div class="card" style="max-width:460px"><h2>Pannello opzioni</h2><p class="muted">Qui si cambiano i dati dell'agenzia, i testi legali della stampa, la numerazione, le liste, il backup e gli utenti. Serve la password del pannello.</p>
@@ -1200,11 +1283,18 @@ async function paginaOpzioni(scheda = 'agenzia') {
       <p class="muted small">Tutti gli utenti hanno gli stessi permessi. Ogni operazione viene registrata col nome di chi l'ha fatta. Un utente disattivato non può più entrare ma resta nello storico.</p></div>`;
   }
   if (scheda === 'log') {
-    const lg = await api('log', undefined, { limite: 300 });
-    corpo = `<div class="card"><h2>Ultime operazioni</h2><table class="t compatta"><thead><tr><th>Quando</th><th>Chi</th><th>Operazione</th><th>Su</th><th>Dettaglio</th></tr></thead><tbody>${lg.map(r => `<tr><td class="nowrap">${new Date(r.ts).toLocaleString('it-IT')}</td><td>${esc(r.utente)}</td><td>${esc(r.azione)}</td><td>${r.entita ? `<a href="#/${r.entita === 'pratica' ? 'pratiche' : r.entita === 'cliente' ? 'clienti' : r.entita === 'fornitore' ? 'fornitori' : 'opzioni/utenti'}/${r.entita_id}">${esc(r.entita)} ${r.entita_id || ''}</a>` : ''}</td><td class="small">${esc(r.dettaglio)}</td></tr>`).join('')}</tbody></table></div>`;
+    corpo = `<div class="card"><h2>Registro delle operazioni</h2>
+      <div class="toolbar">
+        <input class="inp cerca" id="lgQ" placeholder="Cerca: cliente, pratica, operazione, dettaglio…" style="max-width:340px">
+        <select id="lgU"><option value="">tutti gli utenti</option></select>
+        <span class="small muted">dal</span><input type="date" id="lgDa" class="inp" style="width:130px"><span class="small muted">al</span><input type="date" id="lgA" class="inp" style="width:130px">
+        <span class="muted small" id="lgN"></span></div>
+      <div id="lgTab"></div>
+      <div class="azioni" style="margin-top:10px"><button type="button" class="btn hidden" id="lgAltre">Mostra altre operazioni più vecchie</button></div></div>`;
   }
   shell('opzioni', 'Opzioni', tabs + corpo, `<button class="btn" id="btnBlocca">🔒 Blocca pannello</button>`);
   $('#btnBlocca').onclick = async () => { await api('pannello_blocca', {}); STATO.pannello = false; render(); };
+  if (scheda === 'log') iniziaRegistro();
 
   const salvaOpz = async () => {
     const f = leggiForm($('#fOpz'));

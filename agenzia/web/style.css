@@ -422,3 +422,13 @@ h2.nowrap{white-space:nowrap}
 .blocco-lista{background:var(--surface-2);border:1px dashed var(--border-2);border-radius:8px;padding:8px 10px}
 .t td.neg{color:var(--err)}
 .t td.ok{color:var(--ok)}
+
+/* ---- 1.13.1: novità e aiuto ---- */
+.sidebar-foot a.aiuto{background:rgba(255,255,255,.14);color:#fff;padding:1px 9px;border-radius:10px;font-weight:600}
+.sidebar-foot a.aiuto:hover{background:rgba(255,255,255,.25)}
+.novita{max-height:62vh;overflow:auto;padding-right:6px}
+.novita h2{font-size:16px;margin:0 0 6px}
+.novita-v{margin-bottom:12px}
+.novita-v h3{text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);margin:0 0 4px}
+.novita-v ul{margin:0;padding-left:18px}.novita-v li{margin-bottom:4px;line-height:1.4}
+.novita-v p{margin:0;line-height:1.45;color:var(--text-2)}

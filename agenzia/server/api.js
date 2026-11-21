@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.13.0';
+const VERSIONE = '1.13.1';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -58,7 +58,7 @@ function DATA(v) {
 function richiedi(cond, msg) { if (!cond) err(400, msg); }
 
 function permessiDi(u) { try { const p = JSON.parse(u.permessi || '[]'); return Array.isArray(p) && p.length ? p : PAGINE_MENU.slice(); } catch (e) { return PAGINE_MENU.slice(); } }
-function utentePubblico(u) { return u ? { id: u.id, username: u.username, nome: u.nome, attivo: u.attivo, permessi: permessiDi(u) } : null; }
+function utentePubblico(u) { return u ? { id: u.id, username: u.username, nome: u.nome, attivo: u.attivo, permessi: permessiDi(u), novita_vista: u.novita_vista || '' } : null; }
 function listaUtenti() { return db.all('SELECT id, username, nome, attivo FROM utenti ORDER BY nome'); }
 function listaUtentiPannello() { return db.all('SELECT id, username, nome, attivo, pass_chiaro, permessi FROM utenti ORDER BY nome').map(u => ({ ...u, permessi: permessiDi(u) })); }
 // pagina del menù a cui appartiene un'azione (per i permessi); null = libera
@@ -97,6 +97,8 @@ function pagina_sblocca(ctx) {
 }
 
 // ---------- primo avvio / accesso ----------
+// l'utente ha visto le novità della versione attuale
+function novita_vista(ctx) { db.run('UPDATE utenti SET novita_vista = ? WHERE id = ?', VERSIONE, ctx.utente.id); return { ok: true }; }
 function stato_installazione() {
   const n = db.get('SELECT COUNT(*) AS n FROM utenti').n;
   // Elenco degli utenti attivi (solo nome e username) per la schermata d'accesso "scegli chi sei".
@@ -314,10 +316,29 @@ function importa_db_iniziale(ctx) {
   // riusa la stessa logica dell'importazione dal pannello, senza il controllo del pannello
   return importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
 }
+// Registro delle operazioni, con il riferimento "leggibile" (numero vero della pratica, nome del cliente, titolo della lista…)
+// e filtri: testo, utente, intervallo di date; "prima_di" serve a caricare le operazioni più vecchie.
 function log_operazioni(ctx) {
   richiediPannello(ctx);
-  const n = Math.min(500, N(ctx.query.limite) || 200);
-  return db.all('SELECT * FROM log_operazioni ORDER BY id DESC LIMIT ?', n);
+  const n = Math.min(500, Math.max(50, N(ctx.query.limite) || 300));
+  const q = S(ctx.query.q).toLowerCase(), ut = S(ctx.query.utente), da = DATA(ctx.query.da), a = DATA(ctx.query.a), prima = N(ctx.query.prima_di);
+  let sql = `SELECT * FROM (SELECT l.*,
+      CASE l.entita
+        WHEN 'pratica' THEN (SELECT 'Pratica ' || p.numero || '/' || p.anno FROM pratiche p WHERE p.id = l.entita_id)
+        WHEN 'cliente' THEN (SELECT TRIM(COALESCE(c.cognome,'') || ' ' || COALESCE(c.nome,'')) FROM clienti c WHERE c.id = l.entita_id)
+        WHEN 'fornitore' THEN (SELECT f.nome FROM fornitori f WHERE f.id = l.entita_id)
+        WHEN 'biglietto' THEN (SELECT 'Biglietto B' || b.numero || '/' || b.anno FROM biglietti b WHERE b.id = l.entita_id)
+        WHEN 'lista' THEN (SELECT 'Lista ' || li.titolo FROM liste li WHERE li.id = l.entita_id)
+        WHEN 'utente' THEN (SELECT u.nome FROM utenti u WHERE u.id = l.entita_id)
+        ELSE NULL END AS riferimento FROM log_operazioni l) x WHERE 1=1`;
+  const p = [];
+  if (prima) { sql += ' AND x.id < ?'; p.push(prima); }
+  if (ut) { sql += ' AND x.utente = ?'; p.push(ut); }
+  if (da) { sql += " AND date(x.ts, 'localtime') >= ?"; p.push(da); }
+  if (a) { sql += " AND date(x.ts, 'localtime') <= ?"; p.push(a); }
+  if (q) { sql += " AND (lower(x.utente) LIKE ? OR lower(x.azione) LIKE ? OR lower(x.dettaglio) LIKE ? OR lower(COALESCE(x.riferimento,'')) LIKE ?)"; const k = `%${q}%`; p.push(k, k, k, k); }
+  sql += ' ORDER BY x.id DESC LIMIT ?'; p.push(n);
+  return db.all(sql, ...p);
 }
 
 // ---------- clienti ----------
@@ -741,7 +762,7 @@ function pratica_salva(ctx) {
       const set = Object.keys(vals).map(k => `${k} = ?`).join(', ');
       db.run(`UPDATE pratiche SET ${set}, aggiornato_ts = ?, aggiornato_da = ? WHERE id = ?`, ...Object.values(vals), ts, ctx.utente.id, id);
       if (old.stato !== stato) db.log(ctx.utente, 'pratica_stato', 'pratica', id, `${old.stato} → ${stato}`);
-      db.log(ctx.utente, 'pratica_modifica', 'pratica', id, `${old.anno}/${old.numero}`);
+      db.log(ctx.utente, 'pratica_modifica', 'pratica', id, `${old.numero}/${old.anno}`);
     } else {
       const anno = N(c.anno) || N(vals.data_apertura.slice(0, 4)) || new Date().getFullYear();
       const numero = prossimoNumero(anno);
@@ -750,7 +771,7 @@ function pratica_salva(ctx) {
       const r = db.run(`INSERT INTO pratiche(anno, numero, operatore_id, ${cols.join(',')}, creato_ts, aggiornato_ts, aggiornato_da)
         VALUES(?,?,?,${cols.map(() => '?').join(',')},?,?,?)`, anno, numero, ctx.utente.id, ...Object.values(vals), ts, ts, ctx.utente.id);
       pid = Number(r.lastInsertRowid);
-      db.log(ctx.utente, 'pratica_crea', 'pratica', pid, `${anno}/${numero}`);
+      db.log(ctx.utente, 'pratica_crea', 'pratica', pid, `${numero}/${anno}`);
     }
     db.run('DELETE FROM pratica_righe WHERE pratica_id = ?', pid);
     let ord = 0;
@@ -1330,6 +1351,7 @@ const AZIONI = {
   scadenze: { fn: scadenze },
   statistiche: { fn: statistiche },
   statistiche_giorno: { fn: statistiche_giorno },
+  novita_vista: { fn: novita_vista, post: true },
   liste: { fn: liste },
   lista: { fn: lista },
   lista_cerca: { fn: lista_cerca },
