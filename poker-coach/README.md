@@ -31,6 +31,15 @@ tuo per primo e poi in senso orario), puntate, bottone, tasti di gioco, bui. Le 
 finestra (`calibrazione.json`, valgono anche se la ridimensioni), con `calibrazione/anteprima.png` e i ritagli di ogni
 zona. Finiscono nello zip di IMPARA: sono la base del lettore automatico del tavolo.
 
+## File del gioco (JSON Lines) e mini-tavolo
+`coach/registro.py`: il programma del gioco scrive righe `stato` / `azione` / `fine_mano` (specifica in
+`FORMATO-FILE.txt`, esempio in `esempio_partita.jsonl`, simulatore `py -m coach.simula` / SIMULA.bat). `Segui` legge
+solo le righe nuove (aspetta quelle a metà, riparte se il file è ricreato); `Registro` tiene lo stato del tavolo,
+ricava i campi del coach (posizione da bottone e posti, da pagare = puntata massima − la tua) e salva nell'archivio
+le mani finite con le azioni di tutti, con piatto e da-pagare presi dallo stato PRIMA di ogni mossa. Un `gioco`
+che è un sito a soldi veri blocca la lettura. `coach/minitavolo.py` disegna il tavolo capito (file o schermo) nella
+finestra del coach, per confrontarlo con il gioco. In «Dal vivo» il consiglio parte da solo quando `tocca_a` = hero.
+
 ## Lettore del tavolo (LETTORE.bat) — spento di default
 `coach/lettore.py` è **generico**: dove guardare lo sa dalla calibrazione (angolo di ogni carta, numeri di piatto,
 stack e puntate, gettone del bottone, zona dei tasti), cosa c'è lo impara dal giocatore. Carte: fondo chiaro =
@@ -152,6 +161,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/registro.py`, `coach/minitavolo.py`, `coach/simula.py`: file del gioco, mini-tavolo, simulatore.
 - `coach/ricostruisci.py` ricostruzione delle mani dalle foto, a partita finita.
 - `coach/lettore.py` e `coach/lettore_app.py`: lettore del tavolo (spento di default) e app per insegnargli.
 - `coach/calibra.py` calibrazione: le zone del tavolo disegnate dal giocatore.

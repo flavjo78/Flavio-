@@ -142,6 +142,9 @@ class App:
         self._aggiorna_modo()
         root.bind("<Return>", lambda e: self.consiglia())
         self._lettore, self._ultima_lettura = None, None
+        self.segui, self.registro, self.stato_tavolo, self._ultimo_turno = None, None, None, None
+        if self.cfg.get("file_gioco"):
+            self.usa_file(self.cfg["file_gioco"], dall_inizio=False)
         root.after(1500, self._ciclo_lettore)
 
     # ------------------------------------------------------------ layout
@@ -187,7 +190,7 @@ class App:
         self.b_ripasso.pack(side="left", expand=True, fill="x", ipady=6)
         self.b_vivo.pack(side="left", expand=True, fill="x", ipady=6, padx=(6, 0))
 
-        self._lab(r, "Lettura automatica del tavolo: in arrivo (dopo le foto della modalità impara).",
+        self._lab(r, "Fonti automatiche: «File del gioco» qui sopra, oppure il lettore dello schermo (LETTORE.bat).",
                   "mut", 8, wraplength=320, justify="left").pack(side="bottom", fill="x", padx=14, pady=6)
         self.stato_lbl = self._lab(r, "", "mut", 9, wraplength=320, justify="left")
         self.stato_lbl.pack(side="bottom", fill="x", padx=14)
@@ -214,8 +217,23 @@ class App:
         self.pannello = tk.Frame(self.corpo, bg=COL["bg"])
         self.pannello.pack(fill="both", expand=True)
 
+        # fonte: il file scritto dal gioco (facoltativo)
+        ff = tk.Frame(self.pannello, bg=COL["bg"])
+        ff.pack(fill="x", pady=(0, 4))
+        self._ff = ff
+        self.l_file = self._lab(ff, "File del gioco: nessuno", "mut", 9)
+        self.l_file.pack(side="left")
+        self.b_file = self._bottone(ff, "Scegli…", self.scegli_file)
+        self.b_file.pack(side="right")
+        self.mini = tk.Canvas(self.pannello, height=190, bg=COL["campo"], highlightthickness=0)
+        self.mini.bind("<Configure>", lambda e: self._ridisegna())
+
+        # inserimento a mano (sparisce quando i dati arrivano dal file)
+        self.inserimento = tk.Frame(self.pannello, bg=COL["bg"])
+        self.inserimento.pack(fill="x")
+
         # carte
-        g = tk.Frame(self.pannello, bg=COL["bg"])
+        g = tk.Frame(self.inserimento, bg=COL["bg"])
         g.pack(fill="x")
         for i, (chiave, nome) in enumerate((("carte", "Le tue carte"), ("tavolo", "Sul tavolo"))):
             self._lab(g, nome).grid(row=i * 2, column=0, sticky="w", pady=(4, 0))
@@ -229,7 +247,7 @@ class App:
                 self.campo_attivo = self.v["carte"]
 
         # tastierina carte: due righe da 9 (valori, poi semi e cancella)
-        kb = tk.Frame(self.pannello, bg=COL["bg"])
+        kb = tk.Frame(self.inserimento, bg=COL["bg"])
         kb.pack(fill="x", pady=4)
         tasti = [("10" if r_ == "T" else r_, lambda x=r_: self._tasto(x), "txt") for r_ in "AKQJT98765432"]
         tasti += [(simb, lambda x=l: self._tasto(x, seme=True), "rosso" if l in "hd" else "txt") for l, simb in SEMI.items()]
@@ -241,7 +259,7 @@ class App:
             kb.grid_columnconfigure(c, weight=1, uniform="tasti")
 
         # numeri
-        n = tk.Frame(self.pannello, bg=COL["bg"])
+        n = tk.Frame(self.inserimento, bg=COL["bg"])
         n.pack(fill="x", pady=4)
         righe = [("piatto", "Piatto"), ("pagare", "Da pagare"), ("stack", "Tuo stack"), ("avversari", "Avversari"),
                  ("bb", "Big blind"), ("ante", "Ante"), ("giocatori", "Giocatori")]
@@ -251,7 +269,7 @@ class App:
         for c in range(4):
             n.grid_columnconfigure(c, weight=1, uniform="num")
         self.v["giocatori"].trace_add("write", lambda *a: self._aggiorna_posizioni())
-        pz = tk.Frame(self.pannello, bg=COL["bg"])
+        pz = tk.Frame(self.inserimento, bg=COL["bg"])
         pz.pack(fill="x")
         self._lab(pz, "Posizione").grid(row=0, column=0, sticky="w")
         self._lab(pz, "Chi ha rilanciato").grid(row=0, column=1, sticky="w", padx=6)
@@ -284,6 +302,7 @@ class App:
         # diario della mano (sempre): cosa hai fatto, risultato
         d = tk.Frame(self.pannello, bg=COL["bg"])
         d.pack(fill="x", pady=(10, 0))
+        self.diario = d
         self._lab(d, "Ho fatto:", "txt", 9, True).pack(anchor="w")
         tasti = tk.Frame(d, bg=COL["bg"])
         tasti.pack(fill="x", pady=2)
@@ -343,7 +362,7 @@ class App:
 
     # ------------------------------------------------------------ diario
     def _salva_cfg(self):
-        annotazioni.aggiorna_config({k: self.cfg[k] for k in ("dal_vivo", "diario_partita", "pw_vivo")
+        annotazioni.aggiorna_config({k: self.cfg[k] for k in ("dal_vivo", "diario_partita", "pw_vivo", "file_gioco")
                                      if k in self.cfg}, self.cfg_path)
 
     def _stato(self, testo, col="mut"):
@@ -479,17 +498,101 @@ class App:
         self.badge.config(text="● DAL VIVO" if vivo else "RIPASSO", fg=COL["oro"] if vivo else COL["verde"],
                           bg="#2a1f0b" if vivo else "#12301f")
         if vivo:
-            self.msg_modo.config(text="Scrivi la mano · INVIO = consiglio · poi «Ho fatto».")
-            self.zona_consiglio.pack(fill="x", before=self.zona_consiglio.master.winfo_children()[-1])
+            self.msg_modo.config(text="Dati dal file del gioco · consiglio da solo quando tocca a te."
+                                 if self.segui else "Scrivi la mano · INVIO = consiglio · poi «Ho fatto».")
+            if self.diario.winfo_manager():
+                self.zona_consiglio.pack(fill="x", before=self.diario)
+            else:
+                self.zona_consiglio.pack(fill="x")
         else:
             self.msg_modo.config(text="Nessun consiglio mentre giochi: annota le mosse, "
                                       "a fine partita vedrai cosa avrebbe fatto il coach.")
             self.zona_consiglio.pack_forget()
 
+    # ------------------------------------------------------------ file del gioco
+    def scegli_file(self):
+        from tkinter import filedialog
+        if self.segui:  # secondo tocco = stacca il file
+            self.usa_file(None)
+            return
+        p = filedialog.askopenfilename(title="File scritto dal gioco (una riga JSON per evento)",
+                                       filetypes=[("File del gioco", "*.jsonl *.json *.txt *.log"), ("Tutti", "*.*")])
+        if p:
+            self.usa_file(p, dall_inizio=False)
+
+    def usa_file(self, path, dall_inizio=False):
+        from .registro import Registro, Segui
+        import os
+        if not path:
+            self.segui, self.registro, self.stato_tavolo = None, None, None
+            self.cfg["file_gioco"] = None
+            self._salva_cfg_file()
+            self.l_file.config(text="File del gioco: nessuno")
+            self.b_file.config(text="Scegli…")
+            self.mini.pack_forget()
+            self.inserimento.pack(fill="x", after=self._ff)
+            sopra = self.zona_consiglio if self.zona_consiglio.winfo_manager() else self.inserimento
+            self.diario.pack(fill="x", pady=(10, 0), after=sopra)
+            self._aggiorna_modo()
+            return
+        self.segui, self.registro = Segui(path, dall_inizio), Registro()
+        self.cfg["file_gioco"] = path
+        self._salva_cfg_file()
+        self.l_file.config(text="File: " + os.path.basename(path)[:28])
+        self.b_file.config(text="Stacca")
+        self.inserimento.pack_forget()
+        self.diario.pack_forget()
+        self.mini.pack(fill="x", after=self._ff, pady=(0, 6))
+        self._ridisegna()
+        self._aggiorna_modo()
+
+    def _salva_cfg_file(self):
+        annotazioni.aggiorna_config({"file_gioco": self.cfg.get("file_gioco")}, self.cfg_path)
+
+    def _ridisegna(self):
+        from .minitavolo import disegna
+        if self.segui or self.stato_tavolo:
+            disegna(self.mini, self.stato_tavolo, max(200, self.mini.winfo_width()), 190)
+
+    def passo_file(self, righe=None):
+        """Legge le righe nuove del file del gioco: mini-tavolo, campi, archivio, consiglio se tocca a te."""
+        if not self.segui:
+            return None
+        righe = self.segui.nuove() if righe is None else righe
+        if not righe:
+            return self.stato_tavolo
+        for d in righe:
+            self.registro.applica(d)
+        if self.registro.bloccato:
+            self.stato_tavolo = None
+            self._ridisegna()
+            self._stato("Il file viene da un sito a soldi veri: il coach non lo legge.", "oro")
+            return None
+        s = self.registro.stato
+        self.stato_tavolo = s
+        self._ridisegna()
+        if s is None:
+            return None
+        for k, v in s.campi().items():
+            if k in self.v and v != "":
+                self.v[k].set(v)
+        if any(d.get("tipo") == "fine_mano" for d in righe):
+            n = self.registro.salva_in_storia(self._storia(), self._partita_corrente())
+            if n:
+                self._stato(f"Mano salvata nell'archivio ({n}).", "verde")
+        turno = (s.mano, s.strada, s.piatto) if s.tocca_a == s.hero else None
+        if turno and turno != self._ultimo_turno and self.cfg.get("dal_vivo"):
+            self.consiglia()
+        self._ultimo_turno = turno
+        return s
+
     # ------------------------------------------------------------ lettore automatico (spento di default)
     def _ciclo_lettore(self):
         try:
-            self.passo_lettore()
+            if self.segui:
+                self.passo_file()
+            else:
+                self.passo_lettore()
         except Exception as e:  # il lettore non deve mai bloccare la finestra
             self._stato(f"Lettore: errore ({e})", "rosso")
         self.root.after(1000, self._ciclo_lettore)
@@ -528,6 +631,11 @@ class App:
             self._stato("Lettore: non sono sicuro di " + ", ".join(z.replace("_", " ") for z in l.incerti[:4]) +
                         " (LETTORE.bat per insegnarmelo)", "oro")
             return l
+        from .minitavolo import da_lettura
+        self.stato_tavolo = da_lettura(l, self._lettore.cal.n_posti)
+        if not self.mini.winfo_ismapped():
+            self.mini.pack(fill="x", after=self._ff, pady=(0, 6))
+        self._ridisegna()
         campi = lettore.situazione_da_lettura(l, None, self._lettore.cal.n_posti)
         cambiato = campi != self._ultima_lettura
         if cambiato:

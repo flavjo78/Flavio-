@@ -1,0 +1,63 @@
+FORMATO DEL FILE DEL GIOCO (per far leggere la partita al coach)
+================================================================
+
+Il tuo programma scrive un file di testo, UNA RIGA PER OGNI COSA CHE SUCCEDE, e continua ad
+aggiungere righe in fondo mentre giochi. Ogni riga e' un oggetto JSON (formato "JSON Lines",
+estensione consigliata .jsonl), codifica UTF-8. Il coach legge le righe nuove ogni secondo.
+Esempio completo di due mani: esempio_partita.jsonl (e SIMULA.bat lo scrive riga per riga).
+
+Ci sono TRE tipi di riga.
+
+1) "stato": come appare il tavolo ADESSO. Scrivila a ogni cambiamento (almeno: inizio mano,
+   ogni volta che cambia il turno, ogni nuova carta sul tavolo).
+
+{"tipo":"stato","gioco":"PokerTH","mano":1,"bb":50,"ante":0,"bottone":2,"hero":1,"tocca_a":1,
+ "board":"7h 7c 2s","piatto":300,
+ "posti":{"1":{"nome":"Hero","stack":1375,"puntata":0,"carte":"As Kd","in_mano":true},
+          "2":{"nome":"Marco","stack":2200,"puntata":0,"carte":"","in_mano":false},
+          "3":{"nome":"Luca","stack":855,"puntata":0,"carte":"","in_mano":true},
+          "5":{"nome":"Anna","stack":3050,"puntata":0,"carte":"","in_mano":false}}}
+
+   gioco    nome del gioco (OBBLIGATORIO). Se e' un sito a soldi veri il coach non legge il file.
+   mano     numero della mano (cambia a ogni mano nuova)
+   bb, ante big blind e ante di questo livello
+   bottone  numero del posto con il bottone
+   hero     il TUO numero di posto
+   tocca_a  numero del posto che deve decidere adesso (null se nessuno)
+   board    carte sul tavolo, separate da spazio: "" / "7h 7c 2s" / "7h 7c 2s Td" / "... Qc"
+   piatto   TUTTO quello che c'e' al centro, comprese le puntate di questo giro
+   posti    solo i posti occupati. Per ognuno:
+              nome     nome del giocatore
+              stack    fiches che ha DAVANTI (non contare quelle gia' puntate)
+              puntata  quanto ha messo in QUESTO giro (si azzera a flop, turn, river)
+              carte    solo le tue (le altre "" o quelle mostrate)
+              in_mano  false se ha lasciato (fold)
+
+2) "azione": una mossa di qualcuno, subito DOPO che l'ha fatta.
+
+{"tipo":"azione","mano":1,"posto":1,"strada":"flop","azione":"bet","importo":100}
+
+   strada   preflop / flop / turn / river
+   azione   post (bui) / fold / check / call / bet / raise / allin
+   importo  quante fiches mette con QUESTA mossa (0 per fold e check)
+
+3) "fine_mano": a mano finita, quanto ha vinto o perso ognuno (positivo = vinto).
+
+{"tipo":"fine_mano","mano":1,"risultati":{"1":-225,"3":275,"5":-50},"mostrate":{"3":"7d 8d"}}
+
+   mostrate carte scoperte allo showdown (servono ai ritratti degli avversari)
+
+CARTE: valore + seme. Valori 2 3 4 5 6 7 8 9 T J Q K A (anche "10"). Semi h=♥ d=♦ c=♣ s=♠.
+       Esempi: "As" "Td" "10d" "7c".
+
+REGOLE UTILI
+- Una riga = un JSON completo, poi "a capo". Le righe a meta' vengono aspettate, non lette male.
+- Righe che iniziano con # sono commenti e vengono ignorate.
+- Se una lettura non e' sicura (es. una carta non riconosciuta), NON scrivere la riga "stato":
+  meglio aspettare la prossima che dare al coach un dato sbagliato.
+- Il file puo' crescere quanto vuoi; se lo ricrei da zero il coach se ne accorge e riparte.
+
+NEL COACH (COACH.bat): in alto "File del gioco: Scegli…" -> scegli il file. Il mini-tavolo si
+ridisegna da solo: confrontalo con il gioco per essere sicuro che i dati siano giusti.
+RIPASSO: registra le mani, nessun consiglio. DAL VIVO (password): consiglio quando tocca a te.
+A fine partita: "Fine partita" -> ripasso con i grafici.

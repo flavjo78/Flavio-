@@ -40,6 +40,17 @@ CALIBRAZIONE - disegna la finestra (una volta sola, prima di IMPARA)
      esattamente dove guardare.
   Se cambi gioco o tavolo (es. da 6 a 9 posti), rifai la calibrazione.
 
+FILE DEL GIOCO (il modo piu' preciso, se il tuo programma lo sa scrivere)
+  - Il tuo programma scrive un file con una riga per ogni cosa che succede: come farlo e'
+    spiegato in FORMATO-FILE.txt, con l'esempio completo esempio_partita.jsonl.
+  - COACH.bat -> in alto "File del gioco: Scegli..." -> scegli il file.
+    Il MINI-TAVOLO si ridisegna da solo: confrontalo con il gioco per essere sicuro che i dati
+    siano giusti. I campi si riempiono da soli e ogni mano finita va nell'archivio.
+    RIPASSO: nessun consiglio. DAL VIVO (password): il consiglio arriva quando tocca a te.
+    "Fine partita" -> ripasso con i grafici. "Stacca" per tornare all'inserimento a mano.
+  - Per provare senza gioco: SIMULA.bat scrive due mani di prova in partita_prova.jsonl.
+  - Se nel file il "gioco" e' un sito a soldi veri, il coach non lo legge.
+
 GUARDA TUTTE LE MANI E DOPO TI DICE COME AVREBBE GIOCATO IL COACH (per qualsiasi gioco)
   1. Prima volta: CALIBRA.bat, poi LETTORE.bat -> "Insegna e prova" su alcune foto del gioco.
   2. Ogni partita: ANNOTAZIONI.bat -> 1) Registra una partita. Giochi da solo: il programma salva
