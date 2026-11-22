@@ -50,10 +50,14 @@ class Storia:
         self.db.row_factory = sqlite3.Row
         self.db.executescript(_SCHEMA)
         # colonne aggiunte dopo (archivi vecchi): orario, tempo di decisione, piatto al momento
-        col = {r[1] for r in self.db.execute("PRAGMA table_info(azioni)")}
-        for nome, tipo in (("ts", "REAL"), ("tempo", "REAL"), ("piatto", "REAL")):
-            if nome not in col:
-                self.db.execute(f"ALTER TABLE azioni ADD COLUMN {nome} {tipo}")
+        nuove = {"azioni": (("ts", "REAL"), ("tempo", "REAL"), ("piatto", "REAL"),
+                            ("avversari", "INTEGER"), ("consiglio", "TEXT")),
+                 "mani": (("giocatori", "INTEGER"), ("ante", "REAL"), ("modalita", "TEXT"))}
+        for tab, colonne in nuove.items():
+            col = {r[1] for r in self.db.execute(f"PRAGMA table_info({tab})")}
+            for nome, tipo in colonne:
+                if nome not in col:
+                    self.db.execute(f"ALTER TABLE {tab} ADD COLUMN {nome} {tipo}")
         self.db.commit()
 
     # ------------------------------------------------------------ scrittura
@@ -73,11 +77,13 @@ class Storia:
         self.db.commit()
         return pid
 
-    def nuova_mano(self, partita_id, bb, giocatori, ts=None):
+    def nuova_mano(self, partita_id, bb, giocatori, ts=None, n_giocatori=None, ante=0, modalita=None):
+        """giocatori: chi è in mano (almeno tu); n_giocatori: quanti seduti al tavolo, se diverso."""
         n = self.db.execute("SELECT COUNT(*) FROM mani WHERE partita_id=?",
                             (partita_id,)).fetchone()[0] + 1
-        mid = self.db.execute("INSERT INTO mani(partita_id, numero, ts, bb) VALUES (?,?,?,?)",
-                              (partita_id, n, ts if ts is not None else time.time(), bb)).lastrowid
+        mid = self.db.execute(
+            "INSERT INTO mani(partita_id, numero, ts, bb, giocatori, ante, modalita) VALUES (?,?,?,?,?,?,?)",
+            (partita_id, n, ts if ts is not None else time.time(), bb, n_giocatori, ante, modalita)).lastrowid
         for g in giocatori:
             self.db.execute(
                 "INSERT INTO mani_giocatori(mano_id, giocatore_id, posto, posizione, stack, carte, eroe)"
@@ -87,15 +93,25 @@ class Storia:
         self.db.commit()
         return mid
 
-    def azione(self, mano_id, nome, strada, tipo, importo=0, da_pagare=0, tempo=None, piatto=None, ts=None):
+    def azione(self, mano_id, nome, strada, tipo, importo=0, da_pagare=0, tempo=None, piatto=None, ts=None,
+               avversari=None, consiglio=None):
         """tempo = secondi impiegati a decidere; piatto = piatto prima dell'azione."""
         if strada not in STRADE or tipo not in TIPI_AZIONE:
             raise ValueError(f"strada {STRADE}, tipo {TIPI_AZIONE}")
         o = self.db.execute("SELECT COUNT(*) FROM azioni WHERE mano_id=?", (mano_id,)).fetchone()[0]
         self.db.execute(
-            "INSERT INTO azioni(mano_id, ordine, strada, giocatore_id, tipo, importo, da_pagare, tempo, piatto, ts)"
-            " VALUES (?,?,?,?,?,?,?,?,?,?)", (mano_id, o + 1, strada, self._gid(nome), tipo, importo,
-                                             da_pagare, tempo, piatto, ts if ts is not None else time.time()))
+            "INSERT INTO azioni(mano_id, ordine, strada, giocatore_id, tipo, importo, da_pagare, tempo, piatto, ts,"
+            " avversari, consiglio) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)",
+            (mano_id, o + 1, strada, self._gid(nome), tipo, importo, da_pagare, tempo, piatto,
+             ts if ts is not None else time.time(), avversari, consiglio))
+        self.db.commit()
+
+    def aggiorna_eroe(self, mano_id, nome, carte=None, stack=None, posizione=None):
+        g = self._gid(nome)
+        for campo, val in (("carte", carte), ("stack", stack), ("posizione", posizione)):
+            if val is not None:
+                self.db.execute(f"UPDATE mani_giocatori SET {campo}=? WHERE mano_id=? AND giocatore_id=?",
+                                (val, mano_id, g))
         self.db.commit()
 
     def board(self, mano_id, carte):

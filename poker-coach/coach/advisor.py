@@ -58,9 +58,10 @@ def advise(s: Situation, iters: int = 3000) -> Advice:
         raise ValueError("Servono 2 carte tue e 0/3/4/5 sul tavolo")
     if s.position not in tavolo.posizioni(s.n_players):
         raise ValueError(f"Con {s.n_players} giocatori le posizioni sono: " + ", ".join(tavolo.posizioni(s.n_players)))
-    if not board:
-        return _preflop(s, hole, iters)
-    return _postflop(s, hole, board, iters)
+    adv = _preflop(s, hole, iters) if not board else _postflop(s, hole, board, iters)
+    if adv.amount and s.bb >= 1:  # puntate in fiches tonde
+        adv.amount = float(min(round(adv.amount), s.stack))
+    return adv
 
 
 # ---------------------------------------------------------------- PREFLOP

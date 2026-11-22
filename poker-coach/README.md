@@ -32,6 +32,14 @@ tastierina), piatto, da pagare, stack, posizione, chi ha rilanciato e tipo di av
 vincita, pot odds, bb e motivi. Dati sbagliati = messaggio chiaro, mai un consiglio inventato. La modalità è salvata
 in `annotazioni.json` (condivisa con Annotazioni).
 
+**Diario e ripasso con grafici.** In entrambe le modalità i tasti *Ho fatto* (Fold/Check/Call/Rilancia/All-in) salvano
+la tua mossa in `storia.db`; *Fine mano* salva il risultato; *Fine partita* chiude la partita e apre la pagina di
+ripasso (`ripassi/`), con grafici SVG che funzionano senza internet (tema chiaro/scuro, riquadri al passaggio del mouse):
+risultato cumulato reale vs **stima** "seguendo il coach", accordo per fase e per posizione, tipi di errore con il
+valore perso stimato, consigli su dove migliorare, decisioni più costose, tutte le giocate. La stima usa il valore
+atteso di ogni scelta (equity, piatto, puntate, 30% di fold per chi punta): è un confronto indicativo, non la
+partita rigiocata.
+
 ## Annotazioni: registra senza aiuti, rivedi dopo
 **ANNOTAZIONI.bat** (o `py -m coach.annotazioni`): durante la partita registra SOLO foto, senza analizzare
 né consigliare nulla. A partita finita il **ripasso** (pagina HTML in `ripassi/`) confronta ogni tua decisione

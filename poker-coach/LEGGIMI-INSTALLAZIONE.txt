@@ -45,7 +45,16 @@ COACH - la finestra sul lato destro (COACH.bat)
   - DAL VIVO: lo attivi tu, con una conferma. Da usare SOLO nelle partite contro il computer.
     Scrivi le tue carte e quelle sul tavolo (o usa i tasti A K Q ... e i semi), piatto,
     quanto devi pagare e il tuo stack, poi premi INVIO: compare il consiglio con i motivi.
-    "Nuova mano" svuota i campi. Bui e giocatori li prende da PARTITA.bat.
+    Bui e giocatori li prende da PARTITA.bat.
+  DIARIO (in tutte e due le modalita'): dopo ogni tua mossa premi il tasto di cosa hai fatto
+  (Fold, Check, Call, Rilancia, All-in; "Quanto" se hai puntato una cifra precisa).
+  A fine mano scrivi il risultato (es. 60 vinto, -40 perso, 0) e premi "Fine mano".
+  FINE PARTITA -> si apre il ripasso nel browser con i grafici:
+   - quanto hai giocato come il coach (in totale, per fase della mano e per posizione);
+   - il tuo risultato mano dopo mano contro una STIMA di "seguendo il coach";
+   - i tipi di errore (paghi troppo, lasci troppo presto, troppo passivo, troppo aggressivo)
+     e cosa migliorare; le decisioni che sono costate di piu'; tutte le giocate rivissute.
+  In RIPASSO non vedi mai il consiglio mentre giochi: lo scopri solo a fine partita.
   Quando il programma sapra' leggere il tavolo, i campi si riempiranno da soli.
 
 ANNOTAZIONI (registra senza aiuti, rivedi dopo)

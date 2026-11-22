@@ -82,6 +82,26 @@ def costruisci_situazione(c):
                      ante=_num(c.get("ante"), "Ante"), chi_rilancia=chi)
 
 
+def _chiave(s):
+    """Identifica una situazione: serve a sapere se il consiglio mostrato è quello della mossa salvata."""
+    return (tuple(s.hole), tuple(s.board), s.pot, s.to_call, s.position)
+
+
+def importo_mossa(tipo, s, quanto=0.0, ultimo=None):
+    """Quante fiches metti con la mossa: quello che scrivi tu, altrimenti un valore ragionevole."""
+    if tipo in ("fold", "check"):
+        return 0.0
+    if tipo == "call":
+        return min(s.to_call, s.stack)
+    if tipo == "allin":
+        return s.stack
+    if quanto:
+        return min(quanto, s.stack)
+    if ultimo and ultimo[0] == _chiave(s) and ultimo[1].amount and ultimo[1].action in ("BET", "RAISE"):
+        return ultimo[1].amount
+    return min(s.stack, round(3 * s.to_call if s.to_call else 0.66 * s.pot, 2) or 2.5 * s.bb)
+
+
 def carte_belle(testo):
     try:
         out = []
@@ -95,7 +115,7 @@ def carte_belle(testo):
 
 
 class App:
-    def __init__(self, root, cfg_path=annotazioni.CONFIG, iters=2500):
+    def __init__(self, root, cfg_path=annotazioni.CONFIG, iters=2500, db="storia.db"):
         import tkinter as tk
         self.tk, self.root, self.cfg_path, self.iters = tk, root, cfg_path, iters
         self.cfg = annotazioni.carica_config(cfg_path)
@@ -105,6 +125,8 @@ class App:
         root.configure(bg=COL["bg"])
         self._posiziona()
         self.campo_attivo = None
+        self.st, self.db = None, db
+        self.mano_id, self.mano_carte, self.ultimo = None, None, None
         self.v = {k: tk.StringVar() for k in ("carte", "tavolo", "piatto", "pagare", "stack", "bb", "ante",
                                                "giocatori", "posizione", "avversari", "rilancia", "tipo")}
         p = self.partita
@@ -162,13 +184,30 @@ class App:
 
         self._lab(r, "Lettura automatica del tavolo: in arrivo (dopo le foto della modalità impara).",
                   "mut", 8, wraplength=320, justify="left").pack(side="bottom", fill="x", padx=14, pady=6)
-        self.corpo = tk.Frame(r, bg=COL["bg"])
-        self.corpo.pack(fill="both", expand=True, padx=14)
-        self.msg_ripasso = self._lab(self.corpo, "Modalità RIPASSO: nessun suggerimento durante il gioco.\n\n"
-                                     "Registra la partita con ANNOTAZIONI.bat e rivedila a gioco chiuso.\n\n"
-                                     "Per le partite contro il computer puoi passare a «Dal vivo».",
-                                     "mut", 11, wraplength=320, justify="left")
+        self.stato_lbl = self._lab(r, "", "mut", 9, wraplength=320, justify="left")
+        self.stato_lbl.pack(side="bottom", fill="x", padx=14)
+        fp = tk.Frame(r, bg=COL["bg"])
+        fp.pack(side="bottom", fill="x", padx=14, pady=(4, 2))
+        self._bottone(fp, "Fine partita  →  ripasso con grafici", self.fine_partita, col="blu") \
+            .pack(fill="x", ipady=6)
+
+        # parte centrale scorrevole (schermi bassi)
+        contenitore = tk.Frame(r, bg=COL["bg"])
+        contenitore.pack(fill="both", expand=True, padx=(14, 4))
+        self.canvas = tk.Canvas(contenitore, bg=COL["bg"], highlightthickness=0, bd=0)
+        barra = tk.Scrollbar(contenitore, orient="vertical", command=self.canvas.yview)
+        self.canvas.configure(yscrollcommand=barra.set)
+        barra.pack(side="right", fill="y")
+        self.canvas.pack(side="left", fill="both", expand=True)
+        self.corpo = tk.Frame(self.canvas, bg=COL["bg"])
+        finestra_id = self.canvas.create_window((0, 0), window=self.corpo, anchor="nw")
+        self.corpo.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.canvas.bind("<Configure>", lambda e: self.canvas.itemconfigure(finestra_id, width=e.width - 6))
+        self.canvas.bind_all("<MouseWheel>", lambda e: self.canvas.yview_scroll(int(-e.delta / 120), "units"))
+        self.msg_modo = self._lab(self.corpo, "", "mut", 9, wraplength=300, justify="left")
+        self.msg_modo.pack(fill="x", pady=(0, 4))
         self.pannello = tk.Frame(self.corpo, bg=COL["bg"])
+        self.pannello.pack(fill="both", expand=True)
 
         # carte
         g = tk.Frame(self.pannello, bg=COL["bg"])
@@ -184,32 +223,27 @@ class App:
                 e.focus_set()
                 self.campo_attivo = self.v["carte"]
 
-        # tastierina carte
+        # tastierina carte: due righe da 9 (valori, poi semi e cancella)
         kb = tk.Frame(self.pannello, bg=COL["bg"])
-        kb.pack(fill="x", pady=6)
-        for i, rango in enumerate("AKQJT98765432"):  # due righe: 7 + 6 tasti
-            b = self._bottone(kb, "10" if rango == "T" else rango, lambda x=rango: self._tasto(x), width=2)
-            b.grid(row=i // 7, column=i % 7, padx=1, pady=1, sticky="we", ipady=3)
-        for c in range(7):
+        kb.pack(fill="x", pady=4)
+        tasti = [("10" if r_ == "T" else r_, lambda x=r_: self._tasto(x), "txt") for r_ in "AKQJT98765432"]
+        tasti += [(simb, lambda x=l: self._tasto(x, seme=True), "rosso" if l in "hd" else "txt") for l, simb in SEMI.items()]
+        tasti.append(("⌫", self._cancella_ultima, "mut"))
+        for i, (testo, cmd, col) in enumerate(tasti):
+            self._bottone(kb, testo, cmd, col=col, width=2).grid(row=i // 9, column=i % 9, padx=1, pady=1,
+                                                                  sticky="we", ipady=2)
+        for c in range(9):
             kb.grid_columnconfigure(c, weight=1, uniform="tasti")
-        semi = tk.Frame(self.pannello, bg=COL["bg"])
-        semi.pack(fill="x")
-        for i, (lettera, simbolo) in enumerate(SEMI.items()):
-            col = "rosso" if lettera in "hd" else "txt"
-            self._bottone(semi, simbolo, lambda x=lettera: self._tasto(x, seme=True), col=col, width=3) \
-                .pack(side="left", padx=1, expand=True, fill="x", ipady=3)
-        self._bottone(semi, "⌫", self._cancella_ultima, width=3).pack(side="left", padx=1, expand=True, fill="x")
 
         # numeri
         n = tk.Frame(self.pannello, bg=COL["bg"])
         n.pack(fill="x", pady=4)
-        righe = [("piatto", "Piatto"), ("pagare", "Da pagare"), ("stack", "Il tuo stack"),
-                 ("bb", "Big blind"), ("ante", "Ante"), ("giocatori", "Giocatori"),
-                 ("avversari", "Avversari")]
-        for i, (k, nome) in enumerate(righe):  # tre colonne per stare anche su schermi bassi
-            self._lab(n, nome, size=9).grid(row=i // 3 * 2, column=i % 3, sticky="w", padx=(0, 6))
-            self._campo(n, self.v[k], 7).grid(row=i // 3 * 2 + 1, column=i % 3, sticky="we", padx=(0, 6))
-        for c in range(3):
+        righe = [("piatto", "Piatto"), ("pagare", "Da pagare"), ("stack", "Tuo stack"), ("avversari", "Avversari"),
+                 ("bb", "Big blind"), ("ante", "Ante"), ("giocatori", "Giocatori")]
+        for i, (k, nome) in enumerate(righe):  # quattro colonne per stare anche su schermi bassi
+            self._lab(n, nome, size=9).grid(row=i // 4 * 2, column=i % 4, sticky="w", padx=(0, 4))
+            self._campo(n, self.v[k], 5).grid(row=i // 4 * 2 + 1, column=i % 4, sticky="we", padx=(0, 4))
+        for c in range(4):
             n.grid_columnconfigure(c, weight=1, uniform="num")
         self.v["giocatori"].trace_add("write", lambda *a: self._aggiorna_posizioni())
         pz = tk.Frame(self.pannello, bg=COL["bg"])
@@ -228,23 +262,42 @@ class App:
         self.v["tipo"].set("-")
         self._aggiorna_posizioni()
 
-        az = tk.Frame(self.pannello, bg=COL["bg"])
-        az.pack(fill="x", pady=8)
-        self._bottone(az, "Consiglia  (Invio)", self.consiglia, col="oro", bg="#2a1f0b") \
-            .pack(side="left", expand=True, fill="x", ipady=8)
-        self._bottone(az, "Nuova mano", self.nuova_mano).pack(side="left", padx=(6, 0), ipady=8, ipadx=6)
-
-        # consiglio
-        box = tk.Frame(self.pannello, bg=COL["card"])
-        box.pack(fill="both", expand=True, pady=(0, 8))
-        self.l_azione = self._lab(box, "—", "txt", 24, True, bg=COL["card"])
-        self.l_azione.pack(anchor="w", padx=12, pady=(10, 0))
-        self.l_numeri = self._lab(box, "", "mut", 10, bg=COL["card"])
+        # consiglio (solo DAL VIVO)
+        self.zona_consiglio = tk.Frame(self.pannello, bg=COL["bg"])
+        self._bottone(self.zona_consiglio, "Consiglia  (Invio)", self.consiglia, col="oro", bg="#2a1f0b") \
+            .pack(fill="x", ipady=6, pady=(8, 6))
+        box = tk.Frame(self.zona_consiglio, bg=COL["card"])
+        box.pack(fill="x")
+        self.l_azione = self._lab(box, "—", "txt", 22, True, bg=COL["card"])
+        self.l_azione.pack(anchor="w", padx=12, pady=(8, 0))
+        self.l_numeri = self._lab(box, "", "mut", 9, bg=COL["card"])
         self.l_numeri.pack(anchor="w", padx=12)
-        self.l_motivi = self._lab(box, "", "txt", 10, bg=COL["card"], wraplength=300, justify="left")
-        self.l_motivi.pack(anchor="w", padx=12, pady=(6, 10))
-        self.l_motivi.bind("<Configure>", lambda e: self.l_motivi.config(wraplength=max(200, e.width - 4)))
+        self.l_motivi = self._lab(box, "", "txt", 9, bg=COL["card"], wraplength=290, justify="left")
+        self.l_motivi.pack(anchor="w", padx=12, pady=(4, 8))
+        self.zona_consiglio.pack(fill="x")
 
+        # diario della mano (sempre): cosa hai fatto, risultato
+        d = tk.Frame(self.pannello, bg=COL["bg"])
+        d.pack(fill="x", pady=(10, 0))
+        self._lab(d, "Ho fatto:", "txt", 9, True).pack(anchor="w")
+        tasti = tk.Frame(d, bg=COL["bg"])
+        tasti.pack(fill="x", pady=2)
+        for i, (nome, tipo) in enumerate((("Fold", "fold"), ("Check", "check"), ("Call", "call"),
+                                          ("Rilancia", "aggressivo"), ("All-in", "allin"))):
+            self._bottone(tasti, nome, lambda t=tipo: self.ho_fatto(t)).grid(
+                row=0, column=i, sticky="we", padx=1, ipady=4)
+            tasti.grid_columnconfigure(i, weight=1, uniform="ho")
+        rr = tk.Frame(d, bg=COL["bg"])
+        rr.pack(fill="x", pady=(4, 0))
+        self.v["quanto"] = self.tk.StringVar()
+        self.v["risultato"] = self.tk.StringVar()
+        self._lab(rr, "Quanto", size=9).grid(row=0, column=0, sticky="w")
+        self._lab(rr, "Risultato ±", size=9).grid(row=0, column=1, sticky="w", padx=6)
+        self._campo(rr, self.v["quanto"], 7).grid(row=1, column=0, sticky="we")
+        self._campo(rr, self.v["risultato"], 9).grid(row=1, column=1, sticky="we", padx=6)
+        self._bottone(rr, "Fine mano", self.fine_mano).grid(row=1, column=2, sticky="we", ipady=3)
+        for c in range(3):
+            rr.grid_columnconfigure(c, weight=1, uniform="rr")
 
     # ------------------------------------------------------------ azioni
     def _tasto(self, x, seme=False):
@@ -274,13 +327,115 @@ class App:
                 var.set(scelte[-2] if var is self.v["posizione"] and len(scelte) > 1 else scelte[0])
 
     def nuova_mano(self):
-        for k in ("carte", "tavolo", "piatto", "pagare"):
+        for k in ("carte", "tavolo", "piatto", "pagare", "quanto", "risultato"):
             self.v[k].set("")
         self.v["rilancia"].set("-")
         self.campo_attivo = self.v["carte"]
         self.l_azione.config(text="—", fg=COL["txt"])
         self.l_numeri.config(text="")
         self.l_motivi.config(text="")
+        self.ultimo = None
+
+    # ------------------------------------------------------------ diario
+    def _stato(self, testo, col="mut"):
+        self.stato_lbl.config(text=testo, fg=COL[col])
+
+    def _storia(self):
+        if self.st is None:
+            from .storia import Storia
+            self.st = Storia(self.db)
+        return self.st
+
+    def _partita_corrente(self):
+        pid = self.cfg.get("diario_partita")
+        if not pid:
+            pid = self._storia().nuova_partita(gioco="finestra del coach",
+                                               note="dal vivo" if self.cfg.get("dal_vivo") else "ripasso")
+            self.cfg["diario_partita"] = pid
+            annotazioni.salva_config(self.cfg, self.cfg_path)
+        return pid
+
+    def ho_fatto(self, tipo):
+        try:
+            s = costruisci_situazione(self.campi())
+        except ValueError as e:
+            self._stato("Non salvato: " + str(e), "rosso")
+            return None
+        try:
+            quanto = _num(self.v["quanto"].get(), "Quanto")
+        except ValueError as e:
+            self._stato("Non salvato: " + str(e), "rosso")
+            return None
+        if tipo == "aggressivo":
+            tipo = "raise" if s.to_call > 0 else "bet"
+        importo = importo_mossa(tipo, s, quanto, self.ultimo)
+        st = self._storia()
+        pid = self._partita_corrente()
+        carte = " ".join(self.v["carte"].get().split())
+        if self.mano_id is not None and carte != self.mano_carte:
+            st.fine_mano(self.mano_id, {"Io": 0})  # carte nuove senza «Fine mano»: chiudo la vecchia a 0
+            self._stato("La mano precedente era senza risultato: salvata a 0.", "oro")
+            self.mano_id = None
+        if self.mano_id is None:
+            self.mano_id = st.nuova_mano(
+                pid, s.bb, [{"nome": "Io", "eroe": True, "carte": carte, "posizione": s.position,
+                             "stack": s.stack}], n_giocatori=s.n_players, ante=s.ante,
+                modalita="vivo" if self.cfg.get("dal_vivo") else "ripasso")
+            self.mano_carte = carte
+        st.board(self.mano_id, " ".join(self.v["tavolo"].get().split()))
+        strada = {0: "preflop", 3: "flop", 4: "turn", 5: "river"}[len(s.board)]
+        visto = None
+        if self.cfg.get("dal_vivo") and self.ultimo and self.ultimo[0] == _chiave(s):
+            a = self.ultimo[1]
+            visto = a.action + (f" {a.amount:g}" if a.amount else "")
+        st.azione(self.mano_id, "Io", strada, tipo, importo, da_pagare=s.to_call, piatto=s.pot,
+                  avversari=s.n_opp, consiglio=visto)
+        self._stato(f"Salvato: {strada} {tipo.upper()}" + (f" {importo:g}" if importo else ""), "verde")
+        for k in ("pagare", "quanto"):
+            self.v[k].set("")
+        return tipo, importo
+
+    def fine_mano(self):
+        if self.mano_id is None:
+            self._stato("Nessuna mossa salvata in questa mano.", "oro")
+            self.nuova_mano()
+            return None
+        try:
+            r = _num(self.v["risultato"].get().replace("+", ""), "Risultato", minimo=-1e12)
+        except ValueError:
+            self._stato("Risultato: scrivi quanto hai vinto (es. 60) o perso (es. -40), anche 0.", "rosso")
+            return None
+        self._storia().fine_mano(self.mano_id, {"Io": r})
+        self.mano_id, self.mano_carte = None, None
+        self.nuova_mano()
+        self._stato(f"Mano salvata ({r:+g}).", "verde")
+        return r
+
+    def fine_partita(self, conferma=True, apri=True):
+        pid = self.cfg.get("diario_partita")
+        if not pid:
+            self._stato("Non hai ancora salvato nessuna mano in questa partita.", "oro")
+            return None
+        if conferma:
+            from tkinter import messagebox
+            if not messagebox.askyesno("Fine partita", "Chiudere la partita e aprire il ripasso con i grafici?",
+                                       parent=self.root):
+                return None
+        if self.mano_id is not None:
+            if not self.v["risultato"].get().strip():
+                self.v["risultato"].set("0")
+            self.fine_mano()
+        from .ripasso import analizza, salva_pagina
+        analisi = analizza(self._storia(), pid)
+        path = salva_pagina(analisi, "ripassi")
+        self.cfg["diario_partita"] = None  # la prossima mano apre una partita nuova
+        annotazioni.salva_config(self.cfg, self.cfg_path)
+        self._stato(f"Ripasso pronto: {path}", "verde")
+        if apri:
+            import os
+            import webbrowser
+            webbrowser.open("file:///" + os.path.abspath(path).replace(os.sep, "/"))
+        return path
 
     def imposta_vivo(self, vivo, chiedi=True):
         if vivo and not self.cfg.get("dal_vivo"):
@@ -299,11 +454,12 @@ class App:
         self.badge.config(text="● DAL VIVO" if vivo else "RIPASSO", fg=COL["oro"] if vivo else COL["verde"],
                           bg="#2a1f0b" if vivo else "#12301f")
         if vivo:
-            self.msg_ripasso.pack_forget()
-            self.pannello.pack(fill="both", expand=True)
+            self.msg_modo.config(text="Scrivi la mano · INVIO = consiglio · poi «Ho fatto».")
+            self.zona_consiglio.pack(fill="x", before=self.zona_consiglio.master.winfo_children()[-1])
         else:
-            self.pannello.pack_forget()
-            self.msg_ripasso.pack(fill="x", pady=10)
+            self.msg_modo.config(text="Nessun consiglio mentre giochi: annota le mosse, "
+                                      "a fine partita vedrai cosa avrebbe fatto il coach.")
+            self.zona_consiglio.pack_forget()
 
     def campi(self):
         c = {k: v.get() for k, v in self.v.items()}
@@ -336,6 +492,7 @@ class App:
                 self.l_motivi.config(text=risultato["e"])
                 return
             a = risultato["a"]
+            self.ultimo = (_chiave(s), a)
             self.l_azione.config(text=a.action + (f" {a.amount:g}" if a.amount else ""),
                                  fg=COLORE_AZIONE.get(a.action, COL["txt"]))
             extra = f"  ·  out {a.outs}" if a.outs else ""
