@@ -113,6 +113,12 @@ def crea_zip_impara(cartella, finestra=None, nota="", dest=CARTELLA_PACCHETTI):
                 z.write(p, extra)
         if os.path.exists("partita.json"):
             z.write("partita.json", "partita.json")
+        if os.path.exists("calibrazione.json"):  # le zone disegnate dal giocatore
+            z.write("calibrazione.json", "calibrazione.json")
+            for radice, _, files in os.walk("calibrazione"):
+                for nome in files:
+                    p = os.path.join(radice, nome)
+                    z.write(p, p.replace(os.sep, "/"))
         testo = info_sistema(finestra)
         testo += f"\nFoto registrate: {len(foto)}, nello zip: {len(scelte)}\n"
         if nota:

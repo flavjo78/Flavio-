@@ -28,6 +28,18 @@ TABELLE PUSH/FOLD (per studiarle)
   Doppio clic su TABELLE.bat: scrivi quanti giocatori, la tua posizione e (se c'e') chi e' andato
   all-in prima di te. Ogni numero = massimo stack in big blind con cui andare all-in (o pagare).
 
+CALIBRAZIONE - disegna la finestra (una volta sola, prima di IMPARA)
+  1. Apri il poker in una finestra, con un tavolo in corso (meglio se ci sono gia' carte sul tavolo).
+  2. Doppio clic su CALIBRA.bat, scrivi quanti posti ha il tavolo, scegli la finestra del poker
+     dall'elenco e premi "Fotografa la finestra scelta".
+  3. Il programma ti chiede una cosa per volta: trascina il mouse sulla foto per fare un rettangolo
+     intorno a: le tue carte, le 5 carte del tavolo, il piatto, il tuo posto (nome + fiches),
+     poi gli altri posti in senso orario, le puntate, il bottone "D", i tuoi tasti, i bui.
+     Quello che non c'e' lo salti con "Salta". Se sbagli, ridisegnalo.
+  4. "Salva la calibrazione". Le zone finiscono anche nello zip di IMPARA, cosi' Claude vede
+     esattamente dove guardare.
+  Se cambi gioco o tavolo (es. da 6 a 9 posti), rifai la calibrazione.
+
 STASERA - Modalita' IMPARA
   1. Apri il gioco di poker in una FINESTRA (non a schermo intero), ben visibile e non coperta.
   2. Doppio clic su IMPARA.bat

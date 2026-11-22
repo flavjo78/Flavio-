@@ -24,6 +24,13 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `--pot` = piatto totale **inclusa** la puntata che affronti; `--call` = quanto devi pagare (0 = puoi passare).
 - `--pos` UTG, MP, CO, BTN, SB, BB · `--opp` avversari in mano · `--tipo` sasso, stazione, maniaco, pauroso, regolare.
 
+## Calibrazione (CALIBRA.bat)
+`py -m coach.calibra`: fotografa la finestra del poker (o apre una foto registrata) e chiede, una zona per volta,
+di disegnare con il mouse un rettangolo intorno a: tue carte, carte del tavolo, piatto, ogni posto (nome + stack, il
+tuo per primo e poi in senso orario), puntate, bottone, tasti di gioco, bui. Le zone sono salvate in proporzione alla
+finestra (`calibrazione.json`, valgono anche se la ridimensioni), con `calibrazione/anteprima.png` e i ritagli di ogni
+zona. Finiscono nello zip di IMPARA: sono la base del lettore automatico del tavolo.
+
 ## Finestra del coach (COACH.bat)
 Finestra sul quarto destro dello schermo (`py -m coach.finestra`, Tkinter) con l'**interruttore della modalità**:
 **Ripasso** (predefinita, nessun suggerimento durante il gioco) o **Dal vivo** (suggerimenti in tempo reale, da
@@ -118,6 +125,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/calibra.py` calibrazione: le zone del tavolo disegnate dal giocatore.
 - `coach/finestra.py` la finestra del coach con l'interruttore Ripasso / Dal vivo.
 - `coach/annotazioni.py` e `coach/ripasso.py`: registrazione senza aiuti e ripasso a gioco chiuso.
 - `coach/impara.py` modalità impara e pacchetto risultati (gli zip per Claude).
