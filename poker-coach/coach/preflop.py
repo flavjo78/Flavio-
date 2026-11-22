@@ -43,6 +43,8 @@ def _build():
 
 
 _RANKING = _build()
+CLASSI = [n for n, _ in _RANKING]  # le 169 classi, dalla più forte (stima Chen) alla più debole
+COMBO = {n: (6 if len(n) == 2 else 4 if n[2] == "s" else 12) for n in CLASSI}
 _PCT = dict(_RANKING)
 
 
@@ -55,6 +57,4 @@ def top_classes(top):
     """Insieme delle classi nel migliore `top` (es. 0.15 = 15%) delle mani."""
     return {n for n, p in _RANKING if p < top}
 
-
-# Percentuale di mani con cui aprire (tavolo da 6), per posizione
-OPEN_TOP = {"UTG": 0.13, "MP": 0.17, "CO": 0.26, "BTN": 0.42, "SB": 0.38, "BB": 0.0}
+# Le percentuali di apertura per posizione e numero di giocatori sono in tavolo.py

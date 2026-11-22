@@ -24,6 +24,29 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `--pot` = piatto totale **inclusa** la puntata che affronti; `--call` = quanto devi pagare (0 = puoi passare).
 - `--pos` UTG, MP, CO, BTN, SB, BB · `--opp` avversari in mano · `--tipo` sasso, stazione, maniaco, pauroso, regolare.
 
+## La partita: giocatori, bui, torneo
+**PARTITA.bat** (o `py -m coach.partita`) chiede: torneo o cash, posti del tavolo, giocatori seduti, bui, ante,
+stack iniziale, posti a premio e ogni quanti minuti salgono i bui (o "non lo so": lo impara osservando i cambi).
+Tutto finisce in `partita.json`, che il coach usa da solo.
+```
+py -m coach.partita bui 15 30          # i bui sono saliti adesso (impara la velocità del torneo)
+py -m coach.partita stato 1240         # "Tra circa 4 min i bui passano a 25/50: scenderai a 25 bb..."
+py -m coach.partita giocatori 5        # è uscito qualcuno
+```
+Il coach conosce i tavoli da **2 a 10 giocatori**: posizioni (UTG ... CO, BTN, SB, BB) e quante mani aprire da
+ciascuna cambiano con il numero di giocatori (più giocatori = mani più strette).
+
+## Tabelle push/fold (Nash)
+Sotto i **15 big blind effettivi** il coach usa le tabelle push/fold: per ogni mano il massimo stack con cui
+andare all-in per primo (PUSH) o pagare/rispondere a un all-in (CALL), per ogni posizione e tavolo da 2 a 10.
+**TABELLE.bat** (o `py -m coach.pushfold --giocatori 9 --pos BTN` / `--pos BB --contro SB`) le mostra come
+griglia 13x13. Con l'ante il programma calcola lo "stack equivalente" (piatto più ricco = come avere meno bb).
+
+Le tabelle sono **calcolate**, non copiate: `strumenti/genera_equity.py` calcola le probabilità di ogni mano
+contro ogni altra (169x169, 20.000 prove a coppia), `strumenti/genera_pushfold.py` trova l'equilibrio di Nash
+(fictitious play). Modello classico: chip EV, stack uguali, conta solo il primo che paga, niente ICM e niente
+"blocker". Per i premi del torneo (ICM) servirà un passo in più.
+
 ## Archivio di mani e giocatori
 Tutte le partite, le mani, le azioni e i giocatori restano salvati nel file `storia.db`
 (database SQLite, nessuna installazione). Le statistiche si accumulano partita dopo partita.
@@ -65,6 +88,10 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/equity.py` simulazione Monte Carlo + conteggio dei "out" (progetti di scala/colore).
 - `coach/preflop.py` classifica delle 169 mani e range di apertura per posizione (formula di Chen: stima, da raffinare).
 - `coach/advisor.py` decisioni preflop (push/fold a stack corto, open, 3-bet) e postflop (equity vs pot odds, range di chi punta, semi-bluff).
+- `coach/tavolo.py` posizioni e aperture per 2-10 giocatori.
+- `coach/pushfold.py` tabelle push/fold (dati in `coach/dati/`).
+- `coach/torneo.py` livelli dei bui, velocità del torneo, previsioni.
+- `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
 - `coach/impara.py` modalità impara e pacchetto risultati (gli zip per Claude).

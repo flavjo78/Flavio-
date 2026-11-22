@@ -49,6 +49,13 @@ def info_sistema(finestra=None):
             righe.append(f"Zoom di Windows: {ctypes.windll.shcore.GetScaleFactorForDevice(0)}%")
         except Exception:
             pass
+    try:
+        from .partita import carica
+        p = carica()
+        if p:
+            righe.append("Partita: " + p.riassunto())
+    except Exception:
+        pass
     if finestra:
         righe.append(f"Finestra del gioco: «{finestra.titolo}» area {finestra.w}x{finestra.h}"
                      f" in ({finestra.x},{finestra.y})")
@@ -104,6 +111,8 @@ def crea_zip_impara(cartella, finestra=None, nota="", dest=CARTELLA_PACCHETTI):
             p = os.path.join(cartella, extra)
             if os.path.exists(p):
                 z.write(p, extra)
+        if os.path.exists("partita.json"):
+            z.write("partita.json", "partita.json")
         testo = info_sistema(finestra)
         testo += f"\nFoto registrate: {len(foto)}, nello zip: {len(scelte)}\n"
         if nota:
@@ -175,6 +184,8 @@ def crea_zip_risultati(db="storia.db", nota="", dest=CARTELLA_PACCHETTI):
             shutil.copyfile(db, copia)
             z.write(copia, "storia.db")
             os.remove(copia)
+        if os.path.exists("partita.json"):
+            z.write("partita.json", "partita.json")
         z.writestr("report.txt", report.getvalue())
         z.writestr("info.txt", info_sistema() + (f"\nNota del giocatore:\n{nota}\n" if nota else ""))
     return nome_zip

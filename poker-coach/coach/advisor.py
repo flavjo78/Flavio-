@@ -7,7 +7,7 @@ passare). Tutte le cifre nella stessa unità (fiches).
 from dataclasses import dataclass, field
 from typing import List, Optional
 
-from . import preflop
+from . import preflop, pushfold, tavolo
 from .equity import equity, count_outs, hand_class, made_hand_name, parse_cards
 
 TIPI = ("sasso", "stazione", "maniaco", "pauroso", "regolare")
@@ -24,6 +24,10 @@ class Situation:
     n_opp: int = 1
     position: str = "BTN"
     opp_type: Optional[str] = None  # uno di TIPI, se conosciuto
+    n_players: int = 6              # giocatori seduti al tavolo (2..10)
+    ante: float = 0.0               # ante pagato da ogni giocatore
+    stack_eff: Optional[float] = None  # stack effettivo (il minore tra il tuo e quello di chi ti sfida)
+    chi_rilancia: Optional[str] = None  # posizione di chi ha rilanciato / è andato all-in
 
 
 @dataclass
@@ -52,38 +56,80 @@ def advise(s: Situation, iters: int = 3000) -> Advice:
     hole, board = parse_cards(s.hole), parse_cards(s.board)
     if len(hole) != 2 or len(board) not in (0, 3, 4, 5):
         raise ValueError("Servono 2 carte tue e 0/3/4/5 sul tavolo")
-    if s.position not in preflop.OPEN_TOP:
-        raise ValueError("Posizione: " + ", ".join(preflop.OPEN_TOP))
+    if s.position not in tavolo.posizioni(s.n_players):
+        raise ValueError(f"Con {s.n_players} giocatori le posizioni sono: " + ", ".join(tavolo.posizioni(s.n_players)))
     if not board:
         return _preflop(s, hole, iters)
     return _postflop(s, hole, board, iters)
 
 
 # ---------------------------------------------------------------- PREFLOP
+PUSHFOLD_SOTTO = 15  # sotto questi big blind effettivi si gioca solo all-in o fold
+
+
+def _chi_rilancia(s):
+    """Posizione di chi ha rilanciato; se non la so, suppongo il giocatore subito prima di me."""
+    pos = tavolo.posizioni(s.n_players)
+    if s.chi_rilancia and s.chi_rilancia in pos and pos.index(s.chi_rilancia) < pos.index(s.position):
+        return s.chi_rilancia, False
+    i = pos.index(s.position)
+    return (pos[i - 1] if i > 0 else None), True
+
+
 def _preflop(s, hole, iters):
     cls = hand_class(hole)
     p = preflop.percentile(cls)
     eq = equity(hole, [], s.n_opp, iters)
     po = s.to_call / (s.pot + s.to_call) if s.to_call else 0.0
     adv = Advice("FOLD", equity=eq, pot_odds=po)
-    stack_bb = s.stack / s.bb
-    adv.reasons.append(f"{cls}: tra il {p:.0%} migliore delle mani di partenza ({stack_bb:.0f} bb di stack)")
-
+    eff = (s.stack_eff if s.stack_eff else s.stack) / s.bb
+    eff_eq = pushfold.stack_equivalente(eff, s.ante / s.bb, s.n_players)
+    adv.reasons.append(f"{cls}: tra il {p:.0%} migliore delle mani · {eff:.0f} bb effettivi · "
+                       f"tavolo da {s.n_players}, sei {s.position}")
+    if s.ante:
+        adv.reasons.append(f"con l'ante il piatto è più ricco: è come avere {eff_eq:.1f} bb")
     unopened = s.to_call <= s.bb  # nessun rilancio davanti a te (al massimo limp)
+    gratis = "CHECK" if s.to_call == 0 else "FOLD"
 
-    # Stack corto: push o fold
-    if stack_bb <= 12:
-        limit = 0.22 if unopened else 0.08
-        if p < limit:
-            adv.action, adv.amount = "ALL-IN", s.stack
-            adv.reasons.append("stack corto (≤12 bb): con questa mano si va all-in (push)")
+    # ---- stack corto: tabelle push/fold di Nash
+    if eff_eq <= PUSHFOLD_SOTTO:
+        if unopened:
+            if s.position == "BB":
+                adv.action = "CHECK"
+                adv.reasons.append("big blind senza rilanci: vedi il flop gratis")
+                return adv
+            m = pushfold.push_max(s.n_players, s.position, cls)
+            if eff_eq <= m:
+                adv.action, adv.amount = "ALL-IN", s.stack
+                adv.reasons.append(f"tabella push/fold: da {s.position} con {cls} si va all-in fino a "
+                                   f"{pushfold.fmt(m)} bb, tu ne hai {eff_eq:.1f}")
+            else:
+                adv.action = gratis
+                adv.reasons.append(f"tabella push/fold: da {s.position} {cls} va all-in solo fino a "
+                                   f"{pushfold.fmt(m)} bb, tu ne hai {eff_eq:.1f}: passa")
+            return adv
+        chi, supposto = _chi_rilancia(s)
+        if chi is None:
+            adv.action = gratis
+            return adv
+        m = pushfold.call_max(s.n_players, chi, s.position, cls)
+        if supposto:
+            adv.reasons.append(f"non so chi ha rilanciato: suppongo {chi}")
+        all_in = s.to_call >= s.stack * 0.9
+        if eff_eq <= m:
+            adv.action, adv.amount = ("CALL", 0) if all_in and s.to_call < s.stack else ("ALL-IN", s.stack)
+            cosa = "pagare l'all-in" if all_in else "rispondere all-in (re-push)"
+            adv.reasons.append(f"tabella push/fold: contro {chi} con {cls} conviene {cosa} fino a "
+                               f"{pushfold.fmt(m)} bb, tu ne hai {eff_eq:.1f}")
         else:
-            adv.action = "CHECK" if s.to_call == 0 else "FOLD"
-            adv.reasons.append("stack corto: mano troppo debole per spingere")
+            adv.action = "FOLD"
+            adv.reasons.append(f"tabella push/fold: contro {chi} {cls} si gioca solo fino a "
+                               f"{pushfold.fmt(m)} bb, tu ne hai {eff_eq:.1f}: passa")
         return adv
 
+    # ---- stack profondo
     if unopened:
-        top = preflop.OPEN_TOP[s.position]
+        top = tavolo.apri_top(s.n_players, s.position)
         if s.position == "BB":
             if p < 0.10:
                 adv.action, adv.amount = "RAISE", round(3.5 * s.bb, 2)
@@ -92,20 +138,28 @@ def _preflop(s, hole, iters):
                 adv.action = "CHECK"
                 adv.reasons.append("big blind senza rilancio davanti: vedi il flop gratis")
         elif p < top:
-            adv.action, adv.amount = "RAISE", round(2.5 * s.bb + s.bb * max(0, s.n_opp - 1) * 0, 2)
-            adv.reasons.append(f"da {s.position} si apre col {top:.0%} delle mani: questa ci sta, rilancia 2.5 bb")
+            adv.action, adv.amount = "RAISE", round(2.5 * s.bb, 2)
+            adv.reasons.append(f"con {s.n_players} giocatori da {s.position} si apre col {top:.0%} delle mani: "
+                               f"questa ci sta, rilancia 2.5 bb")
         else:
-            adv.action = "CHECK" if s.to_call == 0 else "FOLD"
-            adv.reasons.append(f"da {s.position} si apre solo col {top:.0%} delle mani: troppo debole, passa")
+            adv.action = gratis
+            adv.reasons.append(f"con {s.n_players} giocatori da {s.position} si apre solo col {top:.0%} "
+                               f"delle mani: troppo debole, passa")
         return adv
 
     # Davanti c'è un rilancio
     raise_size = s.to_call
+    stretto = 1.0 if s.n_players <= 6 else 0.8  # tavoli pieni: rilanci più credibili
     if p < 0.04:
         adv.action, adv.amount = "RAISE", round(min(s.stack, 3 * raise_size), 2)
         adv.reasons.append("mano premium: rilancia (3-bet) per valore")
     else:
-        call_top = 0.28 if s.position == "BB" and raise_size <= 3.5 * s.bb else 0.10
+        if s.n_players == 2:
+            call_top = 0.45
+        elif s.position == "BB" and raise_size <= 3.5 * s.bb:
+            call_top = 0.28 * stretto
+        else:
+            call_top = 0.10 * stretto
         if p < call_top:
             adv.action = "CALL"
             adv.reasons.append("mano giocabile contro un rilancio: paga")
