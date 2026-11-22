@@ -39,6 +39,15 @@ STASERA - Modalita' IMPARA
   7. Si apre da sola la cartella "pacchetti" con il file poker_impara_DATA.zip
      -> caricalo nella chat con Claude.
 
+COACH - la finestra sul lato destro (COACH.bat)
+  In alto c'e' l'interruttore: RIPASSO oppure DAL VIVO.
+  - RIPASSO (all'inizio): nessun suggerimento mentre giochi.
+  - DAL VIVO: lo attivi tu, con una conferma. Da usare SOLO nelle partite contro il computer.
+    Scrivi le tue carte e quelle sul tavolo (o usa i tasti A K Q ... e i semi), piatto,
+    quanto devi pagare e il tuo stack, poi premi INVIO: compare il consiglio con i motivi.
+    "Nuova mano" svuota i campi. Bui e giocatori li prende da PARTITA.bat.
+  Quando il programma sapra' leggere il tavolo, i campi si riempiranno da soli.
+
 ANNOTAZIONI (registra senza aiuti, rivedi dopo)
   Doppio clic su ANNOTAZIONI.bat. Menu:
    1) Registra una partita: salva solo le foto, NESSUN suggerimento durante il gioco.

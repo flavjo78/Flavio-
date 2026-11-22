@@ -24,6 +24,14 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `--pot` = piatto totale **inclusa** la puntata che affronti; `--call` = quanto devi pagare (0 = puoi passare).
 - `--pos` UTG, MP, CO, BTN, SB, BB · `--opp` avversari in mano · `--tipo` sasso, stazione, maniaco, pauroso, regolare.
 
+## Finestra del coach (COACH.bat)
+Finestra sul quarto destro dello schermo (`py -m coach.finestra`, Tkinter) con l'**interruttore della modalità**:
+**Ripasso** (predefinita, nessun suggerimento durante il gioco) o **Dal vivo** (suggerimenti in tempo reale, da
+attivare con una conferma, solo per partite contro il computer). In "Dal vivo" si inseriscono carte (anche con la
+tastierina), piatto, da pagare, stack, posizione, chi ha rilanciato e tipo di avversario; INVIO = consiglio con
+vincita, pot odds, bb e motivi. Dati sbagliati = messaggio chiaro, mai un consiglio inventato. La modalità è salvata
+in `annotazioni.json` (condivisa con Annotazioni).
+
 ## Annotazioni: registra senza aiuti, rivedi dopo
 **ANNOTAZIONI.bat** (o `py -m coach.annotazioni`): durante la partita registra SOLO foto, senza analizzare
 né consigliare nulla. A partita finita il **ripasso** (pagina HTML in `ripassi/`) confronta ogni tua decisione
@@ -102,6 +110,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/finestra.py` la finestra del coach con l'interruttore Ripasso / Dal vivo.
 - `coach/annotazioni.py` e `coach/ripasso.py`: registrazione senza aiuti e ripasso a gioco chiuso.
 - `coach/impara.py` modalità impara e pacchetto risultati (gli zip per Claude).
 - `coach/schermo.py` trova la finestra del gioco, ne misura l'area e la registra.

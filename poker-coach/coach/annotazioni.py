@@ -1,9 +1,11 @@
 """ANNOTAZIONI POKER: registra la partita SENZA nessun aiuto, poi la rivedi con i suggerimenti.
 
-Regole fisse (non si possono aggirare dal menù):
+Regole:
 - durante la registrazione il programma NON analizza e NON consiglia nulla: salva solo foto;
-- il ripasso con i suggerimenti si apre solo se l'interruttore è ACCESO e la finestra del
-  gioco registrato è CHIUSA.
+- in modalità RIPASSO (predefinita) i suggerimenti si vedono solo con l'interruttore ACCESO e
+  la finestra del gioco registrato CHIUSA;
+- la modalità DAL VIVO (finestra COACH.bat) la attivi tu, con una conferma, per le partite contro
+  il computer: lì il coach consiglia in tempo reale.
 
     py -m coach.annotazioni
 """
@@ -24,7 +26,7 @@ def carica_config(path=CONFIG):
     if os.path.exists(path):
         with open(path, encoding="utf-8") as f:
             return json.load(f)
-    return {"suggerimenti": False, "ultima": None}
+    return {"suggerimenti": False, "dal_vivo": False, "ultima": None}
 
 
 def salva_config(cfg, path=CONFIG):
@@ -50,7 +52,7 @@ def puo_rivedere(cfg):
         return False, "I suggerimenti sono SPENTI. Accendili dal menù (scelta 3) quando vuoi rivedere."
     if not cfg.get("ultima"):
         return False, "Non hai ancora registrato nessuna partita."
-    if gioco_aperto(cfg["ultima"]):
+    if not cfg.get("dal_vivo") and gioco_aperto(cfg["ultima"]):
         return False, ("Il gioco è ancora aperto: chiudilo del tutto e riprova. "
                        "I suggerimenti si vedono solo a partita finita.")
     return True, ""
@@ -134,6 +136,7 @@ def menu():
         print(" 2) Rivedi l'ultima partita con i suggerimenti")
         print(f" 3) {'Spegni' if cfg.get('suggerimenti') else 'Accendi'} i suggerimenti del ripasso")
         print(" 4) Prepara gli zip per Claude")
+        print(f" 5) Modalità: {'DAL VIVO' if cfg.get('dal_vivo') else 'RIPASSO'} (cambia)   -> finestra: COACH.bat")
         print(" 0) Esci")
         try:
             r = input("Scelta: ").strip()
@@ -148,6 +151,14 @@ def menu():
             salva_config(cfg)
         elif r == "4":
             zip_per_claude(cfg)
+        elif r == "5":
+            if cfg.get("dal_vivo"):
+                cfg["dal_vivo"] = False
+            else:
+                from .finestra import CONFERMA_VIVO
+                print("\n" + CONFERMA_VIVO)
+                cfg["dal_vivo"] = input("Scrivi SI per attivarla: ").strip().lower() in ("si", "sì")
+            salva_config(cfg)
         elif r == "0":
             return
 
