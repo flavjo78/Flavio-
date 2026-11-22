@@ -119,6 +119,9 @@ class App:
         import tkinter as tk
         self.tk, self.root, self.cfg_path, self.iters = tk, root, cfg_path, iters
         self.cfg = annotazioni.carica_config(cfg_path)
+        if self.cfg.get("dal_vivo"):  # ogni apertura riparte in RIPASSO: «Dal vivo» va riacceso con la password
+            self.cfg["dal_vivo"] = False
+            annotazioni.aggiorna_config({"dal_vivo": False}, cfg_path)
         from .partita import carica
         self.partita = carica()
         root.title("Poker Coach")
@@ -339,6 +342,10 @@ class App:
         self.ultimo = None
 
     # ------------------------------------------------------------ diario
+    def _salva_cfg(self):
+        annotazioni.aggiorna_config({k: self.cfg[k] for k in ("dal_vivo", "diario_partita", "pw_vivo")
+                                     if k in self.cfg}, self.cfg_path)
+
     def _stato(self, testo, col="mut"):
         self.stato_lbl.config(text=testo, fg=COL[col])
 
@@ -354,7 +361,7 @@ class App:
             pid = self._storia().nuova_partita(gioco="finestra del coach",
                                                note="dal vivo" if self.cfg.get("dal_vivo") else "ripasso")
             self.cfg["diario_partita"] = pid
-            annotazioni.salva_config(self.cfg, self.cfg_path)
+            self._salva_cfg()
         return pid
 
     def ho_fatto(self, tipo):
@@ -431,7 +438,7 @@ class App:
         analisi = analizza(self._storia(), pid)
         path = salva_pagina(analisi, "ripassi")
         self.cfg["diario_partita"] = None  # la prossima mano apre una partita nuova
-        annotazioni.salva_config(self.cfg, self.cfg_path)
+        self._salva_cfg()
         self._stato(f"Ripasso pronto: {path}", "verde")
         if apri:
             import os
@@ -442,11 +449,27 @@ class App:
     def imposta_vivo(self, vivo, chiedi=True):
         if vivo and not self.cfg.get("dal_vivo"):
             if chiedi:
-                from tkinter import messagebox
+                from tkinter import messagebox, simpledialog
                 if not messagebox.askyesno("Modalità dal vivo", CONFERMA_VIVO, parent=self.root):
                     return
+                if not self.cfg.get("pw_vivo"):
+                    nuova = simpledialog.askstring("Password", "Scegli una password per «Dal vivo» "
+                                                   "(almeno 4 caratteri).\nServirà ogni volta.", show="•",
+                                                   parent=self.root)
+                    if not nuova:
+                        return
+                    try:
+                        annotazioni.imposta_password(self.cfg, nuova)
+                    except ValueError as e:
+                        messagebox.showerror("Password", str(e), parent=self.root)
+                        return
+                pw = simpledialog.askstring("Password", "Password per accendere «Dal vivo»:", show="•",
+                                            parent=self.root)
+                if not annotazioni.password_giusta(self.cfg, pw):
+                    messagebox.showerror("Password", "Password sbagliata: resto in Ripasso.", parent=self.root)
+                    return
         self.cfg["dal_vivo"] = bool(vivo)
-        annotazioni.salva_config(self.cfg, self.cfg_path)
+        self._salva_cfg()
         self._aggiorna_modo()
 
     def _aggiorna_modo(self):

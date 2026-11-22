@@ -34,6 +34,35 @@ def salva_config(cfg, path=CONFIG):
         json.dump(cfg, f, ensure_ascii=False, indent=1)
 
 
+def aggiorna_config(chiavi, path=CONFIG):
+    """Aggiorna SOLO le voci indicate, rileggendo il file: due programmi aperti non si cancellano a vicenda."""
+    cfg = carica_config(path)
+    cfg.update(chiavi)
+    salva_config(cfg, path)
+    return cfg
+
+
+def imposta_password(cfg, password):
+    """Salva solo l'impronta (PBKDF2 con sale), mai la password in chiaro."""
+    import hashlib
+    import os as _os
+    if len(password) < 4:
+        raise ValueError("La password deve avere almeno 4 caratteri")
+    sale = _os.urandom(16)
+    cfg["pw_vivo"] = {"sale": sale.hex(),
+                      "impronta": hashlib.pbkdf2_hmac("sha256", password.encode(), sale, 200_000).hex()}
+
+
+def password_giusta(cfg, password):
+    import hashlib
+    import hmac
+    pw = cfg.get("pw_vivo")
+    if not pw:
+        return False
+    calc = hashlib.pbkdf2_hmac("sha256", (password or "").encode(), bytes.fromhex(pw["sale"]), 200_000).hex()
+    return hmac.compare_digest(calc, pw["impronta"])
+
+
 def gioco_aperto(ultima):
     """True se la finestra del gioco registrato è ancora aperta."""
     if not ultima:
@@ -98,7 +127,26 @@ def rivedi(cfg, db="storia.db", apri=True):
         return None
     from .storia import Storia
     u = cfg["ultima"]
-    analisi = analizza(Storia(db), u.get("partita"))
+    st = Storia(db)
+    ha_mani = st.db.execute("SELECT COUNT(*) FROM mani WHERE partita_id=?", (u.get("partita"),)).fetchone()[0]
+    if not ha_mani and os.path.isdir(u["cartella"]):
+        from .calibra import carica as carica_cal
+        cal = carica_cal()
+        if cal:
+            from .partita import carica as carica_partita
+            from .ricostruisci import analizza_registrazione
+            p = carica_partita()
+            print("Analizzo le foto della partita (può volerci un po')...")
+            esito = analizza_registrazione(u["cartella"], st, u.get("partita"), cal, p.bb if p else 20,
+                                           p.ante if p else 0, titolo=u.get("titolo"))
+            if esito["bloccata"]:
+                print("Partita registrata su un sito a soldi veri: il lettore non la analizza.")
+            else:
+                print(f"Foto lette: {esito['foto']} (sicure {esito['sicure']}), mani ricostruite: {esito['mani']}")
+                if esito.get("incerte"):
+                    print("Zone lette con dubbi (insegnale con LETTORE.bat): " +
+                          ", ".join(f"{z} ({n})" for z, n in esito["incerte"][:6]))
+    analisi = analizza(st, u.get("partita"))
     if analisi is None:
         analisi = {"partita": u.get("partita"), "mani": [], "n_mani": 0, "n_decisioni": 0,
                    "accordo": None, "gravi": 0, "risultato": 0}
@@ -157,7 +205,16 @@ def menu():
             else:
                 from .finestra import CONFERMA_VIVO
                 print("\n" + CONFERMA_VIVO)
-                cfg["dal_vivo"] = input("Scrivi SI per attivarla: ").strip().lower() in ("si", "sì")
+                if not cfg.get("pw_vivo"):
+                    print("Prima scegli una password: servirà ogni volta per accendere «Dal vivo».")
+                    try:
+                        imposta_password(cfg, input("Nuova password: "))
+                    except ValueError as e:
+                        print(e)
+                        continue
+                cfg["dal_vivo"] = password_giusta(cfg, input("Password per «Dal vivo»: "))
+                if not cfg["dal_vivo"]:
+                    print("Password sbagliata: resto in RIPASSO.")
             salva_config(cfg)
         elif r == "0":
             return

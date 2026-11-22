@@ -44,6 +44,18 @@ e zip per Claude, interruttore acceso/spento (in `annotazioni.json`). La finestr
 e la modalità è «Dal vivo», si riempie da sola ogni secondo e chiede il consiglio quando tocca a te.
 **Non legge mai le finestre dei siti a soldi veri** (elenco in `lettore.SITI_SOLDI_VERI`).
 
+**Ricostruzione delle mani a partita finita** (`coach/ricostruisci.py`): dalle letture foto dopo foto capisce inizio
+mano (carte tue nuove), fasi (0/3/4/5 carte), puntate degli altri (call/bet/raise/all-in) e le TUE decisioni (quando
+tocca a te fotografa piatto, da pagare, stack; poi guarda se la tua puntata sale, se le carte spariscono = fold, se
+la fase avanza senza puntare = check/call). Risultato = stack della mano dopo − stack di questa. Letture incerte
+saltate. `analizza_registrazione()` lo fa su una cartella di foto (usa gli orari di `indice.csv`) e salva nell'archivio;
+Annotazioni → Rivedi e LETTORE → "Analizza una partita registrata" aprono poi il ripasso. Riconoscimento: soglia
+alta, oppure soglia minima + distacco netto dalla seconda etichetta (0 e 8 ambigui = domanda, non tentativo).
+
+**Lucchetto "Dal vivo"**: password (impronta PBKDF2 con sale in `annotazioni.json`, mai in chiaro), richiesta a ogni
+accensione; la finestra riparte sempre in Ripasso; le impostazioni sono aggiornate voce per voce (`aggiorna_config`)
+così finestra e LETTORE aperti insieme non si cancellano a vicenda.
+
 Per Zoom e i siti a soldi veri: solo ripasso a sessione finita dalla cronologia delle mani (vedi `GUIDA-ZOOM.txt`).
 
 ## Finestra del coach (COACH.bat)
@@ -140,6 +152,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/ricostruisci.py` ricostruzione delle mani dalle foto, a partita finita.
 - `coach/lettore.py` e `coach/lettore_app.py`: lettore del tavolo (spento di default) e app per insegnargli.
 - `coach/calibra.py` calibrazione: le zone del tavolo disegnate dal giocatore.
 - `coach/finestra.py` la finestra del coach con l'interruttore Ripasso / Dal vivo.

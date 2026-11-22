@@ -40,6 +40,25 @@ CALIBRAZIONE - disegna la finestra (una volta sola, prima di IMPARA)
      esattamente dove guardare.
   Se cambi gioco o tavolo (es. da 6 a 9 posti), rifai la calibrazione.
 
+GUARDA TUTTE LE MANI E DOPO TI DICE COME AVREBBE GIOCATO IL COACH (per qualsiasi gioco)
+  1. Prima volta: CALIBRA.bat, poi LETTORE.bat -> "Insegna e prova" su alcune foto del gioco.
+  2. Ogni partita: ANNOTAZIONI.bat -> 1) Registra una partita. Giochi da solo: il programma salva
+     solo le foto, non legge e non consiglia niente. A fine partita premi INVIO e chiudi il gioco.
+  3. ANNOTAZIONI.bat -> 2) Rivedi: legge tutte le foto, ricostruisce le mani (tue carte, tavolo,
+     puntate, le tue decisioni, quanto hai vinto o perso) e apre il ripasso con i grafici: mano per
+     mano cosa hai fatto tu e cosa avrebbe fatto il coach.
+     (Lo stesso da LETTORE.bat -> "Analizza una partita registrata", per le foto fatte con IMPARA.)
+  Se qualche foto ha zone dubbie te lo dice: insegnale con LETTORE.bat e rifai l'analisi.
+  Non funziona sulle partite dei siti a soldi veri: li' si usa la cronologia delle mani.
+
+IL LUCCHETTO DELLA MODALITA' "DAL VIVO"
+  - La prima volta che accendi "Dal vivo" scegli una PASSWORD: servira' ogni volta.
+    Il programma salva solo un'impronta cifrata, non la password.
+  - Ogni volta che apri il coach riparte in RIPASSO: "Dal vivo" va riacceso con la password.
+  - Sui siti a soldi veri il lettore non legge mai, con o senza password.
+  - Se dimentichi la password: cancella la riga "pw_vivo" dal file annotazioni.json e ne scegli
+    una nuova.
+
 LETTORE DEL TAVOLO (LETTORE.bat) - spento finche' non lo accendi tu
   1. Dopo CALIBRA e IMPARA: doppio clic su LETTORE.bat -> "Insegna e prova sulle foto registrate"
      e scegli la cartella delle foto (dentro "sessioni").

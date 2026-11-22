@@ -192,17 +192,41 @@ class Modelli:
         self._salva("caratteri", etichetta, matrice)
 
     @staticmethod
-    def _migliore(lista, m, colore=None):
-        best, score = None, 0.0
+    def _classifica(lista, m, colore=None):
+        """Per ogni etichetta il punteggio migliore, dal più alto al più basso."""
+        punti = {}
         for etich, mod, col in lista:
             if colore and col and col != colore:
                 continue
             if mod.shape != m.shape:
                 continue
             s = somiglianza(mod, m)
-            if s > score:
-                best, score = etich, s
-        return best, score
+            if s > punti.get(etich, -1):
+                punti[etich] = s
+        return sorted(punti.items(), key=lambda kv: -kv[1])
+
+    @classmethod
+    def _migliore(cls, lista, m, colore=None):
+        c = cls._classifica(lista, m, colore)
+        return c[0] if c else (None, 0.0)
+
+    @classmethod
+    def _accetta(cls, lista, m, colore, soglia, minima, distacco=0.08):
+        """Riconosciuto se supera la soglia, oppure se supera la minima ED è nettamente davanti agli altri."""
+        c = cls._classifica(lista, m, colore)
+        if not c:
+            return None
+        etich, s = c[0]
+        secondo = c[1][1] if len(c) > 1 else 0.0
+        if s >= soglia or (s >= minima and s - secondo >= distacco):
+            return etich
+        return None
+
+    def riconosci_carta(self, m, colore):
+        return self._accetta(self.carte, m, colore, SOGLIA_CARTA, 0.84)
+
+    def riconosci_glifo(self, m):
+        return self._accetta(self.glifi, m, None, SOGLIA_GLIFO, 0.80)
 
     def vuoto(self):
         return not self.carte and not self.glifi
@@ -290,8 +314,8 @@ class Lettore:
         if mask is None:
             return None
         m = _normalizza(mask, FORMA_CARTA)
-        etich, s = self.mod.carta(m, colore)
-        if etich is None or s < SOGLIA_CARTA:
+        etich = self.mod.riconosci_carta(m, colore)
+        if etich is None:
             lettura.sconosciuti.append(Sconosciuto("carta", nome, m, crop, colore))
             lettura.incerti.append(nome)
             return "?"
@@ -308,8 +332,8 @@ class Lettore:
         testo, dubbi = "", False
         for x0, x1 in glifi:
             g = glifo_normalizzato(mask, x0, x1, riga)
-            etich, s = self.mod.glifo(g)
-            if etich is None or s < SOGLIA_GLIFO:
+            etich = self.mod.riconosci_glifo(g)
+            if etich is None:
                 dubbi = True
                 testo += "?"
                 y0, y1 = riga

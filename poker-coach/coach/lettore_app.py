@@ -121,6 +121,11 @@ class App:
         self._lab(f, "Scegli una cartella in «sessioni» (le foto di IMPARA o di ANNOTAZIONI). Per ogni carta o cifra "
                      "nuova ti chiedo cos'è; alla fine creo il report e lo zip da mandare a Claude.",
                   9, col="#a3acb9", wraplength=660, justify="left").pack(anchor="w", pady=(4, 16))
+        self._btn(f, "Analizza una partita registrata e apri il ripasso…", self.analizza_partita, col="#7cc4ff") \
+            .pack(fill="x")
+        self._lab(f, "A partita finita: legge tutte le foto, ricostruisce le mani e ti mostra come avrebbe "
+                     "giocato il coach. Insegna prima le cose nuove con il tasto sopra.",
+                  9, col="#a3acb9", wraplength=660, justify="left").pack(anchor="w", pady=(4, 16))
         self._lab(f, "Lettore automatico nella finestra del coach:", 11, True).pack(anchor="w")
         self._btn(f, ("● ACCESO: premi per spegnere" if attivo else "SPENTO: premi per accendere"),
                   self.interruttore, col="#ffd27a" if attivo else "#9ff0c4").pack(anchor="w", pady=6)
@@ -138,9 +143,40 @@ class App:
                                        "modalità «Dal vivo», riempie da solo il coach. Solo per partite contro il "
                                        "computer. Non funziona sui siti a soldi veri.", parent=self.root):
                 return
-        self.cfg["lettore_attivo"] = not self.cfg.get("lettore_attivo")
-        annotazioni.salva_config(self.cfg)
+        self.cfg = annotazioni.aggiorna_config({"lettore_attivo": not self.cfg.get("lettore_attivo")})
         self._menu()
+
+    def analizza_partita(self, cartella=None, apri=True):
+        from tkinter import filedialog
+        from .partita import carica as carica_partita
+        from .ricostruisci import analizza_registrazione
+        from .ripasso import analizza, salva_pagina
+        from .storia import Storia
+        if cartella is None:
+            cartella = filedialog.askdirectory(title="Cartella della partita registrata",
+                                               initialdir="sessioni" if os.path.isdir("sessioni") else ".")
+            if not cartella:
+                return None
+        st = Storia("storia.db")
+        pid = st.nuova_partita(gioco=self.cal.titolo, note="analisi delle foto: " + os.path.basename(cartella))
+        p = carica_partita()
+        self.msg.config(text="Analizzo le foto…", fg="#a3acb9")
+        self.root.update()
+        esito = analizza_registrazione(cartella, st, pid, self.cal, p.bb if p else 20, p.ante if p else 0,
+                                       avanzamento=lambda i, n: (self.msg.config(text=f"Analizzo le foto… {i}/{n}"),
+                                                                 self.root.update()))
+        if esito["bloccata"]:
+            self.msg.config(text="Partita su un sito a soldi veri: il lettore non la analizza.", fg="#ffd27a")
+            return None
+        path = salva_pagina(analizza(st, pid), "ripassi")
+        dubbi = ", ".join(f"{z.replace('_', ' ')} ({n})" for z, n in esito.get("incerte", [])[:5])
+        self.msg.config(text=f"Foto: {esito['foto']} (lette con sicurezza {esito['sicure']}) · mani: {esito['mani']}\n"
+                             f"Ripasso: {os.path.abspath(path)}" + (f"\nZone con dubbi: {dubbi}" if dubbi else ""),
+                        fg="#9ff0c4")
+        if apri:
+            import webbrowser
+            webbrowser.open("file:///" + os.path.abspath(path).replace(os.sep, "/"))
+        return path
 
     # ------------------------------------------------------------ insegna + report
     def scegli_cartella(self):
@@ -229,10 +265,9 @@ class App:
             self._prossima()  # rilegge la stessa foto con quello che ha imparato
 
     def _riconosciuto(self, x):
-        from .lettore import SOGLIA_CARTA, SOGLIA_GLIFO
         if x.tipo == "carta":
-            return self.lett.mod.carta(x.matrice, x.colore)[1] >= SOGLIA_CARTA
-        return self.lett.mod.glifo(x.matrice)[1] >= SOGLIA_GLIFO
+            return self.lett.mod.riconosci_carta(x.matrice, x.colore) is not None
+        return self.lett.mod.riconosci_glifo(x.matrice) is not None
 
     def _salta_foto(self):
         self.coda = []
