@@ -134,6 +134,22 @@ def _campione(img, punti=60000):
     return raw[::passo]
 
 
+def _pixel_campione(img, pixel=15000):
+    """Circa 15.000 pixel interi (4 byte ciascuno) presi in modo uniforme dall'immagine."""
+    raw = img.raw
+    n = len(raw) // 4
+    passo = max(1, n // pixel)
+    return b"".join(raw[i * 4:i * 4 + 4] for i in range(0, n, passo))
+
+
+def quasi_nera(campione, soglia=12, quota=0.98):
+    """True se quasi tutti i punti del campione sono neri: il gioco blocca le foto o è a schermo intero."""
+    if not campione:
+        return False
+    neri = sum(1 for i in range(0, len(campione) - 2, 4) if max(campione[i], campione[i + 1], campione[i + 2]) <= soglia)
+    return neri / max(1, len(campione) // 4) >= quota
+
+
 def differenza(a, b, tolleranza=16):
     """Frazione di punti campione cambiati tra due catture (0 = identiche)."""
     if a is None or b is None or len(a) != len(b):
@@ -152,6 +168,9 @@ def foto(titolo, file="foto_gioco.png"):
         img = sct.grab(f.area)
         mss.tools.to_png(img.rgb, img.size, output=file)
     avviso = "  ATTENZIONE: un'altra finestra la copre in parte" if coperta(f) else ""
+    if quasi_nera(_pixel_campione(img)):
+        avviso += ("  ATTENZIONE: la foto è NERA (il gioco blocca le catture o è a schermo intero: "
+                   "mettilo in finestra)")
     print(f"Salvata {file}: {f}{avviso}")
     return file, f
 
@@ -236,6 +255,13 @@ def registra(titolo, cartella="registrazioni", intervallo=1.0, soglia=0.003,
 
                 img = sct.grab(f.area)
                 camp = _campione(img)
+                if quasi_nera(_pixel_campione(img)):
+                    if "nera" not in avvisi:
+                        log("ATTENZIONE: le foto escono NERE. Il gioco blocca le catture dello schermo oppure è "
+                            "a schermo intero: mettilo in finestra. Se resta nero, il gioco non permette le foto.")
+                        avvisi.add("nera")
+                else:
+                    avvisi.discard("nera")
                 diff = differenza(camp, ultimo_campione)
                 if diff >= soglia:
                     salvate += 1

@@ -95,5 +95,7 @@ CONSIGLI
 
 SE QUALCOSA NON VA
   - "Python non e' installato" -> rifai il PASSO 1 ricordando la spunta "Add python.exe to PATH".
-  - Le foto sono nere -> il gioco e' a schermo intero: mettilo in finestra.
+  - Le foto sono nere (il programma te lo dice) -> il gioco e' a schermo intero: mettilo in
+    finestra. Se restano nere, il gioco blocca le foto dello schermo: il programma NON aggira
+    il blocco. Dillo a Claude: se il gioco salva la cronologia delle mani in un file, si usa quella.
   - Qualsiasi altro errore -> fai una foto della finestra nera e mandala a Claude.

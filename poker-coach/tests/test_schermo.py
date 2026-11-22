@@ -59,3 +59,27 @@ class T(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class Nera(unittest.TestCase):
+    def test_quasi_nera(self):
+        self.assertTrue(schermo.quasi_nera(bytes([0, 0, 0, 255]) * 1000))
+        self.assertFalse(schermo.quasi_nera(bytes([30, 120, 60, 255]) * 1000))
+        mista = bytes([0, 0, 0, 255]) * 900 + bytes([200, 200, 200, 255]) * 100
+        self.assertFalse(schermo.quasi_nera(mista))
+
+    def test_avviso_in_registrazione(self):
+        import tempfile
+        orig = (schermo.trova, schermo.aggiorna, schermo._MSS, schermo.coperta)
+        schermo.trova = lambda t: schermo.Finestra("Poker", 7, 0, 0, 100, 80)
+        schermo.aggiorna = lambda f: f
+        schermo.coperta = lambda f: False
+        schermo._MSS = FakeMSS
+        FakeMSS.sequenza = [None, 0]
+        log = []
+        try:
+            with tempfile.TemporaryDirectory() as d:
+                schermo.registra("poker", d, intervallo=0, durata=0.2, log=log.append)
+        finally:
+            schermo.trova, schermo.aggiorna, schermo._MSS, schermo.coperta = orig
+        self.assertEqual(sum("NERE" in m for m in log), 1, log)  # avvisa una volta sola
