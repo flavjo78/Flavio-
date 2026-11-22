@@ -89,7 +89,8 @@ def _preflop(s, hole, iters):
     if s.ante:
         adv.reasons.append(f"con l'ante il piatto è più ricco: è come avere {eff_eq:.1f} bb")
     unopened = s.to_call <= s.bb  # nessun rilancio davanti a te (al massimo limp)
-    gratis = "CHECK" if s.to_call == 0 else "FOLD"
+    # prima del flop solo il big blind può passare gratis
+    gratis = "CHECK" if s.to_call == 0 and s.position == "BB" else "FOLD"
 
     # ---- stack corto: tabelle push/fold di Nash
     if eff_eq <= PUSHFOLD_SOTTO:

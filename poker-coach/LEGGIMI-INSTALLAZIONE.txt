@@ -18,6 +18,16 @@ PASSO 3 - Installa il programma (una volta sola)
   2. Se compare "Windows ha protetto il PC": premi "Ulteriori informazioni" e poi "Esegui comunque".
   3. Aspetta la scritta INSTALLAZIONE COMPLETATA, poi premi un tasto per chiudere.
 
+PRIMA DI GIOCARE - La tua partita
+  1. Doppio clic su PARTITA.bat e rispondi alle domande (INVIO = valore proposto):
+     torneo o cash, posti del tavolo (6, 9...), giocatori seduti, bui, ante, stack iniziale,
+     posti a premio, ogni quanti minuti salgono i bui (0 = non lo so: lo impara lui).
+  2. Il coach usa questi dati per scegliere le mani giuste e le tabelle push/fold.
+
+TABELLE PUSH/FOLD (per studiarle)
+  Doppio clic su TABELLE.bat: scrivi quanti giocatori, la tua posizione e (se c'e') chi e' andato
+  all-in prima di te. Ogni numero = massimo stack in big blind con cui andare all-in (o pagare).
+
 STASERA - Modalita' IMPARA
   1. Apri il gioco di poker in una FINESTRA (non a schermo intero), ben visibile e non coperta.
   2. Doppio clic su IMPARA.bat
