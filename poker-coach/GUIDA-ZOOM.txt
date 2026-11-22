@@ -1,0 +1,26 @@
+GUIDA ZOOM (fast fold) - come si gioca e come ripassare
+=======================================================
+
+COS'E' ZOOM
+  Appena lasci una mano (fold) vieni spostato subito a un altro tavolo, con avversari nuovi.
+  Si giocano molte piu' mani all'ora e quasi non rivedi mai gli stessi avversari.
+
+COSA CAMBIA NELLA STRATEGIA
+  1. Conta soprattutto la POSIZIONE. Senza conoscere gli avversari, la tua arma e' giocare bene
+     la tua posizione: stretto nelle prime (UTG, MP), piu' largo da CO e bottone.
+  2. Si gioca piu' STRETTO. Chi foldа aspetta solo mani buone (tanto passa subito alla prossima):
+     i rilanci in Zoom sono in media piu' forti. Rispetta i rilanci delle prime posizioni.
+  3. Ruba meno i bui "a occhio": i bui in Zoom difendono e rilanciano di piu' che ai tavoli normali.
+  4. Statistiche sugli avversari: servono poco (li incontri raramente). Il coach usa quindi la
+     strategia di base, non lo sfruttamento dei difetti.
+  5. Disciplina: le mani scorrono veloci, e' facile giocare "per noia". Se non e' una mano da
+     giocare, fold senza pensarci.
+
+COME RIPASSARE DOPO (MAI DURANTE IL GIOCO)
+  - Su PokerStars e sugli altri siti a soldi veri il coach non si usa mentre giochi e il lettore
+    dello schermo non legge: e' una regola del programma e dei siti.
+  - Dopo la sessione: la CRONOLOGIA DELLE MANI salvata dal sito (ogni mano, anche a Zoom) si potra'
+    caricare nel programma per il ripasso con i grafici: dove ti sei allontanato dal coach, cosa
+    avrebbe fatto lui, risultato reale contro la stima, errori piu' frequenti.
+  - Il lettore della cronologia e' il prossimo pezzo da costruire: manda a Claude un file di
+    cronologia di una tua sessione (puoi togliere il tuo nome utente).

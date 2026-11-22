@@ -31,6 +31,21 @@ tuo per primo e poi in senso orario), puntate, bottone, tasti di gioco, bui. Le 
 finestra (`calibrazione.json`, valgono anche se la ridimensioni), con `calibrazione/anteprima.png` e i ritagli di ogni
 zona. Finiscono nello zip di IMPARA: sono la base del lettore automatico del tavolo.
 
+## Lettore del tavolo (LETTORE.bat) — spento di default
+`coach/lettore.py` è **generico**: dove guardare lo sa dalla calibrazione (angolo di ogni carta, numeri di piatto,
+stack e puntate, gettone del bottone, zona dei tasti), cosa c'è lo impara dal giocatore. Carte: fondo chiaro =
+carta presente, inchiostro nero/rosso normalizzato e confrontato con i modelli insegnati. Numeri: testo staccato
+dallo sfondo, diviso in pezzi, ogni pezzo confrontato con i modelli (le lettere si marcano «ignora»). Bottone:
+correlazione normalizzata (FFT) con il gettone calibrato, assegnato al posto più vicino. Turno: zona dei tasti non
+uniforme. Le soglie sono severe: quello che non riconosce lo chiede invece di indovinare. I modelli valgono per
+una dimensione di finestra (`lettore/modelli/<L>x<A>/`): a dimensione diversa il lettore avvisa.
+`coach/lettore_app.py`: insegna sulle foto registrate (ogni cosa chiesta una volta sola), report HTML foto per foto
+e zip per Claude, interruttore acceso/spento (in `annotazioni.json`). La finestra del coach, se il lettore è acceso
+e la modalità è «Dal vivo», si riempie da sola ogni secondo e chiede il consiglio quando tocca a te.
+**Non legge mai le finestre dei siti a soldi veri** (elenco in `lettore.SITI_SOLDI_VERI`).
+
+Per Zoom e i siti a soldi veri: solo ripasso a sessione finita dalla cronologia delle mani (vedi `GUIDA-ZOOM.txt`).
+
 ## Finestra del coach (COACH.bat)
 Finestra sul quarto destro dello schermo (`py -m coach.finestra`, Tkinter) con l'**interruttore della modalità**:
 **Ripasso** (predefinita, nessun suggerimento durante il gioco) o **Dal vivo** (suggerimenti in tempo reale, da
@@ -125,6 +140,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/lettore.py` e `coach/lettore_app.py`: lettore del tavolo (spento di default) e app per insegnargli.
 - `coach/calibra.py` calibrazione: le zone del tavolo disegnate dal giocatore.
 - `coach/finestra.py` la finestra del coach con l'interruttore Ripasso / Dal vivo.
 - `coach/annotazioni.py` e `coach/ripasso.py`: registrazione senza aiuti e ripasso a gioco chiuso.

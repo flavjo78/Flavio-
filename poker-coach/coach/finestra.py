@@ -138,6 +138,8 @@ class App:
         self._costruisci()
         self._aggiorna_modo()
         root.bind("<Return>", lambda e: self.consiglia())
+        self._lettore, self._ultima_lettura = None, None
+        root.after(1500, self._ciclo_lettore)
 
     # ------------------------------------------------------------ layout
     def _posiziona(self):
@@ -460,6 +462,60 @@ class App:
             self.msg_modo.config(text="Nessun consiglio mentre giochi: annota le mosse, "
                                       "a fine partita vedrai cosa avrebbe fatto il coach.")
             self.zona_consiglio.pack_forget()
+
+    # ------------------------------------------------------------ lettore automatico (spento di default)
+    def _ciclo_lettore(self):
+        try:
+            self.passo_lettore()
+        except Exception as e:  # il lettore non deve mai bloccare la finestra
+            self._stato(f"Lettore: errore ({e})", "rosso")
+        self.root.after(1000, self._ciclo_lettore)
+
+    def passo_lettore(self, img=None, titolo=None):
+        """Una lettura: se il lettore è acceso e sei «Dal vivo», riempie i campi. Ritorna la lettura."""
+        cfg = annotazioni.carica_config(self.cfg_path)
+        if not cfg.get("lettore_attivo") or not self.cfg.get("dal_vivo"):
+            return None
+        from . import lettore, schermo
+        from .calibra import carica as carica_cal
+        if self._lettore is None:
+            cal = carica_cal()
+            if not cal:
+                self._stato("Lettore acceso ma manca la calibrazione (CALIBRA.bat).", "oro")
+                return None
+            self._lettore = lettore.Lettore(cal)
+        if img is None:
+            f = schermo.trova(self._lettore.cal.titolo[:40]) if self._lettore.cal.titolo else None
+            if f is None or f.minimizzata:
+                self._stato("Lettore: non trovo la finestra del gioco calibrata.", "oro")
+                return None
+            titolo = f.titolo
+            if lettore.bloccato(titolo):
+                self._stato("Lettore fermo: sito a soldi veri.", "oro")
+                return None
+            from PIL import Image
+            with schermo._MSS() as sct:
+                g = sct.grab(f.area)
+                img = Image.frombytes("RGB", g.size, g.rgb)
+        l = self._lettore.leggi(img, titolo or "")
+        if l.bloccata or l.avvisi:
+            self._stato("Lettore: " + " ".join(l.avvisi), "oro")
+            return l
+        if not l.sicura():
+            self._stato("Lettore: non sono sicuro di " + ", ".join(z.replace("_", " ") for z in l.incerti[:4]) +
+                        " (LETTORE.bat per insegnarmelo)", "oro")
+            return l
+        campi = lettore.situazione_da_lettura(l, None, self._lettore.cal.n_posti)
+        cambiato = campi != self._ultima_lettura
+        if cambiato:
+            for k, v in campi.items():
+                if k in self.v:
+                    self.v[k].set(v)
+            self._ultima_lettura = campi
+        self._stato("Lettore: letto ✓" + (" · tocca a te" if l.tocca_a_me else ""), "verde")
+        if cambiato and l.tocca_a_me and len(l.mie_carte) == 2:
+            self.consiglia()
+        return l
 
     def campi(self):
         c = {k: v.get() for k, v in self.v.items()}

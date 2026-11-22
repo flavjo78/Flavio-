@@ -40,6 +40,21 @@ CALIBRAZIONE - disegna la finestra (una volta sola, prima di IMPARA)
      esattamente dove guardare.
   Se cambi gioco o tavolo (es. da 6 a 9 posti), rifai la calibrazione.
 
+LETTORE DEL TAVOLO (LETTORE.bat) - spento finche' non lo accendi tu
+  1. Dopo CALIBRA e IMPARA: doppio clic su LETTORE.bat -> "Insegna e prova sulle foto registrate"
+     e scegli la cartella delle foto (dentro "sessioni").
+  2. Ogni carta o cifra che non conosce te la mostra ingrandita: scrivi cos'e' (es. Ad, 10h, 7, €)
+     oppure "Ignora" per le lettere che non fanno parte dei numeri. Ogni cosa la chiede una volta sola.
+  3. Alla fine si apre il REPORT (cosa ha letto foto per foto) e nella cartella "pacchetti" trovi
+     poker_lettore_DATA.zip da mandare a Claude.
+  4. Interruttore: acceso + modalita' "Dal vivo" della finestra del coach = la finestra si riempie
+     da sola e il consiglio arriva quando tocca a te. Solo contro il computer. Sui siti a soldi veri
+     (PokerStars, GGPoker, 888, Sisal, Snai...) il lettore non legge mai.
+  Le cose insegnate valgono per una grandezza della finestra: se la ingrandisci te lo dice e ti
+  chiede di insegnarle di nuovo (o di rimettere la grandezza di prima).
+  NOTA: la calibrazione ora chiede l'ANGOLO di ogni carta (valore e seme) e solo i NUMERI di piatto,
+  stack e puntate. Se l'avevi gia' fatta, rifalla.
+
 STASERA - Modalita' IMPARA
   1. Apri il gioco di poker in una FINESTRA (non a schermo intero), ben visibile e non coperta.
   2. Doppio clic su IMPARA.bat

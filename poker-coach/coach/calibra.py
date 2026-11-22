@@ -22,17 +22,22 @@ COLORI = {"carte": "#ffd27a", "tavolo": "#ffd27a", "piatto": "#7cc4ff", "posto":
 
 def passi(n_posti):
     """Le zone da disegnare, in ordine: (chiave, spiegazione, obbligatoria, tipo per il colore)."""
-    p = [("mie_carte", "Le TUE due carte (un rettangolo che le contenga tutte e due)", True, "carte"),
-         ("tavolo", "Le 5 carte sul tavolo (anche se ora non ci sono: dove compaiono)", True, "tavolo"),
-         ("piatto", "Il numero del PIATTO", True, "piatto"),
-         ("posto_1", "Il TUO posto: nome e stack (le fiches che hai)", True, "posto"),
-         ("puntata_1", "Dove compare la TUA puntata (le fiches davanti a te)", False, "puntata")]
+    p = [("mia_carta_1", "L'ANGOLO della tua PRIMA carta: solo valore e seme (es. «A» e «♦»)", True, "carte"),
+         ("mia_carta_2", "L'ANGOLO della tua SECONDA carta: solo valore e seme", True, "carte"),
+         ("tavolo_1", "L'ANGOLO della 1ª carta sul tavolo (usa una foto con le carte del flop)", True, "tavolo"),
+         ("tavolo_2", "L'ANGOLO della 2ª carta sul tavolo", True, "tavolo"),
+         ("tavolo_3", "L'ANGOLO della 3ª carta sul tavolo (se salti, la ricavo dalle prime due)", False, "tavolo"),
+         ("tavolo_4", "L'ANGOLO della 4ª carta (turn), se c'è", False, "tavolo"),
+         ("tavolo_5", "L'ANGOLO della 5ª carta (river), se c'è", False, "tavolo"),
+         ("piatto", "Il NUMERO del piatto (stretto intorno alle cifre)", True, "piatto"),
+         ("posto_1", "Le TUE fiches: il NUMERO del tuo stack", True, "posto"),
+         ("puntata_1", "Dove compare il numero della TUA puntata", False, "puntata")]
     for k in range(2, n_posti + 1):
-        p.append((f"posto_{k}", f"Posto {k} (continuando in senso orario dopo il tuo): nome e stack", True, "posto"))
-        p.append((f"puntata_{k}", f"Dove compare la puntata del posto {k}", False, "puntata"))
-    p += [("bottone", "Il gettone del BOTTONE (la «D»), se lo vedi", False, "bottone"),
-          ("tasti", "I TUOI tasti di gioco (Fold / Call / Raise), se li vedi", False, "tasti"),
-          ("bui", "Dove è scritto il livello dei BUI o il tempo del torneo, se c'è", False, "bui")]
+        p.append((f"posto_{k}", f"Posto {k} (in senso orario dopo il tuo): il NUMERO delle sue fiches", True, "posto"))
+        p.append((f"puntata_{k}", f"Dove compare il numero della puntata del posto {k}", False, "puntata"))
+    p += [("bottone", "Il gettone del BOTTONE (la «D»): stretto intorno al gettone", False, "bottone"),
+          ("tasti", "La zona dove compaiono i TUOI tasti (Fold / Call / Raise)", False, "tasti"),
+          ("bui", "Dove è scritto il livello dei BUI, se c'è", False, "bui")]
     return p
 
 
@@ -142,7 +147,7 @@ class App:
         f = tk.Frame(self.root, bg="#12151b")
         f.pack(fill="both", expand=True, padx=16, pady=16)
         self._lab(f, "Calibrazione del tavolo", 16, True).pack(anchor="w")
-        self._lab(f, "1) Apri il poker in una finestra con un tavolo in corso.\n"
+        self._lab(f, "1) Apri il gioco in una finestra con un tavolo in corso (meglio dopo il flop).\n"
                      "2) Scegli qui sotto la sua finestra e premi «Fotografa».\n"
                      "   (oppure usa una foto già registrata con «Apri una foto»)",
                   10, col="#a3acb9", justify="left").pack(anchor="w", pady=(4, 10))
@@ -171,6 +176,12 @@ class App:
             self.msg.config(text="Scegli prima una finestra dall'elenco.")
             return
         fin = self.finestre[sel[0]]
+        from .lettore import bloccato
+        if bloccato(fin.titolo) and not getattr(self, "_avviso_soldi", False):
+            self._avviso_soldi = True
+            self.msg.config(text="Attenzione: è un sito a soldi veri. Su questa finestra il lettore automatico "
+                                 "NON leggerà mai. Premi di nuovo per fotografarla lo stesso.")
+            return
         if fin.minimizzata:
             self.msg.config(text="Quella finestra è ridotta a icona: aprila e riprova.")
             return
