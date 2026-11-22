@@ -84,8 +84,8 @@ def _preflop(s, hole, iters):
     adv = Advice("FOLD", equity=eq, pot_odds=po)
     eff = (s.stack_eff if s.stack_eff else s.stack) / s.bb
     eff_eq = pushfold.stack_equivalente(eff, s.ante / s.bb, s.n_players)
-    adv.reasons.append(f"{cls}: tra il {p:.0%} migliore delle mani · {eff:.0f} bb effettivi · "
-                       f"tavolo da {s.n_players}, sei {s.position}")
+    forza = "tra le mani migliori in assoluto" if p < 0.02 else f"nel {p:.0%} migliore delle mani"
+    adv.reasons.append(f"{cls}: {forza} · {eff:.0f} bb effettivi · tavolo da {s.n_players}, sei {s.position}")
     if s.ante:
         adv.reasons.append(f"con l'ante il piatto è più ricco: è come avere {eff_eq:.1f} bb")
     unopened = s.to_call <= s.bb  # nessun rilancio davanti a te (al massimo limp)

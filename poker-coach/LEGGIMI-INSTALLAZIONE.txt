@@ -39,6 +39,18 @@ STASERA - Modalita' IMPARA
   7. Si apre da sola la cartella "pacchetti" con il file poker_impara_DATA.zip
      -> caricalo nella chat con Claude.
 
+ANNOTAZIONI (registra senza aiuti, rivedi dopo)
+  Doppio clic su ANNOTAZIONI.bat. Menu:
+   1) Registra una partita: salva solo le foto, NESSUN suggerimento durante il gioco.
+      A fine partita premi INVIO.
+   2) Rivedi l'ultima partita con i suggerimenti: si apre una pagina nel browser con ogni tua
+      decisione confrontata con quella del coach (d'accordo / diverso / da rivedere).
+      Funziona SOLO se i suggerimenti sono accesi E il gioco e' chiuso.
+   3) Accendi / spegni i suggerimenti del ripasso (all'inizio sono spenti).
+   4) Prepara gli zip da caricare nella chat con Claude.
+  Nota: le decisioni compariranno nel ripasso quando il programma sapra' leggere il tavolo;
+  fino ad allora il ripasso mostra le foto della partita.
+
 DOPO OGNI PARTITA - Risultati
   1. Doppio clic su RISULTATI.bat
   2. Scrivi com'e' andata (facoltativo) e premi INVIO.

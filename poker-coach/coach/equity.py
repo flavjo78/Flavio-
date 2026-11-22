@@ -101,7 +101,13 @@ def count_outs(hole, board):
     return outs
 
 
+NOMI_IT = {"Straight Flush": "scala colore", "Four of a Kind": "poker", "Full House": "full",
+           "Flush": "colore", "Straight": "scala", "Three of a Kind": "tris", "Two Pair": "doppia coppia",
+           "Pair": "coppia", "High Card": "carta alta"}
+
+
 def made_hand_name(hole, board):
     if len(board) < 3:
         return hand_class(hole)
-    return _ev.class_to_string(_ev.get_rank_class(_ev.evaluate(board, hole)))
+    nome = _ev.class_to_string(_ev.get_rank_class(_ev.evaluate(board, hole)))
+    return NOMI_IT.get(nome, nome)

@@ -24,6 +24,14 @@ py -m coach --hole "Ac 3d" --board "Ks Qd 9h" --pot 150 --call 120 --tipo maniac
 - `--pot` = piatto totale **inclusa** la puntata che affronti; `--call` = quanto devi pagare (0 = puoi passare).
 - `--pos` UTG, MP, CO, BTN, SB, BB · `--opp` avversari in mano · `--tipo` sasso, stazione, maniaco, pauroso, regolare.
 
+## Annotazioni: registra senza aiuti, rivedi dopo
+**ANNOTAZIONI.bat** (o `py -m coach.annotazioni`): durante la partita registra SOLO foto, senza analizzare
+né consigliare nulla. A partita finita il **ripasso** (pagina HTML in `ripassi/`) confronta ogni tua decisione
+con quella del coach: d'accordo / diverso / da rivedere, con equity, pot odds e motivi, più le foto.
+Il ripasso si apre solo se l'**interruttore dei suggerimenti** è acceso (di default è spento) **e** la finestra
+del gioco registrato è chiusa. È il modo pensato per le partite in cui gli aiuti in tempo reale non sono ammessi:
+controlla comunque il regolamento del sito, alcuni vietano anche la sola registrazione dello schermo.
+
 ## La partita: giocatori, bui, torneo
 **PARTITA.bat** (o `py -m coach.partita`) chiede: torneo o cash, posti del tavolo, giocatori seduti, bui, ante,
 stack iniziale, posti a premio e ogni quanti minuti salgono i bui (o "non lo so": lo impara osservando i cambi).
@@ -94,6 +102,7 @@ foto con ora e dimensioni, in `finestra.json` la storia delle dimensioni.
 - `coach/partita.py` la partita in corso (`partita.json`).
 - `coach/storia.py` archivio permanente (partite, mani, azioni, carte mostrate, risultati, note).
 - `coach/ritratto.py` descrizione a parole degli avversari e rilevamento bot.
+- `coach/annotazioni.py` e `coach/ripasso.py`: registrazione senza aiuti e ripasso a gioco chiuso.
 - `coach/impara.py` modalità impara e pacchetto risultati (gli zip per Claude).
 - `coach/schermo.py` trova la finestra del gioco, ne misura l'area e la registra.
 - `coach/opponents.py` statistiche (VPIP, PFR, aggressività, fold a puntata) e tipo di avversario.
