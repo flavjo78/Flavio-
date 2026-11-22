@@ -110,4 +110,13 @@ def made_hand_name(hole, board):
     if len(board) < 3:
         return hand_class(hole)
     nome = _ev.class_to_string(_ev.get_rank_class(_ev.evaluate(board, hole)))
-    return NOMI_IT.get(nome, nome)
+    it = NOMI_IT.get(nome, nome)
+    if nome in ("Pair", "Two Pair", "Three of a Kind"):
+        from collections import Counter
+        mie = {Card.get_rank_int(c) for c in hole}
+        tav = Counter(Card.get_rank_int(c) for c in board)
+        hole_pair = len(mie) == 1
+        uso_le_mie = hole_pair or any(r in tav for r in mie)
+        if not uso_le_mie:
+            return f"carta alta (la {it} è sul tavolo, ce l'hanno tutti)"
+    return it
