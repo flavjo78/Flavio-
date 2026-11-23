@@ -22,7 +22,7 @@ ARG-010;Argital;CREMA SNELLENTE;200 ml;19,22;19,9;0,68;3,54;sito più caro;alta;
 ARG-011;Argital;DENTIFRICIO ALLA SALVIA;75 ml;8,41;8,41;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-salvia/;6,72;20,1;confermato sul sito
 ARG-012;Argital;CREMA RASSODANTE;200 ml;15,3;16,83;1,53;10,0;sito più caro;alta;https://www.argital.it/prodotto/crema-rassodante-flore/;13,46;20,02;confermato sul sito
 ARG-013;Argital;DENTIFRICIO ALLA MENTA;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-alla-menta/;6,4;20,0;confermato sul sito
-ARG-015;Argital;DENTIFRICIO ALLA PROPOLI;75 ml;8,55;8,41;-0,14;-1,64;sito più economico;media;https://www.argital.it/prodotto/dentifricio-alla-salvia/;6,72;20,1;confermato sul sito
+ARG-015;Argital;DENTIFRICIO ALLA PROPOLI;75 ml;8,55;8,41;-0,14;-1,64;sito più economico;da verificare (prodotto diverso?);https://www.argital.it/prodotto/dentifricio-alla-salvia/;6,72;20,1;confermato sul sito
 ARG-016;Argital;DENTIFRICIO AROMATICO;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-aromatico/;6,4;20,0;confermato sul sito
 ARG-017;Argital;DENTIFRICIO OMEOCOMPATIBILE;75 ml;8,55;8,55;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-omeobital/;6,84;20,0;confermato sul sito
 ARG-018;Argital;INTIMO VEGETALE;250 ml;10,0;10,7;0,7;7,0;sito più caro;alta;https://www.argital.it/prodotto/intimo-vegetale/;8,56;20,0;confermato sul sito
@@ -257,13 +257,13 @@ OFF-002;Officina Naturae;Shampoo per lavaggi frequenti;200 ml;9,9;9,9;0,0;0,0;ug
 OFF-003;Officina Naturae;Doccia-Shampoo NF;500 ml;9,95;9,95;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/doccia-shampoo-200-ml-500-ml-1-l-4-l;9,95;;confermato sul sito
 OFF-004;Officina Naturae;Shampoo per capelli grassi;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-grassi;9,9;;confermato sul sito
 OFF-006;Officina Naturae;Shampoo per capelli ricci;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;;confermato sul sito
-OFF-008;Officina Naturae;Shampoo per capelli secchi e doppie punte;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;;confermato sul sito
+OFF-008;Officina Naturae;Shampoo per capelli secchi e doppie punte;200 ml;9,9;9,9;0,0;0,0;uguale;da verificare (prodotto diverso?);https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;;confermato sul sito
 OFF-010;Officina Naturae;Shampoo per capelli lisci, dispiplinante;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-capelli-ricci;9,9;;confermato sul sito
 OFF-012;Officina Naturae;Shampoo per cute con fortora;200 ml;9,9;9,9;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/shampoo/shampoo-per-cute-con-forfora;9,9;;confermato sul sito
 OFF-014;Officina Naturae;Balsamo per capelli normali e fini;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;;confermato sul sito
 OFF-016;Officina Naturae;Balsamo per capelli lisci, disciplinante;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;;confermato sul sito
 OFF-018;Officina Naturae;Balsamo per capelli ricci;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;;confermato sul sito
-OFF-020;Officina Naturae;Balsamo per capelli secchi e doppie punte;150 ml;9,5;9,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;;confermato sul sito
+OFF-020;Officina Naturae;Balsamo per capelli secchi e doppie punte;150 ml;9,5;9,5;0,0;0,0;uguale;da verificare (prodotto diverso?);https://www.officinanaturae.com/it/capelli/balsamo/balsamo-per-capelli-ricci;9,5;;confermato sul sito
 OFF-021;Officina Naturae;Detergente delicato senza profumo;500 ml;8,3;8,3;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/corpo/bagnoschiuma/detergente-delicato-senza-profumo;8,3;;confermato sul sito
 OFF-022;Officina Naturae;Maschera per capelli secchi, nutriente;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;;confermato sul sito
 OFF-024;Officina Naturae;Maschera per capelli lisci, disciplinante;150 ml;12,5;12,5;0,0;0,0;uguale;alta;https://www.officinanaturae.com/it/capelli/maschere-naturali/maschera-per-capelli-ricci-districante;12,5;;confermato sul sito
@@ -487,7 +487,7 @@ SAN-090;Santiveri;RUSCUS ACULEATUS ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più 
 SAN-091;Santiveri;SANATORIUM;72 cp;10,5;10,5;0,0;0,0;uguale;alta;https://santiveri.it/products/sanatorium-41-g;10,5;;confermato sul sito
 SAN-092;Santiveri;SILICIO + MAGNESIO MARINO;60 cp;30,7;31,8;1,1;3,58;sito più caro;alta;https://santiveri.it/products/silicio-e-magnesio-marino-28gr;31,8;;confermato sul sito
 SAN-093;Santiveri;SILYBUM MARIANUM ESP FIALE;10 fl;18,4;19,2;0,8;4,35;sito più caro;alta;https://santiveri.it/products/silybum-marianum-esp-100-ml;19,2;;confermato sul sito
-SAN-095;Santiveri;TAPEZCOHUITE BIO CREMA;50 ml;12,2;12,2;0,0;0,0;uguale;alta;https://santiveri.it/products/bioconcentrato-tepezcohuite-50ml;12,2;;confermato sul sito
+SAN-095;Santiveri;TAPEZCOHUITE BIO CREMA;50 ml;12,2;12,2;0,0;0,0;uguale;da verificare (prodotto diverso?);https://santiveri.it/products/bioconcentrato-tepezcohuite-50ml;12,2;;confermato sul sito
 SAN-096;Santiveri;TRIPTOFANO;40 cp;25,9;25,9;0,0;0,0;uguale;alta;https://santiveri.it/products/triptofano-capsule-18-g;25,9;;confermato sul sito
 SAN-097;Santiveri;ULCE REFLUX stick 10 ml;16 st;12,9;12,9;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-reflux-stick;12,9;;confermato sul sito
 SAN-098;Santiveri;ULCE DIGEST concentrato fluido;240 ml;20,8;20,8;0,0;0,0;uguale;alta;https://santiveri.it/products/ulce-concentrato-fluido-240-ml;20,8;;confermato sul sito
