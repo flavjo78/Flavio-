@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Pillolario</title>
+<style>
+@font-face{font-family:"Figtree";src:url(fonts/figtree.woff2) format("woff2");font-weight:300 900;font-display:swap}
+@font-face{font-family:"Bricolage Grotesque";src:url(fonts/bricolage.woff2) format("woff2");font-weight:200 800;font-display:swap}
+html{-webkit-text-size-adjust:100%} [hidden]{display:none!important}
+
+/* Layout: una colonna da telefono; in alto il "blister" del giorno (una bolla per dose), sotto la lista a orari, barra fissa in basso. */
+:root{
+  --bg:#FAFCFB; --surface:#FFFFFF; --surface2:#EEF6F3; --ink:#27403A; --muted:#71857F; --line:#E3ECE9;
+  --accent:#17A589; --on-accent:#FFFFFF; --accent-soft:#DDF4EE;
+  --warn:#C27A0A; --warn-soft:#FFF6DF; --late:#C8503E; --late-soft:#FCE9E5;
+  --m1:#2F9E86; --m2:#E0892B; --m3:#5B74D6; --m4:#C9527A; --m5:#8A6BC9;
+  --lock:#F4FAF8; --lock-ink:#27403A;
+  --display:"Bricolage Grotesque","Trebuchet MS",system-ui,sans-serif;
+  --body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --r:20px;
+}
+/* tema unico chiaro, per scelta */
+
+*{box-sizing:border-box}
+body{margin:0;-webkit-tap-highlight-color:transparent;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.4}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none;padding:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.app{max-width:460px;margin:0 auto;padding-block:calc(18px + env(safe-area-inset-top,0px)) 130px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;gap:16px}
+.preview{align-self:flex-start;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);border:1px dashed var(--line);border-radius:99px;padding:4px 12px}
+header.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;margin:0;text-wrap:balance}
+.date{color:var(--muted);font-size:14px;font-weight:500;margin-bottom:2px}
+.bell{flex:none;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);
+  border-radius:99px;padding:9px 14px;font-weight:600;font-size:14px}
+.bell i{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+
+/* settimana */
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.day{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 0 9px;border-radius:14px;color:var(--muted)}
+.day b{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.day span{font-family:var(--display);font-weight:700;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums}
+.day.today span{color:var(--accent)}
+.day[aria-pressed="true"]{background:var(--accent);color:var(--bg)}
+.day[aria-pressed="true"] span{color:var(--bg)}
+
+/* blister */
+.blister{background:var(--surface2);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:14px}
+.blister-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.count{font-family:var(--display);font-weight:700;font-size:22px}
+.count small{font-family:var(--body);font-weight:500;font-size:14px;color:var(--muted)}
+.next{font-size:13px;font-weight:600;color:var(--muted);text-align:right}
+.cells{display:flex;flex-wrap:wrap;gap:10px}
+.cell{width:38px;height:38px;border-radius:50%;position:relative;
+  background:radial-gradient(circle at 34% 28%,var(--surface) 0 12%,transparent 46%),var(--c);
+  box-shadow:inset 0 -4px 7px rgba(0,0,0,.14),0 2px 4px rgba(0,0,0,.10);transition:transform .25s}
+.cell.out{background:var(--bg);box-shadow:inset 0 2px 4px rgba(0,0,0,.14);transform:scale(.92)}
+.cell.out::after{content:"";position:absolute;left:13px;top:10px;width:8px;height:14px;
+  border:solid var(--muted);border-width:0 2.5px 2.5px 0;transform:rotate(42deg)}
+.empty{color:var(--muted);font-size:15px;margin:0}
+
+/* dosi */
+.list{display:flex;flex-direction:column;gap:10px;list-style:none;margin:0;padding:0}
+.dose{display:grid;grid-template-columns:52px 40px minmax(0,1fr) auto;align-items:center;gap:12px;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 12px 12px 14px}
+.dose.now{border-color:var(--warn);background:var(--warn-soft)}
+.dose.done{opacity:.62}
+.time{font-family:var(--display);font-weight:700;font-size:19px;font-variant-numeric:tabular-nums}
+.name{font-weight:700;overflow-wrap:anywhere}
+.done .name{text-decoration:line-through}
+.sub{font-size:13px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 8px;align-items:center}
+.chip{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;border-radius:99px;padding:2px 8px}
+.chip.now{background:var(--warn);color:var(--bg)}
+.chip.late{background:var(--late-soft);color:var(--late)}
+.take{min-width:76px;min-height:44px;border-radius:99px;font-weight:700;font-size:14px;padding:0 14px;
+  background:var(--accent);color:var(--on-accent)}
+.take.undo{background:transparent;color:var(--muted);border:1px solid var(--line)}
+.take:disabled{background:transparent;color:var(--muted);border:1px dashed var(--line);cursor:default}
+
+/* forme */
+.shape{width:40px;height:40px;display:grid;place-items:center}
+.shape i{display:block;background:var(--c)}
+.shape.compressa i{width:28px;height:28px;border-radius:50%;background:linear-gradient(90deg,transparent 46%,var(--surface) 46% 54%,transparent 54%),var(--c)}
+.shape.capsula i{width:34px;height:16px;border-radius:99px;transform:rotate(-35deg);background:linear-gradient(90deg,var(--c) 50%,var(--surface2) 50%);box-shadow:0 0 0 1.5px var(--c)}
+.shape.gocce i{width:22px;height:22px;border-radius:0 60% 60% 60%;transform:rotate(45deg) translate(3px,3px)}
+.shape.integratore i{width:26px;height:26px;border-radius:9px;transform:rotate(12deg)}
+
+/* farmaci */
+.med{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;
+  background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.med .edit{font-size:13px;font-weight:600;color:var(--accent)}
+.dots{display:flex;gap:4px;margin-top:6px}
+.dots s{text-decoration:none;font-size:11px;font-weight:700;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
+  background:var(--surface2);color:var(--muted)}
+.dots s.on{background:var(--accent-soft);color:var(--accent)}
+h2{font-family:var(--display);font-size:20px;margin:6px 0 0}
+.hint{color:var(--muted);font-size:14px;margin:0}
+
+/* barra */
+nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surface);border-top:1px solid var(--line);
+  padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.bar-in{max-width:428px;margin:0 auto;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.tab{min-height:46px;border-radius:14px;font-weight:600;color:var(--muted)}
+.tab[aria-selected="true"]{color:var(--ink);background:var(--surface2)}
+.add{width:58px;height:58px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:32px;line-height:1;
+  margin-top:-26px;box-shadow:0 6px 16px rgba(23,165,137,.3);border:4px solid var(--bg)}
+
+/* foglio */
+.scrim{position:fixed;inset:0;z-index:20;background:rgba(4,12,10,.55);display:flex;align-items:flex-end;justify-content:center}
+.sheet{background:var(--surface);width:100%;max-width:460px;max-height:92%;overflow:auto;border-radius:26px 26px 0 0;
+  padding:20px 20px calc(20px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px;animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+@media (prefers-reduced-motion:reduce){.sheet,.notif{animation:none}.cell{transition:none}}
+.sheet h2{margin:0;font-size:24px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>label,.field>.lab{font-size:13px;font-weight:600;color:var(--muted)}
+.field input[type=text],.field input[type=time]{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;min-width:0}
+.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:10px}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{border:1px solid var(--line);border-radius:99px;padding:8px 14px;font-weight:600;font-size:14px;min-height:40px}
+.opt[aria-pressed="true"]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.opt.d{width:40px;padding:0;border-radius:50%}
+.sw{width:40px;height:40px;border-radius:50%;background:var(--c);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--accent)}
+.trow{display:flex;gap:8px;align-items:center}
+.trow button{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);color:var(--muted);font-size:20px}
+.link{align-self:flex-start;color:var(--accent);font-weight:700;font-size:14px;min-height:40px}
+.toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600}
+.toggle small{display:block;font-weight:400;color:var(--muted);font-size:13px}
+.toggle input{width:22px;height:22px;accent-color:var(--accent);flex:none}
+.err{color:var(--late);font-size:14px;font-weight:600;margin:0}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.btn{flex:1;min-height:50px;border-radius:99px;font-weight:700;background:var(--accent);color:var(--on-accent);padding:0 18px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.del{flex:none;background:transparent;color:var(--late);border:1px solid var(--late-soft)}
+
+.toast{position:fixed;left:50%;bottom:calc(104px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:25;
+  background:var(--ink);color:var(--bg);border-radius:99px;padding:10px 18px;font-weight:600;font-size:14px;max-width:calc(100% - 32px)}
+.warn{background:var(--warn-soft);border:1px solid var(--warn);border-radius:var(--r);padding:12px 14px;display:flex;gap:12px;align-items:center;justify-content:space-between;font-size:14px;font-weight:600}
+.warn button{flex:none;background:var(--warn);color:var(--bg);border-radius:99px;padding:8px 14px;font-weight:700}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header class="top">
+    <div><div class="date" id="dateLabel"></div><h1 id="title">Oggi</h1></div>
+    <button class="bell" id="bell" type="button"><i></i>Prova avviso</button>
+  </header>
+
+  <div class="warn" id="warn" hidden><span id="warnTxt"></span><button type="button" id="warnBtn">Attiva</button></div>
+
+  <section id="viewToday" style="display:flex;flex-direction:column;gap:16px">
+    <div class="week" id="week"></div>
+    <div class="blister">
+      <div class="blister-head"><div class="count" id="count"></div><div class="next" id="next"></div></div>
+      <div class="cells" id="cells" aria-hidden="true"></div>
+    </div>
+    <ul class="list" id="doses"></ul>
+  </section>
+
+  <section id="viewMeds" hidden>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <p class="hint">Tocca una scheda per cambiare orari e giorni.</p>
+      <div class="list" id="meds"></div>
+    </div>
+  </section>
+</div>
+
+<nav class="bar"><div class="bar-in" role="tablist">
+  <button class="tab" id="tabToday" role="tab" aria-selected="true" type="button">Oggi</button>
+  <button class="add" id="add" type="button" aria-label="Aggiungi promemoria">+</button>
+  <button class="tab" id="tabMeds" role="tab" aria-selected="false" type="button">Le mie pillole</button>
+</div></nav>
+
+<div class="scrim" id="scrim" hidden>
+  <form class="sheet" id="form" novalidate>
+    <h2 id="sheetTitle">Nuovo promemoria</h2>
+    <div class="two">
+      <div class="field"><label for="fName">Nome</label><input id="fName" type="text" placeholder="es. Vitamina D" autocomplete="off"></div>
+      <div class="field"><label for="fDose">Dose</label><input id="fDose" type="text" placeholder="1 compressa" autocomplete="off"></div>
+    </div>
+    <div class="field"><span class="lab">Forma</span><div class="opts" id="fForm"></div></div>
+    <div class="field"><span class="lab">Colore</span><div class="opts" id="fColor"></div></div>
+    <div class="field"><span class="lab">Orari</span><div id="fTimes" style="display:flex;flex-direction:column;gap:8px"></div>
+      <button class="link" id="addTime" type="button">+ Aggiungi un orario</button></div>
+    <div class="field"><span class="lab">Giorni</span><div class="opts" id="fDays"></div>
+      <button class="link" id="allDays" type="button">Tutti i giorni</button></div>
+    <label class="toggle" for="fInsist"><span>Insisti finché non confermo<small>Ripete l'avviso ogni 10 minuti</small></span><input id="fInsist" type="checkbox" checked></label>
+    <p class="err" id="err" hidden></p>
+    <div class="acts">
+      <button class="btn del" id="del" type="button" hidden>Elimina</button>
+      <button class="btn ghost" id="cancel" type="button">Annulla</button>
+      <button class="btn" type="submit">Salva</button>
+    </div>
+  </form>
+</div>
+
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script src="capacitor.js"></script>
+<script>
+const $=id=>document.getElementById(id);
+const DAYS=['L','M','M','G','V','S','D'], DAYN=['Lun','Mar','Mer','Gio','Ven','Sab','Dom'];
+const FORMS=[['compressa','Compressa'],['capsula','Capsula'],['gocce','Gocce'],['integratore','Integratore']];
+const COLORS=['--m1','--m2','--m3','--m4','--m5'];
+const pad=n=>String(n).padStart(2,'0');
+const key=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const dIdx=d=>(d.getDay()+6)%7;
+const mins=t=>+t.slice(0,2)*60+ +t.slice(3);
+let today=new Date(); today.setHours(0,0,0,0);
+let sel=new Date(today), editing=null, draft=null, uid=1;
+
+const STORE='pillolario.v1';
+let meds=[], snoozes=[]; const taken=new Set();
+try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; snoozes=s.snoozes||[];
+  const lim=new Date(today); lim.setDate(lim.getDate()-90); const lk=key(lim);
+  (s.taken||[]).forEach(k=>{ if(k.slice(0,10)>=lk) taken.add(k); }); }catch(e){}
+uid=meds.reduce((a,m)=>Math.max(a,m.id),0)+1;
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,snoozes,taken:[...taken]})); }catch(e){} }
+let syncT; function sync(){ save(); clearTimeout(syncT); syncT=setTimeout(schedule,400); }
+
+function dosesFor(date){ const di=dIdx(date), k=key(date), out=[];
+  meds.forEach(m=>{ if(m.days.includes(di)) m.times.forEach(t=>out.push({m,time:t,k:k+'|'+m.id+'|'+t})); });
+  return out.sort((a,b)=>mins(a.time)-mins(b.time)||a.m.id-b.m.id); }
+function el(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
+function shape(m){ const s=el('span','shape '+m.form); s.style.setProperty('--c','var('+m.color+')'); s.appendChild(el('i')); return s; }
+
+function renderWeek(){ const w=$('week'); w.textContent=''; const mon=new Date(today); mon.setDate(mon.getDate()-dIdx(today));
+  for(let i=0;i<7;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i);
+    const b=el('button','day'+(+d===+today?' today':'')); b.type='button'; b.setAttribute('aria-pressed',+d===+sel);
+    b.setAttribute('aria-label',DAYN[i]+' '+d.getDate()); b.append(el('b','',DAYS[i]),el('span','',d.getDate()));
+    b.onclick=()=>{sel=d;render();}; w.appendChild(b); } }
+
+function renderToday(){ const list=dosesFor(sel), isToday=+sel===+today, future=sel>today, past=sel<today;
+  const now=new Date(), nm=now.getHours()*60+now.getMinutes();
+  $('title').textContent=isToday?'Oggi':sel.toLocaleDateString('it-IT',{weekday:'long'}).replace(/^./,c=>c.toUpperCase());
+  $('dateLabel').textContent=sel.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
+  const done=list.filter(d=>taken.has(d.k)).length;
+  $('count').innerHTML=''; $('count').append(done+' di '+list.length+' ', el('small','',list.length===1?'presa':'prese'));
+  const nx=isToday&&list.find(d=>!taken.has(d.k));
+  $('next').textContent=!list.length?'':done===list.length?'Giornata completa':nx?'Prossima alle '+nx.time:'';
+  const cells=$('cells'); cells.textContent='';
+  list.forEach(d=>{ const c=el('span','cell'+(taken.has(d.k)?' out':'')); c.style.setProperty('--c','var('+d.m.color+')'); cells.appendChild(c); });
+  const ul=$('doses'); ul.textContent='';
+  if(!list.length){ ul.appendChild(el('p','empty',meds.length?'Nessuna pillola in programma per questo giorno.':'Tocca + qui sotto per aggiungere la prima pillola o integratore.')); return; }
+  list.forEach(d=>{ const t=taken.has(d.k), dm=mins(d.time);
+    const isNow=isToday&&!t&&Math.abs(dm-nm)<=30, late=!t&&(past||(isToday&&dm<nm-30));
+    const li=el('li','dose'+(t?' done':'')+(isNow?' now':''));
+    const mid=el('div'); mid.style.minWidth='0'; mid.appendChild(el('div','name',d.m.name));
+    const sub=el('div','sub'); sub.appendChild(el('span','',d.m.dose));
+    if(isNow) sub.appendChild(el('span','chip now','Adesso'));
+    else if(late) sub.appendChild(el('span','chip late',past?'Saltata':'In ritardo'));
+    mid.appendChild(sub);
+    const b=el('button','take'+(t?' undo':''),t?'Annulla':future?'In arrivo':'Presa'); b.type='button'; b.disabled=future;
+    b.setAttribute('aria-label',(t?'Annulla ':'Segna come presa: ')+d.m.name+' delle '+d.time);
+    b.onclick=()=>{ t?taken.delete(d.k):taken.add(d.k); sync(); render(); if(!t) toast(d.m.name+' segnata come presa'); };
+    li.append(el('span','time',d.time),shape(d.m),mid,b); ul.appendChild(li); }); }
+
+function renderMeds(){ const box=$('meds'); box.textContent='';
+  if(!meds.length) box.appendChild(el('p','empty','Ancora niente. Tocca + per aggiungere la prima pillola.'));
+  meds.forEach(m=>{ const b=el('button','med'); b.type='button';
+    const mid=el('div'); mid.style.minWidth='0'; mid.append(el('div','name',m.name),el('div','sub',m.dose+' · '+m.times.join(' · ')));
+    const dots=el('div','dots'); DAYS.forEach((l,i)=>dots.appendChild(el('s',m.days.includes(i)?'on':'',l))); mid.appendChild(dots);
+    b.append(shape(m),mid,el('span','edit','Modifica')); b.onclick=()=>openSheet(m); box.appendChild(b); }); }
+function render(){ renderWeek(); renderToday(); renderMeds(); }
+
+function tab(t){ const td=t==='today'; $('viewToday').hidden=!td; $('viewToday').style.display=td?'flex':'none'; $('viewMeds').hidden=td;
+  $('tabToday').setAttribute('aria-selected',td); $('tabMeds').setAttribute('aria-selected',!td);
+  if(!td){ $('title').textContent='Le mie pillole'; $('dateLabel').textContent=meds.length+' promemoria attivi'; } else renderToday(); }
+$('tabToday').onclick=()=>tab('today'); $('tabMeds').onclick=()=>tab('meds');
+
+/* foglio */
+function openSheet(m){ editing=m||null;
+  draft=m?{form:m.form,color:m.color,times:[...m.times],days:[...m.days]}:{form:'compressa',color:COLORS[meds.length%5],times:['08:00'],days:[0,1,2,3,4,5,6]};
+  $('sheetTitle').textContent=m?'Modifica promemoria':'Nuovo promemoria';
+  $('fName').value=m?m.name:''; $('fDose').value=m?m.dose:''; $('fInsist').checked=m?m.insist:true;
+  $('del').hidden=!m; $('err').hidden=true; drawSheet(); $('scrim').hidden=false; if(!m) $('fName').focus(); }
+function drawSheet(){ const f=$('fForm'); f.textContent='';
+  FORMS.forEach(([v,l])=>{ const b=el('button','opt',l); b.type='button'; b.setAttribute('aria-pressed',draft.form===v); b.onclick=()=>{draft.form=v;drawSheet();}; f.appendChild(b); });
+  const c=$('fColor'); c.textContent='';
+  COLORS.forEach((v,i)=>{ const b=el('button','sw'); b.type='button'; b.style.setProperty('--c','var('+v+')'); b.setAttribute('aria-label','Colore '+(i+1));
+    b.setAttribute('aria-pressed',draft.color===v); b.onclick=()=>{draft.color=v;drawSheet();}; c.appendChild(b); });
+  const t=$('fTimes'); t.textContent='';
+  draft.times.forEach((v,i)=>{ const r=el('div','trow'), inp=el('input'); inp.type='time'; inp.value=v; inp.id='fTime'+i; inp.setAttribute('aria-label','Orario '+(i+1));
+    inp.onchange=()=>{draft.times[i]=inp.value;}; r.appendChild(inp);
+    if(draft.times.length>1){ const x=el('button','', '×'); x.type='button'; x.setAttribute('aria-label','Togli orario '+v); x.onclick=()=>{draft.times.splice(i,1);drawSheet();}; r.appendChild(x); }
+    t.appendChild(r); });
+  const d=$('fDays'); d.textContent='';
+  DAYS.forEach((l,i)=>{ const b=el('button','opt d',l); b.type='button'; b.setAttribute('aria-label',DAYN[i]); b.setAttribute('aria-pressed',draft.days.includes(i));
+    b.onclick=()=>{ draft.days=draft.days.includes(i)?draft.days.filter(x=>x!==i):[...draft.days,i]; drawSheet(); }; d.appendChild(b); }); }
+$('addTime').onclick=()=>{ const last=mins(draft.times[draft.times.length-1]||'08:00'), n=(last+240)%1440; draft.times.push(pad(n/60|0)+':'+pad(n%60)); drawSheet(); };
+$('allDays').onclick=()=>{ draft.days=[0,1,2,3,4,5,6]; drawSheet(); };
+const closeSheet=()=>{ $('scrim').hidden=true; };
+$('cancel').onclick=closeSheet; $('scrim').onclick=e=>{ if(e.target===$('scrim')) closeSheet(); };
+$('add').onclick=()=>openSheet();
+$('form').onsubmit=e=>{ e.preventDefault(); const name=$('fName').value.trim(), times=[...new Set(draft.times.filter(Boolean))].sort();
+  const msg=!name?'Scrivi il nome della pillola.':!times.length?'Imposta almeno un orario.':!draft.days.length?'Scegli almeno un giorno.':'';
+  if(msg){ $('err').textContent=msg; $('err').hidden=false; return; }
+  const data={name,dose:$('fDose').value.trim()||'1 dose',form:draft.form,color:draft.color,times,days:[...draft.days].sort(),insist:$('fInsist').checked};
+  if(editing) Object.assign(editing,data); else meds.push({id:uid++,...data});
+  closeSheet(); sync(); askPerm(); render(); if(!$('viewMeds').hidden) tab('meds'); toast(editing?'Promemoria aggiornato':'Promemoria salvato'); };
+$('del').onclick=()=>{ meds=meds.filter(m=>m!==editing); closeSheet(); sync(); render(); if(!$('viewMeds').hidden) tab('meds'); toast('Promemoria eliminato'); };
+
+/* notifiche (solo nell'app installata) */
+const CAP=window.Capacitor, NATIVE=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
+const LN=NATIVE?CAP.registerPlugin('LocalNotifications'):null, APP=NATIVE?CAP.registerPlugin('App'):null;
+const CH='promemoria', TEST_ID=900000;
+function note(id,m,t,date,schedule,again){ return {id,channelId:CH,actionTypeId:'DOSE',schedule,
+  title:again?'Non hai ancora confermato: '+m.name:'È ora di '+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||''}}; }
+async function schedule(){ if(!LN) return;
+  try{ const p=await LN.getPending(), old=p.notifications.filter(n=>n.id<TEST_ID).map(n=>({id:n.id}));
+    if(old.length) await LN.cancel({notifications:old});
+    const list=[], now=Date.now(); let id=1;
+    meds.forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
+      m.days.forEach(di=>list.push(note(id++,m,t,'',{on:{weekday:(di+1)%7+1,hour:h,minute:mi,second:0},allowWhileIdle:true})));
+      if(m.insist) for(let g=0;g<7;g++){ const d=new Date(today); d.setDate(d.getDate()+g);
+        if(!m.days.includes(dIdx(d))||taken.has(key(d)+'|'+m.id+'|'+t)) continue;
+        [10,20,30].forEach(x=>{ const at=new Date(d); at.setHours(h,mi+x,0,0);
+          if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},true)); }); } }));
+    snoozes=snoozes.filter(s=>s.at>now+5000&&!taken.has(s.date+'|'+s.medId+'|'+s.time));
+    snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(m) list.push(note(id++,m,s.time,s.date,{at:new Date(s.at),allowWhileIdle:true},true)); });
+    save(); if(list.length) await LN.schedule({notifications:list});
+  }catch(e){ console.error(e); } }
+function doseDate(x){ if(x.date) return x.date; const d=new Date(); if(d.getHours()*60+d.getMinutes()<mins(x.time)-5) d.setDate(d.getDate()-1); return key(d); }
+async function checkPerm(){ if(!LN) return true;
+  try{ const p=await LN.checkPermissions(); let ok=p.display==='granted', txt='Le notifiche sono spente: senza, gli avvisi non arrivano.';
+    if(ok){ try{ const e=await LN.checkExactNotificationSetting(); if(e.exact_alarm!=='granted'){ ok=false; txt='Consenti "Sveglie e promemoria" per avvisi puntuali.'; $('warn').dataset.k='exact'; } }catch(e){} }
+    else $('warn').dataset.k='notif';
+    $('warnTxt').textContent=txt; $('warn').hidden=ok||!meds.length; return ok; }catch(e){ return false; } }
+async function askPerm(){ if(!LN) return true;
+  try{ const p=await LN.checkPermissions(); if(p.display!=='granted') await LN.requestPermissions(); }catch(e){}
+  return checkPerm(); }
+$('warnBtn').onclick=async()=>{ try{ if($('warn').dataset.k==='exact') await LN.changeExactNotificationSetting(); else await LN.requestPermissions(); }catch(e){} if(await checkPerm()) schedule(); };
+$('bell').onclick=async()=>{ if(!LN){ toast("Gli avvisi funzionano nell'app installata sul telefono"); return; }
+  if(!await askPerm()){ $('warn').hidden=false; toast('Prima attiva le notifiche'); return; }
+  try{ await LN.schedule({notifications:[{id:TEST_ID,channelId:CH,title:'Avviso di prova',body:'Se lo vedi a schermo spento, Pillolario funziona.',schedule:{at:new Date(Date.now()+15000),allowWhileIdle:true}}]});
+    toast('Spegni lo schermo: tra 15 secondi arriva un avviso'); }catch(e){ toast('Non riesco a programmare l\'avviso'); } };
+function refresh(){ const n=new Date(); n.setHours(0,0,0,0); if(+n!==+today){ today=n; sel=new Date(n); } render(); if($('viewToday').hidden) tab('meds'); schedule(); checkPerm(); }
+document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
+setInterval(()=>{ if(!document.hidden&&!$('viewToday').hidden&&$('scrim').hidden) renderToday(); },60000);
+(async function init(){ if(!LN) return;
+  try{ await LN.createChannel({id:CH,name:'Promemoria pillole',description:'Avvisi agli orari impostati',importance:5,visibility:1,vibration:true});
+    await LN.registerActionTypes({types:[{id:'DOSE',actions:[{id:'take',title:'Presa'},{id:'snooze',title:'Tra 10 minuti'}]}]});
+    await LN.addListener('localNotificationActionPerformed',ev=>{ const x=ev.notification&&ev.notification.extra; if(!x||!x.medId) return;
+      const m=meds.find(q=>q.id===x.medId); if(!m) return; const date=doseDate(x);
+      if(ev.actionId==='take'){ taken.add(date+'|'+m.id+'|'+x.time); toast(m.name+' segnata come presa'); }
+      else if(ev.actionId==='snooze'){ snoozes.push({medId:m.id,time:x.time,date,at:Date.now()+600000}); toast('Te lo ricordo tra 10 minuti'); }
+      sync(); sel=new Date(today); render(); tab('today'); });
+    await APP.addListener('backButton',()=>{ if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
+  }catch(e){ console.error(e); }
+  if(meds.length) await askPerm(); schedule(); })();
+let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2400); }
+render();
+</script>
+</body>
+</html>

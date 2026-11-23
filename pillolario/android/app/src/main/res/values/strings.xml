@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Pillolario</string>
+    <string name="title_activity_main">Pillolario</string>
+    <string name="package_name">it.pillolario.app</string>
+    <string name="custom_url_scheme">it.pillolario.app</string>
+</resources>

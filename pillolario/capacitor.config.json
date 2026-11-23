@@ -1,0 +1,14 @@
+{
+  "appId": "it.pillolario.app",
+  "appName": "Pillolario",
+  "webDir": "www",
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_pill",
+      "iconColor": "#17A589"
+    }
+  },
+  "android": {
+    "adjustMarginsForEdgeToEdge": "force"
+  }
+}
