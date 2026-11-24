@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.14.1';
+const VERSIONE = '1.14.2';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -126,7 +126,7 @@ function stato_installazione(ctx) {
   const n = db.get('SELECT COUNT(*) AS n FROM utenti').n;
   // Elenco degli utenti attivi (solo nome e username) per la schermata d'accesso "scegli chi sei".
   const utenti = db.all('SELECT id, username, nome FROM utenti WHERE attivo = 1 ORDER BY nome');
-  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti, versione: VERSIONE, locale: !!(ctx && daQuestoPC(ctx.indirizzo)) };
+  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti, versione: VERSIONE };
 }
 
 function installa(ctx) {
@@ -338,15 +338,6 @@ function importa_db_iniziale(ctx) {
   if (stato_installazione().installato) err(403, 'Il programma è già installato: importa dal pannello Opzioni');
   // riusa la stessa logica dell'importazione dal pannello, senza il controllo del pannello
   return importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
-}
-// Ripristino dei dati dalla SCHERMATA D'ACCESSO (per chi ha dimenticato le password): ammesso solo dal computer principale e con
-// la conferma scritta. L'archivio attuale non va perso: viene messo da parte in _dati (prima-import-…).
-function importa_db_login(ctx) {
-  if (!daQuestoPC(ctx.indirizzo)) err(403, 'Il ripristino senza password si può fare solo dal computer principale');
-  if (S(ctx.query.conferma).toUpperCase() !== 'SOSTITUISCI') err(400, 'Per confermare scrivi SOSTITUISCI');
-  const r = importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
-  db.log(null, 'importa_db_login', '', null, `ripristino dalla schermata di accesso, da ${ctx.indirizzo}`);
-  return r;
 }
 // Registro delle operazioni, con il riferimento "leggibile" (numero vero della pratica, nome del cliente, titolo della lista…)
 // e filtri: testo, utente, intervallo di date; "prima_di" serve a caricare le operazioni più vecchie.
@@ -1531,7 +1522,6 @@ const AZIONI = {
   esporta_db: { fn: esporta_db },
   importa_db: { fn: importa_db, post: true, raw: true },
   importa_db_iniziale: { fn: importa_db_iniziale, post: true, raw: true, pubblica: true },
-  importa_db_login: { fn: importa_db_login, post: true, raw: true, pubblica: true },
   pratica: { fn: pratica },
   pratica_salva: { fn: pratica_salva, post: true },
   pratica_elimina: { fn: pratica_elimina, post: true },

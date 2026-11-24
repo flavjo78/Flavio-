@@ -72,6 +72,7 @@ Il file `agenzia.exe` e la cartella `web` vanno sempre aggiornati insieme: non m
 - **Password dimenticata E non c'è un backup a portata di mano** (serve aiuto a distanza, senza
   essere seduti al PC centrale): farsi mandare dal cliente il file `agenzia.db` (dentro `_dati`),
   resettare la password con lo strumento dello sviluppatore (`costruisci/recupera-password.js`,
-  non va mai in un pacchetto per i clienti), rimandare il file. Il cliente lo importa dalla
-  schermata di accesso, voce "Password dimenticata o dati da ripristinare?", scrivendo SOSTITUISCI
-  per confermare (funziona solo sul PC centrale).
+  non va mai in un pacchetto per i clienti), rimandare il file. Il cliente, sul PC centrale, ferma
+  il programma, mette il file ricevuto al posto di `_dati\agenzia.db` (tenendo da parte il vecchio)
+  e riavvia. Nessun caricamento dal browser: la sostituzione dell'archivio senza password non esiste
+  più nella schermata d'accesso (serve l'accesso fisico al PC centrale).

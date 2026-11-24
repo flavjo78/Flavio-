@@ -263,31 +263,10 @@ function apriEsportaBiglietti() {
   riepilogo();
 }
 
-// Ripristino dei dati da un file di backup, dalla schermata d'accesso (solo dal computer principale)
-function apriRipristinoLogin() {
-  modale({ titolo: 'Ripristina i dati da un file di backup', ok: 'Sostituisci i dati', larga: true,
-    corpo: `<div class="avviso err"><b>Attenzione:</b> i dati di adesso (clienti, pratiche, utenti e password) vengono <b>sostituiti</b> con quelli del file. L'archivio attuale non si perde: viene messo da parte nella cartella <code>_dati</code>, con un nome che comincia per <code>prima-import</code>.</div>
-      <div class="campo"><label>File di backup (.db)</label><input type="file" id="rpFile" accept=".db"></div>
-      <div class="campo" style="margin-top:10px"><label>Per confermare scrivi SOSTITUISCI</label><input id="rpConf" autocomplete="off"></div>
-      <p class="small muted" style="margin-top:8px">Dopo il ripristino entri con gli utenti e le password che c'erano nel file. Se ti serve solo cambiare una password, c'è un modo più semplice, che non tocca i dati: il file <code>RESET-PASSWORD.txt</code> (vedi la guida).</p>`,
-    onOk: async d => {
-      const f = $('#rpFile', d).files[0]; if (!f) throw new Error('Scegli il file di backup');
-      if ($('#rpConf', d).value.trim().toUpperCase() !== 'SOSTITUISCI') throw new Error('Scrivi SOSTITUISCI per confermare');
-      const r = await fetch('/api/importa_db_login?conferma=SOSTITUISCI', { method: 'POST', headers: { 'Content-Type': 'application/octet-stream' }, body: f });
-      const j = await r.json(); if (!r.ok) throw new Error(j.errore || 'Errore');
-      toast(`Dati ripristinati: ${j.pratiche} pratiche. Entra con un utente del file.`, 'ok');
-      setTimeout(() => location.reload(), 900);
-      return true;
-    } });
-}
-
 // ================= NOVITÀ E AIUTO =================
 // Dopo ogni aggiornamento, alla prima apertura, ogni utente vede UNA volta cosa è cambiato. Il tasto "Aiuto" (in basso, vicino a "esci")
 // le riapre quando vuole, insieme a una guida rapida. Quando esce una versione nuova si aggiunge una voce in cima a NOVITA.
 const NOVITA = [
-  { v: '1.14.1', titolo: 'Ripristino dalla schermata di accesso', voci: [
-    'Se hai dimenticato le password, sul computer principale la schermata di accesso ha il collegamento «Password dimenticata o dati da ripristinare?»: permette di importare un file di backup (.db) anche senza entrare. Si può fare solo dal computer principale e va confermato scrivendo SOSTITUISCI. I dati di prima vengono messi da parte in _dati, non si perdono.',
-    'Per cambiare solo una password, senza toccare i dati, c\'è il file RESET-PASSWORD.txt: la procedura è nell\'Aiuto.'] },
   { v: '1.14.0', titolo: 'Esportazione in Excel, importi più sicuri, avviso backup', voci: [
     'Biglietteria → «Esporta in Excel»: crea un file con un foglio per categoria (Aereo, Treni, Low cost), con totali e importi in euro, come il tuo Excel. Si sceglie il periodo (oggi, ieri, settimana, mese, anno, tutto o personalizzato) e se riferirlo alla data del biglietto o a quella di partenza. Si può aggiungere un foglio con le liste. Serve la password del pannello Opzioni, ogni volta.',
     'Gli importi si scrivono in due caselle, euro e centesimi, con il simbolo € sempre visibile: appena scrivi gli euro i centesimi diventano «00». Con la virgola o il punto passi ai centesimi. Vale per pratiche, acconti, biglietti, liste e pagamenti ai fornitori.',
@@ -400,8 +379,8 @@ async function avvio() {
 
 function renderLogin() {
   (async () => {
-    let utenti = [], locale = false;
-    try { const st = await api('stato_installazione'); utenti = st.utenti || []; locale = !!st.locale; } catch (e) { /* elenco non disponibile: si scrive il nome */ }
+    let utenti = [];
+    try { const st = await api('stato_installazione'); utenti = st.utenti || []; } catch (e) { /* elenco non disponibile: si scrive il nome */ }
     let scelto = '';
     try { scelto = localStorage.getItem('agenzia_ultimo_utente') || ''; } catch (e) { /* ignora */ }
     if (!utenti.some(u => u.username === scelto)) scelto = utenti.length === 1 ? utenti[0].username : '';
@@ -413,9 +392,7 @@ function renderLogin() {
       ${utenti.length ? '' : '<div class="campo"><label>Nome utente</label><input name="username" autocomplete="username" autofocus></div>'}
       <div class="campo" id="campoPw" style="${utenti.length && !scelto ? 'visibility:hidden' : ''}"><label>Password di <b id="lblChi">${esc((utenti.find(u => u.username === scelto) || {}).nome || '')}</b></label><input name="password" type="password" autocomplete="current-password" ${scelto || !utenti.length ? 'autofocus' : ''}></div>
       <button class="btn primario" style="width:100%;justify-content:center;margin-top:6px">Entra</button>
-      ${locale ? '<div class="small" style="text-align:center;margin-top:14px"><a href="#" id="lnkRipristino">Password dimenticata o dati da ripristinare?</a></div>' : ''}
     </form></div>`;
-    if ($('#lnkRipristino')) $('#lnkRipristino').onclick = e => { e.preventDefault(); apriRipristinoLogin(); };
     $$('.ut').forEach(b => b.onclick = () => {
       $$('.ut').forEach(x => x.classList.remove('sel')); b.classList.add('sel');
       $('[name=username]').value = b.dataset.u;

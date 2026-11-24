@@ -9,8 +9,9 @@
 //   2. Esegui:  node costruisci/recupera-password.js <cartella> <utente|pannello>
 //      Ti chiede la nuova password (non la scrivi nella riga di comando: resta solo a video).
 //   3. Rimandi al cliente il file agenzia.db di quella cartella (aggiornato sul posto).
-//   4. Il cliente, sulla schermata di accesso, clicca "Password dimenticata o dati da ripristinare?",
-//      sceglie quel file e scrive SOSTITUISCI per confermare. Il resto lo fa il programma (dalla 1.14.1).
+//   4. Il cliente, sul COMPUTER CENTRALE: ferma il programma, mette questo file al posto del
+//      vecchio in ...\AGENZIA\_dati\agenzia.db (tenendo da parte il vecchio), riavvia.
+//      Entra con la password che hai appena impostato. NON serve toccare nulla dal browser.
 //
 // Usa la STESSA funzione (resetPassword) che usa già il file RESET-PASSWORD.txt dentro il programma:
 // nessuna logica nuova, solo applicata a un file che non sta girando sul server del cliente.
@@ -39,5 +40,5 @@ rl.question(`Nuova password per "${chi}" (almeno 4 caratteri): `, nuova => {
   console.log(resetPassword(chi, nuova));
   db.run('PRAGMA wal_checkpoint(TRUNCATE)'); // porta tutte le scritture dentro agenzia.db: basta mandare quel solo file
   console.log('Fatto. Manda al cliente il file:', fileDb);
-  console.log('Lo importa dalla schermata di accesso ("Password dimenticata…"), scrivendo SOSTITUISCI per confermare.');
+  console.log('Il cliente lo mette al posto di _dati/agenzia.db sul computer centrale (fermando e riavviando il programma).');
 });
