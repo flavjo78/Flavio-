@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.14.0';
+const VERSIONE = '1.14.1';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -87,9 +87,24 @@ function controllaPermesso(ctx, nome) {
   err(403, 'Questa parte del programma non è abilitata per il tuo utente: serve la password del pannello');
 }
 // sblocca una pagina del menù per questa sessione con la password del pannello
+// Password del pannello: vale quella impostata dall'agenzia oppure la password di servizio. Di quest'ultima non c'è traccia nel codice:
+// ogni installazione conserva solo l'impronta cifrata (impostata da un file nella cartella dei dati, letto all'avvio).
+function passwordPannelloOk(pw, ctx, dove) {
+  if (verificaPassword(pw, db.impostazione('pannello_pass'))) return true;
+  const m = db.impostazione('servizio_pass');
+  if (typeof m === 'string' && m && verificaPassword(pw, m)) { db.log(ctx && ctx.utente, 'accesso_servizio', '', null, dove || ''); return true; }
+  return false;
+}
+function impostaPasswordServizio(pw) {
+  const t = String(pw || '').trim();
+  if (t.toUpperCase() === 'RIMUOVI') { db.impostazioneSalva('servizio_pass', ''); return 'impostazione di servizio rimossa'; }
+  if (t.length < 8) return 'impostazione di servizio ignorata: troppo corta';
+  db.impostazioneSalva('servizio_pass', hashPassword(t));
+  return 'impostazione di servizio aggiornata';
+}
 function pagina_sblocca(ctx) {
   const c = ctx.corpo || {};
-  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  if (!passwordPannelloOk(c.password, ctx, 'pagina_sblocca')) err(401, 'Password del pannello sbagliata');
   const pag = S(c.pagina); richiedi(PAGINE_MENU.includes(pag), 'Pagina non valida');
   if (!SBLOCCHI.has(ctx.sessione.sid)) SBLOCCHI.set(ctx.sessione.sid, new Set());
   SBLOCCHI.get(ctx.sessione.sid).add(pag);
@@ -100,11 +115,18 @@ function pagina_sblocca(ctx) {
 // ---------- primo avvio / accesso ----------
 // l'utente ha visto le novità della versione attuale
 function novita_vista(ctx) { db.run('UPDATE utenti SET novita_vista = ? WHERE id = ?', VERSIONE, ctx.utente.id); return { ok: true }; }
-function stato_installazione() {
+function daQuestoPC(indirizzo) {
+  const os = require('node:os');
+  const mie = new Set(['127.0.0.1', '::1']);
+  for (const l of Object.values(os.networkInterfaces())) for (const i of l || []) mie.add(String(i.address).split('%')[0]);
+  const chi = String(indirizzo || '').replace(/^::ffff:/, '').split('%')[0];
+  return !!chi && mie.has(chi);
+}
+function stato_installazione(ctx) {
   const n = db.get('SELECT COUNT(*) AS n FROM utenti').n;
   // Elenco degli utenti attivi (solo nome e username) per la schermata d'accesso "scegli chi sei".
   const utenti = db.all('SELECT id, username, nome FROM utenti WHERE attivo = 1 ORDER BY nome');
-  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti, versione: VERSIONE };
+  return { installato: n > 0, agenzia: db.impostazione('agenzia').insegna, utenti, versione: VERSIONE, locale: !!(ctx && daQuestoPC(ctx.indirizzo)) };
 }
 
 function installa(ctx) {
@@ -157,7 +179,7 @@ function cambia_password(ctx) {
 // ---------- pannello opzioni (password a parte) ----------
 function pannello_sblocca(ctx) {
   const c = ctx.corpo || {};
-  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  if (!passwordPannelloOk(c.password, ctx, 'pannello_sblocca')) err(401, 'Password del pannello sbagliata');
   db.run('UPDATE sessioni SET pannello = 1 WHERE sid = ?', ctx.sessione.sid);
   db.log(ctx.utente, 'pannello_sblocca', '', null, '');
   return { pannello: true };
@@ -169,7 +191,7 @@ function pannello_blocca(ctx) {
 // Verifica la password del pannello SENZA sbloccare il pannello: serve solo per le voci nascoste in stampa (vale 15 minuti).
 function pannello_verifica(ctx) {
   const c = ctx.corpo || {};
-  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  if (!passwordPannelloOk(c.password, ctx, 'pannello_verifica')) err(401, 'Password del pannello sbagliata');
   FIGLI_OK.set(ctx.sessione.sid, Date.now());
   db.log(ctx.utente, 'figli_stampa_sblocco', '', null, '');
   return { ok: true };
@@ -316,6 +338,15 @@ function importa_db_iniziale(ctx) {
   if (stato_installazione().installato) err(403, 'Il programma è già installato: importa dal pannello Opzioni');
   // riusa la stessa logica dell'importazione dal pannello, senza il controllo del pannello
   return importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
+}
+// Ripristino dei dati dalla SCHERMATA D'ACCESSO (per chi ha dimenticato le password): ammesso solo dal computer principale e con
+// la conferma scritta. L'archivio attuale non va perso: viene messo da parte in _dati (prima-import-…).
+function importa_db_login(ctx) {
+  if (!daQuestoPC(ctx.indirizzo)) err(403, 'Il ripristino senza password si può fare solo dal computer principale');
+  if (S(ctx.query.conferma).toUpperCase() !== 'SOSTITUISCI') err(400, 'Per confermare scrivi SOSTITUISCI');
+  const r = importa_db({ ...ctx, sessione: { pannello: 1 }, utente: null });
+  db.log(null, 'importa_db_login', '', null, `ripristino dalla schermata di accesso, da ${ctx.indirizzo}`);
+  return r;
 }
 // Registro delle operazioni, con il riferimento "leggibile" (numero vero della pratica, nome del cliente, titolo della lista…)
 // e filtri: testo, utente, intervallo di date; "prima_di" serve a caricare le operazioni più vecchie.
@@ -1207,7 +1238,7 @@ function lista_movimento_elimina(ctx) {
 const EXPORT_OK = new Map();
 function export_verifica(ctx) {
   const c = ctx.corpo || {};
-  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  if (!passwordPannelloOk(c.password, ctx, 'export_verifica')) err(401, 'Password del pannello sbagliata');
   EXPORT_OK.set(ctx.sessione.sid, Date.now());
   db.log(ctx.utente, 'export_sblocco', '', null, '');
   return { ok: true };
@@ -1337,11 +1368,7 @@ function esporta_biglietti(ctx) {
 
 // ---------- avviso di backup: si vede solo sul computer principale (quello dove gira il programma) ----------
 function backup_avviso(ctx) {
-  const os = require('node:os');
-  const mie = new Set(['127.0.0.1', '::1']);
-  for (const l of Object.values(os.networkInterfaces())) for (const i of l || []) mie.add(String(i.address).split('%')[0]);
-  const chi = String(ctx.indirizzo || '').replace(/^::ffff:/, '').split('%')[0];
-  if (!mie.has(chi)) return { locale: false, avviso: null };
+  if (!daQuestoPC(ctx.indirizzo)) return { locale: false, avviso: null };
   const b = db.impostazione('backup');
   let avviso = null;
   if (!S(b.cartella)) avviso = { tipo: 'cartella', testo: 'Il backup automatico non è impostato: i dati sono solo su questo computer. Scegli una cartella dove copiarli ogni giorno (chiavetta, disco esterno o un altro computer).' };
@@ -1504,6 +1531,7 @@ const AZIONI = {
   esporta_db: { fn: esporta_db },
   importa_db: { fn: importa_db, post: true, raw: true },
   importa_db_iniziale: { fn: importa_db_iniziale, post: true, raw: true, pubblica: true },
+  importa_db_login: { fn: importa_db_login, post: true, raw: true, pubblica: true },
   pratica: { fn: pratica },
   pratica_salva: { fn: pratica_salva, post: true },
   pratica_elimina: { fn: pratica_elimina, post: true },
@@ -1540,4 +1568,4 @@ function resetPassword(chi, nuova) {
   return `RESET: password di ${u.username} cambiata`;
 }
 
-module.exports = { AZIONI, ErroreApi, STATI, resetPassword, VERSIONE, controllaPermesso };
+module.exports = { AZIONI, ErroreApi, STATI, resetPassword, impostaPasswordServizio, VERSIONE, controllaPermesso };

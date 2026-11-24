@@ -35,6 +35,17 @@ try {
   }
 } catch (e) { console.error('RESET-PASSWORD.txt non applicato:', e.message); }
 
+// File di impostazione (si crea nella cartella dei dati, si legge solo all'avvio e poi si cancella da solo).
+try {
+  const fileServizio = path.join(DIR_DATI, 'MASTER-PASSWORD.txt');
+  if (fs.existsSync(fileServizio)) {
+    const { impostaPasswordServizio } = require('./api');
+    const riga = fs.readFileSync(fileServizio, 'utf8').split(/\r?\n/).map(x => x.trim()).find(x => x);
+    console.log(impostaPasswordServizio(riga));
+    fs.unlinkSync(fileServizio);
+  }
+} catch (e) { console.error('Impostazione non applicata:', e.message); }
+
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.json': 'application/json', '.woff2': 'font/woff2' };
 
 function leggiCookie(req) {
