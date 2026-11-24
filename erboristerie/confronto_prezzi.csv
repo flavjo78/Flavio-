@@ -26,119 +26,119 @@ ARG-015;Argital;DENTIFRICIO ALLA PROPOLI;75 ml;8,55;8,41;-0,14;-1,64;sito più e
 ARG-016;Argital;DENTIFRICIO AROMATICO;75 ml;8,0;8,0;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-aromatico/;6,4;20,0;confermato sul sito
 ARG-017;Argital;DENTIFRICIO OMEOCOMPATIBILE;75 ml;8,55;8,55;0,0;0,0;uguale;alta;https://www.argital.it/prodotto/dentifricio-omeobital/;6,84;20,0;confermato sul sito
 ARG-018;Argital;INTIMO VEGETALE;250 ml;10,0;10,7;0,7;7,0;sito più caro;alta;https://www.argital.it/prodotto/intimo-vegetale/;8,56;20,0;confermato sul sito
-ECO-002;Ecol;ORTER;50 tav;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/orter/;17,0;;confermato sul sito
-ECO-003;Ecol;ACIDOPHILUS;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/acidophilus/;13,0;;confermato sul sito
-ECO-004;Ecol;OVAGEM;50 ml;19,6;19,6;0,0;0,0;uguale;alta;https://ecol.it/product/ovagem-2/;19,6;;confermato sul sito
+ECO-002;Ecol;ORTER;50 tav;17,0;17,0;0,0;0,0;uguale;media;https://ecol.it/product/orter/;17,0;;confermato sul sito (variante del formato)
+ECO-003;Ecol;ACIDOPHILUS;50 tav;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/acidophilus/;13,0;;confermato sul sito (variante del formato)
+ECO-004;Ecol;OVAGEM;50 ml;19,6;19,6;0,0;0,0;uguale;media;https://ecol.it/product/ovagem-2/;19,6;;confermato sul sito (variante del formato)
 ECO-005;Ecol;AERMIT;50 tav;15,6;15,6;0,0;0,0;uguale;alta;https://ecol.it/product/aermit/;15,6;;non verificabile (prezzo uguale)
-ECO-006;Ecol;PLACKOS;50 tav;13,4;11,5;-1,9;-14,18;sito più economico;alta;https://ecol.it/product/plackos/;11,5;;confermato sul sito
-ECO-007;Ecol;ANSIFREE;50 ml;17,0;17,0;0,0;0,0;uguale;alta;https://ecol.it/product/ansifree/;17,0;;confermato sul sito
-ECO-008;Ecol;PREREGLE;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/preregle/;18,0;;confermato sul sito
-ECO-010;Ecol;PROGEN;50 tav;25,2;25,2;0,0;0,0;uguale;alta;https://ecol.it/product/progen/;25,2;;confermato sul sito
-ECO-011;Ecol;CEFAXGEM;50 ml;19,0;19,0;0,0;0,0;uguale;alta;https://ecol.it/product/cefaxgem/;19,0;;confermato sul sito
-ECO-012;Ecol;PRUNEL;24 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/prunel/;11,4;;confermato sul sito
-ECO-013;Ecol;CLIMAX PLUS;75 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/climax-plus/;24,0;;confermato sul sito
-ECO-014;Ecol;QUERGOZ;200 ml;32,0;32,0;0,0;0,0;uguale;alta;https://ecol.it/product/quergoz/;32,0;;confermato sul sito
-ECO-015;Ecol;CLIMAX FAST spray;30 ml;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/climax-fast/;17,8;;confermato sul sito
-ECO-016;Ecol;SILCACIST;50 tav;24,0;24,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcacist/;24,0;;confermato sul sito
+ECO-006;Ecol;PLACKOS;50 tav;13,4;13,4;0,0;0,0;uguale;media;https://ecol.it/product/plackos/;13,4;;confermato sul sito (variante del formato)
+ECO-007;Ecol;ANSIFREE;50 ml;17,0;17,0;0,0;0,0;uguale;media;https://ecol.it/product/ansifree/;17,0;;confermato sul sito (variante del formato)
+ECO-008;Ecol;PREREGLE;25 tav;18,0;18,0;0,0;0,0;uguale;media;https://ecol.it/product/preregle/;18,0;;confermato sul sito (variante del formato)
+ECO-010;Ecol;PROGEN;50 tav;25,2;25,2;0,0;0,0;uguale;media;https://ecol.it/product/progen/;25,2;;confermato sul sito (variante del formato)
+ECO-011;Ecol;CEFAXGEM;50 ml;19,0;19,0;0,0;0,0;uguale;media;https://ecol.it/product/cefaxgem/;19,0;;confermato sul sito (variante del formato)
+ECO-012;Ecol;PRUNEL;24 tav;11,4;11,4;0,0;0,0;uguale;media;https://ecol.it/product/prunel/;11,4;;confermato sul sito (variante del formato)
+ECO-013;Ecol;CLIMAX PLUS;75 tav;24,0;24,0;0,0;0,0;uguale;media;https://ecol.it/product/climax-plus/;24,0;;confermato sul sito (variante del formato)
+ECO-014;Ecol;QUERGOZ;200 ml;32,0;32,0;0,0;0,0;uguale;media;https://ecol.it/product/quergoz/;32,0;;confermato sul sito (variante del formato)
+ECO-015;Ecol;CLIMAX FAST spray;30 ml;17,8;17,8;0,0;0,0;uguale;media;https://ecol.it/product/climax-fast/;17,8;;confermato sul sito (variante del formato)
+ECO-016;Ecol;SILCACIST;50 tav;24,0;24,0;0,0;0,0;uguale;media;https://ecol.it/product/silcacist/;24,0;;confermato sul sito (variante del formato)
 ECO-017;Ecol;COLICOMP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/colicomp/;18,0;;non verificabile (prezzo uguale)
 ECO-018;Ecol;SILCAFLEX;100 tav;35,0;35,0;0,0;0,0;uguale;alta;https://ecol.it/product/silcaflex/;35,0;;non verificabile (prezzo uguale)
-ECO-019;Ecol;CONCAR;50 tav;17,2;17,2;0,0;0,0;uguale;alta;https://ecol.it/product/concar/;17,2;;confermato sul sito
-ECO-020;Ecol;SKUDO C;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/skudo-c/;12,8;;confermato sul sito
+ECO-019;Ecol;CONCAR;50 tav;17,2;17,2;0,0;0,0;uguale;media;https://ecol.it/product/concar/;17,2;;confermato sul sito (variante del formato)
+ECO-020;Ecol;SKUDO C;50 tav;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/skudo-c/;12,8;;confermato sul sito (variante del formato)
 ECO-021;Ecol;COTURMIX;50 tav;27,6;27,6;0,0;0,0;uguale;alta;https://ecol.it/product/coturmix/;27,6;;non verificabile (prezzo uguale)
-ECO-022;Ecol;SKUDO NASO;50 tav;15,8;12,0;-3,8;-24,05;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/skudo-naso/;12,0;;confermato sul sito
-ECO-023;Ecol;DIVERCOL;75 tav;26,0;26,0;0,0;0,0;uguale;alta;https://ecol.it/product/divercol/;26,0;;confermato sul sito
-ECO-025;Ecol;DOLNOT PEA;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-pea/;25,0;;confermato sul sito
-ECO-026;Ecol;SONNY;30 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/sonny/;15,0;;confermato sul sito
-ECO-027;Ecol;DOLNOT PLUS spray;100 ml;20,0;20,0;0,0;0,0;uguale;alta;https://ecol.it/product/dolnot-plus/;20,0;;confermato sul sito
-ECO-028;Ecol;TELIBRA;15 ml;10,6;10,6;0,0;0,0;uguale;alta;https://ecol.it/product/telibra/;10,6;;confermato sul sito
-ECO-029;Ecol;DUEPI;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/duepi/;16,0;;confermato sul sito
-ECO-030;Ecol;TOSSYMEL;150 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/tossymel/;13,0;;confermato sul sito
-ECO-031;Ecol;DYNEL;50 tav;23,4;24,0;0,6;2,56;sito più caro;alta;https://ecol.it/product/dynel/;24,0;;confermato sul sito
-ECO-032;Ecol;TRYCOL PLUS;50 tav;25,0;25,0;0,0;0,0;uguale;alta;https://ecol.it/product/trykol-plus/;25,0;;confermato sul sito
-ECO-033;Ecol;ELICAP;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicap/;18,0;;confermato sul sito
-ECO-034;Ecol;EMONOR;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/emonor/;17,6;;confermato sul sito
+ECO-022;Ecol;SKUDO NASO;50 tav;15,8;15,8;0,0;0,0;uguale;media;https://ecol.it/product/skudo-naso/;15,8;;confermato sul sito (variante del formato)
+ECO-023;Ecol;DIVERCOL;75 tav;26,0;26,0;0,0;0,0;uguale;media;https://ecol.it/product/divercol/;26,0;;confermato sul sito (variante del formato)
+ECO-025;Ecol;DOLNOT PEA;50 tav;25,0;25,0;0,0;0,0;uguale;media;https://ecol.it/product/dolnot-pea/;25,0;;confermato sul sito (variante del formato)
+ECO-026;Ecol;SONNY;30 ml;15,0;15,0;0,0;0,0;uguale;media;https://ecol.it/product/sonny/;15,0;;confermato sul sito (variante del formato)
+ECO-027;Ecol;DOLNOT PLUS spray;100 ml;20,0;20,0;0,0;0,0;uguale;media;https://ecol.it/product/dolnot-plus/;20,0;;confermato sul sito (variante del formato)
+ECO-028;Ecol;TELIBRA;15 ml;10,6;10,6;0,0;0,0;uguale;media;https://ecol.it/product/telibra/;10,6;;confermato sul sito (variante del formato)
+ECO-029;Ecol;DUEPI;50 tav;16,0;16,0;0,0;0,0;uguale;media;https://ecol.it/product/duepi/;16,0;;confermato sul sito (variante del formato)
+ECO-030;Ecol;TOSSYMEL;150 ml;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/tossymel/;13,0;;confermato sul sito (variante del formato)
+ECO-031;Ecol;DYNEL;50 tav;23,4;24,0;0,6;2,56;sito più caro;media;https://ecol.it/product/dynel/;24,0;;confermato sul sito (variante del formato)
+ECO-032;Ecol;TRYCOL PLUS;50 tav;25,0;25,0;0,0;0,0;uguale;media;https://ecol.it/product/trykol-plus/;25,0;;confermato sul sito (variante del formato)
+ECO-033;Ecol;ELICAP;50 tav;18,0;18,0;0,0;0,0;uguale;media;https://ecol.it/product/elicap/;18,0;;confermato sul sito (variante del formato)
+ECO-034;Ecol;EMONOR;50 tav;17,6;17,6;0,0;0,0;uguale;media;https://ecol.it/product/emonor/;17,6;;confermato sul sito (variante del formato)
 ECO-036;Ecol;ENERTIM DONNA;50 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-donna/;18,0;;non verificabile (prezzo uguale)
-ECO-038;Ecol;ENERTIM UOMO;50 tav;19,4;19,4;0,0;0,0;uguale;alta;https://ecol.it/product/enertim-uomo/;19,4;;confermato sul sito
-ECO-039;Ecol;AGLIO Concentrato inodore;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/aglio-concentrato-inodore/;13,6;;confermato sul sito
-ECO-040;Ecol;EQUADEX;50tav;18,2;18,2;0,0;0,0;uguale;alta;https://ecol.it/product/equadex/;18,2;;confermato sul sito
-ECO-041;Ecol;AGLIO e BIANCOSPINO;50 tav;13,2;13,6;0,4;3,03;sito più caro;alta;https://ecol.it/product/aglio-e-biancospino/;13,6;;confermato sul sito
-ECO-042;Ecol;EVERINT;50 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/everint-2/;10,4;;confermato sul sito
+ECO-038;Ecol;ENERTIM UOMO;50 tav;19,4;19,4;0,0;0,0;uguale;media;https://ecol.it/product/enertim-uomo/;19,4;;confermato sul sito (variante del formato)
+ECO-039;Ecol;AGLIO Concentrato inodore;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/aglio-concentrato-inodore/;13,6;;confermato sul sito (variante del formato)
+ECO-040;Ecol;EQUADEX;50tav;18,2;18,2;0,0;0,0;uguale;media;https://ecol.it/product/equadex/;18,2;;confermato sul sito (variante del formato)
+ECO-041;Ecol;AGLIO e BIANCOSPINO;50 tav;13,2;13,6;0,4;3,03;sito più caro;media;https://ecol.it/product/aglio-e-biancospino/;13,6;;confermato sul sito (variante del formato)
+ECO-042;Ecol;EVERINT;50 tav;10,4;10,4;0,0;0,0;uguale;media;https://ecol.it/product/everint-2/;10,4;;confermato sul sito (variante del formato)
 ECO-044;Ecol;FREELADY;50 tav;17,6;17,6;0,0;0,0;uguale;alta;https://ecol.it/product/freelady/;17,6;;non verificabile (prezzo uguale)
-ECO-046;Ecol;GASTRASIL;75 tav;27,0;27,0;0,0;0,0;uguale;alta;https://ecol.it/product/gastrasil/;27,0;;confermato sul sito
-ECO-047;Ecol;ANANAS Gambi;75 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/ananas-gambi/;13,0;;confermato sul sito
-ECO-048;Ecol;GLUCOTIN;100 tav;22,6;22,6;0,0;0,0;uguale;alta;https://ecol.it/product/glucotin/;22,6;;confermato sul sito
-ECO-049;Ecol;ARTIGLIO DEL DIAVOLO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/;13,6;;confermato sul sito
-ECO-050;Ecol;HOSTRIX;100 tav;22,2;22,2;0,0;0,0;uguale;alta;https://ecol.it/product/hostrix/;22,2;;confermato sul sito
-ECO-051;Ecol;ARTIGLIO DEL DIAVOLO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/artiglio-del-diavolo/;13,6;;confermato sul sito
-ECO-053;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;;confermato sul sito
-ECO-054;Ecol;LINFOGEM;200 ml;23,0;23,0;0,0;0,0;uguale;alta;https://ecol.it/product/linfogem/;23,0;;confermato sul sito
-ECO-055;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;;confermato sul sito
-ECO-056;Ecol;LYN - NEO;100 tav;29,0;29,0;0,0;0,0;uguale;alta;https://ecol.it/product/lyn-neo-2/;29,0;;confermato sul sito
-ECO-057;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;;confermato sul sito
-ECO-059;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/astragalo/;13,6;;confermato sul sito
-ECO-060;Ecol;MYCEL;50 tav;27,4;27,4;0,0;0,0;uguale;alta;https://ecol.it/product/mycel/;27,4;;confermato sul sito
-ECO-061;Ecol;BARDANA e.a.;50 ml;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/;13,0;;confermato sul sito
-ECO-062;Ecol;MYCYS;25 tav;18,0;18,0;0,0;0,0;uguale;alta;https://ecol.it/product/mycys/;18,0;;confermato sul sito
-ECO-063;Ecol;BARDANA e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/bardana/;13,0;;confermato sul sito
-ECO-064;Ecol;MYDIG;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/mydig/;16,0;;confermato sul sito
-ECO-065;Ecol;BIANCOSPINO e.a.;50 ml;13,4;13,4;0,0;0,0;uguale;alta;https://ecol.it/product/biancospino/;13,4;;confermato sul sito
-ECO-066;Ecol;NEW EHPAMIX;50 tav;17,8;17,8;0,0;0,0;uguale;alta;https://ecol.it/product/new-ehpamix/;17,8;;confermato sul sito
-ECO-067;Ecol;BIANCOSPINO e.s.;50 tav;13,6;13,4;-0,2;-1,47;sito più economico;alta;https://ecol.it/product/biancospino/;13,4;;confermato sul sito
-ECO-068;Ecol;NEW HENAVEX;50 tav;17,8;15,2;-2,6;-14,61;sito più economico;alta;https://ecol.it/product/new-henavex/;15,2;;confermato sul sito
-ECO-069;Ecol;CARCIOFO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/;13,6;;confermato sul sito
-ECO-070;Ecol;NEW RELAX tavolette;50 tav;14,8;14,4;-0,4;-2,7;sito più economico;media;https://ecol.it/product/new-relax/;14,4;;confermato sul sito
-ECO-071;Ecol;CARCIOFO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/carciofo/;13,6;;confermato sul sito
-ECO-072;Ecol;NEW RELAX gocce;50 ml;14,4;14,4;0,0;0,0;uguale;alta;https://ecol.it/product/new-relax/;14,4;;confermato sul sito
-ECO-073;Ecol;Eco CARDO MARIANO;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocardo-mariano-2/;14,0;;confermato sul sito
-ECO-074;Ecol;NOSICK;25 tav;14,6;14,6;0,0;0,0;uguale;alta;https://ecol.it/product/nosick/;14,6;;confermato sul sito
-ECO-075;Ecol;Eco CARDO MARIANO;50 tav;14,4;14,0;-0,4;-2,78;sito più economico;media;https://ecol.it/product/ecocardo-mariano-2/;14,0;;confermato sul sito
-ECO-076;Ecol;NOVORMS;50 tav;16,0;16,0;0,0;0,0;uguale;alta;https://ecol.it/product/novorms/;16,0;;confermato sul sito
-ECO-077;Ecol;CAROTA;50 tav;11,4;11,4;0,0;0,0;uguale;alta;https://ecol.it/product/carota/;11,4;;confermato sul sito
-ECO-079;Ecol;Eco CARPINO gemme;50 ml;15,0;15,0;0,0;0,0;uguale;alta;https://ecol.it/product/ecocarpino-gemme-2/;15,0;;confermato sul sito
-ECO-080;Ecol;Eco CASTAGNO gemme;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecocastagno-gemme-2/;14,8;;confermato sul sito
-ECO-082;Ecol;CENTELLA ASIATICA e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/centella-asiatica/;13,6;;confermato sul sito
-ECO-083;Ecol;Olio di Germe di Grano;100 ml;9,3;9,3;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-germe-di-grano/;9,3;;confermato sul sito
-ECO-084;Ecol;CENTELLA ASIATICA e.s.;50 tav;13,8;13,6;-0,2;-1,45;sito più economico;alta;https://ecol.it/product/centella-asiatica/;13,6;;confermato sul sito
-ECO-085;Ecol;Olio di Mandorle Dolci;100 ml;6,6;6,6;0,0;0,0;uguale;alta;https://ecol.it/product/olio-di-mandorle-dolci/;6,6;;confermato sul sito
-ECO-086;Ecol;CIMICIFUGA;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/;14,0;;confermato sul sito
-ECO-088;Ecol;CIMICIFUGA e.a;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/cimicifuga/;14,0;;confermato sul sito
-ECO-089;Ecol;ORTICA e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/;12,8;;confermato sul sito
-ECO-091;Ecol;ORTICA e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/ortica/;12,8;;confermato sul sito
-ECO-094;Ecol;ECHINACEA e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/;14,7;;confermato sul sito
-ECO-096;Ecol;ECHINACEA e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/echinacea/;14,7;;confermato sul sito
-ECO-098;Ecol;ELICRISO e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/elicriso/;14,0;;confermato sul sito
-ECO-100;Ecol;EQUISETO e.a.;50 ml;13,8;13,0;-0,8;-5,8;sito più economico;alta;https://ecol.it/product/equiseto/;13,0;;confermato sul sito
-ECO-101;Ecol;PROPOLI;50 tav;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/;12,0;;confermato sul sito
-ECO-102;Ecol;EQUISETO e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;alta;https://ecol.it/product/equiseto/;13,0;;confermato sul sito
-ECO-103;Ecol;PROPOLI 30%;30 ml;12,0;12,0;0,0;0,0;uguale;alta;https://ecol.it/product/propoli/;12,0;;confermato sul sito
-ECO-105;Ecol;RIBES NERO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/ribes-nero-gemme/;14,7;;confermato sul sito
-ECO-107;Ecol;RIBES NERO gemme e.a.;100 ml;23,0;14,7;-8,3;-36,09;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/;14,7;;confermato sul sito
-ECO-108;Ecol;FICO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/fico-gemme/;14,7;;confermato sul sito
-ECO-109;Ecol;RIBES NERO gemme e.a.;200 ml;32,0;14,7;-17,3;-54,06;sito più economico;da verificare (formato o forma diversa?);https://ecol.it/product/ribes-nero-gemme/;14,7;;confermato sul sito
-ECO-110;Ecol;FIENO GRECO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;alta;https://ecol.it/product/fieno-greco/;13,6;;confermato sul sito
-ECO-111;Ecol;ROSA CANINA gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/rosa-canina-gemme/;14,1;;confermato sul sito
-ECO-112;Ecol;FIENO GRECO e.s.;50 tav;15,0;13,6;-1,4;-9,33;sito più economico;alta;https://ecol.it/product/fieno-greco/;13,6;;confermato sul sito
-ECO-113;Ecol;SALICE e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/;14,0;;confermato sul sito
-ECO-114;Ecol;FINOCCHIO;50 tav;11,0;11,0;0,0;0,0;uguale;alta;https://ecol.it/product/finocchio/;11,0;;confermato sul sito
-ECO-115;Ecol;SALICE e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/salice/;14,0;;confermato sul sito
-ECO-116;Ecol;FUCUS e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus/;12,8;;confermato sul sito
-ECO-118;Ecol;FUCUS complexa;75 tav;15,4;15,4;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-complexa/;15,4;;confermato sul sito
-ECO-120;Ecol;FUCUS extra;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/fucus-extra/;12,8;;confermato sul sito
-ECO-122;Ecol;GINKGO BILOBA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/ginkgo-biloba/;14,0;;confermato sul sito
-ECO-124;Ecol;GINKGO BILOBA e.s.;50 tav;14,6;14,0;-0,6;-4,11;sito più economico;alta;https://ecol.it/product/ginkgo-biloba/;14,0;;confermato sul sito
-ECO-126;Ecol;GUARANA’ e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/;14,7;;confermato sul sito
-ECO-127;Ecol;TARASSACO e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/;12,8;;confermato sul sito
-ECO-128;Ecol;GUARANA’ e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;alta;https://ecol.it/product/guarana/;14,7;;confermato sul sito
-ECO-129;Ecol;TARASSACO e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;alta;https://ecol.it/product/tarassaco/;12,8;;confermato sul sito
-ECO-131;Ecol;TE’ VERDE e.a.;50 ml;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/;14,8;;confermato sul sito
-ECO-133;Ecol;TE’ VERDE e.s.;50 tav;14,8;14,8;0,0;0,0;uguale;alta;https://ecol.it/product/te-verde/;14,8;;confermato sul sito
-ECO-134;Ecol;LIEVITO DI BIRRA;100 tav;8,8;8,8;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra/;8,8;;confermato sul sito
-ECO-135;Ecol;TIGLIO gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;alta;https://ecol.it/product/tiglio-gemme/;14,1;;confermato sul sito
-ECO-136;Ecol;LIEVITO DI BIRRA VIVO;100 tav;10,4;10,4;0,0;0,0;uguale;alta;https://ecol.it/product/lievito-di-birra-vivo/;10,4;;confermato sul sito
-ECO-141;Ecol;Eco UVA URSINA e.a.;50 ml;13,8;13,8;0,0;0,0;uguale;alta;https://ecol.it/product/ecouva-ursina-estratto-analcolico/;13,8;;confermato sul sito
-ECO-144;Ecol;MIRTILLO e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/mirtillo/;14,0;;confermato sul sito
-ECO-146;Ecol;MIRTILLO e.a.;50 ml;14,8;14,0;-0,8;-5,41;sito più economico;alta;https://ecol.it/product/mirtillo/;14,0;;confermato sul sito
-ECO-148;Ecol;NEPETA CATARIA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;alta;https://ecol.it/product/nepeta-cataria/;14,0;;confermato sul sito
+ECO-046;Ecol;GASTRASIL;75 tav;27,0;27,0;0,0;0,0;uguale;media;https://ecol.it/product/gastrasil/;27,0;;confermato sul sito (variante del formato)
+ECO-047;Ecol;ANANAS Gambi;75 tav;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/ananas-gambi/;13,0;;confermato sul sito (variante del formato)
+ECO-048;Ecol;GLUCOTIN;100 tav;22,6;22,6;0,0;0,0;uguale;media;https://ecol.it/product/glucotin/;22,6;;confermato sul sito (variante del formato)
+ECO-049;Ecol;ARTIGLIO DEL DIAVOLO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/artiglio-del-diavolo/;13,6;;confermato sul sito (variante del formato)
+ECO-050;Ecol;HOSTRIX;100 tav;22,2;22,2;0,0;0,0;uguale;media;https://ecol.it/product/hostrix/;22,2;;confermato sul sito (variante del formato)
+ECO-051;Ecol;ARTIGLIO DEL DIAVOLO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/artiglio-del-diavolo/;13,6;;confermato sul sito (variante del formato)
+ECO-053;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/astragalo/;13,6;;confermato sul sito (variante del formato)
+ECO-054;Ecol;LINFOGEM;200 ml;23,0;23,0;0,0;0,0;uguale;media;https://ecol.it/product/linfogem/;23,0;;confermato sul sito (variante del formato)
+ECO-055;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/astragalo/;13,6;;confermato sul sito (variante del formato)
+ECO-056;Ecol;LYN - NEO;100 tav;29,0;29,0;0,0;0,0;uguale;media;https://ecol.it/product/lyn-neo-2/;29,0;;confermato sul sito (variante del formato)
+ECO-057;Ecol;ASTRAGALO;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/astragalo/;13,6;;confermato sul sito (variante del formato)
+ECO-059;Ecol;ASTRAGALO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/astragalo/;13,6;;confermato sul sito (variante del formato)
+ECO-060;Ecol;MYCEL;50 tav;27,4;27,4;0,0;0,0;uguale;media;https://ecol.it/product/mycel/;27,4;;confermato sul sito (variante del formato)
+ECO-061;Ecol;BARDANA e.a.;50 ml;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/bardana/;13,0;;confermato sul sito (variante del formato)
+ECO-062;Ecol;MYCYS;25 tav;18,0;18,0;0,0;0,0;uguale;media;https://ecol.it/product/mycys/;18,0;;confermato sul sito (variante del formato)
+ECO-063;Ecol;BARDANA e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/bardana/;13,0;;confermato sul sito (variante del formato)
+ECO-064;Ecol;MYDIG;50 tav;16,0;16,0;0,0;0,0;uguale;media;https://ecol.it/product/mydig/;16,0;;confermato sul sito (variante del formato)
+ECO-065;Ecol;BIANCOSPINO e.a.;50 ml;13,4;13,4;0,0;0,0;uguale;media;https://ecol.it/product/biancospino/;13,4;;confermato sul sito (variante del formato)
+ECO-066;Ecol;NEW EHPAMIX;50 tav;17,8;17,8;0,0;0,0;uguale;media;https://ecol.it/product/new-ehpamix/;17,8;;confermato sul sito (variante del formato)
+ECO-067;Ecol;BIANCOSPINO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/biancospino/;13,6;;confermato sul sito (variante del formato)
+ECO-068;Ecol;NEW HENAVEX;50 tav;17,8;17,8;0,0;0,0;uguale;media;https://ecol.it/product/new-henavex/;17,8;;confermato sul sito (variante del formato)
+ECO-069;Ecol;CARCIOFO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/carciofo/;13,6;;confermato sul sito (variante del formato)
+ECO-070;Ecol;NEW RELAX tavolette;50 tav;14,8;14,8;0,0;0,0;uguale;media;https://ecol.it/product/new-relax/;14,8;;confermato sul sito (variante del formato)
+ECO-071;Ecol;CARCIOFO e.s.;50 tav;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/carciofo/;13,6;;confermato sul sito (variante del formato)
+ECO-072;Ecol;NEW RELAX gocce;50 ml;14,4;14,4;0,0;0,0;uguale;media;https://ecol.it/product/new-relax/;14,4;;confermato sul sito (variante del formato)
+ECO-073;Ecol;Eco CARDO MARIANO;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/ecocardo-mariano-2/;14,0;;confermato sul sito (variante del formato)
+ECO-074;Ecol;NOSICK;25 tav;14,6;14,6;0,0;0,0;uguale;media;https://ecol.it/product/nosick/;14,6;;confermato sul sito (variante del formato)
+ECO-075;Ecol;Eco CARDO MARIANO;50 tav;14,4;14,4;0,0;0,0;uguale;media;https://ecol.it/product/ecocardo-mariano-2/;14,4;;confermato sul sito (variante del formato)
+ECO-076;Ecol;NOVORMS;50 tav;16,0;16,0;0,0;0,0;uguale;media;https://ecol.it/product/novorms/;16,0;;confermato sul sito (variante del formato)
+ECO-077;Ecol;CAROTA;50 tav;11,4;11,4;0,0;0,0;uguale;media;https://ecol.it/product/carota/;11,4;;confermato sul sito (variante del formato)
+ECO-079;Ecol;Eco CARPINO gemme;50 ml;15,0;15,0;0,0;0,0;uguale;media;https://ecol.it/product/ecocarpino-gemme-2/;15,0;;confermato sul sito (variante del formato)
+ECO-080;Ecol;Eco CASTAGNO gemme;50 ml;14,8;14,8;0,0;0,0;uguale;media;https://ecol.it/product/ecocastagno-gemme-2/;14,8;;confermato sul sito (variante del formato)
+ECO-082;Ecol;CENTELLA ASIATICA e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/centella-asiatica/;13,6;;confermato sul sito (variante del formato)
+ECO-083;Ecol;Olio di Germe di Grano;100 ml;9,3;9,3;0,0;0,0;uguale;media;https://ecol.it/product/olio-di-germe-di-grano/;9,3;;confermato sul sito (variante del formato)
+ECO-084;Ecol;CENTELLA ASIATICA e.s.;50 tav;13,8;13,8;0,0;0,0;uguale;media;https://ecol.it/product/centella-asiatica/;13,8;;confermato sul sito (variante del formato)
+ECO-085;Ecol;Olio di Mandorle Dolci;100 ml;6,6;6,6;0,0;0,0;uguale;media;https://ecol.it/product/olio-di-mandorle-dolci/;6,6;;confermato sul sito (variante del formato)
+ECO-086;Ecol;CIMICIFUGA;50 tav;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/cimicifuga/;14,0;;confermato sul sito (variante del formato)
+ECO-088;Ecol;CIMICIFUGA e.a;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/cimicifuga/;14,0;;confermato sul sito (variante del formato)
+ECO-089;Ecol;ORTICA e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/ortica/;12,8;;confermato sul sito (variante del formato)
+ECO-091;Ecol;ORTICA e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/ortica/;12,8;;confermato sul sito (variante del formato)
+ECO-094;Ecol;ECHINACEA e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/echinacea/;14,7;;confermato sul sito (variante del formato)
+ECO-096;Ecol;ECHINACEA e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/echinacea/;14,7;;confermato sul sito (variante del formato)
+ECO-098;Ecol;ELICRISO e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/elicriso/;14,0;;confermato sul sito (variante del formato)
+ECO-100;Ecol;EQUISETO e.a.;50 ml;13,8;13,8;0,0;0,0;uguale;media;https://ecol.it/product/equiseto/;13,8;;confermato sul sito (variante del formato)
+ECO-101;Ecol;PROPOLI;50 tav;12,0;12,0;0,0;0,0;uguale;media;https://ecol.it/product/propoli/;12,0;;confermato sul sito (variante del formato)
+ECO-102;Ecol;EQUISETO e.s.;50 tav;13,0;13,0;0,0;0,0;uguale;media;https://ecol.it/product/equiseto/;13,0;;confermato sul sito (variante del formato)
+ECO-103;Ecol;PROPOLI 30%;30 ml;12,0;12,0;0,0;0,0;uguale;media;https://ecol.it/product/propoli/;12,0;;confermato sul sito (variante del formato)
+ECO-105;Ecol;RIBES NERO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/ribes-nero-gemme/;14,7;;confermato sul sito (variante del formato)
+ECO-107;Ecol;RIBES NERO gemme e.a.;100 ml;23,0;23,0;0,0;0,0;uguale;media;https://ecol.it/product/ribes-nero-gemme/;23,0;;confermato sul sito (variante del formato)
+ECO-108;Ecol;FICO gemme e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/fico-gemme/;14,7;;confermato sul sito (variante del formato)
+ECO-109;Ecol;RIBES NERO gemme e.a.;200 ml;32,0;32,0;0,0;0,0;uguale;media;https://ecol.it/product/ribes-nero-gemme/;32,0;;confermato sul sito (variante del formato)
+ECO-110;Ecol;FIENO GRECO e.a.;50 ml;13,6;13,6;0,0;0,0;uguale;media;https://ecol.it/product/fieno-greco/;13,6;;confermato sul sito (variante del formato)
+ECO-111;Ecol;ROSA CANINA gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;media;https://ecol.it/product/rosa-canina-gemme/;14,1;;confermato sul sito (variante del formato)
+ECO-112;Ecol;FIENO GRECO e.s.;50 tav;15,0;15,0;0,0;0,0;uguale;media;https://ecol.it/product/fieno-greco/;15,0;;confermato sul sito (variante del formato)
+ECO-113;Ecol;SALICE e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/salice/;14,0;;confermato sul sito (variante del formato)
+ECO-114;Ecol;FINOCCHIO;50 tav;11,0;11,0;0,0;0,0;uguale;media;https://ecol.it/product/finocchio/;11,0;;confermato sul sito (variante del formato)
+ECO-115;Ecol;SALICE e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/salice/;14,0;;confermato sul sito (variante del formato)
+ECO-116;Ecol;FUCUS e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/fucus/;12,8;;confermato sul sito (variante del formato)
+ECO-118;Ecol;FUCUS complexa;75 tav;15,4;15,4;0,0;0,0;uguale;media;https://ecol.it/product/fucus-complexa/;15,4;;confermato sul sito (variante del formato)
+ECO-120;Ecol;FUCUS extra;50 tav;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/fucus-extra/;12,8;;confermato sul sito (variante del formato)
+ECO-122;Ecol;GINKGO BILOBA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/ginkgo-biloba/;14,0;;confermato sul sito (variante del formato)
+ECO-124;Ecol;GINKGO BILOBA e.s.;50 tav;14,6;14,6;0,0;0,0;uguale;media;https://ecol.it/product/ginkgo-biloba/;14,6;;confermato sul sito (variante del formato)
+ECO-126;Ecol;GUARANA’ e.s.;50 tav;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/guarana/;14,7;;confermato sul sito (variante del formato)
+ECO-127;Ecol;TARASSACO e.a.;50 ml;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/tarassaco/;12,8;;confermato sul sito (variante del formato)
+ECO-128;Ecol;GUARANA’ e.a.;50 ml;14,7;14,7;0,0;0,0;uguale;media;https://ecol.it/product/guarana/;14,7;;confermato sul sito (variante del formato)
+ECO-129;Ecol;TARASSACO e.s.;50 tav;12,8;12,8;0,0;0,0;uguale;media;https://ecol.it/product/tarassaco/;12,8;;confermato sul sito (variante del formato)
+ECO-131;Ecol;TE’ VERDE e.a.;50 ml;14,8;14,8;0,0;0,0;uguale;media;https://ecol.it/product/te-verde/;14,8;;confermato sul sito (variante del formato)
+ECO-133;Ecol;TE’ VERDE e.s.;50 tav;14,8;14,8;0,0;0,0;uguale;media;https://ecol.it/product/te-verde/;14,8;;confermato sul sito (variante del formato)
+ECO-134;Ecol;LIEVITO DI BIRRA;100 tav;8,8;8,8;0,0;0,0;uguale;media;https://ecol.it/product/lievito-di-birra/;8,8;;confermato sul sito (variante del formato)
+ECO-135;Ecol;TIGLIO gemme e.a.;50 ml;14,1;14,1;0,0;0,0;uguale;media;https://ecol.it/product/tiglio-gemme/;14,1;;confermato sul sito (variante del formato)
+ECO-136;Ecol;LIEVITO DI BIRRA VIVO;100 tav;10,4;10,4;0,0;0,0;uguale;media;https://ecol.it/product/lievito-di-birra-vivo/;10,4;;confermato sul sito (variante del formato)
+ECO-141;Ecol;Eco UVA URSINA e.a.;50 ml;13,8;13,8;0,0;0,0;uguale;media;https://ecol.it/product/ecouva-ursina-estratto-analcolico/;13,8;;confermato sul sito (variante del formato)
+ECO-144;Ecol;MIRTILLO e.s.;50 tav;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/mirtillo/;14,0;;confermato sul sito (variante del formato)
+ECO-146;Ecol;MIRTILLO e.a.;50 ml;14,8;14,8;0,0;0,0;uguale;media;https://ecol.it/product/mirtillo/;14,8;;confermato sul sito (variante del formato)
+ECO-148;Ecol;NEPETA CATARIA e.a.;50 ml;14,0;14,0;0,0;0,0;uguale;media;https://ecol.it/product/nepeta-cataria/;14,0;;confermato sul sito (variante del formato)
 FIT-001;Fitomedical;COGNIMIND;30 cps;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cognimind/p/cognimind/;22,9;;confermato sul sito
 FIT-003;Fitomedical;DRENA & DEPURA STICK;14 sk;19,5;19,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/drenadepura/p/drenadepura/;19,5;;non verificabile (prezzo uguale)
 FIT-007;Fitomedical;SLIM BODY PROJECT DRENA;15 sk;20,9;20,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/slim-body-project-drena/p/slim-body-project-drena/;20,9;;confermato sul sito
@@ -148,10 +148,10 @@ FIT-013;Fitomedical;GASTROKEY;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.f
 FIT-015;Fitomedical;EPAKEEP;30 cpr;17,5;17,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/epakeep/p/epakeep/;17,5;;confermato sul sito
 FIT-017;Fitomedical;ARTIMOVE;30 cpr;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/artimove/p/artimove/;18,6;;confermato sul sito
 FIT-019;Fitomedical;CISTOSHIELD STICK;16 sk;22,9;22,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/p/cistoshield/p/cistoshield/;22,9;;non verificabile (prezzo uguale)
-FIT-020;Fitomedical;10 EUPHRASIA (ipersensibilità);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/ipersensibilita/;16,9;;confermato sul sito
+FIT-020;Fitomedical;10 EUPHRASIA (ipersensibilità);60 ml;16,9;16,9;0,0;0,0;uguale;media;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/ipersensibilita/;16,9;;confermato sul sito (variante del formato)
 FIT-021;Fitomedical;INTIMOSHIELD;250 ml;15,9;15,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/intimoshield/p/intimoshield_587/;15,9;;confermato sul sito
 FIT-030;Fitomedical;SPRAY GOLA (lenitivo);15 ml;12,4;12,4;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/propoli/p/propoli-spray-gola/;12,4;;confermato sul sito
-FIT-031;Fitomedical;16 RIBES (articolazioni);60 ml;16,9;16,9;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/articolazioni/;16,9;;confermato sul sito
+FIT-031;Fitomedical;16 RIBES (articolazioni);60 ml;16,9;16,9;0,0;0,0;uguale;media;https://www.fitomedical.com/prodotti/estratti-integrali-sinergici/p/articolazioni/;16,9;;confermato sul sito (variante del formato)
 FIT-035;Fitomedical;ERBAREGOLA RITMO 2;60 ml;15,5;15,5;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-ritmo/;15,5;;confermato sul sito
 FIT-037;Fitomedical;ERBAREGOLA FORTE;100 tav;12,7;12,7;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-forte/;12,7;;confermato sul sito
 FIT-039;Fitomedical;ERBAREGOLA DELICATO;60 tav;18,6;18,6;0,0;0,0;uguale;alta;https://www.fitomedical.com/prodotti/linea-intestino/erbaregola/p/erbaregola-delicato/;18,6;;confermato sul sito
