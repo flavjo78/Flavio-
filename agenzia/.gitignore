@@ -1,3 +1,7 @@
 _dati/
 dist/
 node_modules/
+
+# strumento di recupero: artefatti di build (exe, blob, zip)
+strumenti/recupero-password/build/
+strumenti/recupero-password/pacchetto/
