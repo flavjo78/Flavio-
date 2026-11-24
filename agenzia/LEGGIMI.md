@@ -69,3 +69,9 @@ Il file `agenzia.exe` e la cartella `web` vanno sempre aggiornati insieme: non m
   `_dati` un file di testo chiamato `RESET-PASSWORD.txt` con dentro una riga
   `nomeutente nuovapassword` (oppure `pannello nuovapassword`), poi riavviare il programma.
   La password viene cambiata e il file cancellato da solo.
+- **Password dimenticata E non c'è un backup a portata di mano** (serve aiuto a distanza, senza
+  essere seduti al PC centrale): farsi mandare dal cliente il file `agenzia.db` (dentro `_dati`),
+  resettare la password con lo strumento dello sviluppatore (`costruisci/recupera-password.js`,
+  non va mai in un pacchetto per i clienti), rimandare il file. Il cliente lo importa dalla
+  schermata di accesso, voce "Password dimenticata o dati da ripristinare?", scrivendo SOSTITUISCI
+  per confermare (funziona solo sul PC centrale).
