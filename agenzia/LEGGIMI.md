@@ -56,7 +56,7 @@ Si riceve uno zip di aggiornamento con dentro `agenzia.exe`, la cartella `web\` 
 Il file ferma il programma, fa una copia dei dati in `_dati\prima-aggiornamento`, sostituisce
 `agenzia.exe` e `web\` e riavvia. La cartella `_dati\` non viene toccata. Gli altri PC non vanno aggiornati.
 
-**Aggiornare da una versione vecchia (anche prima della 1.11):** `aggiorna.bat` funziona da qualsiasi versione.
+**Da quali versioni si può aggiornare:** l'aggiornamento funziona sopra qualsiasi versione precedente, dalla 1.0 (la prima) in poi (provato da ognuna). Nel pacchetto di aggiornamento è sempre scritto (LEGGIMI-AGGIORNAMENTO.txt e messaggio di aggiorna.bat).
 Se sul PC non c'è l'avvio automatico, chiede la cartella dove si trova `agenzia.exe` (per esempio `C:\AGENZIA`):
 scriverla senza virgolette e senza barra finale. Al primo avvio il programma aggiorna da solo l'archivio dei dati.
 Il file `agenzia.exe` e la cartella `web` vanno sempre aggiornati insieme: non mescolare versioni diverse.

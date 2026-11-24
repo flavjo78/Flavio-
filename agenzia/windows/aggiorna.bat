@@ -6,6 +6,11 @@ cd /d "%~dp0"
 title AGENZIA - aggiornamento
 net session >nul 2>&1
 if %errorlevel% neq 0 goto noadmin
+echo.
+echo  AGENZIA - aggiornamento alla versione @@VERSIONE@@
+echo  Si puo' installare sopra QUALSIASI versione precedente, dalla @@DA@@ in poi.
+echo  I dati si aggiornano da soli e prima ne viene fatta una copia di sicurezza.
+echo  Non si puo' tornare a una versione piu' vecchia dopo l'aggiornamento.
 if not exist "%~dp0agenzia.exe" goto nofile
 if not exist "%~dp0web\index.html" goto nofile
 

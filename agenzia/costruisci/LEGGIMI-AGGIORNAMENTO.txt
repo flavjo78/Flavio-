@@ -1,0 +1,32 @@
+AGENZIA - AGGIORNAMENTO ALLA VERSIONE @@VERSIONE@@
+===================================================
+
+DA QUALI VERSIONI SI PUO' AGGIORNARE
+  Questo aggiornamento si puo' installare sopra QUALSIASI versione precedente
+  di AGENZIA, dalla @@DA@@ (la prima) in poi, fino alla versione appena prima di questa.
+  Non serve passare dalle versioni intermedie: il programma e' completo e i
+  dati si aggiornano da soli al primo avvio.
+  (Verificato provando l'aggiornamento da ognuna delle versioni uscite.)
+
+COME CAPIRE CHE VERSIONE HAI
+  In alto a destra nel programma c'e' scritto, per esempio, "v1.6.1".
+
+COME SI FA (solo sul computer principale, quello dove gira il programma)
+  1. Estrarre questo zip (tasto destro, "Estrai tutto") in una cartella
+     qualsiasi, per esempio sul Desktop. NON dentro la cartella del programma.
+  2. Aprire la cartella estratta e fare tasto destro su aggiorna.bat,
+     poi "Esegui come amministratore".
+  3. Se il programma non ha l'avvio automatico, lo script chiede la cartella
+     dove si trova agenzia.exe (per esempio C:\AGENZIA): scriverla senza
+     virgolette e senza barra finale.
+  4. Aspettare "Aggiornamento completato". Nel browser premere Ctrl+F5.
+
+COSA SUCCEDE AI DATI
+  I dati (cartella _dati) non vengono toccati. Prima di cambiare qualsiasi
+  file, lo script ne fa una copia in _dati\prima-aggiornamento.
+
+DA SAPERE
+  - Dopo l'aggiornamento non si puo' tornare a una versione piu' vecchia:
+    l'archivio dei dati viene aggiornato e quelle versioni non lo capirebbero.
+  - Gli altri computer non vanno aggiornati: usano il programma dal browser.
+  - Rifare lo stesso aggiornamento su un computer gia' aggiornato non fa danni.
