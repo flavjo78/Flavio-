@@ -130,3 +130,10 @@ conto, newsletter, credenziali web dei fornitori, importazione dei dati dal vecc
 - Il tasto **Aiuto**, in basso a sinistra vicino a «esci», riapre le novità e una guida rapida.
 - Per ogni nuova versione si aggiunge una voce in cima a `NOVITA` in `web/app.js`.
 - Opzioni → Registro operazioni: ricerca, filtro per utente e date, «Mostra altre»; i riferimenti mostrano il numero vero (pratica 16/2026, nome cliente, titolo lista).
+
+## Esportazione Excel, importi, avviso backup, clienti doppi — dalla 1.14
+- **Biglietteria → «Esporta in Excel»**: file `.xlsx` con un foglio per categoria (Aereo, Treni, Low cost; facoltativo Liste). Aereo: un gruppo di colonne per fornitore (canale) con IMPORTO, ADV FEE, TOTALE (=importo+fee), SEG., più PAGAMENTO (carta/cash), PAX, SALDO, PRATICA, NOTE. Treni: un gruppo per vettore. Low cost: IMPORTO, COMM., ADV FEE, TOTALE (=importo+fee: la commissione non si somma). Righe di totale con formule, filtri, riga intestazioni bloccata.
+- Periodo: oggi, ieri, settimana, mese, mese scorso, anno, anno scorso, tutto o personalizzato; riferito alla data del biglietto oppure alla data di partenza. Serve la password del pannello, ogni volta (`export_verifica`, valida 2 minuti per una sola esportazione). Il generatore `.xlsx` è `server/xlsx.js` (senza librerie).
+- **Importi**: ogni campo `input.soldi` diventa «€ [euro] , [centesimi]» (`rendiSoldi` in `web/app.js`); l'input originale resta nascosto e continua a contenere «1000,00».
+- **Avviso backup** (Scadenze): solo se la richiesta arriva dal PC dove gira il programma (indirizzo locale o uno degli indirizzi di rete del PC stesso). Compare se la cartella non è impostata, il backup non è mai partito o l'ultimo ha più di 2 giorni.
+- **Cliente doppio**: prima di creare un cliente nuovo si controlla se c'è già lo stesso codice fiscale o lo stesso cognome e nome.

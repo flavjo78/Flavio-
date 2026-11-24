@@ -3,7 +3,7 @@
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const db = require('./db');
-const VERSIONE = '1.13.1';
+const VERSIONE = '1.14.0';
 // pagine del menù sbloccate temporaneamente con la password del pannello (sid → Set di pagine)
 const SBLOCCHI = new Map();
 const PAGINE_MENU = ['scadenze', 'pratiche', 'biglietteria', 'clienti', 'fornitori', 'statistiche', 'liste'];
@@ -79,6 +79,7 @@ function controllaPermesso(ctx, nome) {
   if (pag === 'clienti' && ['clienti', 'cliente', 'tessere_tipi', 'passeggeri_cerca', 'cliente_salva'].includes(nome)) { const perm = permessiDi(ctx.utente); if (perm.some(p => ['pratiche', 'biglietteria', 'clienti'].includes(p))) return; }
   if (pag === 'pratiche' && ['pratiche_cerca', 'pratica'].includes(nome) && permessiDi(ctx.utente).includes('biglietteria')) return;
   if (pag === 'fornitori' && nome === 'fornitori' && permessiDi(ctx.utente).some(p => ['pratiche', 'biglietteria'].includes(p))) return;
+  if (pag === 'clienti' && nome === 'clienti_simili') { const perm = permessiDi(ctx.utente); if (perm.some(p => ['pratiche', 'biglietteria'].includes(p))) return; }
   if (pag === 'liste' && nome === 'lista_cerca' && permessiDi(ctx.utente).some(p => ['pratiche', 'biglietteria'].includes(p))) return;
   if (permessiDi(ctx.utente).includes(pag)) return;
   const sb = ctx.sessione && SBLOCCHI.get(ctx.sessione.sid);
@@ -1201,6 +1202,168 @@ function lista_movimento_elimina(ctx) {
   return caricaLista(m.lista_id);
 }
 
+// ---------- esportazione in Excel dei biglietti ----------
+// Si può fare solo dopo aver scritto la password del pannello Opzioni (valida per UNA esportazione, entro 2 minuti).
+const EXPORT_OK = new Map();
+function export_verifica(ctx) {
+  const c = ctx.corpo || {};
+  if (!verificaPassword(c.password, db.impostazione('pannello_pass'))) err(401, 'Password del pannello sbagliata');
+  EXPORT_OK.set(ctx.sessione.sid, Date.now());
+  db.log(ctx.utente, 'export_sblocco', '', null, '');
+  return { ok: true };
+}
+function esporta_biglietti(ctx) {
+  const sid = ctx.sessione && ctx.sessione.sid;
+  const t = EXPORT_OK.get(sid); EXPORT_OK.delete(sid);
+  if (!t || Date.now() - t > 2 * 60 * 1000) err(403, 'Serve la password del pannello opzioni');
+  const { creaXlsx, STILE: ST } = require('./xlsx');
+  const nc = require('./xlsx').nomeColonna;
+  const da = DATA(ctx.query.da), a = DATA(ctx.query.a);
+  const per = S(ctx.query.per) === 'partenza' ? 'partenza' : 'data';
+  const categorie = new Set(S(ctx.query.categorie || 'aereo,treno,lowcost').split(',').map(x => x.trim()).filter(x => TIPI_BIGLIETTO.includes(x)));
+  const conListe = S(ctx.query.liste) === '1';
+  richiedi(categorie.size || conListe, 'Scegli almeno una categoria');
+  let sql = `SELECT b.*, ${NOME_CL('c')} AS cliente_nome, p.numero AS p_numero, p.anno AS p_anno FROM biglietti b LEFT JOIN clienti c ON c.id = b.cliente_id LEFT JOIN pratiche p ON p.id = b.pratica_id WHERE b.bozza = 0`;
+  const prm = [];
+  if (da) { sql += ` AND b.${per} >= ?`; prm.push(da); }
+  if (a) { sql += ` AND b.${per} <= ?`; prm.push(a); }
+  sql += ' ORDER BY b.data, b.anno, b.numero';
+  const tutti = db.all(sql, ...prm).map(b => { const x = arricchisciBiglietto(b); x.cliente_nome = b.cliente_nome; x.p_numero = b.p_numero; x.p_anno = b.p_anno; return x; });
+  const euro = c => c / 100;
+  const periodo = `${da ? 'dal ' + da.split('-').reverse().join('/') : 'dall\'inizio'}${a ? ' al ' + a.split('-').reverse().join('/') : ''} · per ${per === 'partenza' ? 'data di partenza' : 'data del biglietto'}`;
+  const L = db.impostazione('liste');
+  const cliente = b => b.cliente_nome || b.passeggero || '';
+  const operazione = b => ({ emissione: 'Emissione', cambio: 'Cambio', rimborso: 'Rimborso' }[b.operazione] || b.operazione || '');
+  const pratica = b => b.p_numero ? `${b.p_numero}/${b.p_anno}` : '';
+  const saldo = b => b.pratica_id ? 0 : euro(b.saldo_cent);
+  const imp = b => euro(b.importo_cent * b.pax), fee = b => euro(b.adv_fee_cent * b.pax), comm = b => euro(b.commissione_cent * b.pax);
+  // colonna: { h intestazione, w larghezza, tipo, val(b), f(riga, ix) formula, somma }
+  const T = (h, w, val) => ({ h, w, tipo: 'testo', val });
+  const D = (h, w, val) => ({ h, w, tipo: 'data', val });
+  const E = (h, w, val, somma = true) => ({ h, w, tipo: 'euro', val, somma });
+  const N = (h, w, val, somma = true) => ({ h, w, tipo: 'intero', val, somma });
+  const TOT = (h, w) => ({ h, w, tipo: 'tot', val: () => 0, somma: true, f: (r, ix) => `${nc(ix[0])}${r}+${nc(ix[1])}${r}` });
+  const ordina = (nomi, preferiti) => [...new Set([...preferiti.filter(p => nomi.includes(p)), ...nomi])];
+
+  function foglio(nome, titolo, righe, prima, gruppi, dopo) {
+    // gruppi: [{ nome, cols:[...], ha: b => bool }] oppure []
+    const cols = []; // { ...col, gruppo }
+    prima.forEach(c => cols.push({ ...c, gruppo: null }));
+    gruppi.forEach((g, gi) => g.cols.forEach(c => cols.push({ ...c, gruppo: gi })));
+    dopo.forEach(c => cols.push({ ...c, gruppo: null }));
+    const conGruppi = gruppi.length > 0;
+    const rIntest = conGruppi ? 2 : 1;               // indice (da 0) della riga delle intestazioni
+    const prima1 = rIntest + 1;                       // primo dato (indice da 0)
+    const rows = [[{ v: titolo, s: ST.titolo }]];
+    const unioni = [], ix = gruppi.map(() => []);
+    cols.forEach((c, i) => { if (c.gruppo !== null) ix[c.gruppo].push(i); });
+    if (conGruppi) {
+      const r = []; gruppi.forEach((g, gi) => { const a0 = ix[gi][0], a1 = ix[gi][ix[gi].length - 1]; r[a0] = { v: g.nome.toUpperCase(), s: ST.gruppo }; for (let k = a0 + 1; k <= a1; k++) r[k] = { v: '', s: ST.gruppo }; if (a1 > a0) unioni.push(`${nc(a0)}2:${nc(a1)}2`); });
+      rows.push(r);
+    }
+    rows.push(cols.map(c => ({ v: c.h, s: ST.intestazione })));
+    const nDati = righe.length;
+    righe.forEach((b, k) => {
+      const nr = prima1 + k + 1;                      // numero di riga di Excel
+      rows.push(cols.map((c, i) => {
+        const mio = c.gruppo === null || gruppi[c.gruppo].ha(b);
+        if (!mio) return { v: '', s: c.tipo === 'testo' ? ST.testo : (c.tipo === 'data' ? ST.data : (c.tipo === 'intero' ? ST.intero : ST.euro)) };
+        const v = c.val(b);
+        if (c.tipo === 'data') return v ? { t: 'd', v, s: ST.data } : { v: '', s: ST.data };
+        if (c.tipo === 'testo') return { v: v || '', s: ST.testo };
+        if (c.tipo === 'intero') return v ? { t: 'n', v, s: ST.intero } : { v: '', s: ST.intero };
+        if (c.tipo === 'tot') return { t: 'f', f: c.f(nr, ix[c.gruppo]), v: euroSomma(b, c, gruppi), s: ST.euro };
+        return v ? { t: 'n', v, s: ST.euro } : { v: '', s: ST.euro };
+      }));
+    });
+    // riga dei totali
+    const ultima = prima1 + nDati;                    // numero Excel dell'ultima riga di dati
+    rows.push(cols.map((c, i) => {
+      if (i === 0) return { v: 'TOTALE', s: ST.totTesto };
+      if (!c.somma || !nDati) return { v: '', s: ST.totTesto };
+      const somma = righe.reduce((s, b) => s + ((c.gruppo === null || gruppi[c.gruppo].ha(b)) ? (c.tipo === 'tot' ? euroSomma(b, c, gruppi) : (Number(c.val(b)) || 0)) : 0), 0);
+      return { t: 'f', f: `SUM(${nc(i)}${prima1 + 1}:${nc(i)}${ultima})`, v: somma, s: c.tipo === 'intero' ? ST.totIntero : ST.totEuro };
+    }));
+    return { nome, colonne: cols.map(c => c.w), righe: rows, unioni, bloccaRighe: rIntest + 1, filtro: `A${rIntest + 1}:${nc(cols.length - 1)}${Math.max(rIntest + 1, nDati ? ultima : rIntest + 1)}` };
+  }
+  // valore calcolato (per chi apre il file senza ricalcolare): i primi due campi del gruppo sommati
+  function euroSomma(b, c, gruppi) { const g = gruppi[c.gruppo]; return (Number(g.cols[0].val(b)) || 0) + (Number(g.cols[1].val(b)) || 0); }
+
+  const fogli = [];
+  if (categorie.has('aereo')) {
+    const righe = tutti.filter(b => b.tipo === 'aereo');
+    const canale = b => b.canale || 'Altro';
+    const nomi = ordina([...new Set(righe.map(canale))], L.canali_aereo || []);
+    const gruppi = (nomi.length ? nomi : (L.canali_aereo || ['Fancy Tour', 'Only Ticket'])).map(n => ({ nome: n, ha: b => canale(b) === n, cols: [E('IMPORTO', 12, imp), E('ADV FEE', 11, fee), TOT('TOTALE', 12, null), N('SEG.', 6, b => b.segmenti)] }));
+    fogli.push(foglio('Aereo', `BIGLIETTERIA · AEREO · ${periodo}`, righe,
+      [D('DATA', 11, b => b.data), T('CLIENTE', 34, cliente), T('ITINERARIO', 22, b => b.itinerario), D('PARTENZA', 11, b => b.partenza), T('CODICE', 13, b => b.codice), T('VETTORE', 16, b => b.vettore), T('PAGAMENTO', 11, b => b.modalita === 'debito' ? 'Cash' : (b.modalita === 'pagato' ? 'Carta' : '')), T('OPERAZIONE', 12, operazione)],
+      gruppi, [N('PAX', 6, b => b.pax), E('SALDO', 12, saldo), T('PRATICA', 10, pratica), T('NOTE', 30, b => b.note)]));
+  }
+  if (categorie.has('treno')) {
+    const righe = tutti.filter(b => b.tipo === 'treno');
+    const vettore = b => b.vettore || 'Altro';
+    const nomi = ordina([...new Set(righe.map(vettore))], L.vettori_treno || ['Trenitalia', 'Italo']);
+    const gruppi = (nomi.length ? nomi : (L.vettori_treno || ['Trenitalia', 'Italo'])).map(n => ({ nome: n, ha: b => vettore(b) === n, cols: [E('IMPORTO', 12, imp), E('ADV FEE', 11, fee), TOT('TOTALE', 12, null)] }));
+    fogli.push(foglio('Treni', `BIGLIETTERIA · TRENI · ${periodo}`, righe,
+      [D('DATA', 11, b => b.data), T('CLIENTE', 34, cliente), T('CODICE', 13, b => b.codice), T('ITINERARIO', 22, b => b.itinerario), D('PARTENZA', 11, b => b.partenza), T('OPERAZIONE', 12, operazione)],
+      gruppi, [N('PAX', 6, b => b.pax), E('SALDO', 12, saldo), T('PRATICA', 10, pratica), T('NOTE', 30, b => b.note)]));
+  }
+  if (categorie.has('lowcost')) {
+    const righe = tutti.filter(b => b.tipo === 'lowcost');
+    // TOTALE = importo + adv fee: la commissione NON si somma al cliente
+    const tot = { h: 'TOTALE', w: 12, tipo: 'euro', somma: true, val: b => imp(b) + fee(b), formulaRiga: (r) => `G${r}+I${r}` };
+    const f = foglio('Low cost', `BIGLIETTERIA · LOW COST · ${periodo}`, righe,
+      [D('DATA', 11, b => b.data), T('CLIENTE', 34, cliente), T('CODICE', 13, b => b.codice), T('ITINERARIO', 22, b => b.itinerario), D('PARTENZA', 11, b => b.partenza), T('VETTORE', 18, b => b.vettore), E('IMPORTO', 12, imp), E('COMM.', 11, comm), E('ADV FEE', 11, fee), tot],
+      [], [N('PAX', 6, b => b.pax), E('SALDO', 12, saldo), T('PRATICA', 10, pratica), T('OPERAZIONE', 12, operazione), T('NOTE', 30, b => b.note)]);
+    // la colonna TOTALE diventa una formula =IMPORTO+ADV FEE
+    righe.forEach((b, k) => { const r = 2 + k; f.righe[r][9] = { t: 'f', f: `G${r + 1}+I${r + 1}`, v: imp(b) + fee(b), s: ST.euro }; });
+    fogli.push(f);
+  }
+  if (conListe) {
+    const mov = db.all(`SELECT m.*, l.titolo, ${NOME_CL('c')} AS cliente FROM liste_movimenti m JOIN liste l ON l.id = m.lista_id JOIN clienti c ON c.id = l.cliente_id
+      WHERE (? = '' OR m.data >= ?) AND (? = '' OR m.data <= ?) ORDER BY l.titolo COLLATE NOCASE, m.data, m.id`, da, da, a, a);
+    const tipoM = m => m.tipo === 'acconto' ? 'Pagamento acconto' : (m.tipo === 'prelievo' ? 'Prelievo' : 'Versamento');
+    fogli.push(foglio('Liste', `LISTE · movimenti · ${da ? 'dal ' + da.split('-').reverse().join('/') : 'dall\'inizio'}${a ? ' al ' + a.split('-').reverse().join('/') : ''}`, mov, [
+      D('DATA', 11, m => m.data), T('LISTA', 28, m => m.titolo), T('INTESTATA A', 30, m => m.cliente), T('MOVIMENTO', 18, tipoM), T('DA / MOTIVO', 34, m => [m.versante, m.descrizione].filter(Boolean).join(' · ')), T('METODO', 14, m => m.metodo), E('IMPORTO', 13, m => euro(m.importo_cent))], [], []));
+  }
+  const buf = creaXlsx(fogli);
+  const os = require('node:os'), path = require('node:path');
+  const tmp = path.join(os.tmpdir(), `agenzia-excel-${process.pid}-${Date.now()}.xlsx`);
+  fs.writeFileSync(tmp, buf);
+  const nome = `Biglietteria_${da || 'inizio'}${a ? '_' + a : ''}.xlsx`;
+  db.log(ctx.utente, 'esporta_biglietti', '', null, `${nome} · ${tutti.length} biglietti${conListe ? ' + liste' : ''}`);
+  return { __file: tmp, __nome: nome, __cancella: true };
+}
+
+// ---------- avviso di backup: si vede solo sul computer principale (quello dove gira il programma) ----------
+function backup_avviso(ctx) {
+  const os = require('node:os');
+  const mie = new Set(['127.0.0.1', '::1']);
+  for (const l of Object.values(os.networkInterfaces())) for (const i of l || []) mie.add(String(i.address).split('%')[0]);
+  const chi = String(ctx.indirizzo || '').replace(/^::ffff:/, '').split('%')[0];
+  if (!mie.has(chi)) return { locale: false, avviso: null };
+  const b = db.impostazione('backup');
+  let avviso = null;
+  if (!S(b.cartella)) avviso = { tipo: 'cartella', testo: 'Il backup automatico non è impostato: i dati sono solo su questo computer. Scegli una cartella dove copiarli ogni giorno (chiavetta, disco esterno o un altro computer).' };
+  else if (!b.ultimo) avviso = { tipo: 'mai', testo: `Il backup è impostato ma non è ancora partito. Parte ogni giorno alle ${S(b.ora) || '20:00'}, se il computer è acceso. Puoi farlo subito con «Backup adesso».` };
+  else {
+    const giorni = Math.floor((Date.now() - Date.parse(b.ultimo)) / 86400000);
+    if (giorni >= 2) avviso = { tipo: 'vecchio', giorni, testo: `L'ultimo backup risale a ${giorni} giorni fa. Controlla che la cartella dei backup sia raggiungibile (chiavetta inserita, disco acceso) oppure fai «Backup adesso».` };
+  }
+  return { locale: true, avviso };
+}
+
+// ---------- cliente già presente? (stesso codice fiscale, oppure stesso cognome e nome anche scambiati) ----------
+function clienti_simili(ctx) {
+  const cg = S(ctx.query.cognome).toLowerCase(), nm = S(ctx.query.nome).toLowerCase();
+  const cf = S(ctx.query.cf).toUpperCase().replace(/\s+/g, ''), escludi = N(ctx.query.escludi_id);
+  const w = [], p = [];
+  if (cf.length >= 11) { w.push("upper(replace(c.cf, ' ', '')) = ?"); p.push(cf); }
+  if (cg && nm) { w.push('(lower(c.cognome) = ? AND lower(c.nome) = ?)', '(lower(c.cognome) = ? AND lower(c.nome) = ?)'); p.push(cg, nm, nm, cg); }
+  if (!w.length) return [];
+  return db.all(`SELECT c.id, c.cognome, c.nome, c.cf, c.nato_il, c.citta, c.cellulare FROM clienti c WHERE (${w.join(' OR ')}) AND c.id <> ? ORDER BY c.cognome, c.nome LIMIT 5`, ...p, escludi);
+}
+
 // ---------- riepilogo giornaliero ----------
 // Incassato = acconti con la data del giorno. Venduto = pratiche confermate quel giorno (biglietti collegati compresi)
 // + biglietti emessi quel giorno senza pratica. Preventivi = pratiche aperte quel giorno, escluse quelle vendute lo stesso giorno.
@@ -1352,6 +1515,10 @@ const AZIONI = {
   statistiche: { fn: statistiche },
   statistiche_giorno: { fn: statistiche_giorno },
   novita_vista: { fn: novita_vista, post: true },
+  export_verifica: { fn: export_verifica, post: true },
+  esporta_biglietti: { fn: esporta_biglietti },
+  backup_avviso: { fn: backup_avviso },
+  clienti_simili: { fn: clienti_simili },
   liste: { fn: liste },
   lista: { fn: lista },
   lista_cerca: { fn: lista_cerca },

@@ -101,7 +101,7 @@ async function gestisciApi(req, res, url) {
   if (!az.pubblica && !utente) return rispondiJson(res, 401, { errore: 'Devi entrare con nome utente e password', login: true });
   let cookie;
   const ctx = {
-    metodo: req.method, query, corpo, corpoRaw, utente, sessione: utente ? sessione : null,
+    metodo: req.method, query, corpo, corpoRaw, utente, sessione: utente ? sessione : null, indirizzo: req.socket.remoteAddress || '',
     setSessione: sid => { cookie = sid ? `agenzia_sid=${sid}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${30 * 86400}` : 'agenzia_sid=; Path=/; HttpOnly; Max-Age=0'; }
   };
   if (utente) controllaPermesso(ctx, nome);

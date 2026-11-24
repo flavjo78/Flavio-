@@ -56,6 +56,11 @@ Si riceve uno zip di aggiornamento con dentro `agenzia.exe`, la cartella `web\` 
 Il file ferma il programma, fa una copia dei dati in `_dati\prima-aggiornamento`, sostituisce
 `agenzia.exe` e `web\` e riavvia. La cartella `_dati\` non viene toccata. Gli altri PC non vanno aggiornati.
 
+**Aggiornare da una versione vecchia (anche prima della 1.11):** `aggiorna.bat` funziona da qualsiasi versione.
+Se sul PC non c'è l'avvio automatico, chiede la cartella dove si trova `agenzia.exe` (per esempio `C:\AGENZIA`):
+scriverla senza virgolette e senza barra finale. Al primo avvio il programma aggiorna da solo l'archivio dei dati.
+Il file `agenzia.exe` e la cartella `web` vanno sempre aggiornati insieme: non mescolare versioni diverse.
+
 ## 6. Se qualcosa non va
 - "La porta 8787 è già occupata": il programma è già avviato (controllare le attività pianificate).
 - Gli altri PC non si collegano: controllare che il PC centrale sia acceso, che il firewall

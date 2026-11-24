@@ -140,10 +140,138 @@ function rendiCombo(inp) {
 }
 new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType !== 1) continue; if (n.matches && n.matches('input[list]')) rendiCombo(n); n.querySelectorAll && n.querySelectorAll('input[list]').forEach(rendiCombo); } }).observe(document.documentElement, { childList: true, subtree: true });
 
+// ================= IMPORTI IN EURO: DUE CASELLE =================
+// Ogni <input class="soldi"> diventa «€ [1000] , [00]»: euro e centesimi in due caselle, con il simbolo € sempre visibile.
+// Appena si scrivono gli euro i centesimi diventano «00». Con la virgola o il punto (o la freccia a destra) si passa ai centesimi.
+// L'input originale resta nella pagina, nascosto: il resto del programma continua a leggerne e a scriverne il valore («1000,00»).
+const valoreInput = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+function rendiSoldi(inp) {
+  if (inp.dataset.soldi) return;
+  inp.dataset.soldi = '1';
+  const box = document.createElement('span');
+  box.className = 'eur-box';
+  if (inp.title) box.title = inp.title;
+  box.innerHTML = '<span class="eur-sim">€</span><input class="eur-u" inputmode="numeric" autocomplete="off" aria-label="Euro" placeholder="0"><span class="eur-sep">,</span><input class="eur-c" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Centesimi" placeholder="00">';
+  inp.after(box);
+  inp.classList.add('eur-orig'); inp.tabIndex = -1;
+  const u = box.querySelector('.eur-u'), c = box.querySelector('.eur-c');
+  if (inp.readOnly) { u.readOnly = true; c.readOnly = true; }
+  const mostra = v => {
+    const t = String(v ?? '').trim().replace(/\s|€/g, '');
+    if (!t) { u.value = ''; c.value = ''; c.dataset.auto = ''; return; }
+    const cent = euroACent(t), a = Math.abs(cent);
+    u.value = (cent < 0 ? '-' : '') + Math.floor(a / 100); c.value = String(a % 100).padStart(2, '0'); c.dataset.auto = '';
+  };
+  Object.defineProperty(inp, 'value', { configurable: true, get() { return valoreInput.get.call(this); }, set(v) { valoreInput.set.call(this, v); mostra(v); } });
+  inp.focus = () => u.focus(); inp.select = () => u.select();
+  mostra(valoreInput.get.call(inp));
+  const leggi = () => {
+    const un = u.value.trim(), ce = c.value.trim();
+    if (un === '' && ce === '') return '';
+    return `${un === '' ? '0' : (un === '-' ? '-0' : un)},${(ce + '00').slice(0, 2)}`;
+  };
+  const invia = tipo => { valoreInput.set.call(inp, leggi()); inp.dispatchEvent(new Event(tipo, { bubbles: true })); };
+  u.addEventListener('keydown', e => {
+    if (e.key === ',' || e.key === '.' || (e.key === 'ArrowRight' && u.selectionStart === u.value.length && u.selectionEnd === u.value.length)) { e.preventDefault(); c.focus(); c.select(); }
+  });
+  u.addEventListener('input', () => {
+    u.value = u.value.replace(/[^\d-]/g, '').replace(/(?!^)-/g, '');
+    if (/\d/.test(u.value) && c.value === '') { c.value = '00'; c.dataset.auto = '1'; }
+    if (!u.value && c.dataset.auto) { c.value = ''; c.dataset.auto = ''; }
+    invia('input');
+  });
+  c.addEventListener('input', () => { c.value = c.value.replace(/\D/g, '').slice(0, 2); c.dataset.auto = ''; invia('input'); });
+  c.addEventListener('keydown', e => {
+    if ((e.key === 'Backspace' && c.value === '') || (e.key === 'ArrowLeft' && c.selectionStart === 0 && c.selectionEnd === 0)) { e.preventDefault(); u.focus(); const n = u.value.length; u.setSelectionRange(n, n); }
+  });
+  for (const x of [u, c]) {
+    x.addEventListener('focus', () => x.select());
+    x.addEventListener('paste', e => {
+      const testo = (e.clipboardData || window.clipboardData).getData('text'); if (!testo || !/\d/.test(testo)) return;
+      e.preventDefault(); const v = euroACent(testo); mostra(v ? (v / 100).toFixed(2).replace('.', ',') : '0,00'); invia('input'); invia('change');
+    });
+  }
+  box.addEventListener('focusout', e => {
+    if (box.contains(e.relatedTarget)) return;
+    if (c.value.length === 1) c.value += '0';
+    if (c.value === '' && /\d/.test(u.value)) { c.value = '00'; c.dataset.auto = ''; }
+    invia('change');
+  });
+}
+document.querySelectorAll('input.soldi').forEach(rendiSoldi);
+new MutationObserver(ms => { for (const m of ms) for (const n of m.addedNodes) { if (n.nodeType !== 1) continue; if (n.matches && n.matches('input.soldi')) rendiSoldi(n); n.querySelectorAll && n.querySelectorAll('input.soldi').forEach(rendiSoldi); } }).observe(document.documentElement, { childList: true, subtree: true });
+
+// Cliente già presente? Si controlla prima di creare un nuovo cliente (stesso codice fiscale, oppure stesso cognome e nome).
+async function confermaNuovoCliente(f) {
+  let sim = [];
+  try { sim = await api('clienti_simili', undefined, { cognome: f.cognome || '', nome: f.nome || '', cf: f.cf || '', escludi_id: f.id || '' }); } catch (e) { return true; }
+  if (!sim.length) return true;
+  const r = await modale({ titolo: 'Questo cliente esiste già?', ok: 'Crea comunque un nuovo cliente', annulla: 'Annulla',
+    corpo: `<p>Nell'anagrafica ${sim.length === 1 ? 'c\'è già un cliente simile' : 'ci sono già ' + sim.length + ' clienti simili'}:</p>
+      <table class="t compatta"><thead><tr><th>Cliente</th><th>Nato il</th><th>Cod. fiscale</th><th>Città</th><th></th></tr></thead><tbody>${sim.map(c => `<tr><td><b>${esc(c.cognome)} ${esc(c.nome)}</b></td><td>${dataIt(c.nato_il)}</td><td class="mono small">${esc(c.cf || '')}</td><td>${esc(c.citta || '')}</td><td class="az"><a class="btn piccolo" target="_blank" href="#/clienti/${c.id}">apri</a></td></tr>`).join('')}</tbody></table>
+      <p class="small muted" style="margin-top:8px">Se è la stessa persona, premi «Annulla» e usa il cliente che c'è già. Se è un omonimo, crea comunque il nuovo cliente.</p>` });
+  return r !== null;
+}
+
+// Esportazione dei biglietti in Excel (dalla pagina Biglietteria): periodo, fogli e password del pannello
+function periodoDaScelta(k) {
+  const pad = n => String(n).padStart(2, '0'), iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const oggi = new Date(); oggi.setHours(12, 0, 0, 0); const a = oggi.getFullYear(), m = oggi.getMonth();
+  const giorno = n => { const d = new Date(oggi); d.setDate(d.getDate() + n); return d; };
+  switch (k) {
+    case 'oggi': return [iso(oggi), iso(oggi)];
+    case 'ieri': return [iso(giorno(-1)), iso(giorno(-1))];
+    case 'settimana': { const lun = (oggi.getDay() + 6) % 7; return [iso(giorno(-lun)), iso(giorno(6 - lun))]; }
+    case 'mese': return [iso(new Date(a, m, 1, 12)), iso(new Date(a, m + 1, 0, 12))];
+    case 'mese_scorso': return [iso(new Date(a, m - 1, 1, 12)), iso(new Date(a, m, 0, 12))];
+    case 'anno': return [`${a}-01-01`, `${a}-12-31`];
+    case 'anno_scorso': return [`${a - 1}-01-01`, `${a - 1}-12-31`];
+    default: return ['', ''];
+  }
+}
+function apriEsportaBiglietti() {
+  const PERIODI = [['oggi', 'Oggi'], ['ieri', 'Ieri'], ['settimana', 'Questa settimana'], ['mese', 'Questo mese'], ['mese_scorso', 'Mese scorso'], ['anno', 'Quest\'anno'], ['anno_scorso', 'Anno scorso'], ['tutto', 'Tutto'], ['custom', 'Personalizzato…']];
+  modale({ titolo: 'Esporta i biglietti in Excel', ok: 'Esporta', larga: true,
+    corpo: `<div class="griglia g2">
+      <div class="campo"><label>Periodo</label><select id="exPer">${opzioni(PERIODI.map(([v, l]) => ({ value: v, label: l })), 'mese')}</select></div>
+      <div class="campo"><label>Il periodo si riferisce alla</label><select id="exRif">${opzioni([{ value: 'data', label: 'data del biglietto' }, { value: 'partenza', label: 'data di partenza' }], 'data')}</select></div>
+      <div class="campo hidden" id="exDaBox"><label>Dal</label><input type="date" id="exDa"></div><div class="campo hidden" id="exABox"><label>Al</label><input type="date" id="exA"></div>
+      <div class="campo col2"><label>Fogli da creare (uno per categoria)</label><div class="riga" style="gap:18px;flex-wrap:wrap">
+        <label class="small"><input type="checkbox" id="exAereo" checked> Aereo</label><label class="small"><input type="checkbox" id="exTreno" checked> Treni</label><label class="small"><input type="checkbox" id="exLowcost" checked> Low cost</label><label class="small"><input type="checkbox" id="exListe"> Liste (versamenti e prelievi)</label></div></div>
+      <div class="campo col2"><label>Password del pannello Opzioni</label><input type="password" id="exPw" autocomplete="off"></div></div>
+      <div class="small muted" id="exRiep" style="margin-top:8px"></div>`,
+    onOk: async d => {
+      const k = $('#exPer', d).value; let [da, a] = periodoDaScelta(k);
+      if (k === 'custom') { da = isoVal($('#exDa', d)); a = isoVal($('#exA', d)); if (!da && !a) throw new Error('Scrivi almeno una data: dal oppure al'); }
+      const cat = [['exAereo', 'aereo'], ['exTreno', 'treno'], ['exLowcost', 'lowcost']].filter(([id]) => $('#' + id, d).checked).map(x => x[1]);
+      const liste = $('#exListe', d).checked;
+      if (!cat.length && !liste) throw new Error('Scegli almeno un foglio');
+      if (!$('#exPw', d).value) throw new Error('Scrivi la password del pannello Opzioni');
+      await api('export_verifica', { password: $('#exPw', d).value });
+      const q = new URLSearchParams({ da, a, per: $('#exRif', d).value, categorie: cat.join(','), liste: liste ? '1' : '0' });
+      window.location.href = '/api/esporta_biglietti?' + q.toString();
+      toast('Esportazione pronta: il file si scarica', 'ok');
+      return true;
+    } });
+  const d = document.querySelector('dialog.modal:last-of-type');
+  const riepilogo = () => {
+    const k = $('#exPer', d).value; $('#exDaBox', d).classList.toggle('hidden', k !== 'custom'); $('#exABox', d).classList.toggle('hidden', k !== 'custom');
+    const [da, a] = k === 'custom' ? [isoVal($('#exDa', d)), isoVal($('#exA', d))] : periodoDaScelta(k);
+    $('#exRiep', d).textContent = (da || a) ? `Periodo: ${da ? 'dal ' + dataIt(da) : 'dall\'inizio'}${a ? ' al ' + dataIt(a) : ''}` : 'Periodo: tutti i biglietti';
+  };
+  for (const id of ['#exPer', '#exDa', '#exA']) $(id, d).addEventListener('change', riepilogo);
+  riepilogo();
+}
+
 // ================= NOVITÀ E AIUTO =================
 // Dopo ogni aggiornamento, alla prima apertura, ogni utente vede UNA volta cosa è cambiato. Il tasto "Aiuto" (in basso, vicino a "esci")
 // le riapre quando vuole, insieme a una guida rapida. Quando esce una versione nuova si aggiunge una voce in cima a NOVITA.
 const NOVITA = [
+  { v: '1.14.0', titolo: 'Esportazione in Excel, importi più sicuri, avviso backup', voci: [
+    'Biglietteria → «Esporta in Excel»: crea un file con un foglio per categoria (Aereo, Treni, Low cost), con totali e importi in euro, come il tuo Excel. Si sceglie il periodo (oggi, ieri, settimana, mese, anno, tutto o personalizzato) e se riferirlo alla data del biglietto o a quella di partenza. Si può aggiungere un foglio con le liste. Serve la password del pannello Opzioni, ogni volta.',
+    'Gli importi si scrivono in due caselle, euro e centesimi, con il simbolo € sempre visibile: appena scrivi gli euro i centesimi diventano «00». Con la virgola o il punto passi ai centesimi. Vale per pratiche, acconti, biglietti, liste e pagamenti ai fornitori.',
+    'Sul computer principale, nella pagina Scadenze, compare un avviso rosso se il backup non è impostato o non parte da più di 2 giorni.',
+    'Quando crei un cliente con lo stesso nome o lo stesso codice fiscale di uno già presente, il programma te lo segnala prima di salvare.'] },
   { v: '1.13.1', titolo: 'Registro operazioni più completo, novità e aiuto', voci: [
     'Opzioni → Registro operazioni: ora si può cercare (cliente, pratica, operazione), filtrare per utente e per date, e con «Mostra altre» vedere anche le operazioni più vecchie. Prima si vedevano solo le ultime 300.',
     'Il registro scrive il numero vero della pratica (per esempio «Pratica 16/2026») e il nome del cliente, invece del numero interno. I collegamenti aprono la pratica, il cliente, il biglietto o la lista giusti.',
@@ -163,6 +291,8 @@ const NOVITA = [
     'Nuovo modo di aggiornare il programma sul computer principale, più semplice, con copia di sicurezza dei dati.'] },
 ];
 const AIUTO = [
+  { t: 'Esportare in Excel', d: 'Nella pagina Biglietteria c\'è il tasto «Esporta in Excel». Scegli il periodo, a quale data riferirlo (biglietto o partenza) e i fogli, scrivi la password del pannello Opzioni e il file si scarica. Ogni foglio ha i totali; il TOTALE è una formula (importo + ADV fee), quindi il file si può modificare.' },
+  { t: 'Scrivere gli importi', d: 'Ogni importo ha due caselle, euro e centesimi: «€ 1000 , 00». Scrivi gli euro, i centesimi diventano 00 da soli. Premi la virgola o il punto per andare ai centesimi. Per un rimborso scrivi il segno meno davanti agli euro.' },
   { t: 'Pratiche', d: 'Con «+ Nuova pratica» si sceglie il cliente, si compilano viaggio e partecipanti e si aggiungono i servizi. Ogni servizio può avere voci nascoste (provvigioni, diritti) che il cliente non vede. Se si esce senza salvare, il programma chiede se lasciare la pratica in bozza. Ctrl+S salva. «Stampa conferma» produce il modulo per il cliente.' },
   { t: 'Acconti e saldo', d: 'In una pratica «+ Registra acconto» registra un pagamento del cliente. Se supera la quota di un fornitore, il programma chiede dove mettere il resto. Il metodo «Lista» preleva il denaro da una lista del cliente o di altri.' },
   { t: 'Clienti', d: 'La scheda raccoglie dati, documenti, contatti, tessere fedeltà e compagni di viaggio. In basso a destra ci sono le liste attive del cliente. Un cliente con pratiche o liste non si cancella.' },
@@ -411,10 +541,12 @@ async function paginaScadenze() {
       <div class="stat"><div class="l">Partenze nei prossimi 30 giorni</div><div class="v">${d.partenze.length}</div><div class="s">&nbsp;</div></div>
       <div class="stat"><div class="l">Documenti in scadenza</div><div class="v">${d.documenti.length}</div><div class="s">clienti con partenza prevista</div></div>
     </div>
+    <div id="avvBackupBox"></div>
     <div class="card"><h2>Saldi clienti</h2>${saldi}</div>
     <div class="card"><h2>Pagamenti dovuti ai fornitori</h2>${forn}</div>
     <div class="griglia g2"><div class="card"><h2>Prossime partenze</h2>${part}</div><div class="card"><h2>Documenti in scadenza</h2>${doc}</div></div>`,
     `<a class="btn primario" href="#/pratiche/nuova">+ Nuova pratica</a>`);
+  api('backup_avviso').then(r => { if (r && r.locale && r.avviso) $('#avvBackupBox').innerHTML = `<div class="avviso err"><b>Attenzione, backup:</b> ${esc(r.avviso.testo)} <a class="btn piccolo" href="#/opzioni/backup" style="margin-left:8px">Vai a Opzioni → Backup</a></div>`; }).catch(() => {});
 }
 
 // ================= PRATICHE: elenco =================
@@ -957,7 +1089,7 @@ function pickerCliente(input, hidden, lista, onScelto) {
         <div class="campo"><label>Cellulare</label><input name="cellulare"></div><div class="campo"><label>Email</label><input name="email"></div>
         <div class="campo"><label>Codice fiscale</label><input name="cf"></div><div class="campo"><label>Nato il</label><input name="nato_il" type="date"></div>
         <div class="campo col2"><label>Città</label><input name="citta"></div></div><div class="small muted" style="margin-top:8px">Gli altri dati si completano dalla scheda cliente.</div>`,
-      onOk: async d => { const f = leggiForm(d); const r = await api('cliente_salva', f); scegli({ id: r.id, ...f }); toast('Cliente creato', 'ok'); }
+      onOk: async d => { const f = leggiForm(d); if (!await confermaNuovoCliente(f)) return false; const r = await api('cliente_salva', f); scegli({ id: r.id, ...f }); toast('Cliente creato', 'ok'); }
     });
   };
 }
@@ -1046,6 +1178,7 @@ async function paginaCliente(id) {
   const salvaInterno = async () => {
     const d = leggiForm($('#fCliente')); d.id = C.id || 0;
     d.documenti = leggiRighe('#tabDoc'); d.contatti = leggiRighe('#tabCon'); d.tessere = leggiRighe('#tabTes'); d.compagni = leggiRighe('#tabComp');
+    if (!d.id && !(await confermaNuovoCliente(d))) return null;
     try { const r = await api('cliente_salva', d); sporca = false; return r; } catch (e) { toast(e.message, 'err'); return null; }
   };
   const salva = async () => { const r = await salvaInterno(); if (!r) return; toast('Cliente salvato', 'ok'); if (nuovo) naviga('#/clienti/' + r.id); };
@@ -1369,7 +1502,9 @@ async function paginaBiglietteria() {
       <a class="sc treno" href="#/biglietteria/nuovo/treno"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="14" rx="3"/><path d="M5 10h14M9 14h.01M15 14h.01M8 21l2-4M16 21l-2-4M7 21h10"/></svg></span><b>Treno</b><small>Trenitalia, Italo</small></a>
       <a class="sc lowcost" href="#/biglietteria/nuovo/lowcost"><span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="13" rx="3"/><path d="M3 11h18M7 17v2M17 17v2M7.5 14h.01M16.5 14h.01"/></svg></span><b>Low cost</b><small>bus, navi, low cost, noleggi</small></a>
     </div>
-    <div class="card"><h2>Ultimi biglietti <span class="tabs tabs-inline" id="bgTipi">${[['', 'Tutti'], ...TIPI_BIGL].map(([k, l]) => `<a href="#" data-tipo-h="${k}" class="${TIPO_BG_HOME === k ? 'attivo' : ''}">${l}</a>`).join('')}</span><span class="spazio"></span><input class="inp" id="bgQ" placeholder="Cerca…" style="width:260px"><a class="btn piccolo" href="#/statistiche/biglietteria">Riepilogo e totali →</a></h2><div id="bgTab"></div></div>`);
+    <div class="card"><h2>Ultimi biglietti <span class="tabs tabs-inline" id="bgTipi">${[['', 'Tutti'], ...TIPI_BIGL].map(([k, l]) => `<a href="#" data-tipo-h="${k}" class="${TIPO_BG_HOME === k ? 'attivo' : ''}">${l}</a>`).join('')}</span><span class="spazio"></span><input class="inp" id="bgQ" placeholder="Cerca…" style="width:260px"><a class="btn piccolo" href="#/statistiche/biglietteria">Riepilogo e totali →</a></h2><div id="bgTab"></div></div>`,
+    `<button type="button" class="btn" id="btnEsportaExcel" title="Crea un file Excel dei biglietti (serve la password del pannello Opzioni)">⬇ Esporta in Excel</button>`);
+  $('#btnEsportaExcel').onclick = apriEsportaBiglietti;
   const render = lista => {
     $('#bgTab').innerHTML = lista.length ? `<table class="t compatta"><thead><tr><th>N.</th><th>Data</th><th>Tipo</th><th>Cliente / passeggero</th><th>Vettore</th><th>Codice</th><th>Itinerario</th><th>Partenza</th><th class="num">Totale</th><th class="num">Saldo</th><th>Pratica</th></tr></thead><tbody>
       ${lista.map(b => `<tr class="click bg-${b.tipo}" onclick="naviga('#/biglietteria/${b.id}')"><td class="mono"><b>B${b.numero}</b>/${b.anno}</td><td>${dataIt(b.data)}</td><td>${nomeTipoBigl(b.tipo)}${b.operazione !== 'emissione' ? ' <span class="badge grigio">' + esc(b.operazione) + '</span>' : ''}${b.bozza ? ' <span class="badge bozza">Bozza</span>' : ''}</td><td>${esc(b.cliente || '')}${b.passeggero && b.passeggero !== b.cliente ? `<div class="small muted">${esc(b.passeggero)}</div>` : ''}</td><td>${esc(b.vettore)}</td><td class="mono">${esc(b.codice)}</td><td>${esc(b.itinerario)}</td><td>${dataIt(b.partenza)}</td><td class="num"><b>${eur(b.totale_cent)}</b></td><td class="num ${b.saldo_cent > 0 ? 'warn' : ''}">${b.pratica_id ? '<span class="muted small">pratica</span>' : eur(b.saldo_cent)}</td><td class="small">${b.pratica_id ? `<a href="#/pratiche/${b.pratica_id}" onclick="event.stopPropagation()">${b.pratica_numero}/${b.pratica_anno}</a>` : ''}</td></tr>`).join('')}</tbody></table>` : '<div class="vuoto">Nessun biglietto</div>';
@@ -1674,7 +1809,7 @@ async function paginaBiglietto(id) {
     const sp = tr && $('[data-k=nome]', tr).value.trim() ? { cognome: $('[data-k=cognome]', tr).value.trim(), nome: $('[data-k=nome]', tr).value.trim() } : spezzaNome(nome); const parti = [sp.cognome, sp.nome];
     const scelta = await modale({ titolo: 'Cliente non in anagrafica', ok: 'Crea il cliente e salva', annulla: 'Salva senza cliente',
       corpo: `<p><b>${esc(nome)}</b> non è un cliente in anagrafica. Lo aggiungo come cliente (gli altri passeggeri diventano suoi compagni di viaggio)?</p><div class="griglia g2"><div class="campo"><label>Cognome</label><input name="cognome" value="${esc(parti[0] || '')}"></div><div class="campo"><label>Nome</label><input name="nome" value="${esc(parti.slice(1).join(' '))}"></div><div class="campo"><label>Cellulare</label><input name="cellulare"></div><div class="campo"><label>Email</label><input name="email"></div></div>`,
-      onOk: async d => { const f = leggiForm(d); const doc = { tipo: $('[data-k=doc_tipo]', tr).value, numero: $('[data-k=doc_numero]', tr).value, scade: $('[data-k=doc_scade]', tr).value }; const r = await api('cliente_salva', { ...f, nato_il: $('[data-k=nato_il]', tr).value, documenti: (doc.tipo || doc.numero) ? [doc] : [] }); $('[name=cliente_id]', pg).value = r.id; $('#pkCliente').value = `${f.cognome} ${f.nome}`.trim(); return true; } });
+      onOk: async d => { const f = leggiForm(d); if (!await confermaNuovoCliente(f)) return false; const doc = { tipo: $('[data-k=doc_tipo]', tr).value, numero: $('[data-k=doc_numero]', tr).value, scade: $('[data-k=doc_scade]', tr).value }; const r = await api('cliente_salva', { ...f, nato_il: $('[data-k=nato_il]', tr).value, documenti: (doc.tipo || doc.numero) ? [doc] : [] }); $('[name=cliente_id]', pg).value = r.id; $('#pkCliente').value = `${f.cognome} ${f.nome}`.trim(); return true; } });
     return true;
   };
   const salva = async () => { await proponiCliente(); const r = await salvaInterno(); if (!r) return; toast(`Biglietto B${r.numero}/${r.anno} salvato`, 'ok'); if (tornaA && r.pratica_id) naviga('#/pratiche/' + r.pratica_id); else if (nuovo) naviga('#/biglietteria/' + r.id); else aggiornaB(r); };

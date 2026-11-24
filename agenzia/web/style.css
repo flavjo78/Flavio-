@@ -432,3 +432,24 @@ h2.nowrap{white-space:nowrap}
 .novita-v h3{text-transform:none;letter-spacing:0;font-size:14px;color:var(--text);margin:0 0 4px}
 .novita-v ul{margin:0;padding-left:18px}.novita-v li{margin-bottom:4px;line-height:1.4}
 .novita-v p{margin:0;line-height:1.45;color:var(--text-2)}
+
+/* ---- 1.14: importi in euro a due caselle ---- */
+.eur-orig{position:absolute !important;opacity:0 !important;width:1px !important;height:1px !important;min-width:0 !important;padding:0 !important;margin:0 !important;border:0 !important;pointer-events:none !important}
+.eur-box{display:inline-flex;align-items:stretch;width:100%;min-width:118px;max-width:100%;border:1px solid var(--border-2);border-radius:6px;background:#fff;overflow:hidden}
+.eur-box:focus-within{border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-soft)}
+.eur-sim{display:flex;align-items:center;padding:0 8px;background:var(--surface-2);color:var(--text);font-weight:700;border-right:1px solid var(--border)}
+.eur-sep{display:flex;align-items:flex-end;padding:0 1px 5px;font-weight:700;color:var(--text-2)}
+.eur-box .eur-u,.eur-box .eur-c{border:0 !important;border-radius:0 !important;background:transparent !important;box-shadow:none !important;outline:none;min-width:0;padding:6px 4px !important;font-variant-numeric:tabular-nums}
+.eur-box .eur-u{flex:1 1 auto;width:auto !important;text-align:right}
+.eur-box .eur-c{flex:0 0 2.4em;width:2.4em !important;text-align:left}
+.eur-box .eur-u:focus,.eur-box .eur-c:focus{box-shadow:none !important}
+.eur-box .eur-c::placeholder{color:var(--border-2)}
+.t td .eur-box,.figlio .eur-box{min-width:110px}
+.srv-h{grid-template-columns:minmax(200px,2.2fr) minmax(140px,1.2fr) 150px 64px 120px 90px 40px}
+.figlio{grid-template-columns:20px minmax(180px,1fr) 150px 110px 36px}
+.pr-layout.compatta .srv-h{grid-template-columns:minmax(120px,2fr) minmax(100px,1.1fr) 128px 46px 92px 70px 34px}
+.pr-layout.compatta .figlio{grid-template-columns:14px minmax(90px,1fr) 128px 80px 26px}
+.pr-layout.compatta .eur-box{min-width:0}
+.pr-layout.compatta .eur-sim{padding:0 5px}
+.pr-layout.compatta .eur-box .eur-u,.pr-layout.compatta .eur-box .eur-c{padding:4px 3px !important}
+.acc-campo .eur-box{width:128px}
