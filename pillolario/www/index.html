@@ -78,6 +78,14 @@ h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;ma
 .chip.late{background:var(--late-soft);color:var(--late)}
 .take{min-width:76px;min-height:44px;border-radius:99px;font-weight:700;font-size:14px;padding:0 14px;
   background:var(--accent);color:var(--on-accent)}
+.acts-d{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.skip{min-height:32px;font-size:13px;font-weight:600;color:var(--muted);border-radius:99px}
+.chip.skip-c{background:var(--surface2);color:var(--muted)}
+.dose.ign .name{text-decoration:line-through}
+.dose.ign{opacity:.62}
+.cell.ign{background:var(--bg);box-shadow:inset 0 2px 4px rgba(0,0,0,.14);transform:scale(.92)}
+.cell.ign::before,.cell.ign::after{content:"";position:absolute;left:18px;top:10px;width:2.5px;height:18px;background:var(--muted);border-radius:2px;transform:rotate(45deg)}
+.cell.ign::after{transform:rotate(-45deg)}
 .take.undo{background:transparent;color:var(--muted);border:1px solid var(--line)}
 .take:disabled{background:transparent;color:var(--muted);border:1px dashed var(--line);cursor:default}
 
@@ -217,13 +225,16 @@ let today=new Date(); today.setHours(0,0,0,0);
 let sel=new Date(today), editing=null, draft=null, uid=1;
 
 const STORE='pillolario.v1';
-let meds=[], snoozes=[]; const taken=new Set();
+let meds=[], snoozes=[]; const taken=new Set(), ignored=new Set();
+const handled=k=>taken.has(k)||ignored.has(k);
 try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; snoozes=s.snoozes||[];
   const lim=new Date(today); lim.setDate(lim.getDate()-90); const lk=key(lim);
-  (s.taken||[]).forEach(k=>{ if(k.slice(0,10)>=lk) taken.add(k); }); }catch(e){}
+  (s.taken||[]).forEach(k=>{ if(k.slice(0,10)>=lk) taken.add(k); });
+  (s.ignored||[]).forEach(k=>{ if(k.slice(0,10)>=lk) ignored.add(k); }); }catch(e){}
 uid=meds.reduce((a,m)=>Math.max(a,m.id),0)+1;
-function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,snoozes,taken:[...taken]})); }catch(e){} }
-let syncT; function sync(){ save(); clearTimeout(syncT); syncT=setTimeout(schedule,400); }
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,snoozes,taken:[...taken],ignored:[...ignored]})); }catch(e){} }
+let syncT; function sync(){ save(); clearTimeout(syncT); syncT=setTimeout(()=>{ schedule(); tidy(); },400); }
+function mark(k,how){ taken.delete(k); ignored.delete(k); if(how==='take') taken.add(k); if(how==='skip') ignored.add(k); }
 
 function dosesFor(date){ const di=dIdx(date), k=key(date), out=[];
   meds.forEach(m=>{ if(m.days.includes(di)) m.times.forEach(t=>out.push({m,time:t,k:k+'|'+m.id+'|'+t})); });
@@ -243,24 +254,29 @@ function renderToday(){ const list=dosesFor(sel), isToday=+sel===+today, future=
   $('dateLabel').textContent=sel.toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'});
   const done=list.filter(d=>taken.has(d.k)).length;
   $('count').innerHTML=''; $('count').append(done+' di '+list.length+' ', el('small','',list.length===1?'presa':'prese'));
-  const nx=isToday&&list.find(d=>!taken.has(d.k));
-  $('next').textContent=!list.length?'':done===list.length?'Giornata completa':nx?'Prossima alle '+nx.time:'';
+  const nx=isToday&&list.find(d=>!handled(d.k));
+  $('next').textContent=!list.length?'':list.every(d=>handled(d.k))?'Giornata completa':nx?'Prossima alle '+nx.time:'';
   const cells=$('cells'); cells.textContent='';
-  list.forEach(d=>{ const c=el('span','cell'+(taken.has(d.k)?' out':'')); c.style.setProperty('--c','var('+d.m.color+')'); cells.appendChild(c); });
+  list.forEach(d=>{ const c=el('span','cell'+(taken.has(d.k)?' out':ignored.has(d.k)?' ign':'')); c.style.setProperty('--c','var('+d.m.color+')'); cells.appendChild(c); });
   const ul=$('doses'); ul.textContent='';
   if(!list.length){ ul.appendChild(el('p','empty',meds.length?'Nessuna pillola in programma per questo giorno.':'Tocca + qui sotto per aggiungere la prima pillola o integratore.')); return; }
-  list.forEach(d=>{ const t=taken.has(d.k), dm=mins(d.time);
-    const isNow=isToday&&!t&&Math.abs(dm-nm)<=30, late=!t&&(past||(isToday&&dm<nm-30));
-    const li=el('li','dose'+(t?' done':'')+(isNow?' now':''));
+  list.forEach(d=>{ const t=taken.has(d.k), ig=ignored.has(d.k), h=t||ig, dm=mins(d.time);
+    const isNow=isToday&&!h&&Math.abs(dm-nm)<=30, late=!h&&(past||(isToday&&dm<nm-30));
+    const li=el('li','dose'+(t?' done':'')+(ig?' ign':'')+(isNow?' now':''));
     const mid=el('div'); mid.style.minWidth='0'; mid.appendChild(el('div','name',d.m.name));
     const sub=el('div','sub'); sub.appendChild(el('span','',d.m.dose));
-    if(isNow) sub.appendChild(el('span','chip now','Adesso'));
+    if(ig) sub.appendChild(el('span','chip skip-c','Ignorata'));
+    else if(isNow) sub.appendChild(el('span','chip now','Adesso'));
     else if(late) sub.appendChild(el('span','chip late',past?'Saltata':'In ritardo'));
     mid.appendChild(sub);
-    const b=el('button','take'+(t?' undo':''),t?'Annulla':future?'In arrivo':'Presa'); b.type='button'; b.disabled=future;
-    b.setAttribute('aria-label',(t?'Annulla ':'Segna come presa: ')+d.m.name+' delle '+d.time);
-    b.onclick=()=>{ t?taken.delete(d.k):taken.add(d.k); sync(); render(); if(!t) toast(d.m.name+' segnata come presa'); };
-    li.append(el('span','time',d.time),shape(d.m),mid,b); ul.appendChild(li); }); }
+    const box=el('div','acts-d');
+    const b=el('button','take'+(h?' undo':''),h?'Annulla':future?'In arrivo':'Presa'); b.type='button'; b.disabled=future;
+    b.setAttribute('aria-label',(h?'Annulla ':'Segna come presa: ')+d.m.name+' delle '+d.time);
+    b.onclick=()=>{ mark(d.k,h?'':'take'); sync(); render(); if(!h) toast(d.m.name+' segnata come presa'); };
+    box.appendChild(b);
+    if(!h&&!future){ const g=el('button','skip','Ignora'); g.type='button'; g.setAttribute('aria-label','Ignora '+d.m.name+' delle '+d.time);
+      g.onclick=()=>{ mark(d.k,'skip'); sync(); render(); toast(d.m.name+' ignorata'); }; box.appendChild(g); }
+    li.append(el('span','time',d.time),shape(d.m),mid,box); ul.appendChild(li); }); }
 
 function renderMeds(){ const box=$('meds'); box.textContent='';
   if(!meds.length) box.appendChild(el('p','empty','Ancora niente. Tocca + per aggiungere la prima pillola.'));
@@ -310,9 +326,11 @@ $('del').onclick=()=>{ meds=meds.filter(m=>m!==editing); closeSheet(); sync(); r
 /* notifiche (solo nell'app installata) */
 const CAP=window.Capacitor, NATIVE=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
 const LN=NATIVE?CAP.registerPlugin('LocalNotifications'):null, APP=NATIVE?CAP.registerPlugin('App'):null;
-const CH='promemoria', TEST_ID=900000;
+const CH='pillole', OLD_CH='promemoria', TEST_ID=900000, SLOT0=100000;
+/* ogni dose (pillola + orario) ha uno slot fisso: i richiami sostituiscono l'avviso, cosi' sull'icona c'e' 1 per dose */
+const slotOf=(m,t)=>SLOT0+(m.id%500)*1440+mins(t);
 function note(id,m,t,date,schedule,again){ return {id,channelId:CH,actionTypeId:'DOSE',schedule,
-  title:again?'Non hai ancora confermato: '+m.name:'È ora di '+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||''}}; }
+  autoCancel:false, title:again?'Non hai ancora confermato: '+m.name:'È ora di '+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||'',slot:slotOf(m,t)}}; }
 async function schedule(){ if(!LN) return;
   try{ const p=await LN.getPending(), old=p.notifications.filter(n=>n.id<TEST_ID).map(n=>({id:n.id}));
     if(old.length) await LN.cancel({notifications:old});
@@ -320,13 +338,22 @@ async function schedule(){ if(!LN) return;
     meds.forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
       m.days.forEach(di=>list.push(note(id++,m,t,'',{on:{weekday:(di+1)%7+1,hour:h,minute:mi,second:0},allowWhileIdle:true})));
       if(m.insist) for(let g=0;g<7;g++){ const d=new Date(today); d.setDate(d.getDate()+g);
-        if(!m.days.includes(dIdx(d))||taken.has(key(d)+'|'+m.id+'|'+t)) continue;
+        if(!m.days.includes(dIdx(d))||handled(key(d)+'|'+m.id+'|'+t)) continue;
         [10,20,30].forEach(x=>{ const at=new Date(d); at.setHours(h,mi+x,0,0);
           if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},true)); }); } }));
-    snoozes=snoozes.filter(s=>s.at>now+5000&&!taken.has(s.date+'|'+s.medId+'|'+s.time));
+    snoozes=snoozes.filter(s=>s.at>now+5000&&!handled(s.date+'|'+s.medId+'|'+s.time));
     snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(m) list.push(note(id++,m,s.time,s.date,{at:new Date(s.at),allowWhileIdle:true},true)); });
     save(); if(list.length) await LN.schedule({notifications:list});
   }catch(e){ console.error(e); } }
+/* toglie dalle notifiche (e quindi dal numero sull'icona) le dosi gia' prese o ignorate */
+async function tidy(){ if(!LN) return;
+  try{ const r=await LN.getDeliveredNotifications(), now=new Date(), nm=now.getHours()*60+now.getMinutes(), out=[];
+    r.notifications.forEach(n=>{ if(n.id<SLOT0||n.id>=TEST_ID) return;
+      const mid=Math.floor((n.id-SLOT0)/1440), mm=(n.id-SLOT0)%1440, t=pad(mm/60|0)+':'+pad(mm%60);
+      const m=meds.find(q=>q.id%500===mid&&q.times.includes(t));
+      const d=new Date(now); if(mm>nm) d.setDate(d.getDate()-1);
+      if(!m||handled(key(d)+'|'+m.id+'|'+t)) out.push({id:n.id,title:'',body:''}); });
+    if(out.length) await LN.removeDeliveredNotifications({notifications:out}); }catch(e){ console.error(e); } }
 function doseDate(x){ if(x.date) return x.date; const d=new Date(); if(d.getHours()*60+d.getMinutes()<mins(x.time)-5) d.setDate(d.getDate()-1); return key(d); }
 async function checkPerm(){ if(!LN) return true;
   try{ const p=await LN.checkPermissions(); let ok=p.display==='granted', txt='Le notifiche sono spente: senza, gli avvisi non arrivano.';
@@ -341,20 +368,23 @@ $('bell').onclick=async()=>{ if(!LN){ toast("Gli avvisi funzionano nell'app inst
   if(!await askPerm()){ $('warn').hidden=false; toast('Prima attiva le notifiche'); return; }
   try{ await LN.schedule({notifications:[{id:TEST_ID,channelId:CH,title:'Avviso di prova',body:'Se lo vedi a schermo spento, Pillolario funziona.',schedule:{at:new Date(Date.now()+15000),allowWhileIdle:true}}]});
     toast('Spegni lo schermo: tra 15 secondi arriva un avviso'); }catch(e){ toast('Non riesco a programmare l\'avviso'); } };
-function refresh(){ const n=new Date(); n.setHours(0,0,0,0); if(+n!==+today){ today=n; sel=new Date(n); } render(); if($('viewToday').hidden) tab('meds'); schedule(); checkPerm(); }
+function refresh(){ const n=new Date(); n.setHours(0,0,0,0); if(+n!==+today){ today=n; sel=new Date(n); } render(); if($('viewToday').hidden) tab('meds'); schedule(); tidy(); checkPerm(); }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
 setInterval(()=>{ if(!document.hidden&&!$('viewToday').hidden&&$('scrim').hidden) renderToday(); },60000);
 (async function init(){ if(!LN) return;
-  try{ await LN.createChannel({id:CH,name:'Promemoria pillole',description:'Avvisi agli orari impostati',importance:5,visibility:1,vibration:true});
-    await LN.registerActionTypes({types:[{id:'DOSE',actions:[{id:'take',title:'Presa'},{id:'snooze',title:'Tra 10 minuti'}]}]});
+  try{ try{ await LN.deleteChannel({id:OLD_CH}); }catch(e){}
+    await LN.createChannel({id:CH,name:'Promemoria pillole',description:'Avvisi agli orari impostati, con vibrazione',importance:5,visibility:1,vibration:true,lights:true,lightColor:'#17A589'});
+    await LN.registerActionTypes({types:[{id:'DOSE',actions:[{id:'take',title:'Presa'},{id:'skip',title:'Ignora'},{id:'snooze',title:'Tra 10 minuti'}]}]});
     await LN.addListener('localNotificationActionPerformed',ev=>{ const x=ev.notification&&ev.notification.extra; if(!x||!x.medId) return;
       const m=meds.find(q=>q.id===x.medId); if(!m) return; const date=doseDate(x);
-      if(ev.actionId==='take'){ taken.add(date+'|'+m.id+'|'+x.time); toast(m.name+' segnata come presa'); }
+      const k=date+'|'+m.id+'|'+x.time;
+      if(ev.actionId==='take'){ mark(k,'take'); toast(m.name+' segnata come presa'); }
+      else if(ev.actionId==='skip'){ mark(k,'skip'); toast(m.name+' ignorata'); }
       else if(ev.actionId==='snooze'){ snoozes.push({medId:m.id,time:x.time,date,at:Date.now()+600000}); toast('Te lo ricordo tra 10 minuti'); }
       sync(); sel=new Date(today); render(); tab('today'); });
     await APP.addListener('backButton',()=>{ if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
   }catch(e){ console.error(e); }
-  if(meds.length) await askPerm(); schedule(); })();
+  if(meds.length) await askPerm(); schedule(); tidy(); })();
 let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2400); }
 render();
 </script>
