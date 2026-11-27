@@ -17,3 +17,8 @@ La chiave di firma `android/pillolario.keystore` è nel progetto apposta: così 
 - Vibrazione decisa a ogni avviso e a ogni richiamo (canale nuovo `pillole`, il vecchio `promemoria` viene tolto).
 - Tasto **Ignora** nella notifica e nell'app.
 - Il modulo nativo delle notifiche è modificato: la modifica sta in `patches/` e si riapplica da sola con `npm install`.
+
+## Versione 1.2
+- Richiami che crescono: primo avviso leggero (canale `p1`), dopo 10 minuti più forte (`p2`),
+  dopo 20 e 30 minuti vibrazione lunga + suono della sveglia (`p3`, sul volume notifiche: rispetta silenzioso e Non disturbare).
+- Tasto **Posticipa** (nella notifica e nell'app): 30 minuti o 1 ora. Il richiamo posticipato riparte da "più forte".

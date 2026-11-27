@@ -81,6 +81,9 @@ h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;ma
 .acts-d{display:flex;flex-direction:column;align-items:stretch;gap:2px}
 .skip{min-height:32px;font-size:13px;font-weight:600;color:var(--muted);border-radius:99px}
 .chip.skip-c{background:var(--surface2);color:var(--muted)}
+.snz-b{font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent-soft);background:var(--accent-soft);border-radius:99px;padding:3px 10px}
+.chip.snz-c{background:var(--accent-soft);color:var(--accent)}
+.snz-acts{display:flex;flex-direction:column;gap:10px}
 .dose.ign .name{text-decoration:line-through}
 .dose.ign{opacity:.62}
 .cell.ign{background:var(--bg);box-shadow:inset 0 2px 4px rgba(0,0,0,.14);transform:scale(.92)}
@@ -199,7 +202,7 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
       <button class="link" id="addTime" type="button">+ Aggiungi un orario</button></div>
     <div class="field"><span class="lab">Giorni</span><div class="opts" id="fDays"></div>
       <button class="link" id="allDays" type="button">Tutti i giorni</button></div>
-    <label class="toggle" for="fInsist"><span>Insisti finché non confermo<small>Ripete l'avviso ogni 10 minuti</small></span><input id="fInsist" type="checkbox" checked></label>
+    <label class="toggle" for="fInsist"><span>Insisti finché non confermo<small>Ripete l'avviso dopo 10, 20 e 30 minuti, ogni volta più forte</small></span><input id="fInsist" type="checkbox" checked></label>
     <p class="err" id="err" hidden></p>
     <div class="acts">
       <button class="btn del" id="del" type="button" hidden>Elimina</button>
@@ -209,6 +212,17 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
   </form>
 </div>
 
+<div class="scrim" id="snzScrim" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="snzTitle">
+    <h2 id="snzTitle">Posticipa</h2>
+    <p class="hint" id="snzSub"></p>
+    <div class="snz-acts">
+      <button class="btn" type="button" id="snz30">Tra 30 minuti</button>
+      <button class="btn" type="button" id="snz60">Tra 1 ora</button>
+      <button class="btn ghost" type="button" id="snzNo">Annulla</button>
+    </div>
+  </div>
+</div>
 <div class="toast" id="toast" hidden role="status"></div>
 
 <script src="capacitor.js"></script>
@@ -227,6 +241,8 @@ let sel=new Date(today), editing=null, draft=null, uid=1;
 const STORE='pillolario.v1';
 let meds=[], snoozes=[]; const taken=new Set(), ignored=new Set();
 const handled=k=>taken.has(k)||ignored.has(k);
+const snoozeOf=k=>snoozes.find(x=>x.date+'|'+x.medId+'|'+x.time===k&&x.at>Date.now());
+const hm=ms=>{ const d=new Date(ms); return pad(d.getHours())+':'+pad(d.getMinutes()); };
 try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; snoozes=s.snoozes||[];
   const lim=new Date(today); lim.setDate(lim.getDate()-90); const lk=key(lim);
   (s.taken||[]).forEach(k=>{ if(k.slice(0,10)>=lk) taken.add(k); });
@@ -234,7 +250,7 @@ try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; sno
 uid=meds.reduce((a,m)=>Math.max(a,m.id),0)+1;
 function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,snoozes,taken:[...taken],ignored:[...ignored]})); }catch(e){} }
 let syncT; function sync(){ save(); clearTimeout(syncT); syncT=setTimeout(()=>{ schedule(); tidy(); },400); }
-function mark(k,how){ taken.delete(k); ignored.delete(k); if(how==='take') taken.add(k); if(how==='skip') ignored.add(k); }
+function mark(k,how){ taken.delete(k); ignored.delete(k); snoozes=snoozes.filter(x=>x.date+'|'+x.medId+'|'+x.time!==k); if(how==='take') taken.add(k); if(how==='skip') ignored.add(k); }
 
 function dosesFor(date){ const di=dIdx(date), k=key(date), out=[];
   meds.forEach(m=>{ if(m.days.includes(di)) m.times.forEach(t=>out.push({m,time:t,k:k+'|'+m.id+'|'+t})); });
@@ -261,13 +277,16 @@ function renderToday(){ const list=dosesFor(sel), isToday=+sel===+today, future=
   const ul=$('doses'); ul.textContent='';
   if(!list.length){ ul.appendChild(el('p','empty',meds.length?'Nessuna pillola in programma per questo giorno.':'Tocca + qui sotto per aggiungere la prima pillola o integratore.')); return; }
   list.forEach(d=>{ const t=taken.has(d.k), ig=ignored.has(d.k), h=t||ig, dm=mins(d.time);
-    const isNow=isToday&&!h&&Math.abs(dm-nm)<=30, late=!h&&(past||(isToday&&dm<nm-30));
+    const sz=!h&&snoozeOf(d.k), isNow=isToday&&!h&&!sz&&Math.abs(dm-nm)<=30, late=!h&&!sz&&(past||(isToday&&dm<nm-30));
     const li=el('li','dose'+(t?' done':'')+(ig?' ign':'')+(isNow?' now':''));
     const mid=el('div'); mid.style.minWidth='0'; mid.appendChild(el('div','name',d.m.name));
     const sub=el('div','sub'); sub.appendChild(el('span','',d.m.dose));
     if(ig) sub.appendChild(el('span','chip skip-c','Ignorata'));
+    else if(sz) sub.appendChild(el('span','chip snz-c','Posticipata · '+hm(sz.at)));
     else if(isNow) sub.appendChild(el('span','chip now','Adesso'));
     else if(late) sub.appendChild(el('span','chip late',past?'Saltata':'In ritardo'));
+    if(isToday&&!h&&dm<=nm+30){ const p=el('button','snz-b',sz?'Cambia':'Posticipa'); p.type='button';
+      p.setAttribute('aria-label','Posticipa '+d.m.name+' delle '+d.time); p.onclick=()=>openSnooze(d.m,d.time,key(today)); sub.appendChild(p); }
     mid.appendChild(sub);
     const box=el('div','acts-d');
     const b=el('button','take'+(h?' undo':''),h?'Annulla':future?'In arrivo':'Presa'); b.type='button'; b.disabled=future;
@@ -326,11 +345,17 @@ $('del').onclick=()=>{ meds=meds.filter(m=>m!==editing); closeSheet(); sync(); r
 /* notifiche (solo nell'app installata) */
 const CAP=window.Capacitor, NATIVE=!!(CAP&&CAP.isNativePlatform&&CAP.isNativePlatform());
 const LN=NATIVE?CAP.registerPlugin('LocalNotifications'):null, APP=NATIVE?CAP.registerPlugin('App'):null;
-const CH='pillole', OLD_CH='promemoria', TEST_ID=900000, SLOT0=100000;
+const CHS=[
+  {id:'p1',name:'Primo avviso',description:'Avviso all\'orario della pillola',importance:5,visibility:1,vibration:true,pattern:[0,400,200,400]},
+  {id:'p2',name:'Secondo avviso',description:'Se non hai ancora confermato: vibrazione più lunga',importance:5,visibility:1,vibration:true,pattern:[0,800,300,800,300,800]},
+  {id:'p3',name:'Avvisi successivi',description:'Ancora non confermato: vibrazione lunga e suono della sveglia',importance:5,visibility:1,vibration:true,pattern:[0,1200,400,1200,400,1200,400,1200],systemSound:'alarm'}];
+const OLD_CH=['promemoria','pillole'], TEST_ID=900000, SLOT0=100000;
 /* ogni dose (pillola + orario) ha uno slot fisso: i richiami sostituiscono l'avviso, cosi' sull'icona c'e' 1 per dose */
 const slotOf=(m,t)=>SLOT0+(m.id%500)*1440+mins(t);
-function note(id,m,t,date,schedule,again){ return {id,channelId:CH,actionTypeId:'DOSE',schedule,
-  autoCancel:false, title:again?'Non hai ancora confermato: '+m.name:'È ora di '+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||'',slot:slotOf(m,t)}}; }
+const TITLES=['È ora di ','Promemoria: ','Non dimenticare: '];
+/* level 1 = primo avviso, 2 = più forte, 3 = forte con suono della sveglia */
+function note(id,m,t,date,schedule,level){ level=level||1; return {id,channelId:'p'+level,actionTypeId:'DOSE',schedule,
+  autoCancel:false, title:TITLES[level-1]+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||'',slot:slotOf(m,t)}}; }
 async function schedule(){ if(!LN) return;
   try{ const p=await LN.getPending(), old=p.notifications.filter(n=>n.id<TEST_ID).map(n=>({id:n.id}));
     if(old.length) await LN.cancel({notifications:old});
@@ -338,11 +363,13 @@ async function schedule(){ if(!LN) return;
     meds.forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
       m.days.forEach(di=>list.push(note(id++,m,t,'',{on:{weekday:(di+1)%7+1,hour:h,minute:mi,second:0},allowWhileIdle:true})));
       if(m.insist) for(let g=0;g<7;g++){ const d=new Date(today); d.setDate(d.getDate()+g);
-        if(!m.days.includes(dIdx(d))||handled(key(d)+'|'+m.id+'|'+t)) continue;
-        [10,20,30].forEach(x=>{ const at=new Date(d); at.setHours(h,mi+x,0,0);
-          if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},true)); }); } }));
-    snoozes=snoozes.filter(s=>s.at>now+5000&&!handled(s.date+'|'+s.medId+'|'+s.time));
-    snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(m) list.push(note(id++,m,s.time,s.date,{at:new Date(s.at),allowWhileIdle:true},true)); });
+        const k=key(d)+'|'+m.id+'|'+t; if(!m.days.includes(dIdx(d))||handled(k)||snoozeOf(k)) continue;
+        [[10,2],[20,3],[30,3]].forEach(([x,lv])=>{ const at=new Date(d); at.setHours(h,mi+x,0,0);
+          if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},lv)); }); } }));
+    snoozes=snoozes.filter(s=>s.at>now-3600000&&!handled(s.date+'|'+s.medId+'|'+s.time));
+    snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(!m) return;
+      [[0,2],[10,3],[20,3]].forEach(([x,lv])=>{ if(x&&!m.insist) return; const at=s.at+x*60000;
+        if(at>now+5000) list.push(note(id++,m,s.time,s.date,{at:new Date(at),allowWhileIdle:true},lv)); }); });
     save(); if(list.length) await LN.schedule({notifications:list});
   }catch(e){ console.error(e); } }
 /* toglie dalle notifiche (e quindi dal numero sull'icona) le dosi gia' prese o ignorate */
@@ -352,7 +379,7 @@ async function tidy(){ if(!LN) return;
       const mid=Math.floor((n.id-SLOT0)/1440), mm=(n.id-SLOT0)%1440, t=pad(mm/60|0)+':'+pad(mm%60);
       const m=meds.find(q=>q.id%500===mid&&q.times.includes(t));
       const d=new Date(now); if(mm>nm) d.setDate(d.getDate()-1);
-      if(!m||handled(key(d)+'|'+m.id+'|'+t)) out.push({id:n.id,title:'',body:''}); });
+      const k=key(d)+'|'+m.id+'|'+t; if(!m||handled(k)||snoozeOf(k)) out.push({id:n.id,title:'',body:''}); });
     if(out.length) await LN.removeDeliveredNotifications({notifications:out}); }catch(e){ console.error(e); } }
 function doseDate(x){ if(x.date) return x.date; const d=new Date(); if(d.getHours()*60+d.getMinutes()<mins(x.time)-5) d.setDate(d.getDate()-1); return key(d); }
 async function checkPerm(){ if(!LN) return true;
@@ -364,25 +391,32 @@ async function askPerm(){ if(!LN) return true;
   try{ const p=await LN.checkPermissions(); if(p.display!=='granted') await LN.requestPermissions(); }catch(e){}
   return checkPerm(); }
 $('warnBtn').onclick=async()=>{ try{ if($('warn').dataset.k==='exact') await LN.changeExactNotificationSetting(); else await LN.requestPermissions(); }catch(e){} if(await checkPerm()) schedule(); };
+/* posticipa */
+let snzDose=null;
+function openSnooze(m,t,date){ snzDose={m,t,date}; $('snzTitle').textContent='Posticipa '+m.name; $('snzSub').textContent=m.dose+' · previsto alle '+t; $('snzScrim').hidden=false; }
+function doSnooze(min){ if(!snzDose) return; const {m,t,date}=snzDose, k=date+'|'+m.id+'|'+t, at=Date.now()+min*60000;
+  mark(k,''); snoozes.push({medId:m.id,time:t,date,at}); $('snzScrim').hidden=true; sync(); render(); toast('Te lo ricordo alle '+hm(at)); }
+$('snz30').onclick=()=>doSnooze(30); $('snz60').onclick=()=>doSnooze(60);
+$('snzNo').onclick=()=>{ $('snzScrim').hidden=true; }; $('snzScrim').onclick=e=>{ if(e.target===$('snzScrim')) $('snzScrim').hidden=true; };
 $('bell').onclick=async()=>{ if(!LN){ toast("Gli avvisi funzionano nell'app installata sul telefono"); return; }
   if(!await askPerm()){ $('warn').hidden=false; toast('Prima attiva le notifiche'); return; }
-  try{ await LN.schedule({notifications:[{id:TEST_ID,channelId:CH,title:'Avviso di prova',body:'Se lo vedi a schermo spento, Pillolario funziona.',schedule:{at:new Date(Date.now()+15000),allowWhileIdle:true}}]});
+  try{ await LN.schedule({notifications:[{id:TEST_ID,channelId:'p1',title:'Avviso di prova',body:'Se lo vedi a schermo spento, Pillolario funziona.',schedule:{at:new Date(Date.now()+15000),allowWhileIdle:true}}]});
     toast('Spegni lo schermo: tra 15 secondi arriva un avviso'); }catch(e){ toast('Non riesco a programmare l\'avviso'); } };
 function refresh(){ const n=new Date(); n.setHours(0,0,0,0); if(+n!==+today){ today=n; sel=new Date(n); } render(); if($('viewToday').hidden) tab('meds'); schedule(); tidy(); checkPerm(); }
 document.addEventListener('visibilitychange',()=>{ if(!document.hidden) refresh(); });
 setInterval(()=>{ if(!document.hidden&&!$('viewToday').hidden&&$('scrim').hidden) renderToday(); },60000);
 (async function init(){ if(!LN) return;
-  try{ try{ await LN.deleteChannel({id:OLD_CH}); }catch(e){}
-    await LN.createChannel({id:CH,name:'Promemoria pillole',description:'Avvisi agli orari impostati, con vibrazione',importance:5,visibility:1,vibration:true,lights:true,lightColor:'#17A589'});
-    await LN.registerActionTypes({types:[{id:'DOSE',actions:[{id:'take',title:'Presa'},{id:'skip',title:'Ignora'},{id:'snooze',title:'Tra 10 minuti'}]}]});
+  try{ for(const c of OLD_CH){ try{ await LN.deleteChannel({id:c}); }catch(e){} }
+    for(const c of CHS) await LN.createChannel({...c,lights:true,lightColor:'#17A589'});
+    await LN.registerActionTypes({types:[{id:'DOSE',actions:[{id:'take',title:'Presa'},{id:'skip',title:'Ignora'},{id:'snooze',title:'Posticipa'}]}]});
     await LN.addListener('localNotificationActionPerformed',ev=>{ const x=ev.notification&&ev.notification.extra; if(!x||!x.medId) return;
       const m=meds.find(q=>q.id===x.medId); if(!m) return; const date=doseDate(x);
       const k=date+'|'+m.id+'|'+x.time;
       if(ev.actionId==='take'){ mark(k,'take'); toast(m.name+' segnata come presa'); }
       else if(ev.actionId==='skip'){ mark(k,'skip'); toast(m.name+' ignorata'); }
-      else if(ev.actionId==='snooze'){ snoozes.push({medId:m.id,time:x.time,date,at:Date.now()+600000}); toast('Te lo ricordo tra 10 minuti'); }
+      else if(ev.actionId==='snooze'){ sel=new Date(today); render(); tab('today'); openSnooze(m,x.time,date); return; }
       sync(); sel=new Date(today); render(); tab('today'); });
-    await APP.addListener('backButton',()=>{ if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
+    await APP.addListener('backButton',()=>{ if(!$('snzScrim').hidden) $('snzScrim').hidden=true; else if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
   }catch(e){ console.error(e); }
   if(meds.length) await askPerm(); schedule(); tidy(); })();
 let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2400); }
