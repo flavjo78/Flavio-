@@ -139,6 +139,32 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
 .sw{width:40px;height:40px;border-radius:50%;background:var(--c);border:3px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
 .sw[aria-pressed="true"]{box-shadow:0 0 0 3px var(--accent)}
 .trow{display:flex;gap:8px;align-items:center}
+.trow .tbtn{flex:1;width:auto;height:auto;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+  display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:16px}
+.tbtn strong{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
+.tbtn span{font-size:13px;font-weight:600;color:var(--accent)}
+/* scelta orario */
+#tpScrim{z-index:22}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border-radius:99px;padding:4px;gap:4px}
+.seg button{min-height:40px;border-radius:99px;font-weight:700;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(39,64,58,.15)}
+.tp-now{text-align:center;font-family:var(--display);font-weight:700;font-size:44px;font-variant-numeric:tabular-nums;line-height:1}
+.wheels{position:relative;display:flex;justify-content:center;gap:6px;height:200px;background:var(--surface2);border-radius:18px;overflow:hidden}
+.wheels::before{content:"";position:absolute;left:12px;right:12px;top:80px;height:40px;border-radius:12px;background:var(--surface);box-shadow:0 1px 4px rgba(39,64,58,.12)}
+.wheels::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(var(--surface2),transparent 35%,transparent 65%,var(--surface2))}
+.wheel{position:relative;width:84px;height:200px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;padding:80px 0;overscroll-behavior:contain}
+.wheel::-webkit-scrollbar{display:none}
+.wheel div{height:40px;display:grid;place-items:center;scroll-snap-align:center;font-family:var(--display);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--muted)}
+.wheel div.on{color:var(--ink)}
+.colon{position:relative;align-self:center;font-family:var(--display);font-size:26px;font-weight:700;z-index:1}
+.moments{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.mo{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:12px 14px;border-radius:16px;border:1px solid var(--line);text-align:left}
+.mo small{font-size:13px;color:var(--muted);font-weight:600}
+.mo strong{font-family:var(--display);font-size:20px;font-variant-numeric:tabular-nums}
+.mo[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.mo[aria-pressed="true"] small{color:var(--on-accent);opacity:.85}
+.fine{display:flex;gap:8px}
+.fine button{flex:1;min-height:46px;border-radius:99px;border:1px solid var(--line);font-weight:700}
 .trow button{flex:none;width:44px;height:44px;border-radius:50%;border:1px solid var(--line);color:var(--muted);font-size:20px}
 .link{align-self:flex-start;color:var(--accent);font-weight:700;font-size:14px;min-height:40px}
 .toggle{display:flex;justify-content:space-between;align-items:center;gap:12px;font-weight:600}
@@ -212,6 +238,22 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
   </form>
 </div>
 
+<div class="scrim" id="tpScrim" hidden>
+  <div class="sheet" role="dialog" aria-labelledby="tpTitle">
+    <h2 id="tpTitle">Orario</h2>
+    <div class="seg" role="group" aria-label="Modo di scelta">
+      <button type="button" id="tpModeW" aria-pressed="true">Rotelle</button>
+      <button type="button" id="tpModeM" aria-pressed="false">Momenti</button>
+    </div>
+    <div class="tp-now" id="tpNow">08:00</div>
+    <div class="wheels" id="tpW"><div class="wheel" id="tpH" aria-label="Ore"></div><span class="colon">:</span><div class="wheel" id="tpM" aria-label="Minuti"></div></div>
+    <div id="tpMo" hidden style="display:flex;flex-direction:column;gap:10px">
+      <div class="moments" id="tpMoments"></div>
+      <div class="fine"><button type="button" id="tpMinus">− 15 min</button><button type="button" id="tpPlus">+ 15 min</button></div>
+    </div>
+    <div class="acts"><button class="btn ghost" type="button" id="tpNo">Annulla</button><button class="btn" type="button" id="tpOk">Conferma</button></div>
+  </div>
+</div>
 <div class="scrim" id="snzScrim" hidden>
   <div class="sheet" role="dialog" aria-labelledby="snzTitle">
     <h2 id="snzTitle">Posticipa</h2>
@@ -322,14 +364,15 @@ function drawSheet(){ const f=$('fForm'); f.textContent='';
   COLORS.forEach((v,i)=>{ const b=el('button','sw'); b.type='button'; b.style.setProperty('--c','var('+v+')'); b.setAttribute('aria-label','Colore '+(i+1));
     b.setAttribute('aria-pressed',draft.color===v); b.onclick=()=>{draft.color=v;drawSheet();}; c.appendChild(b); });
   const t=$('fTimes'); t.textContent='';
-  draft.times.forEach((v,i)=>{ const r=el('div','trow'), inp=el('input'); inp.type='time'; inp.value=v; inp.id='fTime'+i; inp.setAttribute('aria-label','Orario '+(i+1));
-    inp.onchange=()=>{draft.times[i]=inp.value;}; r.appendChild(inp);
+  draft.times.forEach((v,i)=>{ const r=el('div','trow'), b=el('button','tbtn'); b.type='button'; b.id='fTime'+i;
+    b.setAttribute('aria-label','Orario '+(i+1)+': '+v+', tocca per cambiare'); b.append(el('strong','',v),el('span','','Cambia'));
+    b.onclick=()=>openTP(i); r.appendChild(b);
     if(draft.times.length>1){ const x=el('button','', '×'); x.type='button'; x.setAttribute('aria-label','Togli orario '+v); x.onclick=()=>{draft.times.splice(i,1);drawSheet();}; r.appendChild(x); }
     t.appendChild(r); });
   const d=$('fDays'); d.textContent='';
   DAYS.forEach((l,i)=>{ const b=el('button','opt d',l); b.type='button'; b.setAttribute('aria-label',DAYN[i]); b.setAttribute('aria-pressed',draft.days.includes(i));
     b.onclick=()=>{ draft.days=draft.days.includes(i)?draft.days.filter(x=>x!==i):[...draft.days,i]; drawSheet(); }; d.appendChild(b); }); }
-$('addTime').onclick=()=>{ const last=mins(draft.times[draft.times.length-1]||'08:00'), n=(last+240)%1440; draft.times.push(pad(n/60|0)+':'+pad(n%60)); drawSheet(); };
+$('addTime').onclick=()=>{ const last=mins(draft.times[draft.times.length-1]||'08:00'), n=(last+240)%1440; draft.times.push(pad(n/60|0)+':'+pad(n%60)); drawSheet(); openTP(draft.times.length-1); };
 $('allDays').onclick=()=>{ draft.days=[0,1,2,3,4,5,6]; drawSheet(); };
 const closeSheet=()=>{ $('scrim').hidden=true; };
 $('cancel').onclick=closeSheet; $('scrim').onclick=e=>{ if(e.target===$('scrim')) closeSheet(); };
@@ -391,6 +434,29 @@ async function askPerm(){ if(!LN) return true;
   try{ const p=await LN.checkPermissions(); if(p.display!=='granted') await LN.requestPermissions(); }catch(e){}
   return checkPerm(); }
 $('warnBtn').onclick=async()=>{ try{ if($('warn').dataset.k==='exact') await LN.changeExactNotificationSetting(); else await LN.requestPermissions(); }catch(e){} if(await checkPerm()) schedule(); };
+/* scelta orario: rotelle oppure momenti della giornata */
+const MOMENTI=[['Risveglio',420],['Colazione',480],['Pranzo',780],['Pomeriggio',1020],['Cena',1200],['Prima di dormire',1350]];
+let tp={i:0,v:480,mode:'w'}; try{ tp.mode=localStorage.getItem('pillolario.tpmode')||'w'; }catch(e){}
+const fmt=v=>pad(v/60|0)+':'+pad(v%60);
+(function buildWheels(){ for(let h=0;h<24;h++) $('tpH').appendChild(el('div','',pad(h))); for(let m=0;m<60;m+=5) $('tpM').appendChild(el('div','',pad(m))); })();
+function wheelRead(){ const h=Math.max(0,Math.min(23,Math.round($('tpH').scrollTop/40))), m=Math.max(0,Math.min(11,Math.round($('tpM').scrollTop/40)));
+  [...$('tpH').children].forEach((d,i)=>d.classList.toggle('on',i===h)); [...$('tpM').children].forEach((d,i)=>d.classList.toggle('on',i===m));
+  return h*60+m*5; }
+function wheelSet(v){ v=Math.round(v/5)*5%1440; $('tpH').scrollTop=(v/60|0)*40; $('tpM').scrollTop=(v%60)/5*40; wheelRead(); }
+['tpH','tpM'].forEach(id=>$(id).addEventListener('scroll',()=>{ if(tp.mode!=='w') return; tp.v=wheelRead(); $('tpNow').textContent=fmt(tp.v); }));
+function drawMoments(){ const box=$('tpMoments'); box.textContent='';
+  MOMENTI.forEach(([n,v])=>{ const b=el('button','mo'); b.type='button'; b.setAttribute('aria-pressed',v===tp.v); b.append(el('small','',n),el('strong','',fmt(v)));
+    b.onclick=()=>{ tp.v=v; drawTP(); }; box.appendChild(b); }); }
+function drawTP(){ const w=tp.mode==='w'; $('tpModeW').setAttribute('aria-pressed',w); $('tpModeM').setAttribute('aria-pressed',!w);
+  $('tpW').hidden=!w; $('tpMo').hidden=w; $('tpMo').style.display=w?'none':'flex'; $('tpNow').textContent=fmt(tp.v);
+  if(w) requestAnimationFrame(()=>wheelSet(tp.v)); else drawMoments(); }
+function setMode(m){ tp.mode=m; try{ localStorage.setItem('pillolario.tpmode',m); }catch(e){} drawTP(); }
+function openTP(i){ tp.i=i; tp.v=mins(draft.times[i]); $('tpTitle').textContent=draft.times.length>1?'Orario '+(i+1):'Orario'; $('tpScrim').hidden=false; drawTP(); }
+$('tpModeW').onclick=()=>setMode('w'); $('tpModeM').onclick=()=>setMode('m');
+$('tpMinus').onclick=()=>{ tp.v=(tp.v+1425)%1440; drawTP(); }; $('tpPlus').onclick=()=>{ tp.v=(tp.v+15)%1440; drawTP(); };
+$('tpOk').onclick=()=>{ draft.times[tp.i]=fmt(tp.v); $('tpScrim').hidden=true; drawSheet(); };
+$('tpNo').onclick=()=>{ $('tpScrim').hidden=true; }; $('tpScrim').onclick=e=>{ if(e.target===$('tpScrim')) $('tpScrim').hidden=true; };
+
 /* posticipa */
 let snzDose=null;
 function openSnooze(m,t,date){ snzDose={m,t,date}; $('snzTitle').textContent='Posticipa '+m.name; $('snzSub').textContent=m.dose+' · previsto alle '+t; $('snzScrim').hidden=false; }
@@ -416,7 +482,7 @@ setInterval(()=>{ if(!document.hidden&&!$('viewToday').hidden&&$('scrim').hidden
       else if(ev.actionId==='skip'){ mark(k,'skip'); toast(m.name+' ignorata'); }
       else if(ev.actionId==='snooze'){ sel=new Date(today); render(); tab('today'); openSnooze(m,x.time,date); return; }
       sync(); sel=new Date(today); render(); tab('today'); });
-    await APP.addListener('backButton',()=>{ if(!$('snzScrim').hidden) $('snzScrim').hidden=true; else if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
+    await APP.addListener('backButton',()=>{ if(!$('tpScrim').hidden) $('tpScrim').hidden=true; else if(!$('snzScrim').hidden) $('snzScrim').hidden=true; else if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
   }catch(e){ console.error(e); }
   if(meds.length) await askPerm(); schedule(); tidy(); })();
 let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2400); }
