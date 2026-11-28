@@ -7,7 +7,7 @@ index 0000000..0d259dd
 +o/classes
 diff --git a/node_modules/@capacitor/local-notifications/android/build/.transforms/d679cfc63929785fe1c8fb054da9ea9d/transformed/classes/classes_dex/classes.dex b/node_modules/@capacitor/local-notifications/android/build/.transforms/d679cfc63929785fe1c8fb054da9ea9d/transformed/classes/classes_dex/classes.dex
 new file mode 100644
-index 0000000..70e8525
+index 0000000..5905c6f
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/.transforms/d679cfc63929785fe1c8fb054da9ea9d/transformed/classes/classes_dex/classes.dex differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml b/node_modules/@capacitor/local-notifications/android/build/intermediates/aapt_friendly_merged_manifests/debug/processDebugManifest/aapt/AndroidManifest.xml
 new file mode 100644
@@ -69,7 +69,7 @@ index 0000000..c91f6ae
 \ No newline at end of file
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar b/node_modules/@capacitor/local-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar
 new file mode 100644
-index 0000000..e2ac25a
+index 0000000..931c58c
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/intermediates/aar_main_jar/debug/syncDebugLibJars/classes.jar differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties b/node_modules/@capacitor/local-notifications/android/build/intermediates/aar_metadata/debug/writeDebugAarMetadata/aar-metadata.properties
 new file mode 100644
@@ -96,7 +96,7 @@ new file mode 100644
 index 0000000..e69de29
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar b/node_modules/@capacitor/local-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar
 new file mode 100644
-index 0000000..798dddb
+index 0000000..174e2ad
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/intermediates/compile_library_classes_jar/debug/bundleLibCompileToJarDebug/classes.jar differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar b/node_modules/@capacitor/local-notifications/android/build/intermediates/compile_r_class_jar/debug/generateDebugRFile/R.jar
 new file mode 100644
@@ -195,7 +195,7 @@ index 0000000..ab8578a
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationAction.class differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.class b/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.class
 new file mode 100644
-index 0000000..88c5a5e
+index 0000000..a1bfb37
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.class differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationDismissReceiver.class b/node_modules/@capacitor/local-notifications/android/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/com/capacitorjs/plugins/localnotifications/NotificationDismissReceiver.class
 new file mode 100644
@@ -345,7 +345,7 @@ index 0000000..fc1779e
 +</vector>
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar b/node_modules/@capacitor/local-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar
 new file mode 100644
-index 0000000..2e85ed0
+index 0000000..d0fef6c
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/intermediates/runtime_library_classes_jar/debug/bundleLibRuntimeToJarDebug/classes.jar differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt b/node_modules/@capacitor/local-notifications/android/build/intermediates/symbol_list_with_package_name/debug/generateDebugRFile/package-aware-r.txt
 new file mode 100644
@@ -357,7 +357,7 @@ index 0000000..ffc89fa
 +drawable ic_transparent
 diff --git a/node_modules/@capacitor/local-notifications/android/build/outputs/aar/capacitor-local-notifications-debug.aar b/node_modules/@capacitor/local-notifications/android/build/outputs/aar/capacitor-local-notifications-debug.aar
 new file mode 100644
-index 0000000..092aa57
+index 0000000..407a805
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/outputs/aar/capacitor-local-notifications-debug.aar differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/outputs/logs/manifest-merger-debug-report.txt b/node_modules/@capacitor/local-notifications/android/build/outputs/logs/manifest-merger-debug-report.txt
 new file mode 100644
@@ -425,33 +425,17 @@ index 0000000..d04f0f0
 +		INJECTED from /home/user/Flavio-/pillolario/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml
 +	android:minSdkVersion
 +		INJECTED from /home/user/Flavio-/pillolario/node_modules/@capacitor/local-notifications/android/src/main/AndroidManifest.xml
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationManager.class.uniqueId0 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationManager.class.uniqueId0
-new file mode 100644
-index 0000000..85036c2
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationManager.class.uniqueId0 differ
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationRestoreReceiver.class.uniqueId3 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationRestoreReceiver.class.uniqueId3
-new file mode 100644
-index 0000000..b06fa9c
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationRestoreReceiver.class.uniqueId3 differ
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId2 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId2
+diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId0 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId0
 new file mode 100644
 index 0000000..9eac4a9
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId2 differ
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId4 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId4
+Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/LocalNotificationsPlugin.class.uniqueId0 differ
+diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId1 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId1
 new file mode 100644
-index 0000000..c18d160
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId4 differ
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationDismissReceiver.class.uniqueId5 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationDismissReceiver.class.uniqueId5
-new file mode 100644
-index 0000000..b24be0e
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationDismissReceiver.class.uniqueId5 differ
-diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/TimedNotificationPublisher.class.uniqueId1 b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/TimedNotificationPublisher.class.uniqueId1
-new file mode 100644
-index 0000000..8858076
-Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/TimedNotificationPublisher.class.uniqueId1 differ
+index 0000000..88c5a5e
+Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/compileTransaction/stash-dir/NotificationChannelManager.class.uniqueId1 differ
 diff --git a/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin
 new file mode 100644
-index 0000000..217f7e8
+index 0000000..81dc8b3
 Binary files /dev/null and b/node_modules/@capacitor/local-notifications/android/build/tmp/compileDebugJavaWithJavac/previous-compilation-data.bin differ
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/LocalNotificationManager.java
 index 0b826a5..ba06d90 100644
@@ -487,7 +471,7 @@ index 0b826a5..ba06d90 100644
          mBuilder.setSmallIcon(localNotification.getSmallIcon(context, getDefaultSmallIcon(context)));
          mBuilder.setLargeIcon(localNotification.getLargeIcon(context));
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
-index b2ea880..4d276c0 100644
+index b2ea880..faed887 100644
 --- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
 +++ b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/NotificationChannelManager.java
 @@ -79,6 +79,16 @@ public class NotificationChannelManager {
@@ -507,10 +491,17 @@ index b2ea880..4d276c0 100644
              notificationChannel.enableLights(channel.getBool(CHANNEL_USE_LIGHTS));
              String lightColor = channel.getString(CHANNEL_LIGHT_COLOR);
              if (lightColor != null) {
-@@ -99,6 +109,13 @@ public class NotificationChannelManager {
+@@ -99,6 +109,20 @@ public class NotificationChannelManager {
                      .build();
                  Uri soundUri = Uri.parse(ContentResolver.SCHEME_ANDROID_RESOURCE + "://" + context.getPackageName() + "/raw/" + sound);
                  notificationChannel.setSound(soundUri, audioAttributes);
++            } else if ("alarmMax".equals(channel.getString("systemSound", null))) {
++                // Pillolario: allarme continuo, suona sul volume della SVEGLIA (piu' forte, anche in silenzioso)
++                AudioAttributes alarmAttr = new AudioAttributes.Builder()
++                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
++                    .setUsage(AudioAttributes.USAGE_ALARM)
++                    .build();
++                notificationChannel.setSound(android.media.RingtoneManager.getDefaultUri(android.media.RingtoneManager.TYPE_ALARM), alarmAttr);
 +            } else if ("alarm".equals(channel.getString("systemSound", null))) {
 +                // Pillolario: suono della sveglia, ma sul volume notifiche (rispetta silenzioso e Non disturbare)
 +                AudioAttributes alarmAttr = new AudioAttributes.Builder()
@@ -522,23 +513,48 @@ index b2ea880..4d276c0 100644
              notificationManager.createNotificationChannel(notificationChannel);
          }
 diff --git a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
-index 0a5c0ad..37e1d73 100644
+index 0a5c0ad..3a4a7a0 100644
 --- a/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
 +++ b/node_modules/@capacitor/local-notifications/android/src/main/java/com/capacitorjs/plugins/localnotifications/TimedNotificationPublisher.java
-@@ -46,12 +46,25 @@ public class TimedNotificationPublisher extends BroadcastReceiver {
+@@ -46,12 +46,49 @@ public class TimedNotificationPublisher extends BroadcastReceiver {
          NotificationStorage storage = new NotificationStorage(context);
          JSObject notificationJson = storage.getSavedNotificationAsJSObject(Integer.toString(id));
          LocalNotificationsPlugin.fireReceived(notificationJson);
 -        notificationManager.notify(id, notification);
+-        if (!rescheduleNotificationIfNeeded(context, intent, id)) {
 +        // Pillolario: ogni dose ha uno "slot" fisso, cosi' i richiami sostituiscono l'avviso precedente
 +        int shownId = pillSlot(notificationJson, id);
 +        if (shownId != id) notificationManager.cancel(shownId);
 +        notificationManager.notify(shownId, notification);
-         if (!rescheduleNotificationIfNeeded(context, intent, id)) {
++        if (!rescheduleNotificationIfNeeded(context, intent, id) && !rearmLoop(context, intent, id, notificationJson)) {
              storage.deleteNotification(Integer.toString(id));
          }
      }
  
++    // Pillolario: avviso "continuo" (extra.loop): si ripete ogni 10 minuti finche' l'app non lo cancella
++    // (Presa / Ignora / Posticipa) o fino a extra.loopUntil.
++    private boolean rearmLoop(Context context, Intent intent, int id, JSObject json) {
++        try {
++            if (json == null || !json.has("extra")) return false;
++            JSObject extra = json.getJSObject("extra");
++            if (extra == null || !extra.optBoolean("loop", false)) return false;
++            long next = System.currentTimeMillis() + 10 * 60 * 1000L;
++            if (next > extra.optLong("loopUntil", 0)) return false;
++            AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
++            int flags = PendingIntent.FLAG_CANCEL_CURRENT;
++            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) flags = flags | PendingIntent.FLAG_MUTABLE;
++            PendingIntent pi = PendingIntent.getBroadcast(context, id, (Intent) intent.clone(), flags);
++            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && !alarmManager.canScheduleExactAlarms()) {
++                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
++            } else {
++                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next, pi);
++            }
++            return true;
++        } catch (Exception e) {
++            return false;
++        }
++    }
++
 +    static int pillSlot(JSObject json, int fallback) {
 +        try {
 +            if (json != null && json.has("extra")) {
@@ -552,3 +568,15 @@ index 0a5c0ad..37e1d73 100644
      @SuppressWarnings("deprecation")
      private Notification getParcelableExtraLegacy(Intent intent, String string) {
          return intent.getParcelableExtra(NOTIFICATION_KEY);
+@@ -76,9 +113,9 @@ public class TimedNotificationPublisher extends BroadcastReceiver {
+                     "Capacitor/LocalNotification",
+                     "Exact alarms not allowed in user settings.  Notification scheduled with non-exact alarm."
+                 );
+-                alarmManager.set(AlarmManager.RTC, trigger, pendingIntent);
++                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent);
+             } else {
+-                alarmManager.setExact(AlarmManager.RTC, trigger, pendingIntent);
++                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, trigger, pendingIntent);
+             }
+             SimpleDateFormat sdf = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+             Logger.debug(Logger.tags("LN"), "notification " + id + " will next fire at " + sdf.format(new Date(trigger)));

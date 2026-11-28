@@ -228,7 +228,7 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
       <button class="link" id="addTime" type="button">+ Aggiungi un orario</button></div>
     <div class="field"><span class="lab">Giorni</span><div class="opts" id="fDays"></div>
       <button class="link" id="allDays" type="button">Tutti i giorni</button></div>
-    <label class="toggle" for="fInsist"><span>Insisti finché non confermo<small>Ripete l'avviso dopo 10, 20 e 30 minuti, ogni volta più forte</small></span><input id="fInsist" type="checkbox" checked></label>
+    <label class="toggle" for="fInsist"><span>Insisti finché non confermo<small>Richiami sempre più forti a 10, 20 e 30 minuti, poi allarme ogni 10 minuti finché non rispondi</small></span><input id="fInsist" type="checkbox" checked></label>
     <p class="err" id="err" hidden></p>
     <div class="acts">
       <button class="btn del" id="del" type="button" hidden>Elimina</button>
@@ -391,28 +391,39 @@ const LN=NATIVE?CAP.registerPlugin('LocalNotifications'):null, APP=NATIVE?CAP.re
 const CHS=[
   {id:'p1',name:'Primo avviso',description:'Avviso all\'orario della pillola',importance:5,visibility:1,vibration:true,pattern:[0,400,200,400]},
   {id:'p2',name:'Secondo avviso',description:'Se non hai ancora confermato: vibrazione più lunga',importance:5,visibility:1,vibration:true,pattern:[0,800,300,800,300,800]},
-  {id:'p3',name:'Avvisi successivi',description:'Ancora non confermato: vibrazione lunga e suono della sveglia',importance:5,visibility:1,vibration:true,pattern:[0,1200,400,1200,400,1200,400,1200],systemSound:'alarm'}];
+  {id:'p3',name:'Avvisi successivi',description:'Ancora non confermato: vibrazione lunga e suono della sveglia',importance:5,visibility:1,vibration:true,pattern:[0,1200,400,1200,400,1200,400,1200],systemSound:'alarm'},
+  {id:'p4',name:'Allarme continuo',description:'Dopo 30 minuti senza risposta: ogni 10 minuti al volume della sveglia, finché non premi Presa, Ignora o Posticipa',importance:5,visibility:1,vibration:true,pattern:[0,1500,500,1500,500,1500,500,1500],systemSound:'alarmMax'}];
 const OLD_CH=['promemoria','pillole'], TEST_ID=900000, SLOT0=100000;
 /* ogni dose (pillola + orario) ha uno slot fisso: i richiami sostituiscono l'avviso, cosi' sull'icona c'e' 1 per dose */
 const slotOf=(m,t)=>SLOT0+(m.id%500)*1440+mins(t);
-const TITLES=['È ora di ','Promemoria: ','Non dimenticare: '];
+const TITLES=['È ora di ','Promemoria: ','Non dimenticare: ','Ancora da prendere: '];
+const MIN=60000, LOOP_MAX=12*60*MIN; /* l'allarme continuo si ferma comunque dopo 12 ore */
 /* level 1 = primo avviso, 2 = più forte, 3 = forte con suono della sveglia */
-function note(id,m,t,date,schedule,level){ level=level||1; return {id,channelId:'p'+level,actionTypeId:'DOSE',schedule,
-  autoCancel:false, title:TITLES[level-1]+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||'',slot:slotOf(m,t)}}; }
+function note(id,m,t,date,schedule,level,loopUntil){ level=level||1; return {id,channelId:'p'+level,actionTypeId:'DOSE',schedule,
+  autoCancel:false, title:TITLES[level-1]+m.name, body:m.dose+' · ore '+t, extra:{medId:m.id,time:t,date:date||'',slot:slotOf(m,t),loop:!!loopUntil,loopUntil:loopUntil||0}}; }
+/* allarme continuo: primo squillo a 'start', poi il telefono lo ripete da solo ogni 10 minuti */
+function loopNote(id,m,t,date,start,until,now){ if(start<=now+5000) start=now+10*MIN-((now-start)%(10*MIN)); if(start<=now+5000) start+=10*MIN;
+  return start<until?note(id,m,t,date,{at:new Date(start),allowWhileIdle:true},4,until):null; }
 async function schedule(){ if(!LN) return;
-  try{ const p=await LN.getPending(), old=p.notifications.filter(n=>n.id<TEST_ID).map(n=>({id:n.id}));
-    if(old.length) await LN.cancel({notifications:old});
+  try{ const p=await LN.getPending(), ids=new Set(p.notifications.filter(n=>n.id<TEST_ID).map(n=>n.id));
+    let prev=0; try{ prev=+localStorage.getItem('pillolario.nids')||0; }catch(e){}
+    for(let i=1;i<=prev;i++) ids.add(i); /* anche gli allarmi continui gia' partiti */
+    if(ids.size) await LN.cancel({notifications:[...ids].map(id=>({id}))});
     const list=[], now=Date.now(); let id=1;
     meds.forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
       m.days.forEach(di=>list.push(note(id++,m,t,'',{on:{weekday:(di+1)%7+1,hour:h,minute:mi,second:0},allowWhileIdle:true})));
       if(m.insist) for(let g=0;g<7;g++){ const d=new Date(today); d.setDate(d.getDate()+g);
         const k=key(d)+'|'+m.id+'|'+t; if(!m.days.includes(dIdx(d))||handled(k)||snoozeOf(k)) continue;
         [[10,2],[20,3],[30,3]].forEach(([x,lv])=>{ const at=new Date(d); at.setHours(h,mi+x,0,0);
-          if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},lv)); }); } }));
-    snoozes=snoozes.filter(s=>s.at>now-3600000&&!handled(s.date+'|'+s.medId+'|'+s.time));
+          if(+at>now+5000&&list.length<450) list.push(note(id++,m,t,key(d),{at,allowWhileIdle:true},lv)); });
+        const base=new Date(d); base.setHours(h,mi,0,0); const ln=loopNote(id,m,t,key(d),+base+40*MIN,+base+LOOP_MAX,now);
+        if(ln&&list.length<450){ list.push(ln); id++; } } }));
+    snoozes=snoozes.filter(s=>s.at>now-LOOP_MAX&&!handled(s.date+'|'+s.medId+'|'+s.time));
     snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(!m) return;
-      [[0,2],[10,3],[20,3]].forEach(([x,lv])=>{ if(x&&!m.insist) return; const at=s.at+x*60000;
-        if(at>now+5000) list.push(note(id++,m,s.time,s.date,{at:new Date(at),allowWhileIdle:true},lv)); }); });
+      [[0,2],[10,3],[20,3]].forEach(([x,lv])=>{ if(x&&!m.insist) return; const at=s.at+x*MIN;
+        if(at>now+5000) list.push(note(id++,m,s.time,s.date,{at:new Date(at),allowWhileIdle:true},lv)); });
+      if(m.insist){ const ln=loopNote(id,m,s.time,s.date,s.at+30*MIN,s.at+LOOP_MAX,now); if(ln){ list.push(ln); id++; } } });
+    try{ localStorage.setItem('pillolario.nids',String(id-1)); }catch(e){}
     save(); if(list.length) await LN.schedule({notifications:list});
   }catch(e){ console.error(e); } }
 /* toglie dalle notifiche (e quindi dal numero sull'icona) le dosi gia' prese o ignorate */

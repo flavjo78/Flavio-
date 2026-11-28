@@ -26,3 +26,9 @@ La chiave di firma `android/pillolario.keystore` è nel progetto apposta: così 
 ## Versione 1.3
 - Nuova scelta dell'orario: interruttore **Rotelle** (ore e minuti a passi di 5) / **Momenti** (Risveglio, Colazione,
   Pranzo, Pomeriggio, Cena, Prima di dormire, con −15/+15 min). L'app ricorda l'ultimo modo usato.
+
+## Versione 1.4
+- **Allarme continuo** (se "Insisti" è attivo): dopo i richiami a 10, 20 e 30 minuti, ogni 10 minuti suona al
+  **volume della sveglia** (canale `p4`, anche in silenzioso) finché non premi Presa, Ignora o Posticipa.
+  Si ferma comunque dopo 12 ore. Il telefono lo ripete da solo (modifica nativa `rearmLoop`).
+- Corretto: le ripetizioni settimanali ora svegliano il telefono anche in standby (prima solo la prima volta).
