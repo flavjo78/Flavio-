@@ -104,6 +104,28 @@ h1{font-family:var(--display);font-weight:700;font-size:30px;line-height:1.05;ma
 .med{display:grid;grid-template-columns:40px minmax(0,1fr) auto;gap:12px;align-items:center;width:100%;text-align:left;
   background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px}
 .med .edit{font-size:13px;font-weight:600;color:var(--accent)}
+.grp{border:1px solid var(--line);border-radius:24px;background:var(--surface2);padding:8px;display:flex;flex-direction:column;gap:8px}
+.grp-h{display:flex;align-items:center;gap:10px;padding:4px 6px 4px 4px}
+.grp-t{flex:1;min-width:0;display:flex;align-items:center;gap:10px;text-align:left;min-height:44px}
+.grp-t .arr{flex:none;width:28px;height:28px;border-radius:50%;background:var(--surface);display:grid;place-items:center;transition:transform .2s;font-size:13px;color:var(--muted)}
+.grp-t[aria-expanded="true"] .arr{transform:rotate(90deg)}
+.grp-t b{display:block;font-family:var(--display);font-size:18px;overflow-wrap:anywhere}
+.grp-t small{display:block;font-size:13px;color:var(--muted);font-weight:600}
+.grp.paused{background:var(--bg);border-style:dashed}
+.grp.paused .grp-t b{color:var(--muted)}
+.grp.paused .med{opacity:.55}
+.grp-b{display:flex;flex-direction:column;gap:8px}
+.grp-edit{align-self:flex-start;font-size:13px;font-weight:700;color:var(--accent);min-height:36px;padding:0 8px}
+.switch{flex:none;position:relative;width:52px;height:30px}
+.switch input{position:absolute;inset:0;opacity:0;margin:0;cursor:pointer;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:99px;background:var(--line);transition:background .2s}
+.switch span::after{content:"";position:absolute;left:3px;top:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.switch input:checked+span{background:var(--accent)}
+.switch input:checked+span::after{transform:translateX(22px)}
+.switch input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.loose{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:6px 4px 0}
+.newgrp{align-self:flex-start}
+.paused-note{font-size:13px;color:var(--muted);font-weight:600;margin:0}
 .dots{display:flex;gap:4px;margin-top:6px}
 .dots s{text-decoration:none;font-size:11px;font-weight:700;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;
   background:var(--surface2);color:var(--muted)}
@@ -144,7 +166,7 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
 .tbtn strong{font-family:var(--display);font-size:22px;font-variant-numeric:tabular-nums}
 .tbtn span{font-size:13px;font-weight:600;color:var(--accent)}
 /* scelta orario */
-#tpScrim{z-index:22}
+#tpScrim,#grpScrim{z-index:22}
 .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface2);border-radius:99px;padding:4px;gap:4px}
 .seg button{min-height:40px;border-radius:99px;font-weight:700;color:var(--muted)}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(39,64,58,.15)}
@@ -198,13 +220,15 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
       <div class="blister-head"><div class="count" id="count"></div><div class="next" id="next"></div></div>
       <div class="cells" id="cells" aria-hidden="true"></div>
     </div>
+    <p class="paused-note" id="pausedNote" hidden></p>
     <ul class="list" id="doses"></ul>
   </section>
 
   <section id="viewMeds" hidden>
     <div style="display:flex;flex-direction:column;gap:10px">
-      <p class="hint">Tocca una scheda per cambiare orari e giorni.</p>
+      <p class="hint">Tocca una scheda per cambiare orari e giorni. Con l'interruttore metti in pausa una cura intera.</p>
       <div class="list" id="meds"></div>
+      <button class="link newgrp" id="newGrp" type="button">+ Nuovo gruppo</button>
     </div>
   </section>
 </div>
@@ -222,6 +246,7 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
       <div class="field"><label for="fName">Nome</label><input id="fName" type="text" placeholder="es. Vitamina D" autocomplete="off"></div>
       <div class="field"><label for="fDose">Dose</label><input id="fDose" type="text" placeholder="1 compressa" autocomplete="off"></div>
     </div>
+    <div class="field"><span class="lab">Gruppo (cura)</span><div class="opts" id="fGroup"></div></div>
     <div class="field"><span class="lab">Forma</span><div class="opts" id="fForm"></div></div>
     <div class="field"><span class="lab">Colore</span><div class="opts" id="fColor"></div></div>
     <div class="field"><span class="lab">Orari</span><div id="fTimes" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -254,6 +279,18 @@ nav.bar{position:fixed;left:0;right:0;bottom:0;z-index:5;background:var(--surfac
     <div class="acts"><button class="btn ghost" type="button" id="tpNo">Annulla</button><button class="btn" type="button" id="tpOk">Conferma</button></div>
   </div>
 </div>
+<div class="scrim" id="grpScrim" hidden>
+  <form class="sheet" id="grpForm" novalidate>
+    <h2 id="grpTitle">Nuovo gruppo</h2>
+    <div class="field"><label for="grpName">Nome del gruppo</label><input id="grpName" type="text" placeholder="es. Cura antibiotico, Integratori inverno" autocomplete="off"></div>
+    <p class="err" id="grpErr" hidden></p>
+    <div class="acts">
+      <button class="btn del" id="grpDel" type="button" hidden>Elimina</button>
+      <button class="btn ghost" id="grpNo" type="button">Annulla</button>
+      <button class="btn" type="submit">Salva</button>
+    </div>
+  </form>
+</div>
 <div class="scrim" id="snzScrim" hidden>
   <div class="sheet" role="dialog" aria-labelledby="snzTitle">
     <h2 id="snzTitle">Posticipa</h2>
@@ -281,21 +318,26 @@ let today=new Date(); today.setHours(0,0,0,0);
 let sel=new Date(today), editing=null, draft=null, uid=1;
 
 const STORE='pillolario.v1';
-let meds=[], snoozes=[]; const taken=new Set(), ignored=new Set();
+let meds=[], groups=[], snoozes=[]; const taken=new Set(), ignored=new Set();
 const handled=k=>taken.has(k)||ignored.has(k);
 const snoozeOf=k=>snoozes.find(x=>x.date+'|'+x.medId+'|'+x.time===k&&x.at>Date.now());
 const hm=ms=>{ const d=new Date(ms); return pad(d.getHours())+':'+pad(d.getMinutes()); };
-try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; snoozes=s.snoozes||[];
+try{ const s=JSON.parse(localStorage.getItem(STORE)||'{}'); meds=s.meds||[]; groups=s.groups||[]; snoozes=s.snoozes||[];
   const lim=new Date(today); lim.setDate(lim.getDate()-90); const lk=key(lim);
   (s.taken||[]).forEach(k=>{ if(k.slice(0,10)>=lk) taken.add(k); });
   (s.ignored||[]).forEach(k=>{ if(k.slice(0,10)>=lk) ignored.add(k); }); }catch(e){}
 uid=meds.reduce((a,m)=>Math.max(a,m.id),0)+1;
-function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,snoozes,taken:[...taken],ignored:[...ignored]})); }catch(e){} }
+let gid=groups.reduce((a,g)=>Math.max(a,g.id),0)+1;
+const groupOf=m=>m.group?groups.find(g=>g.id===m.group):null;
+/* una pillola e' attiva se non sta in un gruppo in pausa */
+const active=m=>{ const g=groupOf(m); return !g||!g.paused; };
+function save(){ try{ localStorage.setItem(STORE,JSON.stringify({meds,groups,snoozes,taken:[...taken],ignored:[...ignored]})); }catch(e){} }
 let syncT; function sync(){ save(); clearTimeout(syncT); syncT=setTimeout(()=>{ schedule(); tidy(); },400); }
 function mark(k,how){ taken.delete(k); ignored.delete(k); snoozes=snoozes.filter(x=>x.date+'|'+x.medId+'|'+x.time!==k); if(how==='take') taken.add(k); if(how==='skip') ignored.add(k); }
 
 function dosesFor(date){ const di=dIdx(date), k=key(date), out=[];
-  meds.forEach(m=>{ if(m.days.includes(di)) m.times.forEach(t=>out.push({m,time:t,k:k+'|'+m.id+'|'+t})); });
+  const hist=date<today;
+  meds.forEach(m=>{ if(m.days.includes(di)&&(hist||active(m))) m.times.forEach(t=>out.push({m,time:t,k:k+'|'+m.id+'|'+t})); });
   return out.sort((a,b)=>mins(a.time)-mins(b.time)||a.m.id-b.m.id); }
 function el(tag,cls,txt){ const e=document.createElement(tag); if(cls) e.className=cls; if(txt!=null) e.textContent=txt; return e; }
 function shape(m){ const s=el('span','shape '+m.form); s.style.setProperty('--c','var('+m.color+')'); s.appendChild(el('i')); return s; }
@@ -316,6 +358,8 @@ function renderToday(){ const list=dosesFor(sel), isToday=+sel===+today, future=
   $('next').textContent=!list.length?'':list.every(d=>handled(d.k))?'Giornata completa':nx?'Prossima alle '+nx.time:'';
   const cells=$('cells'); cells.textContent='';
   list.forEach(d=>{ const c=el('span','cell'+(taken.has(d.k)?' out':ignored.has(d.k)?' ign':'')); c.style.setProperty('--c','var('+d.m.color+')'); cells.appendChild(c); });
+  const pg=groups.filter(g=>g.paused); $('pausedNote').hidden=!pg.length||sel<today;
+  $('pausedNote').textContent=(pg.length===1?'In pausa: ':'In pausa ('+pg.length+'): ')+pg.map(g=>g.name).join(', ');
   const ul=$('doses'); ul.textContent='';
   if(!list.length){ ul.appendChild(el('p','empty',meds.length?'Nessuna pillola in programma per questo giorno.':'Tocca + qui sotto per aggiungere la prima pillola o integratore.')); return; }
   list.forEach(d=>{ const t=taken.has(d.k), ig=ignored.has(d.k), h=t||ig, dm=mins(d.time);
@@ -339,26 +383,49 @@ function renderToday(){ const list=dosesFor(sel), isToday=+sel===+today, future=
       g.onclick=()=>{ mark(d.k,'skip'); sync(); render(); toast(d.m.name+' ignorata'); }; box.appendChild(g); }
     li.append(el('span','time',d.time),shape(d.m),mid,box); ul.appendChild(li); }); }
 
+function medCard(m){ const b=el('button','med'); b.type='button';
+  const mid=el('div'); mid.style.minWidth='0'; mid.append(el('div','name',m.name),el('div','sub',m.dose+' · '+m.times.join(' · ')));
+  const dots=el('div','dots'); DAYS.forEach((l,i)=>dots.appendChild(el('s',m.days.includes(i)?'on':'',l))); mid.appendChild(dots);
+  b.append(shape(m),mid,el('span','edit','Modifica')); b.onclick=()=>openSheet(m); return b; }
 function renderMeds(){ const box=$('meds'); box.textContent='';
-  if(!meds.length) box.appendChild(el('p','empty','Ancora niente. Tocca + per aggiungere la prima pillola.'));
-  meds.forEach(m=>{ const b=el('button','med'); b.type='button';
-    const mid=el('div'); mid.style.minWidth='0'; mid.append(el('div','name',m.name),el('div','sub',m.dose+' · '+m.times.join(' · ')));
-    const dots=el('div','dots'); DAYS.forEach((l,i)=>dots.appendChild(el('s',m.days.includes(i)?'on':'',l))); mid.appendChild(dots);
-    b.append(shape(m),mid,el('span','edit','Modifica')); b.onclick=()=>openSheet(m); box.appendChild(b); }); }
-function render(){ renderWeek(); renderToday(); renderMeds(); }
+  if(!meds.length&&!groups.length) box.appendChild(el('p','empty','Ancora niente. Tocca + per aggiungere la prima pillola.'));
+  groups.forEach(g=>{ const list=meds.filter(m=>m.group===g.id), open=!!g.open;
+    const sec=el('section','grp'+(g.paused?' paused':'')), h=el('div','grp-h');
+    const t=el('button','grp-t'); t.type='button'; t.setAttribute('aria-expanded',open);
+    const txt=el('span'); txt.style.minWidth='0';
+    txt.append(el('b','',g.name),el('small','',(list.length===1?'1 pillola':list.length+' pillole')+(g.paused?' · In pausa':' · Attivo')));
+    t.append(el('span','arr','▶'),txt); t.onclick=()=>{ g.open=!g.open; save(); renderMeds(); };
+    const sw=el('label','switch'), inp=el('input'); inp.type='checkbox'; inp.id='grpSw'+g.id; inp.checked=!g.paused; inp.setAttribute('role','switch');
+    inp.setAttribute('aria-label',(g.paused?'Riattiva ':'Metti in pausa ')+g.name);
+    inp.onchange=()=>{ g.paused=!inp.checked; g.open=!g.paused; sync(); render(); toast(g.paused?g.name+' in pausa: nessun avviso':g.name+' di nuovo attivo'); };
+    sw.append(inp,el('span')); h.append(t,sw); sec.appendChild(h);
+    if(open){ const body=el('div','grp-b');
+      if(!list.length) body.appendChild(el('p','hint','Nessuna pillola. Aprine una e scegli questo gruppo.'));
+      list.forEach(m=>body.appendChild(medCard(m)));
+      const e=el('button','grp-edit','Rinomina o elimina gruppo'); e.type='button'; e.onclick=()=>openGroup(g); body.appendChild(e);
+      sec.appendChild(body); }
+    box.appendChild(sec); });
+  const loose=meds.filter(m=>!groupOf(m));
+  if(loose.length&&groups.length) box.appendChild(el('p','loose','Senza gruppo'));
+  loose.forEach(m=>box.appendChild(medCard(m))); }
+function render(){ renderWeek(); renderToday(); renderMeds(); if(!$('viewMeds').hidden) tab('meds'); }
 
 function tab(t){ const td=t==='today'; $('viewToday').hidden=!td; $('viewToday').style.display=td?'flex':'none'; $('viewMeds').hidden=td;
   $('tabToday').setAttribute('aria-selected',td); $('tabMeds').setAttribute('aria-selected',!td);
-  if(!td){ $('title').textContent='Le mie pillole'; $('dateLabel').textContent=meds.length+' promemoria attivi'; } else renderToday(); }
+  if(!td){ $('title').textContent='Le mie pillole'; const na=meds.filter(active).length; $('dateLabel').textContent=na+(na===1?' promemoria attivo':' promemoria attivi')+(na<meds.length?' · '+(meds.length-na)+' in pausa':''); } else renderToday(); }
 $('tabToday').onclick=()=>tab('today'); $('tabMeds').onclick=()=>tab('meds');
 
 /* foglio */
 function openSheet(m){ editing=m||null;
-  draft=m?{form:m.form,color:m.color,times:[...m.times],days:[...m.days]}:{form:'compressa',color:COLORS[meds.length%5],times:['08:00'],days:[0,1,2,3,4,5,6]};
+  draft=m?{group:m.group||0,form:m.form,color:m.color,times:[...m.times],days:[...m.days]}:{group:0,form:'compressa',color:COLORS[meds.length%5],times:['08:00'],days:[0,1,2,3,4,5,6]};
   $('sheetTitle').textContent=m?'Modifica promemoria':'Nuovo promemoria';
   $('fName').value=m?m.name:''; $('fDose').value=m?m.dose:''; $('fInsist').checked=m?m.insist:true;
   $('del').hidden=!m; $('err').hidden=true; drawSheet(); $('scrim').hidden=false; if(!m) $('fName').focus(); }
-function drawSheet(){ const f=$('fForm'); f.textContent='';
+function drawSheet(){ const gb=$('fGroup'); gb.textContent='';
+  [[0,'Nessuno'],...groups.map(g=>[g.id,g.name+(g.paused?' (in pausa)':'')])].forEach(([v,l])=>{ const b=el('button','opt',l); b.type='button';
+    b.setAttribute('aria-pressed',draft.group===v); b.onclick=()=>{ draft.group=v; drawSheet(); }; gb.appendChild(b); });
+  const nb=el('button','opt','+ Nuovo'); nb.type='button'; nb.onclick=()=>openGroup(null,true); gb.appendChild(nb);
+  const f=$('fForm'); f.textContent='';
   FORMS.forEach(([v,l])=>{ const b=el('button','opt',l); b.type='button'; b.setAttribute('aria-pressed',draft.form===v); b.onclick=()=>{draft.form=v;drawSheet();}; f.appendChild(b); });
   const c=$('fColor'); c.textContent='';
   COLORS.forEach((v,i)=>{ const b=el('button','sw'); b.type='button'; b.style.setProperty('--c','var('+v+')'); b.setAttribute('aria-label','Colore '+(i+1));
@@ -380,7 +447,7 @@ $('add').onclick=()=>openSheet();
 $('form').onsubmit=e=>{ e.preventDefault(); const name=$('fName').value.trim(), times=[...new Set(draft.times.filter(Boolean))].sort();
   const msg=!name?'Scrivi il nome della pillola.':!times.length?'Imposta almeno un orario.':!draft.days.length?'Scegli almeno un giorno.':'';
   if(msg){ $('err').textContent=msg; $('err').hidden=false; return; }
-  const data={name,dose:$('fDose').value.trim()||'1 dose',form:draft.form,color:draft.color,times,days:[...draft.days].sort(),insist:$('fInsist').checked};
+  const data={group:draft.group||0,name,dose:$('fDose').value.trim()||'1 dose',form:draft.form,color:draft.color,times,days:[...draft.days].sort(),insist:$('fInsist').checked};
   if(editing) Object.assign(editing,data); else meds.push({id:uid++,...data});
   closeSheet(); sync(); askPerm(); render(); if(!$('viewMeds').hidden) tab('meds'); toast(editing?'Promemoria aggiornato':'Promemoria salvato'); };
 $('del').onclick=()=>{ meds=meds.filter(m=>m!==editing); closeSheet(); sync(); render(); if(!$('viewMeds').hidden) tab('meds'); toast('Promemoria eliminato'); };
@@ -410,7 +477,7 @@ async function schedule(){ if(!LN) return;
     for(let i=1;i<=prev;i++) ids.add(i); /* anche gli allarmi continui gia' partiti */
     if(ids.size) await LN.cancel({notifications:[...ids].map(id=>({id}))});
     const list=[], now=Date.now(); let id=1;
-    meds.forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
+    meds.filter(active).forEach(m=>m.times.forEach(t=>{ const h=+t.slice(0,2), mi=+t.slice(3);
       m.days.forEach(di=>list.push(note(id++,m,t,'',{on:{weekday:(di+1)%7+1,hour:h,minute:mi,second:0},allowWhileIdle:true})));
       if(m.insist) for(let g=0;g<7;g++){ const d=new Date(today); d.setDate(d.getDate()+g);
         const k=key(d)+'|'+m.id+'|'+t; if(!m.days.includes(dIdx(d))||handled(k)||snoozeOf(k)) continue;
@@ -419,7 +486,7 @@ async function schedule(){ if(!LN) return;
         const base=new Date(d); base.setHours(h,mi,0,0); const ln=loopNote(id,m,t,key(d),+base+40*MIN,+base+LOOP_MAX,now);
         if(ln&&list.length<450){ list.push(ln); id++; } } }));
     snoozes=snoozes.filter(s=>s.at>now-LOOP_MAX&&!handled(s.date+'|'+s.medId+'|'+s.time));
-    snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(!m) return;
+    snoozes.forEach(s=>{ const m=meds.find(x=>x.id===s.medId); if(!m||!active(m)) return;
       [[0,2],[10,3],[20,3]].forEach(([x,lv])=>{ if(x&&!m.insist) return; const at=s.at+x*MIN;
         if(at>now+5000) list.push(note(id++,m,s.time,s.date,{at:new Date(at),allowWhileIdle:true},lv)); });
       if(m.insist){ const ln=loopNote(id,m,s.time,s.date,s.at+30*MIN,s.at+LOOP_MAX,now); if(ln){ list.push(ln); id++; } } });
@@ -431,7 +498,7 @@ async function tidy(){ if(!LN) return;
   try{ const r=await LN.getDeliveredNotifications(), now=new Date(), nm=now.getHours()*60+now.getMinutes(), out=[];
     r.notifications.forEach(n=>{ if(n.id<SLOT0||n.id>=TEST_ID) return;
       const mid=Math.floor((n.id-SLOT0)/1440), mm=(n.id-SLOT0)%1440, t=pad(mm/60|0)+':'+pad(mm%60);
-      const m=meds.find(q=>q.id%500===mid&&q.times.includes(t));
+      const m=meds.find(q=>q.id%500===mid&&q.times.includes(t)&&active(q));
       const d=new Date(now); if(mm>nm) d.setDate(d.getDate()-1);
       const k=key(d)+'|'+m.id+'|'+t; if(!m||handled(k)||snoozeOf(k)) out.push({id:n.id,title:'',body:''}); });
     if(out.length) await LN.removeDeliveredNotifications({notifications:out}); }catch(e){ console.error(e); } }
@@ -468,6 +535,20 @@ $('tpMinus').onclick=()=>{ tp.v=(tp.v+1425)%1440; drawTP(); }; $('tpPlus').oncli
 $('tpOk').onclick=()=>{ draft.times[tp.i]=fmt(tp.v); $('tpScrim').hidden=true; drawSheet(); };
 $('tpNo').onclick=()=>{ $('tpScrim').hidden=true; }; $('tpScrim').onclick=e=>{ if(e.target===$('tpScrim')) $('tpScrim').hidden=true; };
 
+/* gruppi (cure) */
+let grpEditing=null, grpFromSheet=false;
+function openGroup(g,fromSheet){ grpEditing=g||null; grpFromSheet=!!fromSheet; $('grpTitle').textContent=g?'Modifica gruppo':'Nuovo gruppo';
+  $('grpName').value=g?g.name:''; $('grpDel').hidden=!g; $('grpErr').hidden=true; $('grpScrim').hidden=false; $('grpName').focus(); }
+const closeGroup=()=>{ $('grpScrim').hidden=true; };
+$('grpNo').onclick=closeGroup; $('grpScrim').onclick=e=>{ if(e.target===$('grpScrim')) closeGroup(); };
+$('newGrp').onclick=()=>openGroup(null);
+$('grpForm').onsubmit=e=>{ e.preventDefault(); const name=$('grpName').value.trim();
+  if(!name){ $('grpErr').textContent='Scrivi il nome del gruppo.'; $('grpErr').hidden=false; return; }
+  if(grpEditing) grpEditing.name=name; else { const g={id:gid++,name,paused:false,open:true}; groups.push(g); if(grpFromSheet&&draft) draft.group=g.id; }
+  closeGroup(); sync(); render(); if(!$('viewMeds').hidden) tab('meds'); if(grpFromSheet&&!$('scrim').hidden) drawSheet(); toast(grpEditing?'Gruppo rinominato':'Gruppo creato'); };
+$('grpDel').onclick=()=>{ const g=grpEditing; if(!g) return; meds.forEach(m=>{ if(m.group===g.id) m.group=0; }); groups=groups.filter(x=>x!==g);
+  closeGroup(); sync(); render(); if(!$('viewMeds').hidden) tab('meds'); toast('Gruppo eliminato: le pillole restano, senza gruppo'); };
+
 /* posticipa */
 let snzDose=null;
 function openSnooze(m,t,date){ snzDose={m,t,date}; $('snzTitle').textContent='Posticipa '+m.name; $('snzSub').textContent=m.dose+' · previsto alle '+t; $('snzScrim').hidden=false; }
@@ -493,7 +574,7 @@ setInterval(()=>{ if(!document.hidden&&!$('viewToday').hidden&&$('scrim').hidden
       else if(ev.actionId==='skip'){ mark(k,'skip'); toast(m.name+' ignorata'); }
       else if(ev.actionId==='snooze'){ sel=new Date(today); render(); tab('today'); openSnooze(m,x.time,date); return; }
       sync(); sel=new Date(today); render(); tab('today'); });
-    await APP.addListener('backButton',()=>{ if(!$('tpScrim').hidden) $('tpScrim').hidden=true; else if(!$('snzScrim').hidden) $('snzScrim').hidden=true; else if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
+    await APP.addListener('backButton',()=>{ if(!$('grpScrim').hidden) closeGroup(); else if(!$('tpScrim').hidden) $('tpScrim').hidden=true; else if(!$('snzScrim').hidden) $('snzScrim').hidden=true; else if(!$('scrim').hidden) closeSheet(); else if(!$('viewMeds').hidden) tab('today'); else APP.minimizeApp(); });
   }catch(e){ console.error(e); }
   if(meds.length) await askPerm(); schedule(); tidy(); })();
 let tt; function toast(m){ const t=$('toast'); t.textContent=m; t.hidden=false; clearTimeout(tt); tt=setTimeout(()=>t.hidden=true,2400); }

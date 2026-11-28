@@ -32,3 +32,8 @@ La chiave di firma `android/pillolario.keystore` è nel progetto apposta: così 
   **volume della sveglia** (canale `p4`, anche in silenzioso) finché non premi Presa, Ignora o Posticipa.
   Si ferma comunque dopo 12 ore. Il telefono lo ripete da solo (modifica nativa `rearmLoop`).
 - Corretto: le ripetizioni settimanali ora svegliano il telefono anche in standby (prima solo la prima volta).
+
+## Versione 1.5
+- **Gruppi (cure)**: nella scheda della pillola si sceglie il gruppo (o se ne crea uno nuovo). In "Le mie pillole"
+  ogni gruppo ha un interruttore: **in pausa** il gruppo si chiude, le sue pillole spariscono da "Oggi" e non suonano più;
+  riattivandolo tornano come prima. Eliminare un gruppo non elimina le pillole (restano "Senza gruppo").
