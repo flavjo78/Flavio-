@@ -6,10 +6,12 @@ import android.app.TimePickerDialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.database.Cursor;
+import android.graphics.drawable.GradientDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.ContactsContract.CommonDataKinds.Phone;
 import android.text.Editable;
+import android.text.InputFilter;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.view.Gravity;
@@ -30,9 +32,8 @@ import java.util.ArrayList;
 import java.util.TreeSet;
 
 /**
- * Aggiungi o modifica una scheda: nome, telefono, gruppo e note una volta sola,
- * e dentro tutte le date da ricordare (compleanno, onomastico, anniversario, altri eventi),
- * ognuna con i suoi promemoria.
+ * Aggiungi o modifica una scheda: il nome una volta sola, sotto le sue date
+ * (compleanno, onomastico, anniversario, altri eventi) e in fondo i dettagli.
  */
 public class EditActivity extends Activity {
     static final int REQ_CONTATTO = 31;
@@ -43,8 +44,8 @@ public class EditActivity extends Activity {
     private boolean nuovo, pronto, modificato;
 
     private EditText nome, tel, note;
+    private TextView gruppoBtn;
     private LinearLayout boxDate;
-    private FlowLayout flGruppi;
     private ScrollView sc;
     private final ArrayList<Riga> righe = new ArrayList<>();
 
@@ -52,7 +53,7 @@ public class EditActivity extends Activity {
     private class Riga {
         Data d;
         LinearLayout card;
-        TextView titolo, anteprima, promemoria, etichettaAnno;
+        TextView titolo, info, promemoria;
         EditText anno, etichetta;
         Spinner spGiorno, spMese;
         ImageView togli;
@@ -122,67 +123,75 @@ public class EditActivity extends Activity {
 
         sc = new ScrollView(this);
         LinearLayout f = Ui.col(this);
-        f.setPadding(Ui.dp(16), Ui.dp(6), Ui.dp(16), Ui.dp(28));
+        f.setPadding(Ui.dp(16), Ui.dp(16), Ui.dp(16), Ui.dp(28));
         sc.addView(f);
         root.addView(sc, new LinearLayout.LayoutParams(Ui.MATCH, 0, 1f));
 
         // Nome
-        LinearLayout cNome = scheda(f, "Nome");
-        nome = Ui.edit(this, "Es. Mario Rossi, oppure Natale");
+        nome = Ui.edit(this, "Nome (es. Mario Rossi)");
+        nome.setTextSize(18);
+        nome.setBackground(Ui.roundStroke(Ui.SURFACE, Ui.DIVIDER, 1, 14));
+        nome.setPadding(Ui.dp(16), Ui.dp(14), Ui.dp(16), Ui.dp(14));
         nome.setText(e.nome);
         nome.addTextChangedListener(osserva());
-        cNome.addView(nome, Ui.lp(Ui.MATCH, Ui.WRAP));
-        cNome.addView(Ui.text(this, "Una persona o un evento. Il nome si scrive una volta sola: sotto aggiungi tutte le sue date.", 12.5f, Ui.TEXT2, false),
-                Ui.lpM(Ui.MATCH, Ui.WRAP, 2, 8, 0, 0));
+        f.addView(nome, Ui.lp(Ui.MATCH, Ui.WRAP));
 
         // Date
-        f.addView(Ui.sezione(this, "Date da ricordare"));
+        f.addView(Ui.sezione(this, "Date"));
         boxDate = Ui.col(this);
         f.addView(boxDate, Ui.lp(Ui.MATCH, Ui.WRAP));
         for (Data d : e.date) aggiungiRiga(d);
-        TextView altra = Ui.button(this, "＋  Aggiungi un'altra data (onomastico, anniversario…)", false);
-        altra.setTextSize(14);
+        TextView altra = Ui.text(this, "＋  Aggiungi un'altra data", 15, Ui.PRIMARY, true);
+        altra.setPadding(Ui.dp(12), Ui.dp(10), Ui.dp(12), Ui.dp(10));
+        Ui.touch(altra, 12);
         altra.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { scegliTipoNuovaData(); } });
-        f.addView(altra, Ui.lp(Ui.MATCH, Ui.WRAP));
+        f.addView(altra, Ui.lp(Ui.WRAP, Ui.WRAP));
 
-        // Gruppo
-        LinearLayout cGr = scheda(f, "Gruppo");
-        flGruppi = new FlowLayout(this);
-        cGr.addView(flGruppi);
-        aggiornaGruppi();
+        // Dettagli: gruppo, telefono, note
+        f.addView(Ui.sezione(this, "Dettagli"));
+        LinearLayout det = Ui.card(this);
+        f.addView(det, Ui.lp(Ui.MATCH, Ui.WRAP));
 
-        // Contatto
-        LinearLayout cTel = scheda(f, "Contatto (facoltativo)");
+        LinearLayout rg = Ui.row(this);
+        rg.addView(Ui.text(this, "Gruppo", 15, Ui.TEXT, false), Ui.lpW(1));
+        gruppoBtn = Ui.text(this, "", 15, Ui.TEXT, true);
+        gruppoBtn.setPadding(Ui.dp(14), Ui.dp(9), Ui.dp(14), Ui.dp(9));
+        gruppoBtn.setBackground(Ui.ripple(Ui.roundStroke(Ui.SURFACE, Ui.DIVIDER, 1.2f, 20), 20));
+        gruppoBtn.setCompoundDrawablePadding(Ui.dp(8));
+        gruppoBtn.setClickable(true);
+        gruppoBtn.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { scegliGruppo(); } });
+        rg.addView(gruppoBtn);
+        det.addView(rg, Ui.lp(Ui.MATCH, Ui.WRAP));
+        aggiornaGruppo();
+
         LinearLayout rt = Ui.row(this);
-        tel = Ui.edit(this, "Numero di telefono");
+        tel = Ui.edit(this, "Telefono (facoltativo)");
         tel.setInputType(InputType.TYPE_CLASS_PHONE);
         tel.setText(e.telefono);
         tel.addTextChangedListener(osserva());
         rt.addView(tel, Ui.lpW(1));
-        TextView rub = Ui.smallButton(this, R.drawable.ic_contact, "Rubrica", Ui.PRIMARY);
-        rub.setMinHeight(Ui.dp(48));
+        ImageView rub = Ui.iconButton(this, R.drawable.ic_contact, Ui.PRIMARY);
+        rub.setContentDescription("Scegli dalla rubrica");
+        rub.setBackground(Ui.ripple(Ui.round(Ui.alpha(Ui.PRIMARY, Ui.dark ? 0.2f : 0.1f), 12), 12));
         rub.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { scegliContatto(); } });
-        rt.addView(rub, Ui.lpM(Ui.WRAP, Ui.WRAP, 8, 0, 0, 0));
-        cTel.addView(rt, Ui.lp(Ui.MATCH, Ui.WRAP));
-        cTel.addView(Ui.text(this, "Con il numero puoi chiamare o mandare gli auguri (WhatsApp o SMS) direttamente dalla notifica.", 12.5f, Ui.TEXT2, false),
-                Ui.lpM(Ui.MATCH, Ui.WRAP, 2, 8, 0, 0));
+        LinearLayout.LayoutParams pr = new LinearLayout.LayoutParams(Ui.dp(48), Ui.dp(48));
+        pr.setMargins(Ui.dp(8), 0, 0, 0);
+        rt.addView(rub, pr);
+        det.addView(rt, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 14, 0, 0));
 
-        // Note
-        LinearLayout cNo = scheda(f, "Note (facoltative)");
-        note = Ui.edit(this, "Es. idee regalo, taglia, cosa gli piace…");
+        note = Ui.edit(this, "Note (es. idea regalo)");
         note.setSingleLine(false);
         note.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
-        note.setMinLines(2);
         note.setGravity(Gravity.TOP | Gravity.START);
         note.setText(e.note);
         note.addTextChangedListener(osserva());
-        cNo.addView(note, Ui.lp(Ui.MATCH, Ui.WRAP));
+        det.addView(note, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 10, 0, 0));
 
         TextView salva = Ui.button(this, "Salva", true);
         salva.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { salva(); } });
-        f.addView(salva, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 20, 0, 0));
+        f.addView(salva, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 22, 0, 0));
         if (!nuovo) {
-            TextView el = Ui.text(this, "Elimina questa scheda", 15, Ui.DANGER, true);
+            TextView el = Ui.text(this, "Elimina", 15, Ui.DANGER, true);
             el.setGravity(Gravity.CENTER);
             el.setPadding(0, Ui.dp(14), 0, Ui.dp(14));
             Ui.touch(el, 12);
@@ -191,19 +200,12 @@ public class EditActivity extends Activity {
                     Dialoghi.conferma(EditActivity.this, orig, new Runnable() { @Override public void run() { finish(); } });
                 }
             });
-            f.addView(el, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 8, 0, 0));
+            f.addView(el, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 6, 0, 0));
         }
 
         setContentView(root);
         Ui.insets(root, header, root);
         aggiornaTutte();
-    }
-
-    private LinearLayout scheda(LinearLayout parent, String titolo) {
-        parent.addView(Ui.sezione(this, titolo));
-        LinearLayout c = Ui.card(this);
-        parent.addView(c, Ui.lp(Ui.MATCH, Ui.WRAP));
-        return c;
     }
 
     private TextWatcher osserva() {
@@ -220,11 +222,13 @@ public class EditActivity extends Activity {
         final Riga r = new Riga();
         r.d = d;
         LinearLayout c = Ui.card(this);
+        c.setPadding(Ui.dp(14), Ui.dp(10), Ui.dp(6), Ui.dp(10));
         r.card = c;
 
+        // tipo  ……………  ✕
         LinearLayout h = Ui.row(this);
-        r.titolo = Ui.text(this, "", 16.5f, Ui.PRIMARY, true);
-        r.titolo.setPadding(Ui.dp(12), Ui.dp(8), Ui.dp(12), Ui.dp(8));
+        r.titolo = Ui.text(this, "", 15.5f, Ui.PRIMARY, true);
+        r.titolo.setPadding(Ui.dp(10), Ui.dp(7), Ui.dp(12), Ui.dp(7));
         r.titolo.setBackground(Ui.ripple(Ui.round(Ui.alpha(Ui.PRIMARY, Ui.dark ? 0.18f : 0.09f), 12), 12));
         r.titolo.setClickable(true);
         r.titolo.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { scegliTipo(r); } });
@@ -236,7 +240,8 @@ public class EditActivity extends Activity {
         h.addView(r.togli);
         c.addView(h, Ui.lp(Ui.MATCH, Ui.WRAP));
 
-        r.etichetta = Ui.edit(this, "");
+        // nome dell'evento (solo per "Altro evento")
+        r.etichetta = Ui.edit(this, "Che evento? (es. Laurea)");
         r.etichetta.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);
         r.etichetta.setText(d.etichetta);
         r.etichetta.addTextChangedListener(new TextWatcher() {
@@ -244,13 +249,17 @@ public class EditActivity extends Activity {
             @Override public void onTextChanged(CharSequence x, int a, int b, int cc) { }
             @Override public void afterTextChanged(Editable x) { d.etichetta = x.toString(); segna(); }
         });
-        c.addView(r.etichetta, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 12, 0, 0));
+        LinearLayout.LayoutParams pe = Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 8, 8, 0);
+        c.addView(r.etichetta, pe);
 
+        // giorno · mese · anno, su una riga
         if (d.mobile()) {
-            TextView dm = Ui.text(this, "📅  " + Fmt.cap(d.descrizioneRegola()) + "\nLa data viene calcolata da sola ogni anno.", 15, Ui.TEXT, false);
-            c.addView(dm, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 12, 0, 0));
-        } else {
-            LinearLayout rd = Ui.row(this);
+            TextView dm = Ui.text(this, Fmt.cap(d.descrizioneRegola()) + " (calcolata ogni anno)", 14.5f, Ui.TEXT, false);
+            dm.setPadding(Ui.dp(4), Ui.dp(10), 0, Ui.dp(4));
+            c.addView(dm);
+        }
+        LinearLayout rd = Ui.row(this);
+        if (!d.mobile()) {
             r.spGiorno = new Spinner(this, Spinner.MODE_DROPDOWN);
             r.spMese = new Spinner(this, Spinner.MODE_DROPDOWN);
             String[] mesi = new String[12];
@@ -260,29 +269,28 @@ public class EditActivity extends Activity {
             r.spMese.setAdapter(am);
             r.spMese.setSelection(d.mese - 1);
             aggiornaGiorni(r);
-            rd.addView(r.spGiorno, new LinearLayout.LayoutParams(0, Ui.dp(52), 0.36f));
-            rd.addView(r.spMese, new LinearLayout.LayoutParams(0, Ui.dp(52), 0.64f));
-            c.addView(rd, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 8, 0, 0));
+            rd.addView(r.spGiorno, new LinearLayout.LayoutParams(0, Ui.dp(48), 0.26f));
+            rd.addView(r.spMese, new LinearLayout.LayoutParams(0, Ui.dp(48), 0.46f));
             r.spMese.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
                     if (d.mese != pos + 1) { d.mese = pos + 1; aggiornaGiorni(r); segna(); }
-                    aggiornaAnteprima(r);
+                    aggiornaInfo(r);
                 }
                 @Override public void onNothingSelected(AdapterView<?> p) { }
             });
             r.spGiorno.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override public void onItemSelected(AdapterView<?> p, View v, int pos, long id) {
                     if (d.giorno != pos + 1) { d.giorno = pos + 1; segna(); }
-                    aggiornaAnteprima(r);
+                    aggiornaInfo(r);
                 }
                 @Override public void onNothingSelected(AdapterView<?> p) { }
             });
         }
-
-        r.etichettaAnno = Ui.text(this, "", 13, Ui.TEXT2, true);
-        c.addView(r.etichettaAnno, Ui.lpM(Ui.MATCH, Ui.WRAP, 2, 12, 0, 6));
-        r.anno = Ui.edit(this, "Es. 1985 — lascia vuoto se non lo sai");
+        r.anno = Ui.edit(this, "Anno");
         r.anno.setInputType(InputType.TYPE_CLASS_NUMBER);
+        r.anno.setFilters(new InputFilter[]{new InputFilter.LengthFilter(4)});
+        r.anno.setGravity(Gravity.CENTER);
+        r.anno.setPadding(Ui.dp(6), Ui.dp(10), Ui.dp(6), Ui.dp(10));
         if (d.anno > 0) r.anno.setText(String.valueOf(d.anno));
         r.anno.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence x, int a, int b, int cc) { }
@@ -290,31 +298,30 @@ public class EditActivity extends Activity {
             @Override public void afterTextChanged(Editable x) {
                 String v = x.toString().trim();
                 d.anno = v.length() < 4 ? 0 : annoValido(v);
-                aggiornaAnteprima(r);
+                aggiornaInfo(r);
                 segna();
             }
         });
-        c.addView(r.anno, Ui.lp(Ui.MATCH, Ui.WRAP));
-        if (d.mobile()) { r.anno.setVisibility(View.GONE); r.etichettaAnno.setVisibility(View.GONE); }
+        LinearLayout.LayoutParams pa = new LinearLayout.LayoutParams(0, Ui.dp(48), 0.28f);
+        pa.setMargins(Ui.dp(6), 0, Ui.dp(8), 0);
+        rd.addView(r.anno, pa);
+        c.addView(rd, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 6, 0, 0));
 
-        r.anteprima = Ui.text(this, "", 14.5f, Ui.PRIMARY, true);
-        r.anteprima.setBackground(Ui.round(Ui.alpha(Ui.PRIMARY, Ui.dark ? 0.16f : 0.08f), 12));
-        r.anteprima.setPadding(Ui.dp(12), Ui.dp(10), Ui.dp(12), Ui.dp(10));
-        c.addView(r.anteprima, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 12, 0, 0));
+        // "tra 53 giorni · compie 41 anni"
+        r.info = Ui.text(this, "", 13.5f, Ui.TEXT2, false);
+        r.info.setPadding(Ui.dp(4), Ui.dp(8), Ui.dp(8), 0);
+        c.addView(r.info, Ui.lp(Ui.MATCH, Ui.WRAP));
 
-        LinearLayout pr = Ui.row(this);
-        pr.setBackground(Ui.roundStroke(Ui.SURFACE2, Ui.DIVIDER, 1, 12));
-        pr.setPadding(Ui.dp(12), Ui.dp(10), Ui.dp(12), Ui.dp(10));
-        pr.addView(Ui.icon(this, R.drawable.ic_bell, Ui.PRIMARY, 20));
-        r.promemoria = Ui.text(this, "", 14, Ui.TEXT, false);
-        r.promemoria.setPadding(Ui.dp(10), 0, Ui.dp(8), 0);
-        pr.addView(r.promemoria, Ui.lpW(1));
-        pr.addView(Ui.text(this, "Cambia", 14, Ui.PRIMARY, true));
-        Ui.touch(pr, 12);
-        pr.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { modificaPromemoria(r); } });
-        c.addView(pr, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 10, 0, 0));
+        // promemoria
+        r.promemoria = Ui.text(this, "", 13.5f, Ui.PRIMARY, true);
+        r.promemoria.setPadding(Ui.dp(4), Ui.dp(8), Ui.dp(8), Ui.dp(4));
+        r.promemoria.setCompoundDrawablesRelative(Ui.tinted(this, R.drawable.ic_bell, Ui.PRIMARY, 16), null, null, null);
+        r.promemoria.setCompoundDrawablePadding(Ui.dp(6));
+        Ui.touch(r.promemoria, 10);
+        r.promemoria.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { modificaPromemoria(r); } });
+        c.addView(r.promemoria, Ui.lp(Ui.MATCH, Ui.WRAP));
 
-        boxDate.addView(c, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 12));
+        boxDate.addView(c, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 10));
         righe.add(r);
         aggiornaRiga(r);
         return r;
@@ -324,10 +331,10 @@ public class EditActivity extends Activity {
         for (Riga r : righe) aggiornaRiga(r);
         if (!righe.isEmpty()) {
             String t = righe.get(0).d.tipo;
-            if ("festa".equals(t)) nome.setHint("Es. Natale, Festa della mamma…");
-            else if ("altro".equals(t)) nome.setHint("Es. Bollo auto, oppure il nome di una persona");
-            else if ("anniversario".equals(t)) nome.setHint("Es. Luca e Anna");
-            else nome.setHint("Es. Mario Rossi");
+            if ("festa".equals(t)) nome.setHint("Nome (es. Natale)");
+            else if ("altro".equals(t)) nome.setHint("Nome (es. Bollo auto, o una persona)");
+            else if ("anniversario".equals(t)) nome.setHint("Nome (es. Luca e Anna)");
+            else nome.setHint("Nome (es. Mario Rossi)");
         }
     }
 
@@ -335,22 +342,15 @@ public class EditActivity extends Activity {
         Data d = r.d;
         r.titolo.setText(d.emoji() + "  " + d.tipoNome() + "  ▾");
         r.togli.setVisibility(righe.size() > 1 ? View.VISIBLE : View.INVISIBLE);
-        if ("anniversario".equals(d.tipo)) {
-            r.etichetta.setVisibility(View.VISIBLE);
-            r.etichetta.setHint("Di cosa? Es. matrimonio (facoltativo)");
-        } else if ("altro".equals(d.tipo)) {
-            r.etichetta.setVisibility(View.VISIBLE);
-            r.etichetta.setHint("Che evento? Es. Laurea, Primo appuntamento");
-        } else if ("festa".equals(d.tipo) && righe.size() > 1) {
-            r.etichetta.setVisibility(View.VISIBLE);
-            r.etichetta.setHint("Quale festa? (facoltativo)");
-        } else {
-            r.etichetta.setVisibility(View.GONE);
+        r.etichetta.setVisibility("altro".equals(d.tipo) ? View.VISIBLE : View.GONE);
+        boolean anno = d.usaAnno() && !d.mobile();
+        r.anno.setVisibility(anno ? View.VISIBLE : View.GONE);
+        if (r.spMese != null) {
+            LinearLayout.LayoutParams pm = (LinearLayout.LayoutParams) r.spMese.getLayoutParams();
+            pm.weight = anno ? 0.46f : 0.74f;
+            r.spMese.setLayoutParams(pm);
         }
-        if ("compleanno".equals(d.tipo)) r.etichettaAnno.setText("Anno di nascita (facoltativo, serve per l'età)");
-        else if ("anniversario".equals(d.tipo)) r.etichettaAnno.setText("Anno (facoltativo, per contare gli anni)");
-        else r.etichettaAnno.setText("Anno (facoltativo)");
-        aggiornaAnteprima(r);
+        aggiornaInfo(r);
         aggiornaPromemoria(r);
     }
 
@@ -376,22 +376,27 @@ public class EditActivity extends Activity {
         return -1;
     }
 
-    private void aggiornaAnteprima(Riga r) {
-        if (r.anteprima == null) return;
+    private void aggiornaInfo(Riga r) {
+        if (r.info == null) return;
+        if (r.d.anno < 0 && r.d.usaAnno()) {
+            r.info.setText("⚠️ Anno non valido");
+            r.info.setTextColor(Ui.DANGER);
+            return;
+        }
+        r.info.setTextColor(Ui.TEXT2);
         LocalDate oggi = LocalDate.now();
         Data t = r.d.copia();
         if (t.anno < 0) t.anno = 0;
         LocalDate occ = t.prossima(oggi);
         long g = t.giorniA(oggi);
-        String testo = "👉  " + (g == 0 ? "È oggi! " : Fmt.quando(g) + " · ") + Fmt.dataAnno(occ);
+        String testo = (g == 0 ? "Oggi" : Fmt.quando(g)) + " · " + Fmt.dataLunga(occ);
         String eta = t.eta(occ);
-        if (!eta.isEmpty()) testo += "\n      " + Fmt.cap(eta);
-        if (r.d.anno < 0) testo += "\n⚠️  Anno non valido (es. 1985)";
-        r.anteprima.setText(testo);
+        if (!eta.isEmpty()) testo += " · " + eta;
+        r.info.setText(testo);
     }
 
     private void aggiornaPromemoria(Riga r) {
-        r.promemoria.setText(Fmt.cap(Fmt.avvisi(r.d.avvisi)) + " · ore " + Fmt.ora(s.oraDi(r.d)));
+        r.promemoria.setText(Fmt.cap(Fmt.avvisi(r.d.avvisi)) + " · " + Fmt.ora(s.oraDi(r.d)));
     }
 
     private void scegliTipo(final Riga r) {
@@ -547,6 +552,7 @@ public class EditActivity extends Activity {
             @Override public void onClick(View v) {
                 final EditText n = Ui.edit(EditActivity.this, "Numero di giorni (1–365)");
                 n.setInputType(InputType.TYPE_CLASS_NUMBER);
+                n.setFilters(new InputFilter[]{new InputFilter.LengthFilter(3)});
                 LinearLayout box = Ui.col(EditActivity.this);
                 box.setPadding(Ui.dp(22), Ui.dp(8), Ui.dp(22), 0);
                 box.addView(n, Ui.lp(Ui.MATCH, Ui.WRAP));
@@ -569,45 +575,45 @@ public class EditActivity extends Activity {
         fl.addView(altro);
     }
 
-    // ------------------------------------------------------------------ gruppi
+    // ------------------------------------------------------------------ gruppo
 
-    private void aggiornaGruppi() {
-        flGruppi.removeAllViews();
-        aggiungiChipGruppo("Nessuno", "", 0);
-        for (Gruppo g : s.gruppi) aggiungiChipGruppo(g.nome, g.id, g.colore);
-        TextView nuovoG = Ui.chip(this, "＋  Nuovo gruppo", false);
-        nuovoG.setTextColor(Ui.PRIMARY);
-        nuovoG.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                Dialoghi.gruppo(EditActivity.this, null, new Dialoghi.Fatto() {
-                    @Override public void fatto(String id) {
-                        if (id != null) e.gruppo = id;
-                        aggiornaGruppi();
-                        segna();
-                    }
-                });
-            }
-        });
-        flGruppi.addView(nuovoG);
+    private void aggiornaGruppo() {
+        Gruppo g = s.gruppo(e.gruppo);
+        gruppoBtn.setText((g != null ? g.nome : "Nessuno") + "  ▾");
+        GradientDrawable dot = Ui.circle(g != null ? g.colore : Ui.DIVIDER);
+        dot.setBounds(0, 0, Ui.dp(12), Ui.dp(12));
+        gruppoBtn.setCompoundDrawablesRelative(dot, null, null, null);
     }
 
-    private void aggiungiChipGruppo(String nome, final String id, int colore) {
-        boolean sel = id.equals(e.gruppo == null ? "" : e.gruppo);
-        TextView c = Ui.chip(this, nome, sel);
-        if (colore != 0) {
-            android.graphics.drawable.GradientDrawable dot = Ui.circle(sel ? Ui.ON_PRIMARY : colore);
-            dot.setBounds(0, 0, Ui.dp(10), Ui.dp(10));
-            c.setCompoundDrawablesRelative(dot, null, null, null);
-            c.setCompoundDrawablePadding(Ui.dp(8));
+    private void scegliGruppo() {
+        final int n = s.gruppi.size();
+        String[] voci = new String[n + 2];
+        voci[0] = "Nessun gruppo";
+        int sel = 0;
+        for (int i = 0; i < n; i++) {
+            voci[i + 1] = s.gruppi.get(i).nome;
+            if (s.gruppi.get(i).id.equals(e.gruppo)) sel = i + 1;
         }
-        c.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View v) {
-                e.gruppo = id;
-                aggiornaGruppi();
-                segna();
-            }
-        });
-        flGruppi.addView(c);
+        voci[n + 1] = "＋ Nuovo gruppo…";
+        new AlertDialog.Builder(this)
+                .setTitle("Gruppo")
+                .setSingleChoiceItems(voci, sel, (d, i) -> {
+                    d.dismiss();
+                    if (i == n + 1) {
+                        Dialoghi.gruppo(EditActivity.this, null, new Dialoghi.Fatto() {
+                            @Override public void fatto(String id) {
+                                if (id != null) e.gruppo = id;
+                                aggiornaGruppo();
+                                segna();
+                            }
+                        });
+                        return;
+                    }
+                    e.gruppo = i == 0 ? "" : s.gruppi.get(i - 1).id;
+                    aggiornaGruppo();
+                    segna();
+                })
+                .show();
     }
 
     // ------------------------------------------------------------------ rubrica
@@ -659,8 +665,11 @@ public class EditActivity extends Activity {
                     return;
                 }
                 r.d.anno = y;
+            } else {
+                r.d.anno = 0;
             }
-            r.d.etichetta = r.etichetta.getVisibility() == View.VISIBLE ? r.etichetta.getText().toString().trim() : "";
+            if (!"altro".equals(r.d.tipo)) r.d.etichetta = "";
+            else r.d.etichetta = r.etichetta.getText().toString().trim();
         }
         e.nome = n;
         e.telefono = tel.getText().toString().trim();

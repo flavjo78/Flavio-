@@ -12,7 +12,9 @@ onomastici, festività e altre date, con una notifica all'orario scelto.
 - **Promemoria**: il giorno stesso e/o 1, 2, 3, 5, 7, 14, 30 giorni prima (o un numero a scelta),
   all'**orario** scelto (uno predefinito per tutte, o uno diverso per singola ricorrenza).
 - **Notifica con tasti**: *Chiama*, *WhatsApp* e *SMS* con il messaggio di auguri già scritto.
-- **Anno facoltativo** (per ogni data) → mostra l'età ("compie 41 anni", "14° anniversario").
+- **Filtri** nell'elenco: Compleanni, Onomastici, Anniversari, Festività, Altri (anche più insieme) e per gruppo;
+  la ricerca per nome è nell'icona 🔍 in alto.
+- **Anno facoltativo** solo per compleanni e anniversari → mostra l'età ("compie 41 anni", "14° anniversario").
 - **Contatto** facoltativo: numero scritto a mano o scelto dalla rubrica.
 - **Gruppi personalizzabili** (Famiglia, Amici, Lavoro, Palestra, Altro + quelli che crei):
   nome, colore, notifiche accese/spente per gruppo, filtro nell'elenco.

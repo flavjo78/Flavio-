@@ -48,6 +48,7 @@ public class MainActivity extends Activity {
     // Prossimi
     private String filtro = null; // null = tutti, "" = senza gruppo, altrimenti id gruppo
     private String cerca = "";
+    private final java.util.LinkedHashSet<String> tipi = new java.util.LinkedHashSet<>(); // vuoto = tutti i tipi
     private LinearLayout lista, chips;
     private TextView banner;
     private EditText campoCerca;
@@ -135,6 +136,10 @@ public class MainActivity extends Activity {
         sottotitolo = Ui.text(this, "", 14, Ui.alpha(Ui.ON_HEADER, 0.8f), false);
         tit.addView(sottotitolo);
         header.addView(tit, Ui.lpW(1));
+        ImageView cer = Ui.iconButton(this, R.drawable.ic_search, Ui.ON_HEADER);
+        cer.setContentDescription("Cerca");
+        cer.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { mostraCerca(campoCerca.getVisibility() != View.VISIBLE); } });
+        header.addView(cer);
         ImageView imp = Ui.iconButton(this, R.drawable.ic_settings, Ui.ON_HEADER);
         imp.setContentDescription("Impostazioni");
         imp.setOnClickListener(new View.OnClickListener() {
@@ -263,6 +268,7 @@ public class MainActivity extends Activity {
         campoCerca.setCompoundDrawablesRelative(Ui.tinted(this, R.drawable.ic_search, Ui.TEXT2, 20), null, null, null);
         campoCerca.setCompoundDrawablePadding(Ui.dp(10));
         campoCerca.setImeOptions(EditorInfo.IME_ACTION_SEARCH);
+        campoCerca.setVisibility(View.GONE);
         campoCerca.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence x, int a, int b, int c) { }
             @Override public void onTextChanged(CharSequence x, int a, int b, int c) { }
@@ -276,7 +282,7 @@ public class MainActivity extends Activity {
         HorizontalScrollView hs = new HorizontalScrollView(this);
         hs.setHorizontalScrollBarEnabled(false);
         chips = Ui.row(this);
-        chips.setPadding(Ui.dp(16), Ui.dp(10), Ui.dp(16), Ui.dp(4));
+        chips.setPadding(Ui.dp(16), Ui.dp(12), Ui.dp(16), Ui.dp(4));
         hs.addView(chips);
         pag.addView(hs, Ui.lp(Ui.MATCH, Ui.WRAP));
 
@@ -329,36 +335,92 @@ public class MainActivity extends Activity {
         Azioni.avvia(a, i);
     }
 
+    private void mostraCerca(boolean si) {
+        InputMethodManager imm = getSystemService(InputMethodManager.class);
+        if (si) {
+            if (tab != 0) mostraTab(0);
+            campoCerca.setVisibility(View.VISIBLE);
+            campoCerca.requestFocus();
+            imm.showSoftInput(campoCerca, 0);
+        } else {
+            campoCerca.setText("");
+            imm.hideSoftInputFromWindow(campoCerca.getWindowToken(), 0);
+            campoCerca.clearFocus();
+            campoCerca.setVisibility(View.GONE);
+        }
+    }
+
+    /** Fila di filtri: Tutti · tipi presenti (selezionabili anche insieme) · gruppo. */
     private void aggiornaChips() {
         chips.removeAllViews();
         if (filtro != null && !filtro.isEmpty() && s.gruppo(filtro) == null) filtro = null;
-        aggiungiChip("Tutti", null, 0);
-        for (Gruppo g : s.gruppi) aggiungiChip(g.nome, g.id, g.colore);
-        if (s.conta("") > 0) aggiungiChip("Senza gruppo", "", 0xFF9A93B5);
-    }
+        java.util.HashSet<String> presenti = new java.util.HashSet<>();
+        for (Evento e : s.eventi) for (Data d : e.date) presenti.add(d.tipo);
+        presenti.addAll(tipi);
 
-    private void aggiungiChip(String nome, final String id, int colore) {
-        boolean sel = TextUtils.equals(filtro, id);
-        TextView c = Ui.chip(this, nome, sel);
-        if (colore != 0) {
-            GradientDrawable dot = Ui.circle(sel ? Ui.ON_PRIMARY : colore);
-            dot.setBounds(0, 0, Ui.dp(10), Ui.dp(10));
-            c.setCompoundDrawablesRelative(dot, null, null, null);
-            c.setCompoundDrawablePadding(Ui.dp(8));
+        final boolean nessunFiltro = tipi.isEmpty() && filtro == null;
+        TextView tutti = Ui.chip(this, "Tutti", nessunFiltro);
+        tutti.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) { tipi.clear(); filtro = null; aggiornaChips(); aggiornaLista(); }
+        });
+        chips.addView(tutti, Ui.lpM(Ui.WRAP, Ui.WRAP, 0, 0, 8, 0));
+
+        String[] plurali = {"Compleanni", "Onomastici", "Anniversari", "Festività", "Altri"};
+        for (int i = 0; i < Data.TIPI.length; i++) {
+            final String t = Data.TIPI[i];
+            if (!presenti.contains(t)) continue;
+            TextView c = Ui.chip(this, Data.TIPI_EMOJI[i] + " " + plurali[i], tipi.contains(t));
+            c.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View v) {
+                    if (tipi.contains(t)) tipi.remove(t); else tipi.add(t);
+                    aggiornaChips();
+                    aggiornaLista();
+                }
+            });
+            chips.addView(c, Ui.lpM(Ui.WRAP, Ui.WRAP, 0, 0, 8, 0));
         }
-        c.setOnClickListener(new View.OnClickListener() {
+
+        // gruppo: un solo tasto che apre la scelta
+        Gruppo g = s.gruppo(filtro);
+        String etich = filtro == null ? "Gruppo  ▾" : (g != null ? g.nome : "Senza gruppo") + "  ✕";
+        TextView cg = Ui.chip(this, etich, filtro != null);
+        GradientDrawable dot = Ui.circle(filtro == null ? Ui.TEXT2 : (g != null ? (Ui.ON_PRIMARY) : Ui.ON_PRIMARY));
+        if (filtro == null) {
+            cg.setCompoundDrawablesRelative(Ui.tinted(this, R.drawable.ic_people, Ui.TEXT2, 18), null, null, null);
+        } else {
+            dot.setBounds(0, 0, Ui.dp(10), Ui.dp(10));
+            cg.setCompoundDrawablesRelative(dot, null, null, null);
+        }
+        cg.setCompoundDrawablePadding(Ui.dp(8));
+        cg.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) {
-                filtro = id;
-                aggiornaChips();
-                aggiornaLista();
+                if (filtro != null) { filtro = null; aggiornaChips(); aggiornaLista(); return; }
+                scegliFiltroGruppo();
             }
         });
-        chips.addView(c, Ui.lpM(Ui.WRAP, Ui.WRAP, 0, 0, 8, 0));
+        chips.addView(cg, Ui.lpM(Ui.WRAP, Ui.WRAP, 0, 0, 8, 0));
+    }
+
+    private void scegliFiltroGruppo() {
+        final ArrayList<String> ids = new ArrayList<>();
+        ArrayList<String> voci = new ArrayList<>();
+        for (Gruppo g : s.gruppi) { ids.add(g.id); voci.add(g.nome + "  (" + s.conta(g.id) + ")"); }
+        if (s.conta("") > 0) { ids.add(""); voci.add("Senza gruppo  (" + s.conta("") + ")"); }
+        new android.app.AlertDialog.Builder(this)
+                .setTitle("Mostra solo il gruppo")
+                .setItems(voci.toArray(new String[0]), (d, i) -> {
+                    filtro = ids.get(i);
+                    aggiornaChips();
+                    aggiornaLista();
+                })
+                .setNegativeButton("Annulla", null)
+                .show();
     }
 
     private boolean corrisponde(Store.Occ o) {
         Evento e = o.e;
         if (filtro != null && !filtro.equals(e.gruppo == null ? "" : e.gruppo)) return false;
+        if (!tipi.isEmpty() && !tipi.contains(o.d.tipo)) return false;
         if (cerca.isEmpty()) return true;
         Gruppo g = s.gruppo(e.gruppo);
         String t = (e.nome + " " + e.note + " " + e.telefono + " " + o.d.nomeCompleto() + " " + (g != null ? g.nome : "")).toLowerCase();
@@ -441,9 +503,9 @@ public class MainActivity extends Activity {
         if (Ui.dark) bg.setStroke(Ui.dp(1), Ui.DIVIDER);
         card.setBackground(bg);
         card.setElevation(Ui.dark ? 0 : Ui.dp(1));
-        card.setPadding(Ui.dp(12), Ui.dp(12), Ui.dp(14), Ui.dp(12));
+        card.setPadding(Ui.dp(12), Ui.dp(11), Ui.dp(14), Ui.dp(11));
         int col = s.colore(e);
-        card.addView(Ui.bolla(this, o.d.emoji(), col, 48));
+        card.addView(Ui.bolla(this, o.d.emoji(), col, 44));
 
         LinearLayout mid = Ui.col(this);
         mid.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
@@ -454,39 +516,10 @@ public class MainActivity extends Activity {
         nome.setSingleLine(true);
         nome.setEllipsize(TextUtils.TruncateAt.END);
         mid.addView(nome);
-        String l2 = Fmt.cap(Fmt.dataLunga(o.quando));
+        String l2 = (e.festa() || "altro".equals(o.d.tipo) ? "" : o.d.tipoNome() + " · ") + Fmt.dataLunga(o.quando);
         String eta = o.d.eta(o.quando);
         if (!eta.isEmpty()) l2 += " · " + eta;
-        mid.addView(Ui.text(this, l2, 13.5f, Ui.TEXT2, false));
-        Gruppo g = s.gruppo(e.gruppo);
-        LinearLayout r3 = Ui.row(this);
-        r3.setPadding(0, Ui.dp(4), 0, 0);
-        TextView tp = Ui.text(this, o.d.nomeCompleto(), 11.5f, Ui.TEXT2, true);
-        tp.setSingleLine(true);
-        tp.setEllipsize(TextUtils.TruncateAt.END);
-        tp.setBackground(Ui.round(Ui.SURFACE2, 8));
-        tp.setPadding(Ui.dp(7), Ui.dp(2), Ui.dp(7), Ui.dp(2));
-        r3.addView(tp);
-        if (g != null) {
-            TextView gt = Ui.text(this, g.nome + (g.notifiche ? "" : "  🔕"), 11.5f, Ui.dark ? Ui.TEXT : g.colore, true);
-            gt.setSingleLine(true);
-            gt.setBackground(Ui.round(Ui.alpha(g.colore, Ui.dark ? 0.30f : 0.13f), 8));
-            gt.setPadding(Ui.dp(7), Ui.dp(2), Ui.dp(7), Ui.dp(2));
-            r3.addView(gt, Ui.lpM(Ui.WRAP, Ui.WRAP, 6, 0, 0, 0));
-        }
-        if (e.date.size() > 1) {
-            TextView alt = Ui.text(this, "+" + (e.date.size() - 1), 11.5f, Ui.TEXT2, true);
-            alt.setBackground(Ui.round(Ui.SURFACE2, 8));
-            alt.setPadding(Ui.dp(6), Ui.dp(2), Ui.dp(6), Ui.dp(2));
-            r3.addView(alt, Ui.lpM(Ui.WRAP, Ui.WRAP, 6, 0, 0, 0));
-        }
-        if (e.telefono != null && !e.telefono.trim().isEmpty()) {
-            ImageView ph = Ui.icon(this, R.drawable.ic_phone, Ui.TEXT2, 14);
-            LinearLayout.LayoutParams pp = new LinearLayout.LayoutParams(Ui.dp(14), Ui.dp(14));
-            pp.setMargins(Ui.dp(8), 0, 0, 0);
-            r3.addView(ph, pp);
-        }
-        mid.addView(r3);
+        mid.addView(Ui.text(this, Fmt.cap(l2), 13.5f, Ui.TEXT2, false), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 2, 0, 0));
         card.addView(mid, Ui.lpW(1));
 
         if (conBadge) card.addView(badge(o.giorni));

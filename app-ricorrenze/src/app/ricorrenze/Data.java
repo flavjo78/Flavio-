@@ -50,6 +50,9 @@ public class Data {
 
     public boolean mobile() { return regola != null && regola.length() > 0; }
 
+    /** L'anno ha senso solo per compleanni (età) e anniversari (quanti anni). */
+    public boolean usaAnno() { return "compleanno".equals(tipo) || "anniversario".equals(tipo); }
+
     /** Data della ricorrenza in un certo anno (il 29 febbraio diventa 28 negli anni non bisestili). */
     public LocalDate dataNellAnno(int y) {
         if (mobile()) {
@@ -86,7 +89,7 @@ public class Data {
 
     /** Anni compiuti in quella data (o -1 se l'anno non è indicato). */
     public int anni(LocalDate occ) {
-        if (anno <= 0 || mobile()) return -1;
+        if (anno <= 0 || mobile() || !usaAnno()) return -1;
         int n = occ.getYear() - anno;
         return n > 0 ? n : -1;
     }
@@ -134,7 +137,7 @@ public class Data {
     /** "12 dicembre 1985", "19 marzo", "data mobile: Pasqua" */
     public String descrizioneData() {
         if (mobile()) return descrizioneRegola();
-        return giorno + " " + Fmt.mese(mese) + (anno > 0 ? " " + anno : "");
+        return giorno + " " + Fmt.mese(mese) + (anno > 0 && usaAnno() ? " " + anno : "");
     }
 
     /** Domenica di Pasqua (calendario gregoriano). */

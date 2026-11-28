@@ -263,7 +263,7 @@ public final class Dialoghi {
         String eta = d.eta(occ);
         if (!eta.isEmpty()) riga += " · " + eta;
         box.addView(Ui.text(a, riga, 14, Ui.TEXT, false), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 4, 0, 0));
-        if (d.mobile() || d.anno > 0) {
+        if (d.mobile() || (d.anno > 0 && d.usaAnno())) {
             String info = Fmt.cap(d.descrizioneData());
             String ora = d.etaOggi(oggi);
             if (!ora.isEmpty() && gg != 0) info += " · " + ora;
