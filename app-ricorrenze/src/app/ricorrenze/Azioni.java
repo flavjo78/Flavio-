@@ -10,9 +10,10 @@ import android.widget.Toast;
 public final class Azioni {
     private Azioni() {}
 
-    public static String messaggio(Store s, Evento e) {
+    public static String messaggio(Store s, Evento e, Data d) {
         String t = s.testoAuguri == null || s.testoAuguri.trim().isEmpty() ? "Tanti auguri {nome}! 🎉" : s.testoAuguri;
-        String nome = "festa".equals(e.tipo) || "altro".equals(e.tipo) ? "" : Fmt.primoNome(e.nome);
+        boolean persona = d == null || !("festa".equals(d.tipo) || ("altro".equals(d.tipo) && d.et().isEmpty()));
+        String nome = persona ? Fmt.primoNome(e.nome) : "";
         String r = t.replace("{nome}", nome);
         return r.replace(" !", "!").replace("  ", " ").trim();
     }

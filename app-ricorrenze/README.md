@@ -4,10 +4,15 @@ App personale (Android 8.0 o più recente) che ricorda compleanni, anniversari,
 onomastici, festività e altre date, con una notifica all'orario scelto.
 
 ## Cosa fa
+- **Una scheda per persona**: nome, telefono, gruppo e note si scrivono una volta sola, e dentro
+  ci metti tutte le sue date — compleanno, **onomastico**, anniversario (es. "matrimonio"),
+  o **altri eventi** a nome libero (es. "Laurea"). Ogni data ha i suoi promemoria.
+- Le schede doppie create prima (stesso nome) si uniscono da *Impostazioni → Nomi doppi*;
+  se salvi un nome che esiste già, l'app propone di aggiungere le date alla scheda esistente.
 - **Promemoria**: il giorno stesso e/o 1, 2, 3, 5, 7, 14, 30 giorni prima (o un numero a scelta),
   all'**orario** scelto (uno predefinito per tutte, o uno diverso per singola ricorrenza).
 - **Notifica con tasti**: *Chiama*, *WhatsApp* e *SMS* con il messaggio di auguri già scritto.
-- **Anno facoltativo** → mostra l'età ("compie 41 anni", "14° anniversario").
+- **Anno facoltativo** (per ogni data) → mostra l'età ("compie 41 anni", "14° anniversario").
 - **Contatto** facoltativo: numero scritto a mano o scelto dalla rubrica.
 - **Gruppi personalizzabili** (Famiglia, Amici, Lavoro, Palestra, Altro + quelli che crei):
   nome, colore, notifiche accese/spente per gruppo, filtro nell'elenco.

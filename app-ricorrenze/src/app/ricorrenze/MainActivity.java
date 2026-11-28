@@ -236,7 +236,7 @@ public class MainActivity extends Activity {
         LocalDate oggi = LocalDate.now();
         String sot = Fmt.cap(Fmt.dataLunga(oggi));
         int nOggi = 0;
-        for (Evento e : s.eventi) if (e.giorniA(oggi) == 0) nOggi++;
+        for (Store.Occ o : s.occorrenze(oggi)) if (o.giorni == 0) nOggi++;
         if (nOggi == 1) sot += " · 1 ricorrenza oggi 🎉";
         else if (nOggi > 1) sot += " · " + nOggi + " ricorrenze oggi 🎉";
         sottotitolo.setText(sot);
@@ -356,11 +356,12 @@ public class MainActivity extends Activity {
         chips.addView(c, Ui.lpM(Ui.WRAP, Ui.WRAP, 0, 0, 8, 0));
     }
 
-    private boolean corrisponde(Evento e) {
+    private boolean corrisponde(Store.Occ o) {
+        Evento e = o.e;
         if (filtro != null && !filtro.equals(e.gruppo == null ? "" : e.gruppo)) return false;
         if (cerca.isEmpty()) return true;
         Gruppo g = s.gruppo(e.gruppo);
-        String t = (e.nome + " " + e.note + " " + e.telefono + " " + e.tipoNome() + " " + (g != null ? g.nome : "")).toLowerCase();
+        String t = (e.nome + " " + e.note + " " + e.telefono + " " + o.d.nomeCompleto() + " " + (g != null ? g.nome : "")).toLowerCase();
         return t.contains(cerca);
     }
 
@@ -371,12 +372,12 @@ public class MainActivity extends Activity {
             lista.addView(benvenuto());
             return;
         }
-        ArrayList<Evento> l = new ArrayList<>();
-        for (Evento e : s.eventi) if (corrisponde(e)) l.add(e);
-        Collections.sort(l, new Comparator<Evento>() {
-            @Override public int compare(Evento a, Evento b) {
-                int c = Long.compare(a.giorniA(oggi), b.giorniA(oggi));
-                return c != 0 ? c : a.nome.compareToIgnoreCase(b.nome);
+        ArrayList<Store.Occ> l = new ArrayList<>();
+        for (Store.Occ o : s.occorrenze(oggi)) if (corrisponde(o)) l.add(o);
+        Collections.sort(l, new Comparator<Store.Occ>() {
+            @Override public int compare(Store.Occ a, Store.Occ b) {
+                int c = Long.compare(a.giorni, b.giorni);
+                return c != 0 ? c : a.e.nome.compareToIgnoreCase(b.e.nome);
             }
         });
         if (l.isEmpty()) {
@@ -387,15 +388,15 @@ public class MainActivity extends Activity {
             return;
         }
         String ultima = null;
-        for (Evento e : l) {
-            long g = e.giorniA(oggi);
+        for (Store.Occ o : l) {
+            long g = o.giorni;
             String sez = g == 0 ? "Oggi" : g == 1 ? "Domani" : g <= 7 ? "Entro una settimana"
                     : g <= 31 ? "Entro un mese" : "Più avanti";
             if (!sez.equals(ultima)) {
                 lista.addView(Ui.sezione(this, sez));
                 ultima = sez;
             }
-            lista.addView(riga(e, oggi, true), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 10));
+            lista.addView(riga(o, true), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 10));
         }
     }
 
@@ -409,10 +410,10 @@ public class MainActivity extends Activity {
         TextView t = Ui.text(this, "Ancora nessuna ricorrenza", 19, Ui.TEXT, true);
         t.setGravity(Gravity.CENTER);
         c.addView(t, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 8, 0, 4));
-        TextView d = Ui.text(this, "Aggiungi compleanni, anniversari e feste: ti avviserò il giorno stesso o qualche giorno prima, all'orario che scegli tu.", 14, Ui.TEXT2, false);
+        TextView d = Ui.text(this, "Aggiungi una persona con il suo compleanno, onomastico o anniversario (anche tutti insieme), oppure una festa o un altro evento: ti avviserò il giorno stesso o qualche giorno prima, all'orario che scegli tu.", 14, Ui.TEXT2, false);
         d.setGravity(Gravity.CENTER);
         c.addView(d, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 18));
-        TextView b1 = Ui.button(this, "＋  Aggiungi una ricorrenza", true);
+        TextView b1 = Ui.button(this, "＋  Aggiungi persona o evento", true);
         b1.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { startActivity(new Intent(MainActivity.this, EditActivity.class)); } });
         c.addView(b1, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 8));
         TextView b2 = Ui.button(this, "📇  Importa compleanni dalla rubrica", false);
@@ -432,8 +433,9 @@ public class MainActivity extends Activity {
 
     private final Runnable rinfresca = new Runnable() { @Override public void run() { aggiorna(); } };
 
-    /** Riga di una ricorrenza (usata in Prossimi e Calendario). */
-    private View riga(final Evento e, LocalDate oggi, boolean conBadge) {
+    /** Riga di una data (usata in Prossimi e Calendario): tocca per aprire la scheda. */
+    private View riga(final Store.Occ o, boolean conBadge) {
+        final Evento e = o.e;
         LinearLayout card = Ui.row(this);
         GradientDrawable bg = Ui.round(Ui.SURFACE, 16);
         if (Ui.dark) bg.setStroke(Ui.dp(1), Ui.DIVIDER);
@@ -441,33 +443,42 @@ public class MainActivity extends Activity {
         card.setElevation(Ui.dark ? 0 : Ui.dp(1));
         card.setPadding(Ui.dp(12), Ui.dp(12), Ui.dp(14), Ui.dp(12));
         int col = s.colore(e);
-        card.addView(Ui.bolla(this, e.emoji(), col, 48));
+        card.addView(Ui.bolla(this, o.d.emoji(), col, 48));
 
-        LocalDate occ = e.prossima(oggi);
         LinearLayout mid = Ui.col(this);
         mid.setPadding(Ui.dp(12), 0, Ui.dp(8), 0);
-        TextView nome = Ui.text(this, e.nome, 16, Ui.TEXT, true);
+        String titolo = e.nome;
+        if (("altro".equals(o.d.tipo) || "festa".equals(o.d.tipo)) && !o.d.et().isEmpty() && !o.d.et().equalsIgnoreCase(e.nome))
+            titolo = e.titolo(o.d);
+        TextView nome = Ui.text(this, titolo, 16, Ui.TEXT, true);
         nome.setSingleLine(true);
         nome.setEllipsize(TextUtils.TruncateAt.END);
         mid.addView(nome);
-        String l2 = Fmt.cap(Fmt.dataLunga(occ));
-        String eta = e.eta(occ);
+        String l2 = Fmt.cap(Fmt.dataLunga(o.quando));
+        String eta = o.d.eta(o.quando);
         if (!eta.isEmpty()) l2 += " · " + eta;
-        TextView t2 = Ui.text(this, l2, 13.5f, Ui.TEXT2, false);
-        mid.addView(t2);
+        mid.addView(Ui.text(this, l2, 13.5f, Ui.TEXT2, false));
         Gruppo g = s.gruppo(e.gruppo);
-        String tipo = e.tipoNome();
         LinearLayout r3 = Ui.row(this);
         r3.setPadding(0, Ui.dp(4), 0, 0);
-        TextView tp = Ui.text(this, tipo, 11.5f, Ui.TEXT2, true);
+        TextView tp = Ui.text(this, o.d.nomeCompleto(), 11.5f, Ui.TEXT2, true);
+        tp.setSingleLine(true);
+        tp.setEllipsize(TextUtils.TruncateAt.END);
         tp.setBackground(Ui.round(Ui.SURFACE2, 8));
         tp.setPadding(Ui.dp(7), Ui.dp(2), Ui.dp(7), Ui.dp(2));
         r3.addView(tp);
         if (g != null) {
             TextView gt = Ui.text(this, g.nome + (g.notifiche ? "" : "  🔕"), 11.5f, Ui.dark ? Ui.TEXT : g.colore, true);
+            gt.setSingleLine(true);
             gt.setBackground(Ui.round(Ui.alpha(g.colore, Ui.dark ? 0.30f : 0.13f), 8));
             gt.setPadding(Ui.dp(7), Ui.dp(2), Ui.dp(7), Ui.dp(2));
             r3.addView(gt, Ui.lpM(Ui.WRAP, Ui.WRAP, 6, 0, 0, 0));
+        }
+        if (e.date.size() > 1) {
+            TextView alt = Ui.text(this, "+" + (e.date.size() - 1), 11.5f, Ui.TEXT2, true);
+            alt.setBackground(Ui.round(Ui.SURFACE2, 8));
+            alt.setPadding(Ui.dp(6), Ui.dp(2), Ui.dp(6), Ui.dp(2));
+            r3.addView(alt, Ui.lpM(Ui.WRAP, Ui.WRAP, 6, 0, 0, 0));
         }
         if (e.telefono != null && !e.telefono.trim().isEmpty()) {
             ImageView ph = Ui.icon(this, R.drawable.ic_phone, Ui.TEXT2, 14);
@@ -478,7 +489,7 @@ public class MainActivity extends Activity {
         mid.addView(r3);
         card.addView(mid, Ui.lpW(1));
 
-        if (conBadge) card.addView(badge(e.giorniA(oggi)));
+        if (conBadge) card.addView(badge(o.giorni));
         Ui.touch(card, 16);
         card.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View v) { Dialoghi.dettaglio(MainActivity.this, e, rinfresca); }
@@ -562,30 +573,14 @@ public class MainActivity extends Activity {
         aggiornaCalendario();
     }
 
-    private ArrayList<Evento> eventiDelMese() {
-        ArrayList<Evento> l = new ArrayList<>();
-        for (Evento e : s.eventi) {
-            LocalDate d = e.dataNellAnno(mese.getYear());
-            if (d.getMonthValue() == mese.getMonthValue()) l.add(e);
-        }
-        final int y = mese.getYear();
-        Collections.sort(l, new Comparator<Evento>() {
-            @Override public int compare(Evento a, Evento b) {
-                int c = a.dataNellAnno(y).compareTo(b.dataNellAnno(y));
-                return c != 0 ? c : a.nome.compareToIgnoreCase(b.nome);
-            }
-        });
-        return l;
-    }
-
     private void aggiornaCalendario() {
         meseTitolo.setText(Fmt.cap(Fmt.mese(mese.getMonthValue())) + " " + mese.getYear());
         HashMap<Integer, ArrayList<Integer>> punti = new HashMap<>();
-        for (Evento e : eventiDelMese()) {
-            int d = e.dataNellAnno(mese.getYear()).getDayOfMonth();
+        for (Store.Occ o : s.nelMese(mese)) {
+            int d = o.quando.getDayOfMonth();
             ArrayList<Integer> l = punti.get(d);
             if (l == null) { l = new ArrayList<>(); punti.put(d, l); }
-            l.add(s.colore(e));
+            l.add(s.colore(o.e));
         }
         mv.imposta(mese, giornoSel, punti);
         aggiornaListaGiorno();
@@ -594,13 +589,16 @@ public class MainActivity extends Activity {
     private void aggiornaListaGiorno() {
         listaGiorno.removeAllViews();
         LocalDate oggi = LocalDate.now();
-        ArrayList<Evento> mese_ = eventiDelMese();
+        ArrayList<Store.Occ> mese_ = s.nelMese(mese);
         if (giornoSel != null && YearMonth.from(giornoSel).equals(mese)) {
             listaGiorno.addView(Ui.sezione(this, Fmt.dataLunga(giornoSel)));
             int n = 0;
-            for (Evento e : mese_) {
-                if (e.dataNellAnno(mese.getYear()).equals(giornoSel)) {
-                    listaGiorno.addView(rigaCalendario(e, oggi), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 10));
+            for (Store.Occ o : mese_) {
+                if (o.quando.equals(giornoSel)) {
+                    Store.Occ p = new Store.Occ();
+                    p.e = o.e; p.d = o.d; p.quando = o.d.prossima(oggi); p.giorni = o.d.giorniA(oggi);
+                    if (!p.quando.equals(giornoSel)) { p.quando = o.quando; }
+                    listaGiorno.addView(riga(p, true), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 0, 0, 10));
                     n++;
                 }
             }
@@ -627,17 +625,20 @@ public class MainActivity extends Activity {
         } else {
             LinearLayout c = Ui.card(this);
             c.setPadding(Ui.dp(6), Ui.dp(6), Ui.dp(6), Ui.dp(6));
-            for (final Evento e : mese_) {
-                LocalDate d = e.dataNellAnno(mese.getYear());
+            for (final Store.Occ o : mese_) {
+                final Evento e = o.e;
+                LocalDate d = o.quando;
                 LinearLayout r = Ui.row(this);
                 r.setPadding(Ui.dp(10), Ui.dp(10), Ui.dp(10), Ui.dp(10));
                 TextView num = Ui.text(this, String.valueOf(d.getDayOfMonth()), 16, Ui.PRIMARY, true);
                 num.setGravity(Gravity.CENTER);
                 r.addView(num, Ui.lp(Ui.dp(34), Ui.WRAP));
-                TextView em = Ui.text(this, e.emoji(), 16, Ui.TEXT, false);
+                TextView em = Ui.text(this, o.d.emoji(), 16, Ui.TEXT, false);
                 r.addView(em, Ui.lpM(Ui.WRAP, Ui.WRAP, 4, 0, 10, 0));
-                String testo = e.nome;
-                String eta = e.eta(d);
+                String testo = "compleanno".equals(o.d.tipo) ? e.nome
+                        : e.festa() ? e.nome
+                        : e.nome + " · " + ("altro".equals(o.d.tipo) ? o.d.nomeCompleto() : Fmt.low(o.d.nomeCompleto()));
+                String eta = o.d.eta(d);
                 TextView nm = Ui.text(this, testo, 15, Ui.TEXT, false);
                 nm.setSingleLine(true);
                 nm.setEllipsize(TextUtils.TruncateAt.END);
@@ -656,10 +657,6 @@ public class MainActivity extends Activity {
             }
             listaGiorno.addView(c, Ui.lp(Ui.MATCH, Ui.WRAP));
         }
-    }
-
-    private View rigaCalendario(Evento e, LocalDate oggi) {
-        return riga(e, oggi, true);
     }
 
     // ================================================================== Gruppi

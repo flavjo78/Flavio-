@@ -14,6 +14,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Random;
+import java.util.Collections;
+import java.util.Comparator;
+import java.time.LocalDate;
+import java.time.YearMonth;
 
 /** Tutti i dati dell'app (ricorrenze, gruppi, impostazioni), salvati in un file JSON. */
 public final class Store {
@@ -67,7 +71,7 @@ public final class Store {
         JSONObject o = new JSONObject();
         try {
             o.put("app", "ricorrenze");
-            o.put("versione", 1);
+            o.put("versione", 2);
             JSONArray g = new JSONArray();
             for (Gruppo x : gruppi) g.put(x.toJson());
             o.put("gruppi", g);
@@ -165,7 +169,81 @@ public final class Store {
         return g == null || g.notifiche;
     }
 
-    public int oraDi(Evento e) { return e.ora >= 0 ? e.ora : oraDefault; }
+    public int oraDi(Data d) { return d.ora >= 0 ? d.ora : oraDefault; }
+
+    /** Una data di una scheda con la sua prossima ricorrenza. */
+    public static class Occ {
+        public Evento e;
+        public Data d;
+        public LocalDate quando;
+        public long giorni;
+    }
+
+    /** Tutte le date di tutte le schede, con la prossima ricorrenza a partire da oggi. */
+    public ArrayList<Occ> occorrenze(LocalDate oggi) {
+        ArrayList<Occ> l = new ArrayList<>();
+        for (Evento e : eventi) for (Data d : e.date) {
+            Occ o = new Occ();
+            o.e = e; o.d = d; o.quando = d.prossima(oggi); o.giorni = d.giorniA(oggi);
+            l.add(o);
+        }
+        return l;
+    }
+
+    /** Le date che cadono in un certo mese, in ordine di giorno. */
+    public ArrayList<Occ> nelMese(YearMonth ym) {
+        ArrayList<Occ> l = new ArrayList<>();
+        LocalDate oggi = LocalDate.now();
+        for (Evento e : eventi) for (Data d : e.date) {
+            LocalDate q = d.dataNellAnno(ym.getYear());
+            if (q.getMonthValue() != ym.getMonthValue()) continue;
+            Occ o = new Occ();
+            o.e = e; o.d = d; o.quando = q; o.giorni = java.time.temporal.ChronoUnit.DAYS.between(oggi, q);
+            l.add(o);
+        }
+        Collections.sort(l, new Comparator<Occ>() {
+            @Override public int compare(Occ a, Occ b) {
+                int c = a.quando.compareTo(b.quando);
+                return c != 0 ? c : a.e.nome.compareToIgnoreCase(b.e.nome);
+            }
+        });
+        return l;
+    }
+
+    public static String chiaveNome(String n) {
+        return n == null ? "" : n.trim().replaceAll("\\s+", " ").toLowerCase();
+    }
+
+    /** Scheda con lo stesso nome (escludendo "tranne"), o null. */
+    public Evento perNome(String nome, Evento tranne) {
+        String k = chiaveNome(nome);
+        if (k.isEmpty()) return null;
+        for (Evento e : eventi) if (e != tranne && chiaveNome(e.nome).equals(k)) return e;
+        return null;
+    }
+
+    /** Quante schede hanno lo stesso nome di un'altra (doppioni da unire). */
+    public int contaDoppioni() {
+        java.util.HashSet<String> visti = new java.util.HashSet<>();
+        int n = 0;
+        for (Evento e : eventi) if (!visti.add(chiaveNome(e.nome))) n++;
+        return n;
+    }
+
+    /** Unisce le schede con lo stesso nome in una sola. Ritorna quante schede sono state assorbite. */
+    public int unisciDoppioni() {
+        java.util.LinkedHashMap<String, Evento> m = new java.util.LinkedHashMap<>();
+        int n = 0;
+        for (Evento e : new ArrayList<>(eventi)) {
+            String k = chiaveNome(e.nome);
+            Evento prima = m.get(k);
+            if (prima == null) { m.put(k, e); continue; }
+            prima.unisci(e);
+            eventi.remove(e);
+            n++;
+        }
+        return n;
+    }
 
     public int[] copiaAvvisiDefault() { return Arrays.copyOf(avvisiDefault, avvisiDefault.length); }
 

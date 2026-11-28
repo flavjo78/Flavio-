@@ -48,13 +48,15 @@ public final class Festivita {
     static Evento evento(F f) {
         Evento e = new Evento();
         e.nome = f.nome;
-        e.tipo = "festa";
-        e.regola = f.regola;
-        if (f.regola.isEmpty()) { e.giorno = f.g; e.mese = f.m; }
+        Data d = new Data();
+        d.tipo = "festa";
+        d.regola = f.regola;
+        if (f.regola.isEmpty()) { d.giorno = f.g; d.mese = f.m; }
         else {
-            LocalDate d = e.dataNellAnno(LocalDate.now().getYear());
-            e.giorno = d.getDayOfMonth(); e.mese = d.getMonthValue();
+            LocalDate q = d.dataNellAnno(LocalDate.now().getYear());
+            d.giorno = q.getDayOfMonth(); d.mese = q.getMonthValue();
         }
+        e.date.add(d);
         return e;
     }
 
@@ -75,7 +77,7 @@ public final class Festivita {
         for (int i = 0; i < disponibili.size(); i++) {
             F f = disponibili.get(i);
             Evento e = evento(f);
-            LocalDate d = e.prossima(LocalDate.now());
+            LocalDate d = e.date.get(0).prossima(LocalDate.now());
             et[i] = f.nome + " — " + Fmt.data(d) + (f.regola.isEmpty() ? "" : " " + d.getYear() + " (cambia ogni anno)");
             sel[i] = f.consigliata;
         }
@@ -94,7 +96,7 @@ public final class Festivita {
                         if (!sel[i]) continue;
                         Evento e = evento(disponibili.get(i));
                         e.gruppo = g.id;
-                        e.avvisi = s.copiaAvvisiDefault();
+                        e.date.get(0).avvisi = s.copiaAvvisiDefault();
                         s.eventi.add(e);
                         n++;
                     }

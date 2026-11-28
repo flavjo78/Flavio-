@@ -134,10 +134,10 @@ public class SettingsActivity extends Activity {
             @Override public void onClick(View v) {
                 new AlertDialog.Builder(SettingsActivity.this)
                         .setTitle("Applicare a tutte?")
-                        .setMessage("Tutte le " + s.eventi.size() + " ricorrenze avranno: " + Fmt.avvisi(s.avvisiDefault)
-                                + ", alle " + Fmt.ora(s.oraDefault) + ". Le impostazioni fatte a mano su singole ricorrenze verranno sostituite.")
+                        .setMessage("Tutte le date (" + s.occorrenze(LocalDate.now()).size() + ") avranno: " + Fmt.avvisi(s.avvisiDefault)
+                                + ", alle " + Fmt.ora(s.oraDefault) + ". Le impostazioni fatte a mano su singole date verranno sostituite.")
                         .setPositiveButton("Applica", (d, w) -> {
-                            for (Evento e : s.eventi) { e.avvisi = s.copiaAvvisiDefault(); e.ora = -1; }
+                            for (Evento e : s.eventi) for (Data x : e.date) { x.avvisi = s.copiaAvvisiDefault(); x.ora = -1; }
                             s.salva(SettingsActivity.this);
                             Toast.makeText(SettingsActivity.this, "Fatto", Toast.LENGTH_SHORT).show();
                             aggiornaStato();
@@ -190,6 +190,14 @@ public class SettingsActivity extends Activity {
         ru.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { Rubrica.importa(SettingsActivity.this, null); } });
         c4.addView(ru, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 8, 0, 0));
 
+        // --- Doppioni
+        LinearLayout c6 = scheda(f, "Nomi doppi");
+        c6.addView(Ui.text(this, "Se hai creato due schede con lo stesso nome (es. una per il compleanno e una per l'onomastico), uniscile: resterà una sola scheda con tutte le date.", 12.5f, Ui.TEXT2, false));
+        TextView un = Ui.button(this, "🧩  Unisci le schede con lo stesso nome", false);
+        un.setTextSize(14);
+        un.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { unisciDoppioni(); } });
+        c6.addView(un, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 12, 0, 0));
+
         // --- Backup
         LinearLayout c5 = scheda(f, "Copia di sicurezza");
         c5.addView(Ui.text(this, "Salva tutte le ricorrenze in un file (ad esempio su Google Drive o inviandolo a te stesso). Ti servirà se cambi telefono.", 12.5f, Ui.TEXT2, false));
@@ -211,6 +219,25 @@ public class SettingsActivity extends Activity {
 
         setContentView(root);
         Ui.insets(root, header, root);
+    }
+
+    private void unisciDoppioni() {
+        int n = s.contaDoppioni();
+        if (n == 0) {
+            Toast.makeText(this, "Nessun nome doppio: è tutto in ordine 👍", Toast.LENGTH_LONG).show();
+            return;
+        }
+        new AlertDialog.Builder(this)
+                .setTitle(n == 1 ? "Trovata 1 scheda doppia" : "Trovate " + n + " schede doppie")
+                .setMessage("Le schede con lo stesso nome diventeranno una sola, con tutte le date. Telefono, gruppo e note vengono tenuti.")
+                .setPositiveButton("Unisci", (d, w) -> {
+                    int k = s.unisciDoppioni();
+                    s.salva(this);
+                    Toast.makeText(this, "Fatto: " + k + (k == 1 ? " scheda unita" : " schede unite"), Toast.LENGTH_LONG).show();
+                    aggiornaStato();
+                })
+                .setNegativeButton("Annulla", null)
+                .show();
     }
 
     private String versione() {
@@ -289,7 +316,7 @@ public class SettingsActivity extends Activity {
             LocalDate d = dt.toLocalDate();
             String giorno = d.equals(LocalDate.now()) ? "oggi" : d.equals(LocalDate.now().plusDays(1)) ? "domani" : Fmt.dataLunga(d);
             prox = "Prossima notifica: " + giorno + " alle " + Fmt.ora(dt.getHour() * 60 + dt.getMinute())
-                    + "\n" + p.ev.emoji() + " " + p.ev.titolo() + " (" + Fmt.anticipo(p.anticipo) + ")";
+                    + "\n" + p.d.emoji() + " " + p.ev.titolo(p.d) + " (" + Fmt.anticipo(p.anticipo) + ")";
         }
         TextView t = Ui.text(this, prox, 13.5f, Ui.TEXT, false);
         t.setBackground(Ui.round(Ui.SURFACE2, 12));
@@ -344,7 +371,7 @@ public class SettingsActivity extends Activity {
                 if (out == null) throw new Exception();
                 out.write(s.toJson().toString(1).getBytes(StandardCharsets.UTF_8));
                 out.close();
-                Toast.makeText(this, "Copia salvata: " + s.eventi.size() + " ricorrenze", Toast.LENGTH_LONG).show();
+                Toast.makeText(this, "Copia salvata: " + s.eventi.size() + " schede", Toast.LENGTH_LONG).show();
             } catch (Exception ex) {
                 Toast.makeText(this, "Salvataggio non riuscito", Toast.LENGTH_LONG).show();
             }
@@ -363,7 +390,7 @@ public class SettingsActivity extends Activity {
             }
             int n = o.optJSONArray("eventi").length();
             new AlertDialog.Builder(this)
-                    .setTitle("Importare " + n + " ricorrenze?")
+                    .setTitle("Importare " + n + " schede?")
                     .setMessage("«Unisci» le aggiunge a quelle che hai già. «Sostituisci» cancella quelle attuali e mette solo quelle del file.")
                     .setPositiveButton("Unisci", (d, w) -> carica(o, true))
                     .setNeutralButton("Sostituisci", (d, w) -> carica(o, false))
@@ -376,7 +403,7 @@ public class SettingsActivity extends Activity {
         try {
             s.fromJson(o, unisci);
             s.salva(this);
-            Toast.makeText(this, "Importazione completata: ora hai " + s.eventi.size() + " ricorrenze", Toast.LENGTH_LONG).show();
+            Toast.makeText(this, "Importazione completata: ora hai " + s.eventi.size() + " schede", Toast.LENGTH_LONG).show();
             // ricarica i campi
             avvisi.clear();
             for (int a : s.avvisiDefault) avvisi.add(a);

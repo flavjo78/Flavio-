@@ -15,6 +15,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 
 /** Finestre condivise: crea/modifica gruppo e scheda di una ricorrenza. */
 public final class Dialoghi {
@@ -133,14 +136,13 @@ public final class Dialoghi {
         }
     }
 
-    // ------------------------------------------------------------------ scheda ricorrenza
+    // ------------------------------------------------------------------ scheda
 
     public static void dettaglio(final Activity a, final Evento e, final Runnable cambiato) {
         final Store s = Store.get(a);
-        LocalDate oggi = LocalDate.now();
-        LocalDate occ = e.prossima(oggi);
-        long gg = e.giorniA(oggi);
+        final LocalDate oggi = LocalDate.now();
         int col = s.colore(e);
+        Data prima = e.prossimaData(oggi);
 
         ScrollView sc = new ScrollView(a);
         LinearLayout v = Ui.col(a);
@@ -148,60 +150,59 @@ public final class Dialoghi {
         sc.addView(v);
 
         LinearLayout top = Ui.row(a);
-        top.addView(Ui.bolla(a, e.emoji(), col, 60));
+        top.addView(Ui.bolla(a, prima != null ? prima.emoji() : e.emoji(), col, 60));
         LinearLayout tt = Ui.col(a);
         tt.setPadding(Ui.dp(14), 0, 0, 0);
-        TextView nome = Ui.text(a, e.nome, 21, Ui.TEXT, true);
-        tt.addView(nome);
-        String sotto = e.tipoNome();
+        tt.addView(Ui.text(a, e.nome, 21, Ui.TEXT, true));
         Gruppo g = s.gruppo(e.gruppo);
-        if (g != null) sotto += " · " + g.nome;
+        String sotto = g != null ? g.nome : "Senza gruppo";
+        if (e.date.size() > 1) sotto += " · " + e.date.size() + " date";
         tt.addView(Ui.text(a, sotto, 14, Ui.TEXT2, false));
         top.addView(tt, Ui.lpW(1));
         v.addView(top);
 
-        // Quando
-        LinearLayout box = Ui.col(a);
-        box.setBackground(Ui.round(Ui.alpha(col, Ui.dark ? 0.18f : 0.10f), 16));
-        box.setPadding(Ui.dp(16), Ui.dp(12), Ui.dp(16), Ui.dp(12));
-        String q = gg == 0 ? "🎉 È oggi!" : Fmt.quando(gg);
-        box.addView(Ui.text(a, q, 18, Ui.TEXT, true));
-        box.addView(Ui.text(a, Fmt.cap(Fmt.dataAnno(occ)), 14, Ui.TEXT2, false));
-        String eta = e.eta(occ);
-        if (!eta.isEmpty()) box.addView(Ui.text(a, Fmt.cap(eta), 15, Ui.TEXT, false));
-        v.addView(box, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 16, 0, 0));
+        ArrayList<Data> ordinate = new ArrayList<>(e.date);
+        Collections.sort(ordinate, new Comparator<Data>() {
+            @Override public int compare(Data x, Data y) { return Long.compare(x.giorniA(oggi), y.giorniA(oggi)); }
+        });
+        boolean attive = s.notificheAttive(e);
+        for (Data d : ordinate) v.addView(boxData(a, s, d, col, oggi, attive), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 12, 0, 0));
 
-        // Info
-        if (e.mobile()) {
-            info(a, v, R.drawable.ic_event, Fmt.cap(e.descrizioneRegola()));
-        } else if (e.anno > 0) {
-            String d = e.giorno + " " + Fmt.mese(e.mese) + " " + e.anno;
-            String oggiEta = e.etaOggi(oggi);
-            info(a, v, R.drawable.ic_event, Fmt.cap(d) + (oggiEta.isEmpty() ? "" : " · " + oggiEta));
-        } else {
-            info(a, v, R.drawable.ic_event, e.giorno + " " + Fmt.mese(e.mese) + " · ogni anno");
+        final AlertDialog[] rif = new AlertDialog[1];
+        if (!e.festa()) {
+            TextView agg = Ui.text(a, "＋  Aggiungi un'altra data (onomastico, anniversario…)", 14, Ui.PRIMARY, true);
+            agg.setPadding(Ui.dp(12), Ui.dp(12), Ui.dp(12), Ui.dp(12));
+            agg.setBackground(Ui.ripple(Ui.roundStroke(0x00000000, Ui.alpha(Ui.PRIMARY, 0.45f), 1.2f, 14), 14));
+            agg.setClickable(true);
+            agg.setOnClickListener(new View.OnClickListener() {
+                @Override public void onClick(View x) {
+                    if (rif[0] != null) rif[0].dismiss();
+                    a.startActivity(new Intent(a, EditActivity.class).putExtra("id", e.id).putExtra("nuovaData", true));
+                }
+            });
+            v.addView(agg, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 10, 0, 0));
         }
-        String prom = Fmt.cap(Fmt.avvisi(e.avvisi)) + " · ore " + Fmt.ora(s.oraDi(e));
-        if (!s.notificheAttive(e)) prom = "Notifiche spente per il gruppo " + (g != null ? g.nome : "");
-        info(a, v, R.drawable.ic_bell, prom);
 
         final String tel = e.telefono == null ? "" : e.telefono.trim();
         if (!tel.isEmpty()) {
             info(a, v, R.drawable.ic_phone, tel);
             LinearLayout az = Ui.row(a);
-            final String msg = Azioni.messaggio(s, e);
+            final String msg = Azioni.messaggio(s, e, prima);
             TextView b1 = Ui.tileButton(a, R.drawable.ic_phone, "Chiama", Ui.PRIMARY);
             TextView b2 = Ui.tileButton(a, R.drawable.ic_chat, "WhatsApp", Ui.dark ? 0xFF4ADE80 : 0xFF1FA855);
             TextView b3 = Ui.tileButton(a, R.drawable.ic_sms, "SMS", Ui.ACCENT);
             b1.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View x) { Azioni.avvia(a, Azioni.chiama(tel)); } });
             b2.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View x) { Azioni.avvia(a, Azioni.whatsapp(s, tel, msg)); } });
             b3.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View x) { Azioni.avvia(a, Azioni.sms(tel, msg)); } });
-            az.addView(b1, Ui.lpM(0, Ui.WRAP, 0, 0, 6, 0));
-            ((LinearLayout.LayoutParams) b1.getLayoutParams()).weight = 1;
-            az.addView(b2, Ui.lpM(0, Ui.WRAP, 3, 0, 3, 0));
-            ((LinearLayout.LayoutParams) b2.getLayoutParams()).weight = 1;
-            az.addView(b3, Ui.lpM(0, Ui.WRAP, 6, 0, 0, 0));
-            ((LinearLayout.LayoutParams) b3.getLayoutParams()).weight = 1;
+            LinearLayout.LayoutParams p1 = new LinearLayout.LayoutParams(0, Ui.WRAP, 1f);
+            p1.setMargins(0, 0, Ui.dp(5), 0);
+            LinearLayout.LayoutParams p2 = new LinearLayout.LayoutParams(0, Ui.WRAP, 1f);
+            p2.setMargins(Ui.dp(3), 0, Ui.dp(3), 0);
+            LinearLayout.LayoutParams p3 = new LinearLayout.LayoutParams(0, Ui.WRAP, 1f);
+            p3.setMargins(Ui.dp(5), 0, 0, 0);
+            az.addView(b1, p1);
+            az.addView(b2, p2);
+            az.addView(b3, p3);
             v.addView(az, Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 10, 0, 4));
         }
         if (e.note != null && !e.note.trim().isEmpty()) {
@@ -217,6 +218,7 @@ public final class Dialoghi {
                 .setNegativeButton("Chiudi", null)
                 .setNeutralButton("Elimina", null)
                 .create();
+        rif[0] = d;
         d.setOnShowListener(new DialogInterface.OnShowListener() {
             @Override public void onShow(DialogInterface di) {
                 d.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(new View.OnClickListener() {
@@ -242,10 +244,42 @@ public final class Dialoghi {
         d.show();
     }
 
+    /** Riquadro di una data nella scheda. */
+    private static View boxData(Activity a, Store s, Data d, int col, LocalDate oggi, boolean attive) {
+        LinearLayout box = Ui.col(a);
+        box.setBackground(Ui.round(Ui.alpha(col, Ui.dark ? 0.18f : 0.10f), 16));
+        box.setPadding(Ui.dp(14), Ui.dp(12), Ui.dp(14), Ui.dp(12));
+        LocalDate occ = d.prossima(oggi);
+        long gg = d.giorniA(oggi);
+        LinearLayout r = Ui.row(a);
+        TextView t = Ui.text(a, d.emoji() + "  " + d.nomeCompleto(), 16, Ui.TEXT, true);
+        r.addView(t, Ui.lpW(1));
+        TextView q = Ui.text(a, gg == 0 ? "OGGI" : Fmt.quando(gg).toLowerCase(), 12.5f, gg == 0 ? 0xFFFFFFFF : Ui.PRIMARY, true);
+        q.setBackground(Ui.round(gg == 0 ? Ui.ACCENT : Ui.alpha(Ui.PRIMARY, Ui.dark ? 0.22f : 0.12f), 10));
+        q.setPadding(Ui.dp(9), Ui.dp(4), Ui.dp(9), Ui.dp(4));
+        r.addView(q);
+        box.addView(r);
+        String riga = Fmt.cap(Fmt.dataAnno(occ));
+        String eta = d.eta(occ);
+        if (!eta.isEmpty()) riga += " · " + eta;
+        box.addView(Ui.text(a, riga, 14, Ui.TEXT, false), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 4, 0, 0));
+        if (d.mobile() || d.anno > 0) {
+            String info = Fmt.cap(d.descrizioneData());
+            String ora = d.etaOggi(oggi);
+            if (!ora.isEmpty() && gg != 0) info += " · " + ora;
+            box.addView(Ui.text(a, info, 13, Ui.TEXT2, false));
+        }
+        String prom = attive ? "🔔 " + Fmt.cap(Fmt.avvisi(d.avvisi)) + " · ore " + Fmt.ora(s.oraDi(d))
+                : "🔕 Notifiche spente per questo gruppo";
+        box.addView(Ui.text(a, prom, 13, Ui.TEXT2, false), Ui.lpM(Ui.MATCH, Ui.WRAP, 0, 4, 0, 0));
+        return box;
+    }
+
     public static void conferma(final Activity a, final Evento e, final Runnable dopo) {
         new AlertDialog.Builder(a)
                 .setTitle("Eliminare «" + e.nome + "»?")
-                .setMessage("La ricorrenza e i suoi promemoria verranno cancellati.")
+                .setMessage(e.date.size() > 1 ? "La scheda con tutte le sue " + e.date.size() + " date e i promemoria verrà cancellata."
+                        : "La scheda e i suoi promemoria verranno cancellati.")
                 .setPositiveButton("Elimina", new DialogInterface.OnClickListener() {
                     @Override public void onClick(DialogInterface q, int w) {
                         Store s = Store.get(a);

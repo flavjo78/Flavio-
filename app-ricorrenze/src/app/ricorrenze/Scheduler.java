@@ -32,6 +32,7 @@ public final class Scheduler {
 
     public static class Promemoria {
         public Evento ev;
+        public Data d;            // la data della scheda (compleanno, onomastico…)
         public int anticipo;      // giorni prima
         public LocalDate data;    // data della ricorrenza
         public long quando;       // istante della notifica
@@ -54,8 +55,8 @@ public final class Scheduler {
         }
     }
 
-    static long istante(Store s, Evento e, int anticipo, LocalDate data) {
-        int ora = s.oraDi(e);
+    static long istante(Store s, Data dd, int anticipo, LocalDate data) {
+        int ora = s.oraDi(dd);
         return data.minusDays(anticipo).atTime(ora / 60, ora % 60)
                 .atZone(ZoneId.systemDefault()).toInstant().toEpochMilli();
     }
@@ -66,13 +67,13 @@ public final class Scheduler {
         int y = LocalDate.now().getYear();
         for (Evento e : s.eventi) {
             if (!s.notificheAttive(e)) continue;
-            for (int anticipo : e.avvisi) {
+            for (Data dd : e.date) for (int anticipo : dd.avvisi) {
                 for (int yy = y - 1; yy <= y + 2; yy++) {
-                    LocalDate d = e.dataNellAnno(yy);
-                    long t = istante(s, e, anticipo, d);
+                    LocalDate d = dd.dataNellAnno(yy);
+                    long t = istante(s, dd, anticipo, d);
                     if (t > da && t <= a) {
                         Promemoria p = new Promemoria();
-                        p.ev = e; p.anticipo = anticipo; p.data = d; p.quando = t;
+                        p.ev = e; p.d = dd; p.anticipo = anticipo; p.data = d; p.quando = t;
                         out.add(p);
                     }
                 }
@@ -90,13 +91,13 @@ public final class Scheduler {
         int y = LocalDate.now().getYear();
         for (Evento e : s.eventi) {
             if (!s.notificheAttive(e)) continue;
-            for (int anticipo : e.avvisi) {
+            for (Data dd : e.date) for (int anticipo : dd.avvisi) {
                 for (int yy = y - 1; yy <= y + 2; yy++) {
-                    LocalDate d = e.dataNellAnno(yy);
-                    long t = istante(s, e, anticipo, d);
+                    LocalDate d = dd.dataNellAnno(yy);
+                    long t = istante(s, dd, anticipo, d);
                     if (t > dopo && (best == null || t < best.quando)) {
                         best = new Promemoria();
-                        best.ev = e; best.anticipo = anticipo; best.data = d; best.quando = t;
+                        best.ev = e; best.d = dd; best.anticipo = anticipo; best.data = d; best.quando = t;
                     }
                 }
             }
@@ -166,15 +167,15 @@ public final class Scheduler {
     public static String titolo(Promemoria pr) {
         Evento e = pr.ev;
         String quando = Fmt.quando(pr.anticipo);
-        String t = e.titolo();
-        if ("compleanno".equals(e.tipo) || "onomastico".equals(e.tipo)) t = Fmt.low(t);
-        return e.emoji() + " " + quando + ": " + t;
+        String t = e.titolo(pr.d);
+        if ("compleanno".equals(pr.d.tipo) || "onomastico".equals(pr.d.tipo) || "anniversario".equals(pr.d.tipo)) t = Fmt.low(t);
+        return pr.d.emoji() + " " + quando + ": " + t;
     }
 
     public static String testo(Store s, Promemoria pr) {
         Evento e = pr.ev;
         StringBuilder b = new StringBuilder();
-        String eta = e.eta(pr.data);
+        String eta = pr.d.eta(pr.data);
         if (!eta.isEmpty()) b.append(Fmt.cap(eta)).append(" · ");
         b.append(Fmt.cap(Fmt.dataLunga(pr.data)));
         Gruppo g = s.gruppo(e.gruppo);
@@ -185,7 +186,7 @@ public final class Scheduler {
     static void notifica(Context c, Store s, Promemoria pr) {
         canale(c);
         Evento e = pr.ev;
-        int id = (e.id + "|" + pr.anticipo + "|" + pr.data.getYear()).hashCode();
+        int id = (e.id + "|" + pr.d.id + "|" + pr.anticipo + "|" + pr.data.getYear()).hashCode();
         String testo = testo(s, pr);
         String lungo = testo;
         if (e.note != null && !e.note.trim().isEmpty()) lungo += "\n📝 " + e.note.trim();
@@ -210,7 +211,7 @@ public final class Scheduler {
 
         String tel = e.telefono == null ? "" : e.telefono.trim();
         if (!tel.isEmpty()) {
-            String msg = Azioni.messaggio(s, e);
+            String msg = Azioni.messaggio(s, e, pr.d);
             nb.addAction(azione(c, R.drawable.ic_phone, "Chiama", Azioni.chiama(tel), id * 4 + 1));
             nb.addAction(azione(c, R.drawable.ic_chat, "WhatsApp", Azioni.whatsapp(s, tel, msg), id * 4 + 2));
             nb.addAction(azione(c, R.drawable.ic_sms, "SMS", Azioni.sms(tel, msg), id * 4 + 3));
@@ -232,19 +233,21 @@ public final class Scheduler {
         Promemoria pr = new Promemoria();
         Evento e = null;
         LocalDate oggi = LocalDate.now();
-        for (Evento x : s.eventi) if (e == null || x.giorniA(oggi) < e.giorniA(oggi)) e = x;
+        for (Evento x : s.eventi) if (!x.date.isEmpty() && (e == null || x.giorniA(oggi) < e.giorniA(oggi))) e = x;
         if (e == null) {
             e = new Evento();
             e.id = "prova";
             e.nome = "Mario Rossi";
-            e.tipo = "compleanno";
-            e.giorno = oggi.getDayOfMonth();
-            e.mese = oggi.getMonthValue();
-            e.anno = oggi.getYear() - 40;
+            Data d = new Data();
+            d.giorno = oggi.getDayOfMonth();
+            d.mese = oggi.getMonthValue();
+            d.anno = oggi.getYear() - 40;
+            e.date.add(d);
         }
         pr.ev = e;
-        pr.data = e.prossima(oggi);
-        pr.anticipo = (int) e.giorniA(oggi);
+        pr.d = e.prossimaData(oggi);
+        pr.data = pr.d.prossima(oggi);
+        pr.anticipo = (int) pr.d.giorniA(oggi);
         pr.quando = System.currentTimeMillis();
         notifica(c, s, pr);
     }

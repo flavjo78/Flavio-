@@ -24,9 +24,21 @@ public final class Rubrica {
 
     public static final int REQ = 21;
 
+    /** Una data trovata in rubrica. */
+    static class DataT {
+        String tipo;
+        int y, m, g;
+        String testo() {
+            return ("anniversario".equals(tipo) ? "💍 " : "🎂 ") + g + " " + Fmt.mese(m) + (y > 0 ? " " + y : "");
+        }
+    }
+
+    /** Un contatto con le sue date (compleanno, anniversario). */
     static class Trovato implements Comparable<Trovato> {
-        String nome, tel = "", tipo;
-        int g, m, y;
+        String nome, tel = "";
+        final ArrayList<DataT> date = new ArrayList<>();
+        Evento esistente;                       // scheda che ha già lo stesso nome
+        final ArrayList<DataT> nuove = new ArrayList<>();
         public int compareTo(Trovato o) { return nome.compareToIgnoreCase(o.nome); }
     }
 
@@ -60,11 +72,15 @@ public final class Rubrica {
         }
         final ArrayList<Trovato> nuovi = new ArrayList<>();
         for (Trovato t : tutti) {
-            boolean presente = false;
-            for (Evento e : s.eventi) {
-                if (e.nome.equalsIgnoreCase(t.nome) && e.giorno == t.g && e.mese == t.m) { presente = true; break; }
+            t.esistente = s.perNome(t.nome, null);
+            for (DataT dt : t.date) {
+                boolean presente = false;
+                if (t.esistente != null) for (Data x : t.esistente.date) {
+                    if (x.tipo.equals(dt.tipo) && x.giorno == dt.g && x.mese == dt.m) { presente = true; break; }
+                }
+                if (!presente) t.nuove.add(dt);
             }
-            if (!presente) nuovi.add(t);
+            if (!t.nuove.isEmpty()) nuovi.add(t);
         }
         if (nuovi.isEmpty()) {
             new AlertDialog.Builder(a)
@@ -80,8 +96,10 @@ public final class Rubrica {
         final boolean[] scelti = new boolean[nuovi.size()];
         for (int i = 0; i < nuovi.size(); i++) {
             Trovato t = nuovi.get(i);
-            String em = "anniversario".equals(t.tipo) ? "💍 " : "🎂 ";
-            etichette[i] = em + t.nome + " — " + t.g + " " + Fmt.mese(t.m) + (t.y > 0 ? " " + t.y : "");
+            StringBuilder b = new StringBuilder(t.nome).append(" — ");
+            for (int k = 0; k < t.nuove.size(); k++) b.append(k > 0 ? ", " : "").append(t.nuove.get(k).testo());
+            if (t.esistente != null) b.append("  (si aggiunge alla sua scheda)");
+            etichette[i] = b.toString();
             scelti[i] = true;
         }
         new AlertDialog.Builder(a)
@@ -89,9 +107,14 @@ public final class Rubrica {
                 .setMultiChoiceItems(etichette, scelti, (d, i, v) -> scelti[i] = v)
                 .setPositiveButton("Avanti", (d, w) -> {
                     final ArrayList<Trovato> sel = new ArrayList<>();
-                    for (int i = 0; i < nuovi.size(); i++) if (scelti[i]) sel.add(nuovi.get(i));
+                    boolean servonoGruppi = false;
+                    for (int i = 0; i < nuovi.size(); i++) if (scelti[i]) {
+                        sel.add(nuovi.get(i));
+                        if (nuovi.get(i).esistente == null) servonoGruppi = true;
+                    }
                     if (sel.isEmpty()) return;
-                    scegliGruppo(a, sel, dopo);
+                    if (servonoGruppi) scegliGruppo(a, sel, dopo);
+                    else aggiungi(a, sel, "", dopo);
                 })
                 .setNegativeButton("Annulla", null)
                 .show();
@@ -104,28 +127,39 @@ public final class Rubrica {
         for (int i = 0; i < s.gruppi.size(); i++) voci[i + 1] = s.gruppi.get(i).nome;
         final int[] scelta = {0};
         new AlertDialog.Builder(a)
-                .setTitle("In quale gruppo li metto?")
+                .setTitle("In quale gruppo metto le nuove schede?")
                 .setSingleChoiceItems(voci, 0, (d, i) -> scelta[0] = i)
-                .setPositiveButton("Importa", (d, w) -> {
-                    String gid = scelta[0] == 0 ? "" : s.gruppi.get(scelta[0] - 1).id;
-                    for (Trovato t : sel) {
-                        Evento e = new Evento();
-                        e.nome = t.nome;
-                        e.tipo = t.tipo;
-                        e.giorno = t.g;
-                        e.mese = t.m;
-                        e.anno = t.y;
-                        e.telefono = t.tel;
-                        e.gruppo = gid;
-                        e.avvisi = s.copiaAvvisiDefault();
-                        s.eventi.add(e);
-                    }
-                    s.salva(a);
-                    Toast.makeText(a, sel.size() == 1 ? "Aggiunta 1 ricorrenza" : "Aggiunte " + sel.size() + " ricorrenze", Toast.LENGTH_LONG).show();
-                    if (dopo != null) dopo.run();
-                })
+                .setPositiveButton("Importa", (d, w) -> aggiungi(a, sel, scelta[0] == 0 ? "" : s.gruppi.get(scelta[0] - 1).id, dopo))
                 .setNegativeButton("Annulla", null)
                 .show();
+    }
+
+    private static void aggiungi(Activity a, ArrayList<Trovato> sel, String gid, Runnable dopo) {
+        Store s = Store.get(a);
+        int date = 0;
+        for (Trovato t : sel) {
+            Evento e = t.esistente;
+            if (e == null) {
+                e = new Evento();
+                e.nome = t.nome;
+                e.gruppo = gid;
+                s.eventi.add(e);
+            }
+            if (e.telefono == null || e.telefono.trim().isEmpty()) e.telefono = t.tel;
+            for (DataT dt : t.nuove) {
+                Data d = new Data();
+                d.tipo = dt.tipo;
+                d.giorno = dt.g;
+                d.mese = dt.m;
+                d.anno = dt.y;
+                d.avvisi = s.copiaAvvisiDefault();
+                e.date.add(d);
+                date++;
+            }
+        }
+        s.salva(a);
+        Toast.makeText(a, date == 1 ? "Aggiunta 1 data" : "Aggiunte " + date + " date", Toast.LENGTH_LONG).show();
+        if (dopo != null) dopo.run();
     }
 
     static ArrayList<Trovato> leggi(Activity a) {
@@ -149,7 +183,7 @@ public final class Rubrica {
                 }
             } finally { pc.close(); }
         }
-        ArrayList<Trovato> out = new ArrayList<>();
+        java.util.LinkedHashMap<Long, Trovato> perContatto = new java.util.LinkedHashMap<>();
         HashSet<String> visti = new HashSet<>();
         Cursor c = cr.query(ContactsContract.Data.CONTENT_URI,
                 new String[]{ContactsContract.Data.CONTACT_ID, ContactsContract.Data.DISPLAY_NAME, Event.START_DATE, Event.TYPE},
@@ -167,18 +201,22 @@ public final class Rubrica {
                     else continue;
                     int[] d = data(c.getString(2));
                     if (d == null) continue;
-                    String chiave = id + "|" + t;
-                    if (!visti.add(chiave)) continue;
-                    Trovato x = new Trovato();
-                    x.nome = nome.trim();
-                    x.tipo = t;
-                    x.y = d[0]; x.m = d[1]; x.g = d[2];
-                    String n = tel.get(id);
-                    if (n != null) x.tel = n;
-                    out.add(x);
+                    if (!visti.add(id + "|" + t)) continue;
+                    Trovato x = perContatto.get(id);
+                    if (x == null) {
+                        x = new Trovato();
+                        x.nome = nome.trim().replaceAll("\\s+", " ");
+                        String n = tel.get(id);
+                        if (n != null) x.tel = n;
+                        perContatto.put(id, x);
+                    }
+                    DataT dt = new DataT();
+                    dt.tipo = t; dt.y = d[0]; dt.m = d[1]; dt.g = d[2];
+                    x.date.add(dt);
                 }
             } finally { c.close(); }
         }
+        ArrayList<Trovato> out = new ArrayList<>(perContatto.values());
         Collections.sort(out);
         return out;
     }
